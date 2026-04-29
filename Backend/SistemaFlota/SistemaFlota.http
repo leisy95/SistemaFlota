@@ -1,0 +1,6 @@
+@SistemaFlota_HostAddress = http://localhost:5214
+
+GET {{SistemaFlota_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
