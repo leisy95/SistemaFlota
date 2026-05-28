@@ -1,0 +1,145 @@
+<div class="contenedor">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>📱 Contactos de Notificación</h1>
+      <p class="subtitulo">Números WhatsApp que reciben alertas de incidentes</p>
+    </div>
+    <button class="btn-agregar" (click)="agregarContacto()">
+      + Nuevo Contacto
+    </button>
+  </div>
+
+  <!-- AVISO -->
+  <div class="aviso-info">
+    💡 Cuando un conductor reporte un incidente, se abrirá WhatsApp automáticamente
+    con un mensaje prellenado para cada contacto activo de esta lista.
+  </div>
+
+  <!-- TABLA -->
+  <div class="tabla-container" *ngIf="contactos.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Área</th>
+          <th>WhatsApp</th>
+          <th>Recibe alertas</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of contactos">
+
+          <td data-label="Nombre">
+            <strong>{{ c.nombre }}</strong>
+          </td>
+
+          <td data-label="Área">
+            <span class="area-badge">{{ c.area }}</span>
+          </td>
+
+          <td data-label="WhatsApp">
+            <span class="numero">+{{ c.numeroWhatsApp }}</span>
+          </td>
+
+          <td data-label="Recibe alertas">
+            <span [class]="c.recibeIncidentes ? 'si' : 'no'">
+              {{ c.recibeIncidentes ? '✅ Sí' : '❌ No' }}
+            </span>
+          </td>
+
+          <td data-label="Estado">
+            <span class="estado" [class.activo]="c.activo" [class.inactivo]="!c.activo">
+              {{ c.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+
+          <td data-label="Acciones">
+            <div class="btn-acciones">
+              <button class="btn-probar" (click)="probarWhatsApp(c)">
+                📱 Probar
+              </button>
+              <button class="btn-editar" (click)="editarContacto(c)">
+                ✏️
+              </button>
+              <button class="btn-estado" (click)="cambiarEstado(c)">
+                {{ c.activo ? '🔴' : '🟢' }}
+              </button>
+              <button class="btn-eliminar" (click)="eliminarContacto(c.id)">
+                🗑️
+              </button>
+            </div>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VACÍO -->
+  <div class="vacio" *ngIf="contactos.length === 0">
+    <p>📱 No hay contactos registrados</p>
+    <small>Agrega los números de WhatsApp del equipo de operaciones</small>
+    <button class="btn-agregar" (click)="agregarContacto()">
+      + Agregar primer contacto
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>{{ editando ? '✏️ Editar Contacto' : '📱 Nuevo Contacto' }}</h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>👤 Nombre completo *</label>
+      <input type="text" [(ngModel)]="nuevoContacto.nombre"
+        placeholder="Ej: Juan Pérez">
+    </div>
+
+    <div class="form-group">
+      <label>🏢 Área *</label>
+      <select [(ngModel)]="nuevoContacto.area">
+        <option value="">Seleccione el área</option>
+        <option *ngFor="let a of areas" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>📱 Número WhatsApp *</label>
+      <input
+        type="tel"
+        [(ngModel)]="nuevoContacto.numeroWhatsApp"
+        placeholder="Ej: 573001234567">
+      <small>
+        Incluya código de país sin + ni espacios.
+        Colombia: 57 + número. Ej: 573001234567
+      </small>
+    </div>
+
+    <div class="form-check">
+      <label class="check-label" (click)="nuevoContacto.recibeIncidentes = !nuevoContacto.recibeIncidentes">
+        <span class="check-icon">
+          {{ nuevoContacto.recibeIncidentes ? '✅' : '⬜' }}
+        </span>
+        Recibe notificaciones de incidentes
+      </label>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar" (click)="guardarContacto()">
+        {{ editando ? 'Guardar cambios' : 'Agregar contacto' }}
+      </button>
+    </div>
+
+  </div>
+</div>

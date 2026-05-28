@@ -1,0 +1,166 @@
+<div class="dashboard">
+
+  <!-- BIENVENIDA -->
+  <div class="bienvenida">
+    <div class="bienvenida-texto">
+      <h1>Panel Administrativo</h1>
+      <p class="fecha">{{ fechaActual }}</p>
+    </div>
+    <div class="reloj">
+      <span class="hora">{{ horaActual }}</span>
+    </div>
+  </div>
+
+  <!-- ALERTAS CRÍTICAS -->
+  <div class="alertas-bar"
+    *ngIf="documentosPorVencer > 0 || vehiculosEnTaller > 0 || incidentesPendientes > 0">
+    <div class="alerta-chip rojo" *ngIf="incidentesPendientes > 0"
+      (click)="ir('incidentes')">
+      🚨 {{ incidentesPendientes }} incidente(s) pendiente(s)
+    </div>
+    <div class="alerta-chip amarillo" *ngIf="documentosPorVencer > 0"
+      (click)="ir('documentos')">
+      ⚠️ {{ documentosPorVencer }} documento(s) por vencer
+    </div>
+    <div class="alerta-chip naranja" *ngIf="vehiculosEnTaller > 0"
+      (click)="ir('mantenimiento')">
+      🔧 {{ vehiculosEnTaller }} vehículo(s) en taller
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis-grid">
+
+    <div class="kpi-card azul" (click)="irAConductores()">
+      <div class="kpi-icono">👤</div>
+      <div class="kpi-info">
+        <span class="kpi-numero">{{ totalConductores }}</span>
+        <span class="kpi-label">Conductores</span>
+      </div>
+      <div class="kpi-flecha">→</div>
+    </div>
+
+    <div class="kpi-card verde" (click)="ir('vehiculos')">
+      <div class="kpi-icono">🚚</div>
+      <div class="kpi-info">
+        <span class="kpi-numero">{{ totalVehiculos }}</span>
+        <span class="kpi-label">Vehículos</span>
+      </div>
+      <div class="kpi-flecha">→</div>
+    </div>
+
+    <div class="kpi-card morado" (click)="verInspecciones()">
+      <div class="kpi-icono">📋</div>
+      <div class="kpi-info">
+        <span class="kpi-numero">{{ totalInspecciones }}</span>
+        <span class="kpi-label">Inspecciones</span>
+      </div>
+      <div class="kpi-flecha">→</div>
+    </div>
+
+    <div class="kpi-card naranja" (click)="irAAutorizaciones()">
+      <div class="kpi-icono">✅</div>
+      <div class="kpi-info">
+        <span class="kpi-numero">{{ autorizacionesHoy }}</span>
+        <span class="kpi-label">Autorizaciones hoy</span>
+      </div>
+      <div class="kpi-flecha">→</div>
+    </div>
+
+  </div>
+
+  <!-- ACCESO RÁPIDO -->
+  <div class="seccion-titulo">⚡ Acceso Rápido</div>
+  <div class="acceso-rapido">
+    <div
+      class="acceso-card"
+      *ngFor="let m of modulosRapidos"
+      [class]="'acceso-card ' + m.color"
+      (click)="ir(m.key)">
+      <span class="acceso-icono">{{ m.icon }}</span>
+      <span class="acceso-label">{{ m.label }}</span>
+    </div>
+  </div>
+
+  <!-- GRÁFICAS -->
+  <div class="graficas-grid">
+
+    <div class="grafica-card">
+      <h3>📊 Inspecciones por mes</h3>
+      <canvas #graficoInspecciones></canvas>
+    </div>
+
+    <div class="grafica-card">
+      <h3>🔄 Estado Autorizaciones</h3>
+      <div class="dona-container">
+        <canvas #graficoDona></canvas>
+      </div>
+      <div class="dona-stats">
+        <div class="dona-stat">
+          <span class="punto amarillo"></span>
+          <span>Pendientes: {{ autorizacionesPendientes }}</span>
+        </div>
+        <div class="dona-stat">
+          <span class="punto verde"></span>
+          <span>Autorizadas: {{ autorizacionesAutorizadas }}</span>
+        </div>
+        <div class="dona-stat">
+          <span class="punto rojo"></span>
+          <span>Rechazadas: {{ autorizacionesRechazadas }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ÚLTIMAS ACTIVIDADES -->
+  <div class="actividades-grid">
+
+    <div class="actividad-card">
+      <div class="actividad-header">
+        <h3>📝 Últimas Inspecciones</h3>
+        <button (click)="verInspecciones()">Ver todas →</button>
+      </div>
+      <div class="actividad-lista">
+        <div class="actividad-item" *ngFor="let i of ultimasInspecciones">
+          <div class="actividad-icono">📋</div>
+          <div class="actividad-info">
+            <strong>{{ i.conductor?.nombre ?? '-' }}</strong>
+            <span>{{ i.vehiculo?.placa ?? '-' }} — {{ i.kilometraje }} km</span>
+          </div>
+          <div class="actividad-fecha">{{ i.fecha | date:'shortDate' }}</div>
+        </div>
+        <div class="actividad-vacio" *ngIf="ultimasInspecciones.length === 0">
+          Sin inspecciones recientes
+        </div>
+      </div>
+    </div>
+
+    <div class="actividad-card">
+      <div class="actividad-header">
+        <h3>✅ Últimas Autorizaciones</h3>
+        <button (click)="irAAutorizaciones()">Ver todas →</button>
+      </div>
+      <div class="actividad-lista">
+        <div class="actividad-item" *ngFor="let a of ultimasAutorizaciones">
+          <div class="actividad-icono">🚚</div>
+          <div class="actividad-info">
+            <strong>{{ a.conductor?.nombre ?? '-' }}</strong>
+            <span>{{ a.vehiculo?.placa ?? '-' }} — {{ a.tipoVuelta }}</span>
+          </div>
+          <div class="actividad-estado"
+            [class.verde]="a.estado === 'Autorizado'"
+            [class.amarillo]="a.estado === 'Pendiente'"
+            [class.rojo]="a.estado === 'Rechazado'">
+            {{ a.estado }}
+          </div>
+        </div>
+        <div class="actividad-vacio" *ngIf="ultimasAutorizaciones.length === 0">
+          Sin autorizaciones recientes
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

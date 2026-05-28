@@ -1,0 +1,160 @@
+<div class="contenedor">
+
+  <div class="header-inspeccion">
+    <h1>📝 Nueva Inspección</h1>
+    <p class="subtitulo">Complete todos los campos antes de guardar</p>
+  </div>
+
+  <!-- NOTIFICACIÓN ÉXITO -->
+  <div class="notificacion-exito" *ngIf="guardadoExito">
+    <div class="notif-icono">✅</div>
+    <div class="notif-texto">
+      <strong>¡Inspección guardada con éxito!</strong>
+      <p>El registro fue almacenado correctamente en el sistema.</p>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="form-card">
+    <h2>👤 Datos del conductor y vehículo</h2>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>👤 Conductor *</label>
+        <select [(ngModel)]="conductorId">
+          <option [value]="0">Seleccionar conductor</option>
+          <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🚗 Tipo de Vehículo *</label>
+        <select [(ngModel)]="tipoVehiculoId" (change)="cargarChecklist()">
+          <option [value]="0">Seleccionar tipo vehículo</option>
+          <option [value]="1">Moto</option>
+          <option [value]="2">Motocarro</option>
+          <option [value]="3">Van</option>
+          <option [value]="4">Camión</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🚚  Placa Vehículo *</label>
+        <select [(ngModel)]="vehiculoId">
+          <option [value]="0">Seleccionar vehículo</option>
+          <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🛣️ Kilometraje actual *</label>
+        <input type="number" [(ngModel)]="kilometraje" placeholder="Ej: 45000">
+      </div>
+
+      <div class="form-group full">
+        <label>📸 Foto del odómetro</label>
+        <label class="btn-foto-odometro" for="inputOdometro">
+          📷 Seleccionar foto del odómetro
+        </label>
+        <input
+          id="inputOdometro"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="seleccionarFoto($event)"
+          style="display: none">
+        <small *ngIf="fotoSeleccionada">✅ {{ fotoSeleccionada.name }}</small>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="form-card" *ngIf="checklist.length > 0">
+    <h2>✅ Checklist de Inspección</h2>
+
+    <div class="checklist">
+      <div *ngFor="let item of checklist; let i = index" class="check-item">
+
+        <div class="check-header">
+          <span class="check-numero">{{ i + 1 }}</span>
+          <h3>{{ item.descripcion }}</h3>
+        </div>
+
+        <div class="check-estados">
+          <label
+            class="estado-btn"
+            [class.cumple]="item.estado === 'Cumple'"
+            (click)="item.estado = 'Cumple'">
+            ✅ Cumple
+          </label>
+          <label
+            class="estado-btn"
+            [class.nocumple]="item.estado === 'No cumple'"
+            (click)="item.estado = 'No cumple'">
+            ❌ No cumple
+          </label>
+          <label
+            class="estado-btn"
+            [class.noaplica]="item.estado === 'No aplica'"
+            (click)="item.estado = 'No aplica'">
+            ➖ No aplica
+          </label>
+        </div>
+
+        <div *ngIf="item.estado === 'No cumple'" class="check-novedad">
+          <textarea
+            [(ngModel)]="item.observacion"
+            placeholder="Describa la novedad detalladamente...">
+          </textarea>
+          <label class="btn-evidencia" [for]="'evidencia-' + i">
+            📷 Agregar foto de evidencia
+          </label>
+          <input
+            [id]="'evidencia-' + i"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            (change)="seleccionarEvidencia($event, item)"
+            style="display: none">
+          <small *ngIf="item.evidencia">✅ Foto agregada</small>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card sin-checklist" *ngIf="checklist.length === 0 && tipoVehiculoId > 0">
+    <p>⚠️ No hay items de checklist para este tipo de vehículo</p>
+  </div>
+
+  <!-- FIRMA -->
+  <div class="form-card">
+    <h2>✍️ Firma del Conductor</h2>
+    <p class="firma-instruccion">Firme en el recuadro a continuación</p>
+
+    <canvas
+      #firmaCanvas
+      width="400"
+      height="150"
+      style="touch-action: none; width: 100%; max-width: 100%;">
+    </canvas>
+
+    <button type="button" class="btn-limpiar-firma" (click)="limpiarFirma()">
+      🗑️ Limpiar firma
+    </button>
+  </div>
+
+  <!-- BOTÓN GUARDAR -->
+  <div class="footer-guardar">
+    <button
+      class="btn-guardar-inspeccion"
+      (click)="iniciarInspeccion()"
+      [disabled]="guardando">
+      <span *ngIf="!guardando">💾 Guardar Inspección</span>
+      <span *ngIf="guardando">⏳ Guardando...</span>
+    </button>
+  </div>
+
+</div>

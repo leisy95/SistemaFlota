@@ -1,0 +1,287 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div>
+      <h1>📁 Gestión de Documentos</h1>
+      <p class="subtitulo">Documentos de vehículos y archivos generales</p>
+    </div>
+    <div class="header-acciones">
+      <button class="btn-subir-vehiculo" (click)="abrirSubir('vehiculo')">
+        🚚 Doc. Vehículo
+      </button>
+      <button class="btn-subir-general" (click)="abrirSubir('general')">
+        📄 Doc. General
+      </button>
+    </div>
+  </div>
+
+  <div class="alerta-vencer" *ngIf="porVencer.total > 0">
+    ⚠️ Tienes <strong>{{ porVencer.total }}</strong> documento(s) por vencer en los próximos 30 días.
+    <button (click)="cambiarTab('vencer')">Ver →</button>
+  </div>
+
+  <div class="tabs">
+    <button [class.activo]="tabActual === 'vehiculo'" (click)="cambiarTab('vehiculo')">
+      🚚 Documentos Vehículo
+    </button>
+    <button [class.activo]="tabActual === 'generales'" (click)="cambiarTab('generales')">
+      📄 Documentos Generales
+    </button>
+    <button [class.activo]="tabActual === 'vencer'" (click)="cambiarTab('vencer')">
+      ⚠️ Por Vencer
+      <span class="badge-count" *ngIf="porVencer.total > 0">{{ porVencer.total }}</span>
+    </button>
+  </div>
+
+  <!-- TAB VEHÍCULO -->
+  <div *ngIf="tabActual === 'vehiculo'">
+
+    <div class="selector-vehiculo">
+      <select [(ngModel)]="vehiculoSeleccionado" (change)="seleccionarVehiculo()">
+        <option [value]="0">Seleccione un vehículo</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">
+          {{ v.placa }} — {{ v.marca }} {{ v.modelo }}
+        </option>
+      </select>
+    </div>
+
+    <div class="vacio" *ngIf="vehiculoSeleccionado === 0">
+      <p>🚚 Seleccione un vehículo para ver sus documentos</p>
+    </div>
+
+    <div *ngIf="vehiculoSeleccionado > 0">
+
+      <div class="docs-grid" *ngIf="documentosVehiculo.length > 0">
+        <div
+          class="doc-card"
+          *ngFor="let d of documentosVehiculo"
+          [class.vencido]="estaVencido(d.fechaVencimiento)"
+          [class.proximo]="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30">
+
+          <div class="doc-icon">{{ getIconoExtension(d.extension) }}</div>
+
+          <div class="doc-info">
+            <strong>{{ d.nombre }}</strong>
+            <span class="doc-tipo">{{ d.tipoDocumento }}</span>
+            <span class="doc-fecha" *ngIf="d.fechaVencimiento">
+              <span *ngIf="estaVencido(d.fechaVencimiento)" class="vencido-label">❌ Vencido</span>
+              <span *ngIf="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30" class="proximo-label">
+                ⚠️ Vence en {{ diasParaVencer(d.fechaVencimiento) }} días
+              </span>
+              <span *ngIf="diasParaVencer(d.fechaVencimiento) > 30">
+                📅 Vence: {{ d.fechaVencimiento | date:'shortDate' }}
+              </span>
+            </span>
+            <span class="doc-fecha">{{ d.fechaSubida | date:'short' }}</span>
+          </div>
+
+          <div class="doc-acciones">
+            <a [href]="getUrlDocumento('vehiculo', d.archivoUrl)" target="_blank" class="btn-ver-doc">
+              👁️ Ver
+            </a>
+            <button class="btn-eliminar-doc" (click)="eliminarVehiculo(d.id)">🗑️</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="vacio" *ngIf="documentosVehiculo.length === 0">
+        <p>📄 No hay documentos para este vehículo</p>
+        <button class="btn-subir-vehiculo" (click)="abrirSubir('vehiculo')">+ Subir documento</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TAB GENERALES -->
+  <div *ngIf="tabActual === 'generales'">
+
+    <div class="filtros">
+      <select [(ngModel)]="filtroCategoria" (change)="cargarDocumentosGenerales()">
+        <option value="">Todas las categorías</option>
+        <option *ngFor="let c of categoriasGenerales" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <div class="docs-grid" *ngIf="documentosGenerales.length > 0">
+      <div
+        class="doc-card"
+        *ngFor="let d of documentosGenerales"
+        [class.vencido]="estaVencido(d.fechaVencimiento)"
+        [class.proximo]="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30">
+
+        <div class="doc-icon">{{ getIconoExtension(d.extension) }}</div>
+
+        <div class="doc-info">
+          <strong>{{ d.nombre }}</strong>
+          <span class="doc-tipo">{{ d.categoria }}</span>
+          <span class="doc-desc" *ngIf="d.descripcion">{{ d.descripcion }}</span>
+          <span class="doc-tamano">{{ getTamano(d.tamanoBytes) }}</span>
+          <span class="doc-fecha" *ngIf="d.fechaVencimiento">
+            <span *ngIf="estaVencido(d.fechaVencimiento)" class="vencido-label">❌ Vencido</span>
+            <span *ngIf="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30" class="proximo-label">
+              ⚠️ Vence en {{ diasParaVencer(d.fechaVencimiento) }} días
+            </span>
+            <span *ngIf="diasParaVencer(d.fechaVencimiento) > 30">
+              📅 Vence: {{ d.fechaVencimiento | date:'shortDate' }}
+            </span>
+          </span>
+          <span class="doc-fecha">{{ d.fechaSubida | date:'short' }}</span>
+        </div>
+
+        <div class="doc-acciones">
+          <a [href]="getUrlDocumento('general', d.archivoUrl)" target="_blank" class="btn-ver-doc">
+            👁️ Ver
+          </a>
+          <button class="btn-eliminar-doc" (click)="eliminarGeneral(d.id)">🗑️</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="vacio" *ngIf="documentosGenerales.length === 0">
+      <p>📄 No hay documentos generales</p>
+      <button class="btn-subir-general" (click)="abrirSubir('general')">+ Subir documento</button>
+    </div>
+
+  </div>
+
+  <!-- TAB POR VENCER -->
+  <div *ngIf="tabActual === 'vencer'">
+
+    <div class="vacio" *ngIf="porVencer.total === 0">
+      <p>✅ No hay documentos por vencer en los próximos 30 días</p>
+    </div>
+
+    <div *ngIf="porVencer.total > 0">
+
+      <div *ngIf="porVencer.vehiculo?.length > 0">
+        <h3 class="seccion-titulo">🚚 Documentos de Vehículos</h3>
+        <div class="vencer-lista">
+          <div class="vencer-item" *ngFor="let d of porVencer.vehiculo"
+            [class.vencido]="estaVencido(d.fechaVencimiento)">
+            <span class="vencer-icono">📄</span>
+            <div class="vencer-info">
+              <strong>{{ d.nombre }}</strong>
+              <span>{{ d.tipoDocumento }} — Vehículo: {{ d.vehiculo }}</span>
+            </div>
+            <div class="vencer-fecha" [class.vencido]="estaVencido(d.fechaVencimiento)">
+              <span *ngIf="estaVencido(d.fechaVencimiento)">❌ Vencido</span>
+              <span *ngIf="!estaVencido(d.fechaVencimiento)">⚠️ {{ diasParaVencer(d.fechaVencimiento) }} días</span>
+              <small>{{ d.fechaVencimiento | date:'shortDate' }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="porVencer.generales?.length > 0">
+        <h3 class="seccion-titulo">📄 Documentos Generales</h3>
+        <div class="vencer-lista">
+          <div class="vencer-item" *ngFor="let d of porVencer.generales"
+            [class.vencido]="estaVencido(d.fechaVencimiento)">
+            <span class="vencer-icono">📄</span>
+            <div class="vencer-info">
+              <strong>{{ d.nombre }}</strong>
+              <span>{{ d.tipoDocumento }}</span>
+            </div>
+            <div class="vencer-fecha" [class.vencido]="estaVencido(d.fechaVencimiento)">
+              <span *ngIf="estaVencido(d.fechaVencimiento)">❌ Vencido</span>
+              <span *ngIf="!estaVencido(d.fechaVencimiento)">⚠️ {{ diasParaVencer(d.fechaVencimiento) }} días</span>
+              <small>{{ d.fechaVencimiento | date:'shortDate' }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL SUBIR -->
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>{{ tipoSubida === 'vehiculo' ? '🚚 Documento de Vehículo' : '📄 Documento General' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarModal = false">✕</button>
+    </div>
+
+    <div *ngIf="tipoSubida === 'vehiculo'">
+      <div class="form-group">
+        <label>🚚 Vehículo *</label>
+        <select [(ngModel)]="formVehiculo.vehiculoId">
+          <option [value]="0">Seleccione vehículo</option>
+          <option *ngFor="let v of vehiculos" [value]="v.id">
+            {{ v.placa }} — {{ v.marca }} {{ v.modelo }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📋 Tipo de Documento *</label>
+        <select [(ngModel)]="formVehiculo.tipoDocumento">
+          <option value="">Seleccione tipo</option>
+          <option *ngFor="let t of tiposDocumentoVehiculo" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📝 Nombre *</label>
+        <input type="text" [(ngModel)]="formVehiculo.nombre" placeholder="Ej: SOAT 2025">
+      </div>
+      <div class="form-group">
+        <label>💬 Descripción</label>
+        <input type="text" [(ngModel)]="formVehiculo.descripcion" placeholder="Descripción opcional">
+      </div>
+      <div class="form-group">
+        <label>📅 Fecha de Vencimiento</label>
+        <input type="date" [(ngModel)]="formVehiculo.fechaVencimiento">
+      </div>
+    </div>
+
+    <div *ngIf="tipoSubida === 'general'">
+      <div class="form-group">
+        <label>📝 Nombre *</label>
+        <input type="text" [(ngModel)]="formGeneral.nombre" placeholder="Nombre del documento">
+      </div>
+      <div class="form-group">
+        <label>🏷️ Categoría</label>
+        <select [(ngModel)]="formGeneral.categoria">
+          <option *ngFor="let c of categoriasGenerales" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>💬 Descripción</label>
+        <input type="text" [(ngModel)]="formGeneral.descripcion" placeholder="Descripción opcional">
+      </div>
+      <div class="form-group">
+        <label>📅 Fecha de Vencimiento</label>
+        <input type="date" [(ngModel)]="formGeneral.fechaVencimiento">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>📁 Archivo *</label>
+      <label class="btn-archivo" for="inputArchivo">
+        <span>{{ archivoSeleccionado ? '✅ ' + archivoSeleccionado.name : '📁 Seleccionar archivo' }}</span>
+      </label>
+      <input
+        id="inputArchivo"
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+        (change)="seleccionarArchivo($event)"
+        style="display: none">
+      <small>PDF, imágenes, Word, Excel — Máx 10MB</small>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="mostrarModal = false">Cancelar</button>
+      <button class="btn-guardar" (click)="subirDocumento()" [disabled]="subiendo">
+        <span *ngIf="!subiendo">📤 Subir documento</span>
+        <span *ngIf="subiendo">⏳ Subiendo...</span>
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,138 @@
+<div class="contenedor">
+
+  <div class="header-historial">
+    <h1>Historial Inspecciones</h1>
+    <button class="btn-excel" (click)="exportarExcel()">
+      📊 Exportar Excel
+    </button>
+  </div>
+
+  <div class="tabla-container">
+    <table>
+
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Conductor</th>
+          <th>Vehículo</th>
+          <th>Kilometraje</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of obtenerHistorialPaginado()">
+
+          <td data-label="Fecha">
+            {{ item.fecha | date:'short' }}
+          </td>
+
+          <td data-label="Conductor">
+            {{ item.conductor?.nombre }}
+          </td>
+
+          <td data-label="Vehículo">
+            {{ item.vehiculo?.placa }}
+          </td>
+
+          <td data-label="Kilometraje">
+            {{ item.kilometraje }} km
+          </td>
+
+          <td data-label="Acción">
+            <div class="btn-acciones">
+
+              <button
+                class="btn-ver"
+                (click)="verDetalle(item.id)">
+                👁️ Ver
+              </button>
+
+              <button
+                class="btn-pdf"
+                (click)="descargarPDF(item)">
+                📄 PDF
+              </button>
+
+            </div>
+          </td>
+
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<!-- PAGINACIÓN -->
+<div class="paginacion">
+  <button (click)="paginaAnterior()">← Anterior</button>
+  <span>Página {{ paginaActual }}</span>
+  <button (click)="paginaSiguiente()">Siguiente →</button>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" *ngIf="detalleSeleccionado">
+
+  <div class="modal-detalle">
+
+    <div class="modal-header">
+      <h2>🚚 Detalle Inspección</h2>
+      <button class="btn-cerrar" (click)="detalleSeleccionado = null">✕</button>
+    </div>
+
+    <div class="info-grid">
+
+      <div class="info-card">
+        <span>👤 Conductor</span>
+        <h3>{{ detalleSeleccionado.conductor.nombre }}</h3>
+      </div>
+
+      <div class="info-card">
+        <span>🚚 Vehículo</span>
+        <h3>{{ detalleSeleccionado.vehiculo.placa }}</h3>
+      </div>
+
+      <div class="info-card">
+        <span>📅 Fecha</span>
+        <h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3>
+      </div>
+
+      <div class="info-card">
+        <span>⛽ Kilometraje</span>
+        <h3>{{ detalleSeleccionado.kilometraje }} km</h3>
+      </div>
+
+    </div>
+
+    <div class="foto-odometro" *ngIf="detalleSeleccionado.fotoOdometro">
+      <h3>Foto Odómetro</h3>
+      <img [src]="'https://localhost:7293/inspecciones/' + detalleSeleccionado.fotoOdometro">
+    </div>
+
+    <div class="checklist-section">
+      <h3>✅ Checklist</h3>
+
+      <div class="check-item" *ngFor="let item of detalleSeleccionado.detalles">
+
+        <div class="estado">
+          <span
+            [class.ok]="item.estado === 'Cumple'"
+            [class.fail]="item.estado !== 'Cumple'">
+            {{ item.estado }}
+          </span>
+        </div>
+
+        <div class="detalle-info">
+          <p><strong>Ítem:</strong> {{ item.nombreItem || item.checklistItemId }}</p>
+          <p><strong>Observación:</strong> {{ item.observacion || 'Sin observación' }}</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

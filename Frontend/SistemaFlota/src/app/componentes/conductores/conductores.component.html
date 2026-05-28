@@ -1,0 +1,365 @@
+<div class="contenedor">
+
+  <div class="header">
+
+    <h2>
+      Conductores Activos
+      ({{ conductoresFiltrados.length }})
+    </h2>
+
+    <button
+      class="btn-agregar"
+      (click)="agregar()">
+
+      + Nuevo Conductor
+
+    </button>
+
+  </div>
+
+  <!-- BUSCADOR -->
+
+  <div class="buscador">
+
+    <input
+      type="text"
+
+      [(ngModel)]="busqueda"
+
+      (input)="filtrarConductores()"
+
+      placeholder="Buscar conductor..."
+    >
+
+  </div>
+
+  <!-- TARJETAS -->
+
+  <div
+    *ngFor="
+      let c of
+      obtenerConductoresPaginados()
+    "
+
+    class="card"
+  >
+
+    <!-- FOTO -->
+
+    <div class="foto-container">
+
+      <img
+        *ngIf="c.foto"
+
+        [src]="
+          fotosUrl +
+          '/fotos/' +
+          c.foto
+        "
+
+        class="foto"
+      >
+
+      <img
+        *ngIf="!c.foto"
+
+        src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+
+        class="foto"
+      >
+
+    </div>
+
+    <!-- INFO -->
+
+    <div class="info">
+
+      <h3>
+
+        {{ c.nombre }}
+
+        <span class="estado">
+          Activo
+        </span>
+
+      </h3>
+
+      <p>
+
+        <strong>
+          Licencia:
+        </strong>
+
+        {{ c.licencia }}
+
+      </p>
+
+      <p>
+
+        <strong>
+          Teléfono:
+        </strong>
+
+        {{ c.telefono }}
+
+      </p>
+
+      <p>
+
+        <strong>
+          Email:
+        </strong>
+
+        {{ c.email }}
+
+      </p>
+
+    </div>
+
+    <!-- ACCIONES -->
+
+    <div class="acciones">
+
+      <button
+        class="btn-ver"
+
+        (click)="ver(c)"
+      >
+
+        Ver
+
+      </button>
+
+      <button
+        class="btn-editar"
+
+        (click)="editar(c)"
+      >
+
+        Editar
+
+      </button>
+
+      <button
+        class="btn-eliminar"
+
+        (click)="eliminar(c.id)"
+      >
+
+        Eliminar
+
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- PAGINACIÓN -->
+
+  <div class="paginacion">
+
+    <button
+      (click)="paginaAnterior()"
+    >
+
+      ← Anterior
+
+    </button>
+
+    <span>
+
+      Página
+      {{ paginaActual }}
+
+    </span>
+
+    <button
+      (click)="paginaSiguiente()"
+    >
+
+      Siguiente →
+
+    </button>
+
+  </div>
+
+</div>
+
+<!-- PERFIL CONDUCTOR -->
+
+<div
+  class="modal"
+
+  *ngIf="
+    conductorSeleccionado
+  "
+>
+
+  <div class="modal-perfil">
+
+    <button
+      class="cerrar-perfil"
+
+      (click)="
+        conductorSeleccionado = null
+      "
+    >
+
+      ✕
+
+    </button>
+
+    <h2>
+      Perfil del Conductor
+    </h2>
+
+    <!-- FOTO GRANDE -->
+
+    <img
+      *ngIf="
+        conductorSeleccionado.foto
+      "
+
+      [src]="
+        fotosUrl +
+        '/fotos/' +
+        conductorSeleccionado.foto
+      "
+
+      class="foto-grande"
+    >
+
+    <img
+      *ngIf="
+        !conductorSeleccionado.foto
+      "
+
+      src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+
+      class="foto-grande"
+    >
+
+    <p>
+
+      <strong>
+        Nombre:
+      </strong>
+
+      {{ conductorSeleccionado.nombre }}
+
+    </p>
+
+    <p>
+
+      <strong>
+        Licencia:
+      </strong>
+
+      {{ conductorSeleccionado.licencia }}
+
+    </p>
+
+    <p>
+
+      <strong>
+        Teléfono:
+      </strong>
+
+      {{ conductorSeleccionado.telefono }}
+
+    </p>
+
+    <p>
+
+      <strong>
+        Email:
+      </strong>
+
+      {{ conductorSeleccionado.email }}
+
+    </p>
+
+  </div>
+
+</div>
+
+<!-- MODAL CREAR / EDITAR -->
+
+<div
+  class="modal"
+
+  *ngIf="
+    mostrarModal
+  "
+>
+
+  <div class="modal-content">
+
+    <h2>
+
+      {{ editando
+        ? 'Editar Conductor'
+        : 'Nuevo Conductor'
+      }}
+
+    </h2>
+
+    <input
+      [(ngModel)]="nuevo.nombre"
+
+      placeholder="Nombre"
+    >
+
+    <input
+      [(ngModel)]="nuevo.licencia"
+
+      placeholder="Licencia"
+    >
+
+    <input
+      [(ngModel)]="nuevo.telefono"
+
+      placeholder="Teléfono"
+    >
+
+    <input
+      [(ngModel)]="nuevo.email"
+
+      placeholder="Email"
+    >
+
+    <input
+      type="file"
+
+      (change)="
+        seleccionarImagen($event)
+      "
+    >
+
+    <div class="acciones-modal">
+
+      <button
+        class="btn-guardar"
+
+        (click)="guardar()"
+      >
+
+        Guardar
+
+      </button>
+
+      <button
+        class="btn-cancelar"
+
+        (click)="cerrar()"
+      >
+
+        Cancelar
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

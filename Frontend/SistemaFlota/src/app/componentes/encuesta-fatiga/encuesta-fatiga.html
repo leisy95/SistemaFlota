@@ -1,0 +1,253 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div>
+      <h1>😴 Encuesta Preoperacional de Fatiga</h1>
+      <p class="subtitulo">Control de condiciones del conductor antes de salir a ruta</p>
+    </div>
+    <div class="header-acciones">
+      <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
+      <button class="btn-nueva" (click)="nuevaEncuesta()">+ Nueva Encuesta</button>
+    </div>
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="stats-grid" *ngIf="estadisticas">
+    <div class="stat-card azul">
+      <span class="stat-numero">{{ estadisticas.total }}</span>
+      <span class="stat-label">Total encuestas</span>
+    </div>
+    <div class="stat-card verde">
+      <span class="stat-numero">{{ estadisticas.aptos }}</span>
+      <span class="stat-label">Aptos</span>
+    </div>
+    <div class="stat-card rojo">
+      <span class="stat-numero">{{ estadisticas.noAptos }}</span>
+      <span class="stat-label">No aptos</span>
+    </div>
+    <div class="stat-card morado">
+      <span class="stat-numero">{{ estadisticas.encuestasHoy }}</span>
+      <span class="stat-label">Encuestas hoy</span>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="formulario-card" *ngIf="mostrarFormulario">
+    <div class="formulario-header">
+      <h2>📋 Nueva Encuesta de Fatiga</h2>
+      <button class="btn-cerrar" (click)="mostrarFormulario = false">✕</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>👤 Conductor *</label>
+        <select [(ngModel)]="form.conductorId">
+          <option [value]="0">Seleccione conductor</option>
+          <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>🚗 Vehículo *</label>
+        <select [(ngModel)]="form.vehiculoId">
+          <option [value]="0">Seleccione vehículo</option>
+          <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>👤 Registrado por *</label>
+        <input type="text" [(ngModel)]="form.registradoPor"
+          placeholder="Nombre de quien registra">
+      </div>
+    </div>
+
+    <!-- PREGUNTAS FIJAS -->
+    <div class="preguntas-seccion">
+      <h3>🔍 Preguntas de Fatiga</h3>
+      <p class="preguntas-info">
+        Responda con honestidad. Si 2 o más respuestas son <strong>SÍ</strong>,
+        el conductor será marcado como <strong class="texto-no-apto">NO APTO</strong>.
+      </p>
+
+      <div class="pregunta-item"
+        *ngFor="let p of preguntas"
+        [class.activa]="getPregunta(p.key)">
+        <div class="pregunta-texto">
+          <span class="pregunta-icono">{{ getPregunta(p.key) ? '⚠️' : '✅' }}</span>
+          <p>{{ p.texto }}</p>
+        </div>
+        <div class="pregunta-opciones">
+          <button class="btn-si"
+            [class.seleccionado]="getPregunta(p.key)"
+            (click)="setPregunta(p.key, true)">
+            SÍ
+          </button>
+          <button class="btn-no"
+            [class.seleccionado]="!getPregunta(p.key)"
+            (click)="setPregunta(p.key, false)">
+            NO
+          </button>
+        </div>
+      </div>
+
+      <!-- PREGUNTAS EXTRA -->
+      <div class="preguntas-extra">
+        <h4>➕ Preguntas adicionales
+          <span class="opcional">(opcional)</span>
+        </h4>
+
+        <div class="pregunta-extra-fila"
+          *ngFor="let pe of preguntasExtra; let i = index">
+          <input type="text" [(ngModel)]="pe.pregunta"
+            placeholder="Escriba la pregunta adicional...">
+          <div class="pregunta-opciones">
+            <button class="btn-si"
+              [class.seleccionado]="pe.respuesta"
+              (click)="pe.respuesta = true">
+              SÍ
+            </button>
+            <button class="btn-no"
+              [class.seleccionado]="!pe.respuesta"
+              (click)="pe.respuesta = false">
+              NO
+            </button>
+          </div>
+          <button class="btn-eliminar-fila" (click)="eliminarPreguntaExtra(i)">🗑️</button>
+        </div>
+
+        <button class="btn-agregar-pregunta" (click)="agregarPreguntaExtra()">
+          ➕ Agregar pregunta
+        </button>
+      </div>
+
+    </div>
+
+    <!-- CAMPO ADICIONAL -->
+    <div class="form-group full">
+      <label>📝 Observación adicional
+        <span class="opcional">(opcional)</span>
+      </label>
+      <textarea [(ngModel)]="form.otraObservacion"
+        placeholder="Ingrese cualquier otra observación relevante...">
+      </textarea>
+    </div>
+
+    <div class="form-group full">
+      <label>💬 Observaciones generales
+        <span class="opcional">(opcional)</span>
+      </label>
+      <textarea [(ngModel)]="form.observaciones"
+        placeholder="Observaciones adicionales...">
+      </textarea>
+    </div>
+
+    <!-- PREVIEW RESULTADO -->
+    <div class="resultado-preview"
+      [class.apto]="resultadoPreview === 'Apto'"
+      [class.no-apto]="resultadoPreview === 'No Apto'">
+      <div class="resultado-icono">
+        {{ resultadoPreview === 'Apto' ? '✅' : '🚨' }}
+      </div>
+      <div class="resultado-info">
+        <span class="resultado-label">Resultado estimado:</span>
+        <span class="resultado-valor">{{ resultadoPreview }}</span>
+        <span class="resultado-detalle">
+          {{ respuestasSi }} respuesta(s) afirmativa(s)
+        </span>
+      </div>
+    </div>
+
+    <!-- ALERTAS ACTIVAS -->
+    <div class="alertas-activas" *ngIf="alertasActivas.length > 0">
+      <h4>⚠️ Alertas detectadas:</h4>
+      <div class="alerta-chip" *ngFor="let a of alertasActivas">{{ a }}</div>
+    </div>
+
+    <div class="formulario-botones">
+      <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+      <button class="btn-guardar" (click)="guardar()" [disabled]="cargando">
+        {{ cargando ? 'Guardando...' : '💾 Guardar Encuesta' }}
+      </button>
+    </div>
+
+  </div>
+
+  <!-- RESULTADO FINAL -->
+  <div class="resultado-final" *ngIf="resultadoActual">
+    <div class="resultado-card"
+      [class.apto]="resultadoActual.resultado === 'Apto'"
+      [class.no-apto]="resultadoActual.resultado === 'No Apto'">
+
+      <div class="resultado-grande">
+        {{ resultadoActual.resultado === 'Apto' ? '✅' : '🚨' }}
+      </div>
+
+      <h2>{{ resultadoActual.resultado === 'Apto' ? 'CONDUCTOR APTO' : 'CONDUCTOR NO APTO' }}</h2>
+
+      <p *ngIf="resultadoActual.resultado === 'Apto'" class="resultado-mensaje apto">
+        El conductor se encuentra en condiciones óptimas para conducir.
+      </p>
+      <p *ngIf="resultadoActual.resultado === 'No Apto'" class="resultado-mensaje no-apto">
+        ⚠️ El conductor presenta {{ resultadoActual.respuestasSi }} factores de riesgo.
+        <strong>NO debe salir a ruta.</strong>
+      </p>
+
+      <div class="resultado-acciones">
+        <button class="btn-pdf"
+          (click)="generarPDFIndividual(resultadoActual.encuesta)">
+          📄 Descargar PDF
+        </button>
+        <button class="btn-cerrar-resultado" (click)="cerrarResultado()">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="historial-seccion">
+    <h3>📋 Historial de Encuestas</h3>
+
+    <div class="vacio" *ngIf="encuestas.length === 0">
+      <p>No hay encuestas registradas</p>
+    </div>
+
+    <div class="tabla-container" *ngIf="encuestas.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Vehículo</th>
+            <th>Resp. Sí</th>
+            <th>Resultado</th>
+            <th>Registrado por</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of encuestas"
+            [class.fila-no-apto]="e.resultado === 'No Apto'">
+            <td data-label="Fecha">{{ e.fecha | date:'short' }}</td>
+            <td data-label="Conductor"><strong>{{ e.conductor?.nombre }}</strong></td>
+            <td data-label="Vehículo">{{ e.vehiculo?.placa }}</td>
+            <td data-label="Resp. Sí">
+              <span class="respuestas-si">{{ contarSi(e) }} / 5</span>
+            </td>
+            <td data-label="Resultado">
+              <span [class]="getBadgeResultado(e.resultado)">{{ e.resultado }}</span>
+            </td>
+            <td data-label="Registrado por">{{ e.registradoPor || '-' }}</td>
+            <td data-label="Acciones">
+              <div class="btn-acciones">
+                <button class="btn-pdf-individual" (click)="generarPDFIndividual(e)">📄</button>
+                <button class="btn-eliminar" (click)="eliminar(e.id)">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

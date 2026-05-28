@@ -1,0 +1,253 @@
+import {
+  Component,
+  OnInit
+} from '@angular/core';
+
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IncidentesService } from '../../services/incidentes.service';
+import { PdfService } from '../../services/pdf.service';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+@Component({
+  selector: 'app-incidentes',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './incidentes.html',
+  styleUrls: ['./incidentes.scss']
+})
+
+export class IncidentesComponent implements OnInit {
+
+  incidentes:            any[] = [];
+  incidenteSeleccionado: any   = null;
+  mostrarModalRevisar         = false;
+
+  filtroEstado = '';
+  filtroTipo   = '';
+  revisadoPor  = '';
+  observacion  = '';
+
+  readonly tiposIncidente = [
+    { value: 'DañoMecanico', label: '🔧 Daño mecánico' },
+    { value: 'Averia',       label: '⚠️ Avería' },
+    { value: 'Trancon',      label: '🚗 Trancón' },
+    { value: 'CierreVia',    label: '🚧 Cierre de vía' },
+    { value: 'Accidente',    label: '💥 Accidente' },
+    { value: 'Otro',         label: '📋 Otro' },
+  ];
+
+  constructor(
+    private incidentesService: IncidentesService,
+    private pdfService:        PdfService
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarIncidentes();
+  }
+
+  cargarIncidentes() {
+    this.incidentesService.obtenerIncidentes().subscribe({
+      next: (data) => this.incidentes = data,
+      error: (err) => console.error(err)
+    });
+  }
+
+  get incidentesFiltrados(): any[] {
+    return this.incidentes.filter(i => {
+      const okEstado = !this.filtroEstado || i.estado === this.filtroEstado;
+      const okTipo   = !this.filtroTipo   || i.tipoIncidente === this.filtroTipo;
+      return okEstado && okTipo;
+    });
+  }
+
+  get pendientes(): number {
+    return this.incidentes.filter(i => i.estado === 'Pendiente').length;
+  }
+
+  verDetalle(incidente: any) {
+    this.incidenteSeleccionado = incidente;
+    this.mostrarModalRevisar   = false;
+    this.revisadoPor           = '';
+    this.observacion           = '';
+  }
+
+  obtenerFotos(fotosStr: string): string[] {
+    if (!fotosStr) return [];
+    return fotosStr.split(',').filter(f => f.trim() !== '');
+  }
+
+  contactarConductor(incidente: any) {
+    if (!incidente.conductor?.telefono) {
+      alert('El conductor no tiene número de teléfono registrado');
+      return;
+    }
+    const mensaje = encodeURIComponent(
+      `Hola ${incidente.conductor.nombre}, hemos recibido su reporte de incidente #${incidente.id}. Un supervisor le contactará pronto.`
+    );
+    window.open(`https://wa.me/${incidente.conductor.telefono}?text=${mensaje}`, '_blank');
+  }
+
+  abrirRevisar() {
+    this.mostrarModalRevisar = true;
+    this.revisadoPor         = '';
+    this.observacion         = '';
+  }
+
+  confirmarRevision() {
+    if (!this.revisadoPor) { alert('Ingrese su nombre'); return; }
+    this.incidentesService.marcarRevisado(
+      this.incidenteSeleccionado.id,
+      { revisadoPor: this.revisadoPor, observacion: this.observacion }
+    ).subscribe({
+      next: () => {
+        this.mostrarModalRevisar   = false;
+        this.incidenteSeleccionado = null;
+        this.cargarIncidentes();
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  getBadgeTipo(tipo: string): string {
+    const t = this.tiposIncidente.find(t => t.value === tipo);
+    return t ? t.label : tipo;
+  }
+
+  getBadgeEstado(estado: string): string {
+    return estado === 'Pendiente' ? 'badge-pendiente' : 'badge-revisado';
+  }
+
+  cerrarDetalle() {
+    this.incidenteSeleccionado = null;
+    this.mostrarModalRevisar   = false;
+  }
+
+  // =========================
+  // PDF INDIVIDUAL
+  // =========================
+
+  async descargarPDF(incidente: any) {
+    await this.pdfService.generarPDFIncidente(incidente);
+  }
+
+  // =========================
+  // EXPORTAR EXCEL
+  // =========================
+
+  exportarExcel() {
+    const datos = this.incidentesFiltrados.map(i => ({
+      'ID':                   i.id,
+      'Fecha':                new Date(i.fechaReporte).toLocaleString(),
+      'Conductor':            i.conductor?.nombre    ?? '-',
+      'Vehículo':             i.vehiculo?.placa      ?? '-',
+      'Tipo':                 this.getBadgeTipo(i.tipoIncidente),
+      'Descripción':          i.descripcionDetallada ?? '-',
+      'Ubicación GPS':        i.ubicacionGPS         || '-',
+      'Estado':               i.estado,
+      'Revisado por':         i.revisadoPor          || '-',
+      'Fecha revisión':       i.fechaRevision
+        ? new Date(i.fechaRevision).toLocaleString() : '-',
+      'Observación revisión': i.observacionRevision  || '-',
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    hoja['!cols'] = [
+      { wch: 6  }, { wch: 20 }, { wch: 22 }, { wch: 12 },
+      { wch: 18 }, { wch: 40 }, { wch: 25 }, { wch: 12 },
+      { wch: 18 }, { wch: 20 }, { wch: 30 }
+    ];
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Incidentes');
+    XLSX.writeFile(libro, `incidentes_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  // =========================
+  // EXPORTAR PDF GENERAL
+  // =========================
+
+  exportarPDF() {
+    const doc   = new jsPDF('landscape');
+    const VERDE = [21, 128, 61] as [number, number, number];
+
+    doc.setFillColor(...VERDE);
+    doc.rect(0, 0, 297, 20, 'F');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REPORTE DE INCIDENTES EN RUTA', 148, 13, { align: 'center' });
+
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
+    doc.text(`Total registros: ${this.incidentesFiltrados.length}`, 14, 35);
+    doc.text(`Pendientes: ${this.pendientes}`, 80, 35);
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['#', 'Fecha', 'Conductor', 'Vehículo', 'Tipo', 'Descripción', 'GPS', 'Estado', 'Revisado por']],
+      body: this.incidentesFiltrados.map(i => [
+        i.id,
+        new Date(i.fechaReporte).toLocaleDateString(),
+        i.conductor?.nombre    ?? '-',
+        i.vehiculo?.placa      ?? '-',
+        this.getBadgeTipo(i.tipoIncidente),
+        (i.descripcionDetallada ?? '-').slice(0, 50) + (i.descripcionDetallada?.length > 50 ? '...' : ''),
+        i.ubicacionGPS         || '-',
+        i.estado,
+        i.revisadoPor          || '-',
+      ]),
+      headStyles: { fillColor: VERDE, textColor: [255,255,255], fontStyle: 'bold', fontSize: 8 },
+      bodyStyles: { fontSize: 8 },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      didDrawCell: (data: any) => {
+        if (data.column.index === 7 && data.section === 'body') {
+          const estado = data.cell.text[0];
+          const x = data.cell.x + 1;
+          const y = data.cell.y + 1;
+          const w = data.cell.width - 2;
+          const h = data.cell.height - 2;
+          if (estado === 'Pendiente') doc.setFillColor(254, 249, 195);
+          else doc.setFillColor(220, 252, 231);
+          doc.roundedRect(x, y, w, h, 1, 1, 'F');
+          doc.setTextColor(
+            estado === 'Pendiente' ? 133 : 21,
+            estado === 'Pendiente' ? 77  : 128,
+            estado === 'Pendiente' ? 14  : 61
+          );
+          doc.setFontSize(7);
+          doc.text(estado, x + w / 2, y + h / 2 + 0.5, { align: 'center' });
+        }
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 55 },
+        6: { cellWidth: 30 },
+        7: { cellWidth: 20, halign: 'center' },
+        8: { cellWidth: 25 },
+      }
+    });
+
+    const numPaginas = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= numPaginas; i++) {
+      doc.setPage(i);
+      doc.setDrawColor(...VERDE);
+      doc.setLineWidth(0.3);
+      doc.line(14, 200, 283, 200);
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Sistema de Gestión de Flota', 148, 204, { align: 'center' });
+      doc.text(`Página ${i} de ${numPaginas}`, 283, 204, { align: 'right' });
+    }
+
+    doc.save(`incidentes_${new Date().toISOString().slice(0,10)}.pdf`);
+  }
+
+}

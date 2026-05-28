@@ -1,0 +1,62 @@
+<div class="container">
+
+  <h2>Gestión de Conductores</h2>
+
+  <!-- 🔍 BUSCADOR -->
+  <input class="search" [(ngModel)]="filtro" placeholder="Buscar conductor...">
+
+  <!-- 🧾 FORMULARIO -->
+  <div class="form">
+    <input [(ngModel)]="nuevo.nombre" placeholder="Nombre">
+    <input [(ngModel)]="nuevo.licencia" placeholder="Licencia">
+    <input [(ngModel)]="nuevo.telefono" placeholder="Teléfono">
+    <input [(ngModel)]="nuevo.email" placeholder="Email">
+
+    <!-- 📷 FOTO -->
+    <input type="file" (change)="onFileSelected($event)">
+
+    <button (click)="guardar()">
+      {{ editando ? 'Actualizar' : 'Guardar' }}
+    </button>
+
+    <button *ngIf="editando" (click)="reset()">Cancelar</button>
+  </div>
+
+  <!-- 📋 TABLA -->
+  <table>
+    <thead>
+      <tr>
+        <th>Foto</th>
+        <th>Nombre</th>
+        <th>Licencia</th>
+        <th>Teléfono</th>
+        <th>Email</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let c of conductoresFiltrados">
+
+        <!-- 🔥 MOSTRAR FOTO -->
+        <td>
+          <img *ngIf="c.foto"
+               [src]="'https://localhost:7293/fotos/' + c.foto"
+               width="60">
+        </td>
+
+        <td>{{ c.nombre }}</td>
+        <td>{{ c.licencia }}</td>
+        <td>{{ c.telefono }}</td>
+        <td>{{ c.email }}</td>
+
+        <td>
+          <button class="edit" (click)="editar(c)">Editar</button>
+          <button class="delete" (click)="eliminar(c.id!)">Eliminar</button>
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+
+</div>

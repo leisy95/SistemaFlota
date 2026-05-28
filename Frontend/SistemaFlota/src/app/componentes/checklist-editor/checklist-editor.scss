@@ -1,0 +1,218 @@
+.contenedor {
+
+  padding: 30px;
+
+  width: 100%;
+}
+
+/* TÍTULO */
+
+h1 {
+
+  font-size: 42px;
+
+  font-weight: bold;
+
+  margin-bottom: 30px;
+
+  color: #0f172a;
+}
+
+/* FORMULARIO */
+
+.formulario {
+
+  display: flex;
+
+  gap: 15px;
+
+  align-items: center;
+
+  margin-bottom: 30px;
+
+  flex-wrap: wrap;
+}
+
+/* SELECT */
+
+select {
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid #d1d5db;
+
+  min-width: 220px;
+
+  font-size: 15px;
+
+  outline: none;
+}
+
+/* INPUT */
+
+input {
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid #d1d5db;
+
+  min-width: 280px;
+
+  font-size: 15px;
+
+  outline: none;
+}
+
+/* BOTÓN */
+
+button {
+
+  background: #1d4ed8;
+
+  color: white;
+
+  border: none;
+
+  padding: 14px 22px;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  font-size: 15px;
+
+  font-weight: bold;
+
+  transition: 0.3s;
+}
+
+button:hover {
+
+  background: #1e40af;
+}
+
+/* TABLA */
+
+.tabla-container {
+
+  background: white;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 20px rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+}
+
+/* TABLE */
+
+table {
+
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+/* HEADER */
+
+thead {
+
+  background: #1d4ed8;
+
+  color: white;
+}
+
+th {
+
+  padding: 18px;
+
+  text-align: left;
+
+  font-size: 14px;
+}
+
+/* FILAS */
+
+td {
+
+  padding: 16px;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
+  font-size: 14px;
+}
+
+tr:hover {
+
+  background: #f8fafc;
+}
+
+/* RESPONSIVE */
+
+@media (
+  max-width: 768px
+) {
+
+  .formulario {
+
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  select,
+  input,
+  button {
+
+    width: 100%;
+  }
+
+}
+
+.paginacion {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 20px;
+}
+
+.paginacion button {
+
+  background: #2563eb;
+
+  color: white;
+
+  border: none;
+
+  padding: 10px 18px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-weight: bold;
+}
+
+.paginacion span {
+
+  font-weight: bold;
+
+  color: #1e293b;
+}

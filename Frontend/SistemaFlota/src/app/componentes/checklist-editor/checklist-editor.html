@@ -1,0 +1,72 @@
+<div class="contenedor">
+
+  <h1>Administrar Checklist</h1>
+
+  <!-- FORMULARIO -->
+  <div class="formulario">
+
+    <select [(ngModel)]="tipoVehiculoId">
+      <option [value]="0">Seleccionar tipo vehículo</option>
+      <option *ngFor="let t of tiposVehiculo" [value]="t.id">
+        {{ t.nombre }}
+      </option>
+    </select>
+
+    <input
+      type="text"
+      [(ngModel)]="descripcion"
+      placeholder="Descripción checklist">
+
+    <button (click)="guardarChecklist()">
+      {{ editando ? 'Actualizar checklist' : 'Agregar checklist' }}
+    </button>
+
+  </div>
+
+  <!-- TABLA -->
+  <div class="tabla-container">
+    <table>
+
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Descripción</th>
+          <th>Tipo Vehículo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of obtenerChecklistPaginado(); let i = index">
+
+          <td data-label="#">
+            {{ (paginaActual - 1) * itemsPorPagina + i + 1 }}
+          </td>
+
+          <td data-label="Descripción">
+            {{ item.descripcion }}
+          </td>
+
+          <td data-label="Tipo Vehículo">
+            {{ item.tipoVehiculoId }}
+          </td>
+
+          <td data-label="Acciones">
+            <button class="btn-editar" (click)="editarChecklist(item)">✏️</button>
+            <button class="btn-eliminar" (click)="eliminarChecklist(item.id)">🗑️</button>
+          </td>
+
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<!-- PAGINACIÓN -->
+<div class="paginacion">
+  <button (click)="paginaAnterior()">← Anterior</button>
+  <span>Página {{ paginaActual }}</span>
+  <button (click)="paginaSiguiente()">Siguiente →</button>
+</div>
