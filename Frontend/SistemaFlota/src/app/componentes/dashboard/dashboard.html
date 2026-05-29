@@ -3,7 +3,7 @@
   <!-- BIENVENIDA -->
   <div class="bienvenida">
     <div class="bienvenida-texto">
-      <h1>Panel Administrativo</h1>
+      <h1>Panel de Control</h1>
       <p class="fecha">{{ fechaActual }}</p>
     </div>
     <div class="reloj">
@@ -11,20 +11,17 @@
     </div>
   </div>
 
-  <!-- ALERTAS CRÍTICAS -->
+  <!-- ALERTAS -->
   <div class="alertas-bar"
     *ngIf="documentosPorVencer > 0 || vehiculosEnTaller > 0 || incidentesPendientes > 0">
-    <div class="alerta-chip rojo" *ngIf="incidentesPendientes > 0"
-      (click)="ir('incidentes')">
-      🚨 {{ incidentesPendientes }} incidente(s) pendiente(s)
+    <div class="alerta-chip rojo"    *ngIf="incidentesPendientes > 0" (click)="ir('incidentes')">
+      <i class="fa-solid fa-car-burst"></i> {{ incidentesPendientes }} incidente(s) activo(s)
     </div>
-    <div class="alerta-chip amarillo" *ngIf="documentosPorVencer > 0"
-      (click)="ir('documentos')">
-      ⚠️ {{ documentosPorVencer }} documento(s) por vencer
+    <div class="alerta-chip amarillo" *ngIf="documentosPorVencer > 0" (click)="ir('documentos')">
+      <i class="fa-solid fa-file-circle-exclamation"></i> {{ documentosPorVencer }} doc(s) por vencer
     </div>
-    <div class="alerta-chip naranja" *ngIf="vehiculosEnTaller > 0"
-      (click)="ir('mantenimiento')">
-      🔧 {{ vehiculosEnTaller }} vehículo(s) en taller
+    <div class="alerta-chip naranja"  *ngIf="vehiculosEnTaller > 0"  (click)="ir('mantenimiento')">
+      <i class="fa-solid fa-wrench"></i> {{ vehiculosEnTaller }} vehículo(s) en taller
     </div>
   </div>
 
@@ -32,66 +29,62 @@
   <div class="kpis-grid">
 
     <div class="kpi-card azul" (click)="irAConductores()">
-      <div class="kpi-icono">👤</div>
-      <div class="kpi-info">
-        <span class="kpi-numero">{{ totalConductores }}</span>
-        <span class="kpi-label">Conductores</span>
+      <div class="kpi-top">
+        <div class="kpi-icono-box"><i class="fa-solid fa-id-card"></i></div>
+        <span class="kpi-trend up">activos</span>
       </div>
-      <div class="kpi-flecha">→</div>
+      <span class="kpi-numero">{{ totalConductores }}</span>
+      <span class="kpi-label">Conductores activos</span>
     </div>
 
     <div class="kpi-card verde" (click)="ir('vehiculos')">
-      <div class="kpi-icono">🚚</div>
-      <div class="kpi-info">
-        <span class="kpi-numero">{{ totalVehiculos }}</span>
-        <span class="kpi-label">Vehículos</span>
+      <div class="kpi-top">
+        <div class="kpi-icono-box"><i class="fa-solid fa-truck"></i></div>
+        <span class="kpi-trend up">total</span>
       </div>
-      <div class="kpi-flecha">→</div>
+      <span class="kpi-numero">{{ totalVehiculos }}</span>
+      <span class="kpi-label">Vehículos registrados</span>
     </div>
 
     <div class="kpi-card morado" (click)="verInspecciones()">
-      <div class="kpi-icono">📋</div>
-      <div class="kpi-info">
-        <span class="kpi-numero">{{ totalInspecciones }}</span>
-        <span class="kpi-label">Inspecciones</span>
+      <div class="kpi-top">
+        <div class="kpi-icono-box"><i class="fa-solid fa-clipboard-check"></i></div>
+        <span class="kpi-trend up">total</span>
       </div>
-      <div class="kpi-flecha">→</div>
+      <span class="kpi-numero">{{ totalInspecciones }}</span>
+      <span class="kpi-label">Inspecciones totales</span>
     </div>
 
     <div class="kpi-card naranja" (click)="irAAutorizaciones()">
-      <div class="kpi-icono">✅</div>
-      <div class="kpi-info">
-        <span class="kpi-numero">{{ autorizacionesHoy }}</span>
-        <span class="kpi-label">Autorizaciones hoy</span>
+      <div class="kpi-top">
+        <div class="kpi-icono-box"><i class="fa-solid fa-file-circle-check"></i></div>
+        <span class="kpi-trend up">hoy</span>
       </div>
-      <div class="kpi-flecha">→</div>
+      <span class="kpi-numero">{{ autorizacionesHoy }}</span>
+      <span class="kpi-label">Autorizaciones hoy</span>
     </div>
 
   </div>
 
   <!-- ACCESO RÁPIDO -->
-  <div class="seccion-titulo">⚡ Acceso Rápido</div>
+  <div class="seccion-titulo">Acceso rápido</div>
   <div class="acceso-rapido">
-    <div
-      class="acceso-card"
-      *ngFor="let m of modulosRapidos"
+    <div class="acceso-card" *ngFor="let m of modulosRapidos"
       [class]="'acceso-card ' + m.color"
       (click)="ir(m.key)">
-      <span class="acceso-icono">{{ m.icon }}</span>
+      <i [class]="m.icon + ' acceso-icono'"></i>
       <span class="acceso-label">{{ m.label }}</span>
     </div>
   </div>
 
   <!-- GRÁFICAS -->
   <div class="graficas-grid">
-
     <div class="grafica-card">
-      <h3>📊 Inspecciones por mes</h3>
+      <h3>Inspecciones por mes</h3>
       <canvas #graficoInspecciones></canvas>
     </div>
-
     <div class="grafica-card">
-      <h3>🔄 Estado Autorizaciones</h3>
+      <h3>Estado autorizaciones</h3>
       <div class="dona-container">
         <canvas #graficoDona></canvas>
       </div>
@@ -110,25 +103,24 @@
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- ÚLTIMAS ACTIVIDADES -->
+  <!-- ACTIVIDADES -->
   <div class="actividades-grid">
 
     <div class="actividad-card">
       <div class="actividad-header">
-        <h3>📝 Últimas Inspecciones</h3>
-        <button (click)="verInspecciones()">Ver todas →</button>
+        <h3>Últimas inspecciones</h3>
+        <button (click)="verInspecciones()">Ver todas <i class="fa-solid fa-arrow-right"></i></button>
       </div>
       <div class="actividad-lista">
         <div class="actividad-item" *ngFor="let i of ultimasInspecciones">
-          <div class="actividad-icono">📋</div>
+          <div class="actividad-icono"><i class="fa-solid fa-clipboard-check"></i></div>
           <div class="actividad-info">
             <strong>{{ i.conductor?.nombre ?? '-' }}</strong>
-            <span>{{ i.vehiculo?.placa ?? '-' }} — {{ i.kilometraje }} km</span>
+            <span>{{ i.vehiculo?.placa ?? '-' }} · {{ i.kilometraje }} km</span>
           </div>
-          <div class="actividad-fecha">{{ i.fecha | date:'shortDate' }}</div>
+          <div class="actividad-fecha">{{ i.fecha | date:'d/M' }}</div>
         </div>
         <div class="actividad-vacio" *ngIf="ultimasInspecciones.length === 0">
           Sin inspecciones recientes
@@ -138,15 +130,15 @@
 
     <div class="actividad-card">
       <div class="actividad-header">
-        <h3>✅ Últimas Autorizaciones</h3>
-        <button (click)="irAAutorizaciones()">Ver todas →</button>
+        <h3>Últimas autorizaciones</h3>
+        <button (click)="irAAutorizaciones()">Ver todas <i class="fa-solid fa-arrow-right"></i></button>
       </div>
       <div class="actividad-lista">
         <div class="actividad-item" *ngFor="let a of ultimasAutorizaciones">
-          <div class="actividad-icono">🚚</div>
+          <div class="actividad-icono"><i class="fa-solid fa-truck"></i></div>
           <div class="actividad-info">
             <strong>{{ a.conductor?.nombre ?? '-' }}</strong>
-            <span>{{ a.vehiculo?.placa ?? '-' }} — {{ a.tipoVuelta }}</span>
+            <span>{{ a.vehiculo?.placa ?? '-' }} · {{ a.tipoVuelta }}</span>
           </div>
           <div class="actividad-estado"
             [class.verde]="a.estado === 'Autorizado'"

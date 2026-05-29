@@ -10,81 +10,104 @@
         <span class="stat-numero">{{ pendientes }}</span>
         <span class="stat-label">Pendientes</span>
       </div>
-      <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
+      <button class="btn-excel"       (click)="exportarExcel()">📊 Excel</button>
       <button class="btn-pdf-reporte" (click)="exportarPDF()">📄 PDF</button>
     </div>
   </div>
 
-  <div class="filtros">
-    <select [(ngModel)]="filtroEstado">
-      <option value="">Todos los estados</option>
-      <option value="Pendiente">⏳ Pendiente</option>
-      <option value="Revisado">✅ Revisado</option>
-    </select>
-    <select [(ngModel)]="filtroTipo">
-      <option value="">Todos los tipos</option>
-      <option *ngFor="let t of tiposIncidente" [value]="t.value">{{ t.label }}</option>
-    </select>
-    <button class="btn-refresh" (click)="cargarIncidentes()">🔄 Actualizar</button>
+  <!-- Sin permiso -->
+  <div class="sin-permiso" *ngIf="!puedeVer">
+    <p>🔒 No tienes permiso para ver incidentes.</p>
   </div>
 
-  <div class="incidentes-lista">
+  <ng-container *ngIf="puedeVer">
 
-    <div class="vacio" *ngIf="incidentesFiltrados.length === 0">
-      <p>✅ No hay incidentes registrados</p>
+    <!-- FILTROS -->
+    <div class="filtros-panel">
+      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+        (input)="aplicarFiltros()"
+        placeholder="🔍 Buscar conductor, vehículo, descripción...">
+
+      <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+        <option value="">Todos los estados</option>
+        <option value="Pendiente">⏳ Pendiente</option>
+        <option value="Revisado">✅ Revisado</option>
+      </select>
+
+      <select [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+        <option value="">Todos los tipos</option>
+        <option *ngFor="let t of tiposIncidente" [value]="t.value">{{ t.label }}</option>
+      </select>
+
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+        (change)="aplicarFiltros()">
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+        (change)="aplicarFiltros()">
+
+      <button class="btn-refresh" (click)="cargarIncidentes()">🔄</button>
+      <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
     </div>
 
-    <div
-      class="incidente-card"
-      *ngFor="let i of incidentesFiltrados"
-      [class.pendiente]="i.estado === 'Pendiente'"
-      [class.revisado]="i.estado === 'Revisado'">
+    <p class="resultado-filtro" *ngIf="incidentesFiltrados.length !== incidentes.length">
+      Mostrando {{ incidentesFiltrados.length }} de {{ incidentes.length }} registros
+    </p>
 
-      <div class="card-header">
-        <div class="card-tipo">
-          <span class="tipo-label">{{ getBadgeTipo(i.tipoIncidente) }}</span>
-          <span [class]="getBadgeEstado(i.estado)">{{ i.estado }}</span>
+    <div class="incidentes-lista">
+
+      <div class="vacio" *ngIf="incidentesFiltrados.length === 0">
+        <p>✅ No hay incidentes con ese filtro</p>
+        <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+
+      <div class="incidente-card"
+        *ngFor="let i of incidentesFiltrados"
+        [class.pendiente]="i.estado === 'Pendiente'"
+        [class.revisado]="i.estado === 'Revisado'">
+
+        <div class="card-header">
+          <div class="card-tipo">
+            <span class="tipo-label">{{ getBadgeTipo(i.tipoIncidente) }}</span>
+            <span [class]="getBadgeEstado(i.estado)">{{ i.estado }}</span>
+          </div>
+          <span class="card-fecha">{{ i.fechaReporte | date:'short' }}</span>
         </div>
-        <span class="card-fecha">{{ i.fechaReporte | date:'short' }}</span>
-      </div>
 
-      <div class="card-info">
-        <p><strong>👤</strong> {{ i.conductor?.nombre }}</p>
-        <p><strong>🚚</strong> {{ i.vehiculo?.placa }}</p>
-        <p class="descripcion">{{ i.descripcionDetallada | slice:0:100 }}
-          <span *ngIf="i.descripcionDetallada?.length > 100">...</span>
-        </p>
-        <p *ngIf="i.ubicacionGPS"><strong>📍</strong> {{ i.ubicacionGPS }}</p>
-      </div>
+        <div class="card-info">
+          <p><strong>👤</strong> {{ i.conductor?.nombre }}</p>
+          <p><strong>🚚</strong> {{ i.vehiculo?.placa }}</p>
+          <p class="descripcion">{{ i.descripcionDetallada | slice:0:100 }}
+            <span *ngIf="i.descripcionDetallada?.length > 100">...</span>
+          </p>
+          <p *ngIf="i.ubicacionGPS"><strong>📍</strong> {{ i.ubicacionGPS }}</p>
+        </div>
 
-      <div class="fotos-mini" *ngIf="obtenerFotos(i.fotos).length > 0">
-        <img
-          *ngFor="let foto of obtenerFotos(i.fotos)"
-          [src]="'https://localhost:7293/incidentes/' + foto"
-          alt="Foto incidente">
-      </div>
+        <div class="fotos-mini" *ngIf="obtenerFotos(i.fotos).length > 0">
+          <img *ngFor="let foto of obtenerFotos(i.fotos)"
+            [src]="'http://localhost:5214/incidentes/' + foto"
+            alt="Foto incidente">
+        </div>
 
-      <div class="card-botones">
-        <button class="btn-ver" (click)="verDetalle(i)">👁️ Ver detalle</button>
-        <button class="btn-pdf-individual" (click)="descargarPDF(i)">📄 PDF</button>
-        <button
-          class="btn-revisar"
-          *ngIf="i.estado === 'Pendiente'"
-          (click)="verDetalle(i); abrirRevisar()">
-          ✅ Marcar revisado
-        </button>
-        <span *ngIf="i.estado === 'Revisado'" class="revisado-por">
-          ✅ Revisado por {{ i.revisadoPor }}
-        </span>
-      </div>
+        <div class="card-botones">
+          <button class="btn-ver" (click)="verDetalle(i)">👁️ Ver detalle</button>
+          <button class="btn-pdf-individual" (click)="descargarPDF(i)">📄 PDF</button>
+          <button class="btn-revisar"
+            *ngIf="i.estado === 'Pendiente' && puedeEditar"
+            (click)="verDetalle(i); abrirRevisar()">
+            ✅ Marcar revisado
+          </button>
+          <span *ngIf="i.estado === 'Revisado'" class="revisado-por">
+            ✅ Revisado por {{ i.revisadoPor }}
+          </span>
+        </div>
 
+      </div>
     </div>
 
-  </div>
+  </ng-container>
 
 </div>
 
-<!-- MODAL -->
+<!-- MODAL DETALLE -->
 <div class="modal-overlay" *ngIf="incidenteSeleccionado">
   <div class="modal">
 
@@ -94,51 +117,26 @@
     </div>
 
     <div class="detalle-grid">
-
-      <div class="detalle-item">
-        <span>👤 Conductor</span>
-        <strong>{{ incidenteSeleccionado.conductor?.nombre }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🚚 Vehículo</span>
-        <strong>{{ incidenteSeleccionado.vehiculo?.placa }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>📅 Fecha</span>
-        <strong>{{ incidenteSeleccionado.fechaReporte | date:'medium' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>⚠️ Tipo</span>
-        <strong>{{ getBadgeTipo(incidenteSeleccionado.tipoIncidente) }}</strong>
-      </div>
-
-      <div class="detalle-item full">
-        <span>📋 Descripción</span>
-        <strong>{{ incidenteSeleccionado.descripcionDetallada }}</strong>
-      </div>
-
+      <div class="detalle-item"><span>👤 Conductor</span><strong>{{ incidenteSeleccionado.conductor?.nombre }}</strong></div>
+      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ incidenteSeleccionado.vehiculo?.placa }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha</span><strong>{{ incidenteSeleccionado.fechaReporte | date:'medium' }}</strong></div>
+      <div class="detalle-item"><span>⚠️ Tipo</span><strong>{{ getBadgeTipo(incidenteSeleccionado.tipoIncidente) }}</strong></div>
+      <div class="detalle-item full"><span>📋 Descripción</span><strong>{{ incidenteSeleccionado.descripcionDetallada }}</strong></div>
       <div class="detalle-item full" *ngIf="incidenteSeleccionado.ubicacionGPS">
         <span>📍 Ubicación GPS</span>
         <div class="ubicacion-links">
           <strong>{{ incidenteSeleccionado.ubicacionGPS }}</strong>
           <a [href]="'https://maps.google.com/?q=' + incidenteSeleccionado.latitud + ',' + incidenteSeleccionado.longitud"
-            target="_blank" class="btn-mapa">
-            🗺️ Ver en Google Maps
-          </a>
+            target="_blank" class="btn-mapa">🗺️ Ver en Google Maps</a>
         </div>
       </div>
-
     </div>
 
     <div class="fotos-detalle" *ngIf="obtenerFotos(incidenteSeleccionado.fotos).length > 0">
       <h3>📸 Fotos de evidencia</h3>
       <div class="fotos-grid">
-        <img
-          *ngFor="let foto de obtenerFotos(incidenteSeleccionado.fotos)"
-          [src]="'https://localhost:7293/incidentes/' + foto"
+        <img *ngFor="let foto of obtenerFotos(incidenteSeleccionado.fotos)"
+          [src]="'http://localhost:5214/incidentes/' + foto"
           alt="Foto evidencia">
       </div>
     </div>
@@ -153,7 +151,7 @@
     </div>
 
     <div class="revision-form"
-      *ngIf="mostrarModalRevisar && incidenteSeleccionado.estado === 'Pendiente'">
+      *ngIf="mostrarModalRevisar && incidenteSeleccionado.estado === 'Pendiente' && puedeEditar">
       <h3>✅ Marcar como revisado</h3>
       <div class="form-group">
         <label>👤 Nombre de quien revisa *</label>
@@ -166,7 +164,7 @@
       </div>
       <div class="revision-botones">
         <button class="btn-cancelar-rev" (click)="mostrarModalRevisar = false">Cancelar</button>
-        <button class="btn-confirmar" (click)="confirmarRevision()">✅ Confirmar Revisión</button>
+        <button class="btn-confirmar"    (click)="confirmarRevision()">✅ Confirmar Revisión</button>
       </div>
     </div>
 
@@ -177,9 +175,8 @@
       <button class="btn-pdf-individual" (click)="descargarPDF(incidenteSeleccionado)">
         📄 Descargar PDF
       </button>
-      <button
-        class="btn-revisar-modal"
-        *ngIf="incidenteSeleccionado.estado === 'Pendiente' && !mostrarModalRevisar"
+      <button class="btn-revisar-modal"
+        *ngIf="incidenteSeleccionado.estado === 'Pendiente' && !mostrarModalRevisar && puedeEditar"
         (click)="abrirRevisar()">
         ✅ Marcar Revisado
       </button>

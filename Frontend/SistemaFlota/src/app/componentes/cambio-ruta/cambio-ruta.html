@@ -7,7 +7,7 @@
     </div>
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" (click)="nuevo()">+ Nueva Solicitud</button>
+      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nueva Solicitud</button>
     </div>
   </div>
 
@@ -31,36 +31,44 @@
     </div>
   </div>
 
-  <!-- ALERTA PENDIENTES -->
   <div class="alerta-pendientes" *ngIf="pendientes > 0">
     ⚠️ Hay <strong>{{ pendientes }}</strong> cambio(s) de ruta pendiente(s) de autorización
   </div>
 
   <!-- FILTROS -->
-  <div class="filtros">
-    <select [(ngModel)]="filtroEstado">
+  <div class="filtros-panel">
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+      (input)="aplicarFiltros()"
+      placeholder="🔍 Buscar conductor, vehículo, ruta...">
+
+    <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
       <option value="">Todos los estados</option>
       <option value="Pendiente">⏳ Pendiente</option>
       <option value="Autorizado">✅ Autorizado</option>
       <option value="Rechazado">❌ Rechazado</option>
     </select>
-    <button class="btn-refresh" (click)="cargarCambios()">🔄 Actualizar</button>
+
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+      (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+      (change)="aplicarFiltros()">
+
+    <button class="btn-refresh" (click)="cargarCambios()">🔄</button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
   </div>
+
+  <p class="resultado-filtro" *ngIf="cambiosFiltrados.length !== cambios.length">
+    Mostrando {{ cambiosFiltrados.length }} de {{ cambios.length }} registros
+  </p>
 
   <!-- TABLA -->
   <div class="tabla-container" *ngIf="cambiosFiltrados.length > 0">
     <table>
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Conductor</th>
-          <th>Vehículo</th>
-          <th>Ruta original</th>
-          <th>Nueva ruta</th>
-          <th>Motivo</th>
-          <th>Estado</th>
-          <th>Autorizado por</th>
-          <th>Acciones</th>
+          <th>Fecha</th><th>Conductor</th><th>Vehículo</th>
+          <th>Ruta original</th><th>Nueva ruta</th><th>Motivo</th>
+          <th>Estado</th><th>Autorizado por</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -70,51 +78,30 @@
           [class.fila-rechazado]="c.estado === 'Rechazado'">
 
           <td data-label="Fecha">{{ c.fechaSolicitud | date:'short' }}</td>
-
-          <td data-label="Conductor">
-            <strong>{{ c.conductor?.nombre }}</strong>
-          </td>
-
+          <td data-label="Conductor"><strong>{{ c.conductor?.nombre }}</strong></td>
           <td data-label="Vehículo">{{ c.vehiculo?.placa }}</td>
-
-          <td data-label="Ruta original">
-            <span class="ruta-texto">{{ c.rutaOriginal }}</span>
-          </td>
-
-          <td data-label="Nueva ruta">
-            <span class="ruta-nueva">{{ c.nuevaRuta }}</span>
-          </td>
-
+          <td data-label="Ruta original"><span class="ruta-texto">{{ c.rutaOriginal }}</span></td>
+          <td data-label="Nueva ruta"><span class="ruta-nueva">{{ c.nuevaRuta }}</span></td>
           <td data-label="Motivo">
             <span class="motivo-texto">{{ c.motivoCambio | slice:0:40 }}
               <span *ngIf="c.motivoCambio?.length > 40">...</span>
             </span>
           </td>
-
           <td data-label="Estado">
             <span [class]="getBadgeEstado(c.estado)">{{ c.estado }}</span>
           </td>
-
           <td data-label="Autorizado por">{{ c.autorizadoPor || '-' }}</td>
-
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-autorizar"
-                *ngIf="c.estado === 'Pendiente'"
-                (click)="abrirAutorizar(c)">
-                ✅
-              </button>
-              <button class="btn-rechazar"
-                *ngIf="c.estado === 'Pendiente'"
-                (click)="abrirRechazar(c)">
-                ❌
-              </button>
+              <button class="btn-autorizar" *ngIf="c.estado === 'Pendiente' && puedeEditar"
+                (click)="abrirAutorizar(c)">✅</button>
+              <button class="btn-rechazar"  *ngIf="c.estado === 'Pendiente' && puedeEditar"
+                (click)="abrirRechazar(c)">❌</button>
               <button class="btn-whatsapp"
                 *ngIf="c.estado === 'Autorizado' && c.conductor?.telefono"
-                (click)="notificarConductor(c)">
-                📱
-              </button>
-              <button class="btn-eliminar" (click)="eliminar(c.id)">🗑️</button>
+                (click)="notificarConductor(c)">📱</button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar"
+                (click)="eliminar(c.id)">🗑️</button>
             </div>
           </td>
 
@@ -123,9 +110,14 @@
     </table>
   </div>
 
-  <div class="vacio" *ngIf="cambiosFiltrados.length === 0">
+  <div class="vacio" *ngIf="cambiosFiltrados.length === 0 && cambios.length > 0">
+    <p>🔍 No hay registros con ese filtro</p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+  <div class="vacio" *ngIf="cambios.length === 0">
     <p>🔄 No hay solicitudes de cambio de ruta</p>
-    <button class="btn-nueva" (click)="nuevo()">+ Crear primera solicitud</button>
+    <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Crear primera solicitud</button>
   </div>
 
 </div>
@@ -140,9 +132,7 @@
     </div>
 
     <div class="importar-aut">
-      <label>🔗 Importar desde autorización
-        <span class="opcional">(opcional)</span>
-      </label>
+      <label>🔗 Importar desde autorización <span class="opcional">(opcional)</span></label>
       <select (change)="importarAutorizacion(+$any($event.target).value)">
         <option value="0">Seleccione una autorización...</option>
         <option *ngFor="let a of autorizaciones" [value]="a.id">
@@ -153,7 +143,6 @@
     </div>
 
     <div class="form-grid">
-
       <div class="form-group">
         <label>👤 Conductor *</label>
         <select [(ngModel)]="form.conductorId">
@@ -161,7 +150,6 @@
           <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>🚗 Vehículo *</label>
         <select [(ngModel)]="form.vehiculoId">
@@ -169,26 +157,19 @@
           <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
         </select>
       </div>
-
       <div class="form-group full">
         <label>📍 Ruta Original *</label>
-        <input type="text" [(ngModel)]="form.rutaOriginal"
-          placeholder="Ruta o destino original asignado">
+        <input type="text" [(ngModel)]="form.rutaOriginal" placeholder="Ruta o destino original asignado">
       </div>
-
       <div class="form-group full">
         <label>🆕 Nueva Ruta *</label>
-        <input type="text" [(ngModel)]="form.nuevaRuta"
-          placeholder="Nueva ruta o destino solicitado">
+        <input type="text" [(ngModel)]="form.nuevaRuta" placeholder="Nueva ruta o destino solicitado">
       </div>
-
       <div class="form-group full">
         <label>❓ Motivo del Cambio *</label>
         <textarea [(ngModel)]="form.motivoCambio"
-          placeholder="Explique detalladamente el motivo del cambio de ruta...">
-        </textarea>
+          placeholder="Explique detalladamente el motivo del cambio de ruta..."></textarea>
       </div>
-
     </div>
 
     <div class="aviso-notificacion">
@@ -197,7 +178,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardar()">🔄 Enviar Solicitud</button>
+      <button class="btn-guardar"  (click)="guardar()">🔄 Enviar Solicitud</button>
     </div>
 
   </div>
@@ -208,10 +189,7 @@
   <div class="modal modal-pequeno">
 
     <div class="modal-header">
-      <h2>
-        {{ accionAut === 'autorizar' ? '✅ Autorizar' : '❌ Rechazar' }}
-        Cambio de Ruta
-      </h2>
+      <h2>{{ accionAut === 'autorizar' ? '✅ Autorizar' : '❌ Rechazar' }} Cambio de Ruta</h2>
       <button class="btn-cerrar" (click)="cerrarAut()">✕</button>
     </div>
 
@@ -219,7 +197,7 @@
       [class.resumen-autorizar]="accionAut === 'autorizar'"
       [class.resumen-rechazar]="accionAut === 'rechazar'">
       <p><strong>👤 Conductor:</strong> {{ seleccionado?.conductor?.nombre }}</p>
-      <p><strong>🚗 Vehículo:</strong> {{ seleccionado?.vehiculo?.placa }}</p>
+      <p><strong>🚗 Vehículo:</strong>  {{ seleccionado?.vehiculo?.placa }}</p>
       <p><strong>📍 Ruta original:</strong> {{ seleccionado?.rutaOriginal }}</p>
       <p><strong>🆕 Nueva ruta:</strong> {{ seleccionado?.nuevaRuta }}</p>
       <p><strong>❓ Motivo:</strong> {{ seleccionado?.motivoCambio }}</p>
@@ -228,16 +206,11 @@
     <div class="form-grid">
       <div class="form-group full">
         <label>👤 Nombre de quien {{ accionAut === 'autorizar' ? 'autoriza' : 'rechaza' }} *</label>
-        <input type="text" [(ngModel)]="formAut.autorizadoPor"
-          placeholder="Nombre completo">
+        <input type="text" [(ngModel)]="formAut.autorizadoPor" placeholder="Nombre completo">
       </div>
       <div class="form-group full">
-        <label>💬 Observación
-          <span class="opcional">(opcional)</span>
-        </label>
-        <textarea [(ngModel)]="formAut.observacion"
-          placeholder="Observaciones adicionales...">
-        </textarea>
+        <label>💬 Observación <span class="opcional">(opcional)</span></label>
+        <textarea [(ngModel)]="formAut.observacion" placeholder="Observaciones adicionales..."></textarea>
       </div>
     </div>
 
@@ -247,8 +220,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarAut()">Cancelar</button>
-      <button
-        [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'"
+      <button [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'"
         (click)="confirmarAut()">
         {{ accionAut === 'autorizar' ? '✅ Confirmar Autorización' : '❌ Confirmar Rechazo' }}
       </button>

@@ -1,6 +1,5 @@
 <div class="contenedor">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <h1>📦 Trazabilidad de Facturas</h1>
@@ -8,7 +7,7 @@
     </div>
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" (click)="nuevo()">+ Nuevo Registro</button>
+      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nuevo Registro</button>
     </div>
   </div>
 
@@ -33,18 +32,37 @@
   </div>
 
   <!-- FILTROS -->
-  <div class="filtros">
-    <select [(ngModel)]="filtroEstado">
+  <div class="filtros-panel">
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+      (input)="aplicarFiltros()"
+      placeholder="🔍 Buscar factura, cliente, conductor...">
+
+    <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
       <option value="">Todos los estados</option>
       <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
     </select>
-    <select [(ngModel)]="filtroEntregada">
+
+    <select [(ngModel)]="filtroEntregada" (change)="aplicarFiltros()">
       <option value="">Todas las facturas</option>
       <option value="si">✅ Entregadas</option>
       <option value="no">🔴 No entregadas</option>
     </select>
-    <button class="btn-refresh" (click)="cargarRegistros()">🔄 Actualizar</button>
+
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+      (change)="aplicarFiltros()" placeholder="Desde">
+
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+      (change)="aplicarFiltros()" placeholder="Hasta">
+
+    <button class="btn-refresh" (click)="cargarRegistros()">🔄</button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
   </div>
+
+  <!-- Resultado filtro -->
+  <p class="resultado-filtro"
+    *ngIf="registrosFiltrados.length !== registros.length">
+    Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
+  </p>
 
   <!-- TABLA -->
   <div class="tabla-container" *ngIf="registrosFiltrados.length > 0">
@@ -69,47 +87,30 @@
           [class.fila-pendiente]="!r.facturaEntregada">
 
           <td data-label="Fecha">{{ r.fechaRegistro | date:'short' }}</td>
-
-          <td data-label="Factura/Remisión">
-            <strong>{{ r.facturaRemision }}</strong>
-          </td>
-
+          <td data-label="Factura/Remisión"><strong>{{ r.facturaRemision }}</strong></td>
           <td data-label="Cliente">{{ r.cliente }}</td>
-
           <td data-label="Conductor">{{ r.conductor }}</td>
-
           <td data-label="Vehículo">{{ r.vehiculo || '-' }}</td>
-
           <td data-label="Flete">
             <span *ngIf="r.valorFlete">${{ r.valorFlete | number:'1.0-0' }}</span>
             <span *ngIf="!r.valorFlete">-</span>
           </td>
-
           <td data-label="Ajuste">
             <span class="badge-si" *ngIf="r.ajusteRecibido">✅ Sí</span>
             <span class="badge-no" *ngIf="!r.ajusteRecibido">❌ No</span>
           </td>
-
           <td data-label="Entregada">
-            <span class="badge-entregada" *ngIf="r.facturaEntregada">
-              ✅ Entregada
-            </span>
-            <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">
-              🔴 Pendiente
-            </span>
+            <span class="badge-entregada"    *ngIf="r.facturaEntregada">✅ Entregada</span>
+            <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">🔴 Pendiente</span>
           </td>
-
           <td data-label="Estado">
-            <span [class]="getBadgeEstado(r.estado)">
-              {{ getLabelEstado(r.estado) }}
-            </span>
+            <span [class]="getBadgeEstado(r.estado)">{{ getLabelEstado(r.estado) }}</span>
           </td>
-
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-ver" (click)="verDetalle(r)">👁️</button>
-              <button class="btn-editar" (click)="editar(r)">✏️</button>
-              <button class="btn-eliminar" (click)="eliminar(r.id)">🗑️</button>
+              <button class="btn-ver"      (click)="verDetalle(r)">👁️</button>
+              <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(r)">✏️</button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)">🗑️</button>
             </div>
           </td>
 
@@ -118,9 +119,14 @@
     </table>
   </div>
 
-  <div class="vacio" *ngIf="registrosFiltrados.length === 0">
+  <div class="vacio" *ngIf="registrosFiltrados.length === 0 && registros.length > 0">
+    <p>🔍 No hay registros con ese filtro</p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+  <div class="vacio" *ngIf="registros.length === 0">
     <p>📦 No hay registros de trazabilidad</p>
-    <button class="btn-nueva" (click)="nuevo()">+ Crear primer registro</button>
+    <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Crear primer registro</button>
   </div>
 
 </div>
@@ -134,11 +140,8 @@
       <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
     </div>
 
-    <!-- IMPORTAR DESDE AUTORIZACIÓN -->
     <div class="importar-aut">
-      <label>🔗 Importar desde autorización
-        <span class="opcional">(opcional)</span>
-      </label>
+      <label>🔗 Importar desde autorización <span class="opcional">(opcional)</span></label>
       <select (change)="importarAutorizacion(+$any($event.target).value)">
         <option value="0">Seleccione una autorización...</option>
         <option *ngFor="let a of autorizaciones" [value]="a.id">
@@ -152,52 +155,42 @@
 
       <div class="form-group">
         <label>📄 Factura o Remisión *</label>
-        <input type="text" [(ngModel)]="form.facturaRemision"
-          placeholder="Ej: F-001 o R-001">
+        <input type="text" [(ngModel)]="form.facturaRemision" placeholder="Ej: F-001 o R-001">
       </div>
 
       <div class="form-group">
         <label>👤 Cliente *</label>
-        <input type="text" [(ngModel)]="form.cliente"
-          placeholder="Nombre del cliente">
+        <input type="text" [(ngModel)]="form.cliente" placeholder="Nombre del cliente">
       </div>
 
       <div class="form-group">
         <label>🚗 Conductor *</label>
-        <input type="text" [(ngModel)]="form.conductor"
-          placeholder="Nombre del conductor">
+        <input type="text" [(ngModel)]="form.conductor" placeholder="Nombre del conductor">
       </div>
 
       <div class="form-group">
-        <label>🏢 Transportadora
-          <span class="opcional">(si es externa)</span>
-        </label>
-        <input type="text" [(ngModel)]="form.transportadora"
-          placeholder="Nombre de la transportadora">
+        <label>🏢 Transportadora <span class="opcional">(si es externa)</span></label>
+        <input type="text" [(ngModel)]="form.transportadora" placeholder="Nombre de la transportadora">
       </div>
 
       <div class="form-group">
         <label>🚚 Vehículo / Placa</label>
-        <input type="text" [(ngModel)]="form.vehiculo"
-          placeholder="Ej: ABC-123">
+        <input type="text" [(ngModel)]="form.vehiculo" placeholder="Ej: ABC-123">
       </div>
 
       <div class="form-group">
         <label>📋 Guía</label>
-        <input type="text" [(ngModel)]="form.guia"
-          placeholder="Número de guía">
+        <input type="text" [(ngModel)]="form.guia" placeholder="Número de guía">
       </div>
 
       <div class="form-group">
         <label>⚖️ Peso (kg)</label>
-        <input type="number" [(ngModel)]="form.pesoKilos"
-          placeholder="Ej: 150">
+        <input type="number" [(ngModel)]="form.pesoKilos" placeholder="Ej: 150">
       </div>
 
       <div class="form-group">
         <label>💰 Valor del Flete</label>
-        <input type="number" [(ngModel)]="form.valorFlete"
-          placeholder="Ej: 250000">
+        <input type="number" [(ngModel)]="form.valorFlete" placeholder="Ej: 250000">
       </div>
 
       <div class="form-group">
@@ -207,52 +200,37 @@
         </select>
       </div>
 
-      <!-- AJUSTE RECIBIDO -->
       <div class="form-group">
         <label>💱 Ajuste recibido</label>
         <div class="toggle-group">
-          <button class="btn-toggle"
-            [class.activo-verde]="form.ajusteRecibido"
-            (click)="form.ajusteRecibido = true">
-            ✅ Sí
-          </button>
-          <button class="btn-toggle"
-            [class.activo-rojo]="!form.ajusteRecibido"
-            (click)="form.ajusteRecibido = false">
-            ❌ No
-          </button>
+          <button class="btn-toggle" [class.activo-verde]="form.ajusteRecibido"
+            (click)="form.ajusteRecibido = true">✅ Sí</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.ajusteRecibido"
+            (click)="form.ajusteRecibido = false">❌ No</button>
         </div>
       </div>
 
-      <!-- FACTURA ENTREGADA -->
       <div class="form-group">
         <label>📬 Factura entregada a empresa</label>
         <div class="toggle-group">
-          <button class="btn-toggle"
-            [class.activo-verde]="form.facturaEntregada"
-            (click)="form.facturaEntregada = true">
-            ✅ Entregada
-          </button>
-          <button class="btn-toggle"
-            [class.activo-rojo]="!form.facturaEntregada"
-            (click)="form.facturaEntregada = false">
-            🔴 Pendiente
-          </button>
+          <button class="btn-toggle" [class.activo-verde]="form.facturaEntregada"
+            (click)="form.facturaEntregada = true">✅ Entregada</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.facturaEntregada"
+            (click)="form.facturaEntregada = false">🔴 Pendiente</button>
         </div>
       </div>
 
       <div class="form-group full">
         <label>⚠️ Novedad</label>
         <textarea [(ngModel)]="form.novedad"
-          placeholder="Describa cualquier novedad o incidencia...">
-        </textarea>
+          placeholder="Describa cualquier novedad o incidencia..."></textarea>
       </div>
 
     </div>
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardar()">
+      <button class="btn-guardar"  (click)="guardar()">
         {{ editando ? '💾 Guardar cambios' : '📦 Crear registro' }}
       </button>
     </div>
@@ -269,49 +247,15 @@
       <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
     </div>
 
-    <!-- DATOS PRINCIPALES -->
     <div class="detalle-grid">
-
-      <div class="detalle-item">
-        <span>📄 Factura/Remisión</span>
-        <strong>{{ registroSeleccionado?.facturaRemision }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>👤 Cliente</span>
-        <strong>{{ registroSeleccionado?.cliente }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🚗 Conductor</span>
-        <strong>{{ registroSeleccionado?.conductor }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🚚 Vehículo</span>
-        <strong>{{ registroSeleccionado?.vehiculo || '-' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🏢 Transportadora</span>
-        <strong>{{ registroSeleccionado?.transportadora || '-' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>📋 Guía</span>
-        <strong>{{ registroSeleccionado?.guia || '-' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>⚖️ Peso</span>
-        <strong>{{ registroSeleccionado?.pesoKilos ? registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>💰 Valor flete</span>
-        <strong>{{ registroSeleccionado?.valorFlete ? '$' + (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong>
-      </div>
-
+      <div class="detalle-item"><span>📄 Factura/Remisión</span><strong>{{ registroSeleccionado?.facturaRemision }}</strong></div>
+      <div class="detalle-item"><span>👤 Cliente</span><strong>{{ registroSeleccionado?.cliente }}</strong></div>
+      <div class="detalle-item"><span>🚗 Conductor</span><strong>{{ registroSeleccionado?.conductor }}</strong></div>
+      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ registroSeleccionado?.vehiculo || '-' }}</strong></div>
+      <div class="detalle-item"><span>🏢 Transportadora</span><strong>{{ registroSeleccionado?.transportadora || '-' }}</strong></div>
+      <div class="detalle-item"><span>📋 Guía</span><strong>{{ registroSeleccionado?.guia || '-' }}</strong></div>
+      <div class="detalle-item"><span>⚖️ Peso</span><strong>{{ registroSeleccionado?.pesoKilos ? registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong></div>
+      <div class="detalle-item"><span>💰 Valor flete</span><strong>{{ registroSeleccionado?.valorFlete ? '$' + (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong></div>
       <div class="detalle-item">
         <span>💱 Ajuste recibido</span>
         <strong>
@@ -319,46 +263,32 @@
           <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
         </strong>
       </div>
-
       <div class="detalle-item">
         <span>📬 Factura entregada</span>
         <strong>
-          <span class="badge-entregada" *ngIf="registroSeleccionado?.facturaEntregada">✅ Entregada</span>
+          <span class="badge-entregada"    *ngIf="registroSeleccionado?.facturaEntregada">✅ Entregada</span>
           <span class="badge-no-entregada" *ngIf="!registroSeleccionado?.facturaEntregada">🔴 Pendiente</span>
         </strong>
       </div>
-
-      <div class="detalle-item">
-        <span>📅 Fecha entrega</span>
-        <strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong>
-      </div>
-
+      <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
       <div class="detalle-item">
         <span>📊 Estado</span>
-        <strong>
-          <span [class]="getBadgeEstado(registroSeleccionado?.estado)">
-            {{ getLabelEstado(registroSeleccionado?.estado) }}
-          </span>
-        </strong>
+        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{ getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
       </div>
-
       <div class="detalle-item full" *ngIf="registroSeleccionado?.novedad">
         <span>⚠️ Novedad</span>
         <strong>{{ registroSeleccionado?.novedad }}</strong>
       </div>
-
     </div>
 
     <!-- NOTAS -->
     <div class="notas-seccion">
       <div class="notas-header">
         <h3>📝 Notas</h3>
-        <button class="btn-nueva-nota" (click)="nuevaNota()">+ Agregar nota</button>
+        <button class="btn-nueva-nota" *ngIf="puedeCrear" (click)="nuevaNota()">+ Agregar nota</button>
       </div>
 
-      <div class="vacio-notas" *ngIf="notas.length === 0">
-        Sin notas registradas
-      </div>
+      <div class="vacio-notas" *ngIf="notas.length === 0">Sin notas registradas</div>
 
       <div class="nota-card" *ngFor="let n of notas"
         [class.nota-entregada]="n.facturaEntregada"
@@ -370,10 +300,10 @@
             <span class="nota-fecha">{{ n.fecha | date:'short' }}</span>
           </div>
           <div class="nota-acciones">
-            <span class="badge-entregada" *ngIf="n.facturaEntregada">✅ Entregada</span>
+            <span class="badge-entregada"    *ngIf="n.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!n.facturaEntregada">🔴 Pendiente</span>
-            <button class="btn-editar-nota" (click)="editarNota(n)">✏️</button>
-            <button class="btn-eliminar-nota" (click)="eliminarNota(n.id)">🗑️</button>
+            <button class="btn-editar-nota"   *ngIf="puedeEditar"   (click)="editarNota(n)">✏️</button>
+            <button class="btn-eliminar-nota" *ngIf="puedeEliminar" (click)="eliminarNota(n.id)">🗑️</button>
           </div>
         </div>
 
@@ -388,7 +318,8 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
-      <button class="btn-editar-principal" (click)="editar(registroSeleccionado); cerrarDetalle()">
+      <button class="btn-editar-principal" *ngIf="puedeEditar"
+        (click)="editar(registroSeleccionado); cerrarDetalle()">
         ✏️ Editar registro
       </button>
     </div>
@@ -406,57 +337,36 @@
     </div>
 
     <div class="form-grid">
-
       <div class="form-group">
         <label>📝 Número de Nota *</label>
-        <input type="text" [(ngModel)]="formNota.numeroNota"
-          placeholder="Ej: N-001">
+        <input type="text" [(ngModel)]="formNota.numeroNota" placeholder="Ej: N-001">
       </div>
-
       <div class="form-group">
         <label>🚗 Conductor *</label>
-        <input type="text" [(ngModel)]="formNota.conductor"
-          placeholder="Nombre del conductor">
+        <input type="text" [(ngModel)]="formNota.conductor" placeholder="Nombre del conductor">
       </div>
-
       <div class="form-group">
-        <label>👤 Cliente
-          <span class="opcional">(opcional)</span>
-        </label>
-        <input type="text" [(ngModel)]="formNota.cliente"
-          placeholder="Nombre del cliente">
+        <label>👤 Cliente <span class="opcional">(opcional)</span></label>
+        <input type="text" [(ngModel)]="formNota.cliente" placeholder="Nombre del cliente">
       </div>
-
       <div class="form-group">
         <label>📬 Factura entregada</label>
         <div class="toggle-group">
-          <button class="btn-toggle"
-            [class.activo-verde]="formNota.facturaEntregada"
-            (click)="formNota.facturaEntregada = true">
-            ✅ Entregada
-          </button>
-          <button class="btn-toggle"
-            [class.activo-rojo]="!formNota.facturaEntregada"
-            (click)="formNota.facturaEntregada = false">
-            🔴 Pendiente
-          </button>
+          <button class="btn-toggle" [class.activo-verde]="formNota.facturaEntregada"
+            (click)="formNota.facturaEntregada = true">✅ Entregada</button>
+          <button class="btn-toggle" [class.activo-rojo]="!formNota.facturaEntregada"
+            (click)="formNota.facturaEntregada = false">🔴 Pendiente</button>
         </div>
       </div>
-
       <div class="form-group full">
-        <label>💬 Observación
-          <span class="opcional">(opcional)</span>
-        </label>
-        <textarea [(ngModel)]="formNota.observacion"
-          placeholder="Observaciones adicionales...">
-        </textarea>
+        <label>💬 Observación <span class="opcional">(opcional)</span></label>
+        <textarea [(ngModel)]="formNota.observacion" placeholder="Observaciones adicionales..."></textarea>
       </div>
-
     </div>
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarNota()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardarNota()">
+      <button class="btn-guardar"  (click)="guardarNota()">
         {{ editandoNota ? '💾 Guardar cambios' : '📝 Agregar nota' }}
       </button>
     </div>

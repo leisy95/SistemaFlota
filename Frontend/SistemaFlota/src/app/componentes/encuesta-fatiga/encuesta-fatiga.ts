@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EncuestaFatigaService } from '../../services/encuesta-fatiga.service';
-import { ConductoresService } from '../../services/conductores.service';
-import { VehiculosService } from '../../services/vehiculos.service';
+import { ConductoresService }    from '../../services/conductores.service';
+import { VehiculosService }      from '../../services/vehiculos.service';
+import { PermisosService }       from '../../services/permisos.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -15,7 +16,6 @@ import autoTable from 'jspdf-autotable';
   templateUrl: './encuesta-fatiga.html',
   styleUrls: ['./encuesta-fatiga.scss']
 })
-
 export class EncuestaFatigaComponent implements OnInit {
 
   encuestas:    any[] = [];
@@ -28,19 +28,13 @@ export class EncuestaFatigaComponent implements OnInit {
   cargando = false;
 
   form = {
-    conductorId:             0,
-    vehiculoId:              0,
-    durmioMenos7Horas:       false,
-    sienteCansancio:         false,
-    despertoVariasVeces:     false,
-    medicamentoSueno:        false,
+    conductorId: 0, vehiculoId: 0,
+    durmioMenos7Horas: false, sienteCansancio: false,
+    despertoVariasVeces: false, medicamentoSueno: false,
     dificultadConcentracion: false,
-    otraObservacion:         '',
-    registradoPor:           '',
-    observaciones:           ''
+    otraObservacion: '', registradoPor: '', observaciones: ''
   };
 
-  // PREGUNTAS ADICIONALES DINÁMICAS
   preguntasExtra: { pregunta: string; respuesta: boolean }[] = [];
 
   readonly preguntas = [
@@ -51,10 +45,15 @@ export class EncuestaFatigaComponent implements OnInit {
     { key: 'dificultadConcentracion', texto: '¿Siente dificultad para concentrarse en este momento?',          alerta: 'Concentración reducida' },
   ];
 
+  // ── Permisos ─────────────────────────────────────────────────────────────────
+  get puedeCrear():    boolean { return this.permisosService.puedeCrear('encuesta-fatiga'); }
+  get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('encuesta-fatiga'); }
+
   constructor(
     private encuestaService:    EncuestaFatigaService,
     private conductoresService: ConductoresService,
-    private vehiculosService:   VehiculosService
+    private vehiculosService:   VehiculosService,
+    private permisosService:    PermisosService
   ) {}
 
   ngOnInit(): void {
@@ -67,28 +66,28 @@ export class EncuestaFatigaComponent implements OnInit {
   cargarEncuestas() {
     this.encuestaService.obtenerEncuestas().subscribe({
       next: (data) => this.encuestas = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
   cargarConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
   cargarVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
   cargarEstadisticas() {
     this.encuestaService.obtenerEstadisticas().subscribe({
       next: (data) => this.estadisticas = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
@@ -105,42 +104,24 @@ export class EncuestaFatigaComponent implements OnInit {
     this.mostrarFormulario = true;
   }
 
-  // ACCESO DINÁMICO A PROPIEDADES DEL FORM
-  getPregunta(key: string): boolean {
-    return (this.form as any)[key];
-  }
+  getPregunta(key: string): boolean { return (this.form as any)[key]; }
+  setPregunta(key: string, valor: boolean) { (this.form as any)[key] = valor; }
 
-  setPregunta(key: string, valor: boolean) {
-    (this.form as any)[key] = valor;
-  }
-
-  // PREGUNTAS EXTRA
-  agregarPreguntaExtra() {
-    this.preguntasExtra.push({ pregunta: '', respuesta: false });
-  }
-
-  eliminarPreguntaExtra(index: number) {
-    this.preguntasExtra.splice(index, 1);
-  }
+  agregarPreguntaExtra()           { this.preguntasExtra.push({ pregunta: '', respuesta: false }); }
+  eliminarPreguntaExtra(i: number) { this.preguntasExtra.splice(i, 1); }
 
   get respuestasSi(): number {
     return [
-      this.form.durmioMenos7Horas,
-      this.form.sienteCansancio,
-      this.form.despertoVariasVeces,
-      this.form.medicamentoSueno,
+      this.form.durmioMenos7Horas, this.form.sienteCansancio,
+      this.form.despertoVariasVeces, this.form.medicamentoSueno,
       this.form.dificultadConcentracion
     ].filter(v => v).length;
   }
 
-  get resultadoPreview(): string {
-    return this.respuestasSi >= 2 ? 'No Apto' : 'Apto';
-  }
+  get resultadoPreview(): string { return this.respuestasSi >= 2 ? 'No Apto' : 'Apto'; }
 
   get alertasActivas(): string[] {
-    return this.preguntas
-      .filter(p => (this.form as any)[p.key])
-      .map(p => p.alerta);
+    return this.preguntas.filter(p => (this.form as any)[p.key]).map(p => p.alerta);
   }
 
   guardar() {
@@ -148,7 +129,6 @@ export class EncuestaFatigaComponent implements OnInit {
     if (!this.form.vehiculoId)           { alert('Seleccione un vehículo');  return; }
     if (!this.form.registradoPor.trim()) { alert('Ingrese quién registra');  return; }
 
-    // AGREGAR PREGUNTAS EXTRA A OBSERVACIÓN
     const extrasTexto = this.preguntasExtra
       .filter(p => p.pregunta.trim() !== '')
       .map(p => `• ${p.pregunta}: ${p.respuesta ? 'Sí' : 'No'}`)
@@ -170,11 +150,7 @@ export class EncuestaFatigaComponent implements OnInit {
         this.cargarEncuestas();
         this.cargarEstadisticas();
       },
-      error: (err) => {
-        console.error(err);
-        this.cargando = false;
-        alert('Error guardando encuesta');
-      }
+      error: (err) => { console.error(err); this.cargando = false; alert('Error guardando encuesta'); }
     });
   }
 
@@ -186,27 +162,16 @@ export class EncuestaFatigaComponent implements OnInit {
     });
   }
 
-  cerrarResultado() {
-    this.resultadoActual = null;
-  }
+  cerrarResultado() { this.resultadoActual = null; }
 
   getBadgeResultado(resultado: string): string {
     return resultado === 'Apto' ? 'badge-apto' : 'badge-no-apto';
   }
 
   contarSi(e: any): number {
-    return [
-      e.durmioMenos7Horas,
-      e.sienteCansancio,
-      e.despertoVariasVeces,
-      e.medicamentoSueno,
-      e.dificultadConcentracion
-    ].filter(v => v).length;
+    return [e.durmioMenos7Horas, e.sienteCansancio, e.despertoVariasVeces,
+            e.medicamentoSueno, e.dificultadConcentracion].filter(v => v).length;
   }
-
-  // =========================
-  // PDF INDIVIDUAL
-  // =========================
 
   generarPDFIndividual(e: any) {
     const doc   = new jsPDF();
@@ -216,19 +181,14 @@ export class EncuestaFatigaComponent implements OnInit {
 
     doc.setFillColor(...COLOR);
     doc.rect(0, 0, 210, 28, 'F');
-    doc.setFontSize(16);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
     doc.text('ENCUESTA PREOPERACIONAL DE FATIGA', 105, 14, { align: 'center' });
     doc.setFontSize(10);
     doc.text(`Resultado: ${e.resultado}`, 105, 22, { align: 'center' });
 
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30,30,30); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('INFORMACIÓN DEL CONDUCTOR', 14, 40);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
     doc.text(`Conductor:      ${e.conductor?.nombre   ?? '-'}`, 14, 48);
     doc.text(`Licencia:       ${e.conductor?.licencia ?? '-'}`, 14, 55);
     doc.text(`Vehículo:       ${e.vehiculo?.placa     ?? '-'}`, 14, 62);
@@ -237,14 +197,10 @@ export class EncuestaFatigaComponent implements OnInit {
 
     doc.setFillColor(...COLOR);
     doc.roundedRect(140, 38, 55, 20, 3, 3, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont('helvetica','bold');
     doc.text(e.resultado === 'Apto' ? '✓ APTO' : '✗ NO APTO', 167, 52, { align: 'center' });
 
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30,30,30); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('RESPUESTAS', 14, 90);
 
     const preguntas = [
@@ -259,69 +215,44 @@ export class EncuestaFatigaComponent implements OnInit {
       startY: 95,
       head: [['Pregunta', 'Respuesta']],
       body: preguntas.map(p => [p.texto, p.valor ? '✗ SÍ' : '✓ NO']),
-      headStyles: { fillColor: [15, 23, 42], textColor: [255,255,255], fontStyle: 'bold', fontSize: 10 },
+      headStyles: { fillColor: [15,23,42], textColor: [255,255,255], fontStyle: 'bold', fontSize: 10 },
       bodyStyles: { fontSize: 10 },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      alternateRowStyles: { fillColor: [245,245,245] },
       didDrawCell: (data: any) => {
         if (data.column.index === 1 && data.section === 'body') {
           const val = data.cell.text[0];
-          const x = data.cell.x + 1;
-          const y = data.cell.y + 1;
-          const w = data.cell.width - 2;
-          const h = data.cell.height - 2;
-          if (val.includes('SÍ')) doc.setFillColor(254, 226, 226);
-          else                    doc.setFillColor(220, 252, 231);
+          const x = data.cell.x+1, y = data.cell.y+1, w = data.cell.width-2, h = data.cell.height-2;
+          if (val.includes('SÍ')) doc.setFillColor(254,226,226);
+          else                    doc.setFillColor(220,252,231);
           doc.roundedRect(x, y, w, h, 1, 1, 'F');
-          doc.setTextColor(
-            val.includes('SÍ') ? 185 : 21,
-            val.includes('SÍ') ? 28  : 128,
-            val.includes('SÍ') ? 28  : 61
-          );
+          doc.setTextColor(val.includes('SÍ') ? 185 : 21, val.includes('SÍ') ? 28 : 128, val.includes('SÍ') ? 28 : 61);
           doc.setFontSize(9);
-          doc.text(val, x + w / 2, y + h / 2 + 1, { align: 'center' });
+          doc.text(val, x + w/2, y + h/2 + 1, { align: 'center' });
         }
       },
-      columnStyles: {
-        0: { cellWidth: 140 },
-        1: { cellWidth: 40, halign: 'center' }
-      }
+      columnStyles: { 0: { cellWidth: 140 }, 1: { cellWidth: 40, halign: 'center' } }
     });
 
     const finalY = (doc as any).lastAutoTable.finalY + 10;
-
     if (e.otraObservacion) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(30, 30, 30);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(30,30,30);
       doc.text('Observación adicional:', 14, finalY);
-      doc.setFont('helvetica', 'normal');
-      const lineas = doc.splitTextToSize(e.otraObservacion, 180);
-      doc.text(lineas, 14, finalY + 7);
+      doc.setFont('helvetica','normal');
+      doc.text(doc.splitTextToSize(e.otraObservacion, 180), 14, finalY + 7);
     }
-
     if (e.observaciones) {
       const offsetY = e.otraObservacion ? finalY + 30 : finalY;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(30, 30, 30);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(30,30,30);
       doc.text('Observaciones generales:', 14, offsetY);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica','normal');
       doc.text(e.observaciones, 14, offsetY + 7);
     }
 
-    doc.setDrawColor(...COLOR);
-    doc.setLineWidth(0.5);
-    doc.line(14, 280, 196, 280);
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
+    doc.setDrawColor(...COLOR); doc.setLineWidth(0.5); doc.line(14, 280, 196, 280);
+    doc.setFontSize(8); doc.setTextColor(120,120,120);
     doc.text('Sistema de Gestión de Flota — Encuesta Preoperacional', 105, 285, { align: 'center' });
-
     doc.save(`encuesta_fatiga_${e.conductor?.nombre ?? 'conductor'}_${new Date().toISOString().slice(0,10)}.pdf`);
   }
-
-  // =========================
-  // EXPORTAR EXCEL
-  // =========================
 
   exportarExcel() {
     const datos = this.encuestas.map(e => ({
@@ -340,18 +271,13 @@ export class EncuestaFatigaComponent implements OnInit {
       'Registrado por':           e.registradoPor           || '-',
       'Observaciones':            e.observaciones           || '-',
     }));
-
     const hoja = XLSX.utils.json_to_sheet(datos);
     hoja['!cols'] = [
-      { wch: 6  }, { wch: 20 }, { wch: 22 }, { wch: 15 },
-      { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 20 },
-      { wch: 15 }, { wch: 22 }, { wch: 25 }, { wch: 12 },
-      { wch: 18 }, { wch: 30 }
+      {wch:6},{wch:20},{wch:22},{wch:15},{wch:12},{wch:15},{wch:15},
+      {wch:20},{wch:15},{wch:22},{wch:25},{wch:12},{wch:18},{wch:30}
     ];
-
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Encuesta Fatiga');
     XLSX.writeFile(libro, `encuesta_fatiga_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
-
 }

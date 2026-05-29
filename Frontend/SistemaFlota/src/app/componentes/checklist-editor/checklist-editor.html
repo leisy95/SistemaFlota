@@ -1,32 +1,48 @@
-<div class="contenedor">
+<div class="checklist-contenedor">
 
-  <h1>Administrar Checklist</h1>
+  <div class="checklist-header">
+    <div class="header-titulo">
+      <i class="fa-solid fa-list-check"></i>
+      <h1>Checklist de Inspección</h1>
+    </div>
+    <span class="badge-total">{{ todosChecklist.length }} ítems</span>
+  </div>
 
   <!-- FORMULARIO -->
-  <div class="formulario">
+  <div class="formulario-card">
+    <div class="formulario-titulo">
+      <i class="fa-solid fa-{{ editando ? 'pen' : 'plus' }}"></i>
+      {{ editando ? 'Editar ítem' : 'Nuevo ítem' }}
+    </div>
+    <div class="formulario-campos">
 
-    <select [(ngModel)]="tipoVehiculoId">
-      <option [value]="0">Seleccionar tipo vehículo</option>
-      <option *ngFor="let t of tiposVehiculo" [value]="t.id">
-        {{ t.nombre }}
-      </option>
-    </select>
+      <select [(ngModel)]="tipoVehiculoId" class="glass-select">
+        <option [value]="0">Seleccionar tipo vehículo</option>
+        <option *ngFor="let t of tiposVehiculo" [value]="t.id">
+          {{ t.nombre }}
+        </option>
+      </select>
 
-    <input
-      type="text"
-      [(ngModel)]="descripcion"
-      placeholder="Descripción checklist">
+      <input type="text" [(ngModel)]="descripcion"
+        placeholder="Descripción del ítem checklist"
+        class="glass-input">
 
-    <button (click)="guardarChecklist()">
-      {{ editando ? 'Actualizar checklist' : 'Agregar checklist' }}
-    </button>
+      <div class="formulario-botones">
+        <button class="btn-guardar" (click)="guardarChecklist()">
+          <i class="fa-solid fa-{{ editando ? 'floppy-disk' : 'plus' }}"></i>
+          {{ editando ? 'Actualizar' : 'Agregar' }}
+        </button>
+        <button class="btn-cancelar" *ngIf="editando" (click)="limpiarFormulario()">
+          <i class="fa-solid fa-xmark"></i> Cancelar
+        </button>
+      </div>
 
+    </div>
   </div>
 
   <!-- TABLA -->
-  <div class="tabla-container">
+  <div class="tabla-card" *ngIf="todosChecklist.length > 0">
     <table>
-
       <thead>
         <tr>
           <th>#</th>
@@ -35,38 +51,49 @@
           <th>Acciones</th>
         </tr>
       </thead>
-
       <tbody>
-        <tr *ngFor="let item of obtenerChecklistPaginado(); let i = index">
-
+        <tr *ngFor="let item of checklistPaginado; let i = index">
           <td data-label="#">
-            {{ (paginaActual - 1) * itemsPorPagina + i + 1 }}
+            <span class="num-badge">{{ (paginaActual - 1) * itemsPorPagina + i + 1 }}</span>
           </td>
-
-          <td data-label="Descripción">
-            {{ item.descripcion }}
-          </td>
-
+          <td data-label="Descripción">{{ item.descripcion }}</td>
           <td data-label="Tipo Vehículo">
-            {{ item.tipoVehiculoId }}
+            <span class="tipo-badge">
+              <i class="fa-solid fa-truck"></i>
+              {{ getNombreTipo(item.tipoVehiculoId) }}
+            </span>
           </td>
-
           <td data-label="Acciones">
-            <button class="btn-editar" (click)="editarChecklist(item)">✏️</button>
-            <button class="btn-eliminar" (click)="eliminarChecklist(item.id)">🗑️</button>
+            <div class="btn-acciones">
+              <button class="btn-editar" (click)="editarChecklist(item)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-eliminar" (click)="eliminarChecklist(item.id)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </td>
-
         </tr>
       </tbody>
-
     </table>
   </div>
 
-</div>
+  <!-- VACÍO -->
+  <div class="vacio" *ngIf="todosChecklist.length === 0">
+    <i class="fa-solid fa-list-check"></i>
+    <p>No hay ítems en el checklist</p>
+    <small>Agrega el primer ítem usando el formulario</small>
+  </div>
 
-<!-- PAGINACIÓN -->
-<div class="paginacion">
-  <button (click)="paginaAnterior()">← Anterior</button>
-  <span>Página {{ paginaActual }}</span>
-  <button (click)="paginaSiguiente()">Siguiente →</button>
+  <!-- PAGINACIÓN -->
+  <div class="paginacion" *ngIf="totalPaginas > 1">
+    <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+      <i class="fa-solid fa-chevron-left"></i> Anterior
+    </button>
+    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+    <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+      Siguiente <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+
 </div>

@@ -6,21 +6,21 @@
 <!-- SISTEMA -->
 <div *ngIf="isLoggedIn" class="layout">
 
-  <div
-    class="sidebar-overlay"
-    [class.visible]="sidebarVisible"
-    (click)="cerrarSidebar()">
-  </div>
+  <div class="sidebar-overlay" [class.visible]="sidebarVisible" (click)="cerrarSidebar()"></div>
 
   <aside class="sidebar" [class.visible]="sidebarVisible">
 
     <div class="sidebar-header">
       <div class="logo-empresa">
         <img *ngIf="empresaLogo" [src]="empresaLogo" alt="Logo" class="logo-img">
-        <h2 class="logo" *ngIf="!empresaLogo">🚚 {{ empresaNombre }}</h2>
+        <h2 class="logo" *ngIf="!empresaLogo">
+          <i class="fa-solid fa-truck-fast"></i> {{ empresaNombre }}
+        </h2>
         <h2 class="logo logo-con-img" *ngIf="empresaLogo">{{ empresaNombre }}</h2>
       </div>
-      <button class="btn-cerrar-sidebar" (click)="cerrarSidebar()">✕</button>
+      <button class="btn-cerrar-sidebar" (click)="cerrarSidebar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <nav>
@@ -28,14 +28,20 @@
         *ngFor="let modulo of modulosVisibles"
         (click)="cambiarModulo(modulo.key)"
         [class.activo]="moduloActual === modulo.key">
-        {{ modulo.label }}
+        <i [class]="modulo.icon"></i>
+        <span>{{ modulo.label }}</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
+      <div class="usuario-avatar">
+        <i class="fa-solid fa-circle-user"></i>
+      </div>
       <div class="usuario-info">
         <span class="usuario-nombre">{{ usuarioActivo }}</span>
-        <span class="usuario-rol">{{ rol }}</span>
+        <span class="usuario-rol">
+          <i class="fa-solid fa-shield-halved"></i> {{ rol }}
+        </span>
       </div>
     </div>
 
@@ -45,97 +51,44 @@
 
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn-hamburguesa" (click)="toggleSidebar()">☰</button>
-        <h1>{{ moduloActual }}</h1>
+        <button class="btn-hamburguesa" (click)="toggleSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-modulo">
+          <i [class]="getIconoModulo(moduloActual)"></i>
+          <span>{{ getLabelModulo(moduloActual) }}</span>
+        </div>
       </div>
-      <button class="btn-logout" (click)="cerrarSesion()"
-        [style.background]="colorPrimario">
+      <button class="btn-logout" (click)="cerrarSesion()">
+        <i class="fa-solid fa-right-from-bracket"></i>
         Cerrar sesión
       </button>
     </header>
 
     <section class="content">
 
-      <app-dashboard
-        *ngIf="moduloActual === 'dashboard'"
-        (navegar)="cambiarModulo($event)"
-        (logout)="cerrarSesion()">
+      <app-dashboard          *ngIf="moduloActual === 'dashboard'"
+        (navegar)="cambiarModulo($event)" (logout)="cerrarSesion()">
       </app-dashboard>
-
-      <app-conductores
-        *ngIf="moduloActual === 'conductores'">
-      </app-conductores>
-
-      <app-inspecciones
-        *ngIf="moduloActual === 'inspecciones'">
-      </app-inspecciones>
-
-      <app-inspecciones-historial
-        *ngIf="moduloActual === 'ver-inspecciones'">
-      </app-inspecciones-historial>
-
-      <app-autorizaciones
-        *ngIf="moduloActual === 'autorizaciones'">
-      </app-autorizaciones>
-
-      <app-reportes-ruta
-        *ngIf="moduloActual === 'reporte-ruta'">
-      </app-reportes-ruta>
-
-      <app-vehiculos
-        *ngIf="moduloActual === 'vehiculos'">
-      </app-vehiculos>
-
-      <app-usuarios
-        *ngIf="moduloActual === 'usuarios'">
-      </app-usuarios>
-
-      <app-checklist-editor
-        *ngIf="moduloActual === 'checklist'">
-      </app-checklist-editor>
-
-      <app-incidentes
-        *ngIf="moduloActual === 'incidentes'">
-      </app-incidentes>
-
-      <app-contactos-notificacion
-        *ngIf="moduloActual === 'contactos-notificacion'">
-      </app-contactos-notificacion>
-
-      <app-configuracion-empresa
-        *ngIf="moduloActual === 'configuracion'">
-      </app-configuracion-empresa>
-
-      <app-mantenimiento
-        *ngIf="moduloActual === 'mantenimiento'">
-      </app-mantenimiento>
-
-      <app-documentos
-        *ngIf="moduloActual === 'documentos'">
-      </app-documentos>
-
-      <app-auditoria
-        *ngIf="moduloActual === 'auditoria'">
-      </app-auditoria>
-
-      <app-encuesta-fatiga
-        *ngIf="moduloActual === 'encuesta-fatiga'">
-      </app-encuesta-fatiga>
-
-      <app-trazabilidad
-        *ngIf="moduloActual === 'trazabilidad'">
-      </app-trazabilidad>
-
-      <app-cambio-ruta
-        *ngIf="moduloActual === 'cambio-ruta'">
-      </app-cambio-ruta>
-
-      <app-solicitud-taller
-        *ngIf="moduloActual === 'solicitud-taller'">
-      </app-solicitud-taller>
+      <app-conductores        *ngIf="moduloActual === 'conductores'"></app-conductores>
+      <app-inspecciones       *ngIf="moduloActual === 'inspecciones'"></app-inspecciones>
+      <app-inspecciones-historial *ngIf="moduloActual === 'ver-inspecciones'"></app-inspecciones-historial>
+      <app-autorizaciones     *ngIf="moduloActual === 'autorizaciones'"></app-autorizaciones>
+      <app-reportes-ruta      *ngIf="moduloActual === 'reporte-ruta'"></app-reportes-ruta>
+      <app-vehiculos          *ngIf="moduloActual === 'vehiculos'"></app-vehiculos>
+      <app-usuarios           *ngIf="moduloActual === 'usuarios'"></app-usuarios>
+      <app-checklist-editor   *ngIf="moduloActual === 'checklist'"></app-checklist-editor>
+      <app-incidentes         *ngIf="moduloActual === 'incidentes'"></app-incidentes>
+      <app-contactos-notificacion *ngIf="moduloActual === 'contactos-notificacion'"></app-contactos-notificacion>
+      <app-configuracion-empresa  *ngIf="moduloActual === 'configuracion'"></app-configuracion-empresa>
+      <app-mantenimiento      *ngIf="moduloActual === 'mantenimiento'"></app-mantenimiento>
+      <app-documentos         *ngIf="moduloActual === 'documentos'"></app-documentos>
+      <app-auditoria          *ngIf="moduloActual === 'auditoria'"></app-auditoria>
+      <app-encuesta-fatiga    *ngIf="moduloActual === 'encuesta-fatiga'"></app-encuesta-fatiga>
+      <app-trazabilidad       *ngIf="moduloActual === 'trazabilidad'"></app-trazabilidad>
+      <app-cambio-ruta        *ngIf="moduloActual === 'cambio-ruta'"></app-cambio-ruta>
+      <app-solicitud-taller   *ngIf="moduloActual === 'solicitud-taller'"></app-solicitud-taller>
 
     </section>
-
   </div>
-
 </div>

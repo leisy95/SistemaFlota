@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditoriaService } from '../../services/auditoria.service';
+import { PermisosService }  from '../../services/permisos.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -11,70 +12,60 @@ import * as XLSX from 'xlsx';
   templateUrl: './auditoria.html',
   styleUrls: ['./auditoria.scss']
 })
-
 export class AuditoriaComponent implements OnInit {
 
-  registros:    any[] = [];
-  estadisticas: any   = null;
-  cargando      = false;
+  registros:     any[] = [];
+  estadisticas:  any   = null;
+  cargando       = false;
 
-  // PAGINACIÓN
-  paginaActual  = 1;
-  porPagina     = 50;
+  paginaActual   = 1;
+  porPagina      = 50;
   totalRegistros = 0;
   totalPaginas   = 0;
 
-  // FILTROS
   filtros = {
-    usuario:    '',
-    modulo:     '',
-    accion:     '',
-    resultado:  '',
-    fechaDesde: '',
-    fechaHasta: ''
+    usuario: '', modulo: '', accion: '',
+    resultado: '', fechaDesde: '', fechaHasta: ''
   };
 
   readonly modulos = [
-    'Auth', 'Inspecciones', 'Autorizaciones', 'Usuarios',
-    'Documentos', 'Mantenimiento', 'Incidentes', 'Configuracion'
+    'Auth','Inspecciones','Autorizaciones','Usuarios',
+    'Documentos','Mantenimiento','Incidentes','Configuracion'
   ];
 
   readonly acciones = [
-    'Login', 'Logout', 'Crear', 'Editar', 'Eliminar',
-    'Firmar', 'Revisar', 'Subir', 'Finalizar',
-    'RecuperarPassword', 'CambiarPassword', 'Rechazar'
+    'Login','Logout','Crear','Editar','Eliminar',
+    'Firmar','Revisar','Subir','Finalizar',
+    'RecuperarPassword','CambiarPassword','Rechazar'
   ];
 
   readonly resultados = ['Exitoso', 'Fallido'];
 
-  constructor(private auditoriaService: AuditoriaService) {}
+  // ── Permisos ─────────────────────────────────────────────────────────────────
+  get puedeVer():      boolean { return this.permisosService.puedeVer('auditoria'); }
+  get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('auditoria'); }
+
+  constructor(
+    private auditoriaService: AuditoriaService,
+    private permisosService:  PermisosService
+  ) {}
 
   ngOnInit(): void {
     this.cargarEstadisticas();
     this.buscar();
   }
 
-  // =========================
-  // CARGAR ESTADÍSTICAS
-  // =========================
-
   cargarEstadisticas() {
     this.auditoriaService.obtenerEstadisticas().subscribe({
       next: (data) => this.estadisticas = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
-
-  // =========================
-  // BUSCAR
-  // =========================
 
   buscar() {
     this.cargando = true;
     this.auditoriaService.obtenerAuditorias({
-      ...this.filtros,
-      pagina:    this.paginaActual,
-      porPagina: this.porPagina
+      ...this.filtros, pagina: this.paginaActual, porPagina: this.porPagina
     }).subscribe({
       next: (data: any) => {
         this.registros      = data.datos;
@@ -82,47 +73,23 @@ export class AuditoriaComponent implements OnInit {
         this.totalPaginas   = data.totalPaginas;
         this.cargando       = false;
       },
-      error: (err) => {
-        console.error(err);
-        this.cargando = false;
-      }
+      error: (err) => { console.error(err); this.cargando = false; }
     });
   }
 
-  // =========================
-  // LIMPIAR FILTROS
-  // =========================
-
   limpiarFiltros() {
-    this.filtros = {
-      usuario: '', modulo: '', accion: '',
-      resultado: '', fechaDesde: '', fechaHasta: ''
-    };
+    this.filtros = { usuario: '', modulo: '', accion: '', resultado: '', fechaDesde: '', fechaHasta: '' };
     this.paginaActual = 1;
     this.buscar();
   }
 
-  // =========================
-  // PAGINACIÓN
-  // =========================
-
   paginaAnterior() {
-    if (this.paginaActual > 1) {
-      this.paginaActual--;
-      this.buscar();
-    }
+    if (this.paginaActual > 1) { this.paginaActual--; this.buscar(); }
   }
 
   paginaSiguiente() {
-    if (this.paginaActual < this.totalPaginas) {
-      this.paginaActual++;
-      this.buscar();
-    }
+    if (this.paginaActual < this.totalPaginas) { this.paginaActual++; this.buscar(); }
   }
-
-  // =========================
-  // BADGES
-  // =========================
 
   getBadgeAccion(accion: string): string {
     switch (accion) {
@@ -143,39 +110,28 @@ export class AuditoriaComponent implements OnInit {
     return resultado === 'Exitoso' ? 'badge-exitoso' : 'badge-fallido';
   }
 
-  // =========================
-  // EXPORTAR EXCEL
-  // =========================
-
   exportarExcel() {
     const datos = this.registros.map(r => ({
-      'ID':         r.id,
-      'Fecha':      new Date(r.fecha).toLocaleString(),
-      'Usuario':    r.usuario,
-      'Rol':        r.rol,
-      'Módulo':     r.modulo,
-      'Acción':     r.accion,
-      'Detalle':    r.detalle    || '-',
-      'Registro ID':r.registroId || '-',
-      'IP':         r.ipAddress  || '-',
-      'Resultado':  r.resultado
+      'ID':          r.id,
+      'Fecha':       new Date(r.fecha).toLocaleString(),
+      'Usuario':     r.usuario,
+      'Rol':         r.rol,
+      'Módulo':      r.modulo,
+      'Acción':      r.accion,
+      'Detalle':     r.detalle    || '-',
+      'Registro ID': r.registroId || '-',
+      'IP':          r.ipAddress  || '-',
+      'Resultado':   r.resultado
     }));
-
     const hoja = XLSX.utils.json_to_sheet(datos);
     hoja['!cols'] = [
-      { wch: 6  }, { wch: 20 }, { wch: 20 }, { wch: 15 },
-      { wch: 18 }, { wch: 15 }, { wch: 50 }, { wch: 12 },
-      { wch: 15 }, { wch: 10 }
+      {wch:6},{wch:20},{wch:20},{wch:15},{wch:18},
+      {wch:15},{wch:50},{wch:12},{wch:15},{wch:10}
     ];
-
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Auditoría');
     XLSX.writeFile(libro, `auditoria_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
-
-  // =========================
-  // LIMPIAR REGISTROS ANTIGUOS
-  // =========================
 
   limpiarRegistros() {
     if (!confirm('¿Eliminar registros de auditoría con más de 90 días?')) return;
@@ -188,5 +144,4 @@ export class AuditoriaComponent implements OnInit {
       error: (err) => console.error(err)
     });
   }
-
 }

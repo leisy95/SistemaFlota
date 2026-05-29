@@ -1,12 +1,9 @@
-import {
-  Component,
-  OnInit
-} from '@angular/core';
-
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentosService } from '../../services/documentos.service';
-import { VehiculosService } from '../../services/vehiculos.service';
+import { VehiculosService }  from '../../services/vehiculos.service';
+import { PermisosService }   from '../../services/permisos.service';
 
 @Component({
   selector: 'app-documentos',
@@ -15,68 +12,61 @@ import { VehiculosService } from '../../services/vehiculos.service';
   templateUrl: './documentos.html',
   styleUrls: ['./documentos.scss']
 })
-
 export class DocumentosComponent implements OnInit {
 
-  // TABS
   tabActual: 'vehiculo' | 'generales' | 'vencer' = 'vehiculo';
 
-  // VEHÍCULO
-  vehiculos:          any[] = [];
+  vehiculos:           any[] = [];
   vehiculoSeleccionado = 0;
   documentosVehiculo:  any[] = [];
+  documentosVehiculoFiltrados: any[] = [];
 
-  // GENERALES
   documentosGenerales: any[] = [];
-  filtroCategoria      = '';
+  documentosGeneralesFiltrados: any[] = [];
 
-  // POR VENCER
-  porVencer: any = { vehiculo: [], generales: [], total: 0 };
+  porVencer:    any   = { vehiculo: [], generales: [], total: 0 };
+  porVencerFiltrados: any[] = [];
 
-  // MODAL
-  mostrarModal  = false;
-  tipoSubida:   'vehiculo' | 'general' = 'vehiculo';
-  subiendo      = false;
+  filtroCategoria    = '';
+  filtroTipoDoc      = '';
+  filtroEstadoVeh    = '';
+  filtroEstadoGen    = '';
+  filtroDiasVencer   = '30';
+  filtroBusqueda     = '';
+
+  mostrarModal = false;
+  tipoSubida:  'vehiculo' | 'general' = 'vehiculo';
+  subiendo     = false;
   archivoSeleccionado: File | null = null;
 
-  formVehiculo = {
-    vehiculoId:       0,
-    tipoDocumento:    '',
-    nombre:           '',
-    descripcion:      '',
-    fechaVencimiento: ''
-  };
-
-  formGeneral = {
-    nombre:           '',
-    descripcion:      '',
-    categoria:        'General',
-    fechaVencimiento: ''
-  };
+  formVehiculo = { vehiculoId: 0, tipoDocumento: '', nombre: '', descripcion: '', fechaVencimiento: '' };
+  formGeneral  = { nombre: '', descripcion: '', categoria: 'General', fechaVencimiento: '' };
 
   readonly tiposDocumentoVehiculo = [
-    'SOAT',
-    'Tecnomecanica',
-    'TarjetaPropiedad',
-    'PermisoOperacion',
-    'PolizaResponsabilidad',
-    'Otro'
+    'SOAT','Tecnomecanica','TarjetaPropiedad',
+    'PermisoOperacion','PolizaResponsabilidad','Otro'
   ];
 
   readonly categoriasGenerales = [
-    'General',
-    'Contratos',
-    'Legal',
-    'Seguros',
-    'RRHH',
-    'Financiero',
-    'Operaciones',
-    'Otro'
+    'General','Contratos','Legal','Seguros',
+    'RRHH','Financiero','Operaciones','Otro'
   ];
+
+  // ── Permisos ─────────────────────────────────────────────────────────────────
+  get puedeCrear():    boolean { return this.permisosService.puedeCrear('documentos'); }
+  get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('documentos'); }
+
+  // ── Stats rápidos ─────────────────────────────────────────────────────────────
+  get totalVehiculo():  number { return this.documentosVehiculo.length; }
+  get vencidosVeh():    number { return this.documentosVehiculo.filter(d => this.estaVencido(d.fechaVencimiento)).length; }
+  get porVencerVeh():   number { return this.documentosVehiculo.filter(d => !this.estaVencido(d.fechaVencimiento) && this.diasParaVencer(d.fechaVencimiento) <= 30).length; }
+  get totalGenerales(): number { return this.documentosGenerales.length; }
+  get vencidosGen():    number { return this.documentosGenerales.filter(d => this.estaVencido(d.fechaVencimiento)).length; }
 
   constructor(
     private documentosService: DocumentosService,
-    private vehiculosService:  VehiculosService
+    private vehiculosService:  VehiculosService,
+    private permisosService:   PermisosService
   ) {}
 
   ngOnInit(): void {
@@ -85,81 +75,101 @@ export class DocumentosComponent implements OnInit {
     this.cargarPorVencer();
   }
 
-  // =========================
-  // TABS
-  // =========================
-
   cambiarTab(tab: 'vehiculo' | 'generales' | 'vencer') {
     this.tabActual = tab;
     if (tab === 'vencer') this.cargarPorVencer();
   }
 
-  // =========================
-  // VEHÍCULOS
-  // =========================
-
   cargarVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
   seleccionarVehiculo() {
-    if (this.vehiculoSeleccionado) {
-      this.cargarDocumentosVehiculo();
-    }
+    if (this.vehiculoSeleccionado) this.cargarDocumentosVehiculo();
+    else { this.documentosVehiculo = []; this.documentosVehiculoFiltrados = []; }
   }
 
   cargarDocumentosVehiculo() {
-    this.documentosService
-      .obtenerDocumentosVehiculo(this.vehiculoSeleccionado)
-      .subscribe({
-        next: (data) => this.documentosVehiculo = data,
-        error: (err) => console.error(err)
-      });
-  }
-
-  // =========================
-  // GENERALES
-  // =========================
-
-  cargarDocumentosGenerales() {
-    this.documentosService
-      .obtenerDocumentosGenerales(this.filtroCategoria || undefined)
-      .subscribe({
-        next: (data) => this.documentosGenerales = data,
-        error: (err) => console.error(err)
-      });
-  }
-
-  // =========================
-  // POR VENCER
-  // =========================
-
-  cargarPorVencer() {
-    this.documentosService.obtenerPorVencer().subscribe({
-      next: (data) => this.porVencer = data,
-      error: (err) => console.error(err)
+    this.documentosService.obtenerDocumentosVehiculo(this.vehiculoSeleccionado).subscribe({
+      next: (data) => { this.documentosVehiculo = data; this.aplicarFiltrosVehiculo(); },
+      error: (err)  => console.error(err)
     });
   }
 
-  // =========================
-  // SUBIR DOCUMENTO
-  // =========================
+  cargarDocumentosGenerales() {
+    this.documentosService.obtenerDocumentosGenerales(this.filtroCategoria || undefined).subscribe({
+      next: (data) => { this.documentosGenerales = data; this.aplicarFiltrosGenerales(); },
+      error: (err)  => console.error(err)
+    });
+  }
 
+  cargarPorVencer() {
+    this.documentosService.obtenerPorVencer().subscribe({
+      next: (data) => { this.porVencer = data; this.aplicarFiltroVencer(); },
+      error: (err)  => console.error(err)
+    });
+  }
+
+  // ── Filtros vehículo ──────────────────────────────────────────────────────────
+  aplicarFiltrosVehiculo() {
+    const q = this.filtroBusqueda.toLowerCase();
+    this.documentosVehiculoFiltrados = this.documentosVehiculo.filter(d => {
+      const okTipo   = !this.filtroTipoDoc   || d.tipoDocumento === this.filtroTipoDoc;
+      const okEstado = !this.filtroEstadoVeh || this.getEstadoDoc(d) === this.filtroEstadoVeh;
+      const okBusq   = !q || d.nombre?.toLowerCase().includes(q) || d.tipoDocumento?.toLowerCase().includes(q);
+      return okTipo && okEstado && okBusq;
+    });
+  }
+
+  limpiarFiltrosVehiculo() {
+    this.filtroTipoDoc = ''; this.filtroEstadoVeh = ''; this.filtroBusqueda = '';
+    this.aplicarFiltrosVehiculo();
+  }
+
+  // ── Filtros generales ─────────────────────────────────────────────────────────
+  aplicarFiltrosGenerales() {
+    const q = this.filtroBusqueda.toLowerCase();
+    this.documentosGeneralesFiltrados = this.documentosGenerales.filter(d => {
+      const okCat    = !this.filtroCategoria  || d.categoria === this.filtroCategoria;
+      const okEstado = !this.filtroEstadoGen  || this.getEstadoDoc(d) === this.filtroEstadoGen;
+      const okBusq   = !q || d.nombre?.toLowerCase().includes(q) || d.descripcion?.toLowerCase().includes(q);
+      return okCat && okEstado && okBusq;
+    });
+  }
+
+  limpiarFiltrosGenerales() {
+    this.filtroCategoria = ''; this.filtroEstadoGen = ''; this.filtroBusqueda = '';
+    this.aplicarFiltrosGenerales();
+  }
+
+  // ── Filtro por vencer ─────────────────────────────────────────────────────────
+  aplicarFiltroVencer() {
+    const dias = Number(this.filtroDiasVencer);
+    const todos = [
+      ...(this.porVencer.vehiculo  || []).map((d: any) => ({ ...d, _tipo: 'Vehículo' })),
+      ...(this.porVencer.generales || []).map((d: any) => ({ ...d, _tipo: 'General' }))
+    ];
+    this.porVencerFiltrados = todos.filter(d =>
+      this.estaVencido(d.fechaVencimiento) || this.diasParaVencer(d.fechaVencimiento) <= dias
+    );
+  }
+
+  // ── Utilidad estado ───────────────────────────────────────────────────────────
+  getEstadoDoc(d: any): string {
+    if (!d.fechaVencimiento) return 'Vigente';
+    if (this.estaVencido(d.fechaVencimiento)) return 'Vencido';
+    if (this.diasParaVencer(d.fechaVencimiento) <= 30) return 'PorVencer';
+    return 'Vigente';
+  }
+
+  // ── Modal subir ───────────────────────────────────────────────────────────────
   abrirSubir(tipo: 'vehiculo' | 'general') {
-    this.tipoSubida          = tipo;
-    this.archivoSeleccionado = null;
-    this.formVehiculo = {
-      vehiculoId: this.vehiculoSeleccionado,
-      tipoDocumento: '', nombre: '',
-      descripcion: '', fechaVencimiento: ''
-    };
-    this.formGeneral = {
-      nombre: '', descripcion: '',
-      categoria: 'General', fechaVencimiento: ''
-    };
+    this.tipoSubida = tipo; this.archivoSeleccionado = null;
+    this.formVehiculo = { vehiculoId: this.vehiculoSeleccionado, tipoDocumento: '', nombre: '', descripcion: '', fechaVencimiento: '' };
+    this.formGeneral  = { nombre: '', descripcion: '', categoria: 'General', fechaVencimiento: '' };
     this.mostrarModal = true;
   }
 
@@ -174,56 +184,38 @@ export class DocumentosComponent implements OnInit {
 
   subirDocumento() {
     if (!this.archivoSeleccionado) { alert('Seleccione un archivo'); return; }
-
     this.subiendo = true;
-    const formData = new FormData();
+    const fd = new FormData();
 
     if (this.tipoSubida === 'vehiculo') {
       if (!this.formVehiculo.vehiculoId)    { alert('Seleccione un vehículo'); this.subiendo = false; return; }
       if (!this.formVehiculo.tipoDocumento) { alert('Seleccione el tipo'); this.subiendo = false; return; }
       if (!this.formVehiculo.nombre)        { alert('Ingrese un nombre'); this.subiendo = false; return; }
-
-      formData.append('VehiculoId',       this.formVehiculo.vehiculoId.toString());
-      formData.append('TipoDocumento',    this.formVehiculo.tipoDocumento);
-      formData.append('Nombre',           this.formVehiculo.nombre);
-      formData.append('Descripcion',      this.formVehiculo.descripcion);
-      formData.append('Archivo',          this.archivoSeleccionado);
+      fd.append('VehiculoId',    this.formVehiculo.vehiculoId.toString());
+      fd.append('TipoDocumento', this.formVehiculo.tipoDocumento);
+      fd.append('Nombre',        this.formVehiculo.nombre);
+      fd.append('Descripcion',   this.formVehiculo.descripcion);
+      fd.append('Archivo',       this.archivoSeleccionado);
       if (this.formVehiculo.fechaVencimiento)
-        formData.append('FechaVencimiento', this.formVehiculo.fechaVencimiento);
-
-      this.documentosService.subirDocumentoVehiculo(formData).subscribe({
-        next: () => {
-          this.subiendo = false;
-          this.mostrarModal = false;
-          this.cargarDocumentosVehiculo();
-        },
+        fd.append('FechaVencimiento', this.formVehiculo.fechaVencimiento);
+      this.documentosService.subirDocumentoVehiculo(fd).subscribe({
+        next: () => { this.subiendo = false; this.mostrarModal = false; this.cargarDocumentosVehiculo(); },
         error: (err) => { console.error(err); this.subiendo = false; }
       });
-
     } else {
       if (!this.formGeneral.nombre) { alert('Ingrese un nombre'); this.subiendo = false; return; }
-
-      formData.append('Nombre',      this.formGeneral.nombre);
-      formData.append('Descripcion', this.formGeneral.descripcion);
-      formData.append('Categoria',   this.formGeneral.categoria);
-      formData.append('Archivo',     this.archivoSeleccionado);
+      fd.append('Nombre',      this.formGeneral.nombre);
+      fd.append('Descripcion', this.formGeneral.descripcion);
+      fd.append('Categoria',   this.formGeneral.categoria);
+      fd.append('Archivo',     this.archivoSeleccionado);
       if (this.formGeneral.fechaVencimiento)
-        formData.append('FechaVencimiento', this.formGeneral.fechaVencimiento);
-
-      this.documentosService.subirDocumentoGeneral(formData).subscribe({
-        next: () => {
-          this.subiendo = false;
-          this.mostrarModal = false;
-          this.cargarDocumentosGenerales();
-        },
+        fd.append('FechaVencimiento', this.formGeneral.fechaVencimiento);
+      this.documentosService.subirDocumentoGeneral(fd).subscribe({
+        next: () => { this.subiendo = false; this.mostrarModal = false; this.cargarDocumentosGenerales(); },
         error: (err) => { console.error(err); this.subiendo = false; }
       });
     }
   }
-
-  // =========================
-  // ELIMINAR
-  // =========================
 
   eliminarVehiculo(id: number) {
     if (!confirm('¿Eliminar documento?')) return;
@@ -241,17 +233,13 @@ export class DocumentosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // UTILIDADES
-  // =========================
-
   getIconoExtension(ext: string): string {
     if (!ext) return '📄';
     const e = ext.toLowerCase();
-    if (e === '.pdf')                         return '📕';
-    if (['.jpg','.jpeg','.png'].includes(e))  return '🖼️';
-    if (['.doc','.docx'].includes(e))         return '📝';
-    if (['.xls','.xlsx'].includes(e))         return '📊';
+    if (e === '.pdf')                        return '📕';
+    if (['.jpg','.jpeg','.png'].includes(e)) return '🖼️';
+    if (['.doc','.docx'].includes(e))        return '📝';
+    if (['.xls','.xlsx'].includes(e))        return '📊';
     return '📄';
   }
 
@@ -269,15 +257,11 @@ export class DocumentosComponent implements OnInit {
 
   diasParaVencer(fecha: string): number {
     if (!fecha) return 999;
-    const diff = new Date(fecha).getTime() - new Date().getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return Math.ceil((new Date(fecha).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
   }
 
   getUrlDocumento(tipo: string, archivo: string): string {
-    const base = 'https://localhost:7293/documentos';
-    return tipo === 'vehiculo'
-      ? `${base}/vehiculos/${archivo}`
-      : `${base}/generales/${archivo}`;
+    const base = 'http://localhost:5214/documentos';
+    return tipo === 'vehiculo' ? `${base}/vehiculos/${archivo}` : `${base}/generales/${archivo}`;
   }
-
 }

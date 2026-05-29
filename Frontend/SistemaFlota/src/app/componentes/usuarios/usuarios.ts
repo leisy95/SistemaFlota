@@ -48,7 +48,7 @@ export class UsuariosComponent implements OnInit {
     { key: 'cambio-ruta',            label: '🔄 Cambio de Ruta' },
     { key: 'incidentes',             label: '⚠️ Incidentes' },
     { key: 'contactos-notificacion', label: '📱 Contactos WhatsApp' },
-    { key: 'mantenimiento',          label: '🔧 Taller' },
+    { key: 'mantenimiento',          label: '🛠 Taller' },
     { key: 'solicitud-taller',       label: '🛠️ Solicitud Taller' },
     { key: 'documentos',             label: '📁 Documentos' },
     { key: 'encuesta-fatiga',        label: '😴 Encuesta Fatiga' },

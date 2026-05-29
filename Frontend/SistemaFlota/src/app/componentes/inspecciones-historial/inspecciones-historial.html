@@ -2,79 +2,84 @@
 
   <div class="header-historial">
     <h1>Historial Inspecciones</h1>
-    <button class="btn-excel" (click)="exportarExcel()">
-      📊 Exportar Excel
-    </button>
+    <button class="btn-excel" (click)="exportarExcel()">📊 Exportar Excel</button>
   </div>
 
-  <div class="tabla-container">
-    <table>
-
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Conductor</th>
-          <th>Vehículo</th>
-          <th>Kilometraje</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let item of obtenerHistorialPaginado()">
-
-          <td data-label="Fecha">
-            {{ item.fecha | date:'short' }}
-          </td>
-
-          <td data-label="Conductor">
-            {{ item.conductor?.nombre }}
-          </td>
-
-          <td data-label="Vehículo">
-            {{ item.vehiculo?.placa }}
-          </td>
-
-          <td data-label="Kilometraje">
-            {{ item.kilometraje }} km
-          </td>
-
-          <td data-label="Acción">
-            <div class="btn-acciones">
-
-              <button
-                class="btn-ver"
-                (click)="verDetalle(item.id)">
-                👁️ Ver
-              </button>
-
-              <button
-                class="btn-pdf"
-                (click)="descargarPDF(item)">
-                📄 PDF
-              </button>
-
-            </div>
-          </td>
-
-        </tr>
-      </tbody>
-
-    </table>
+  <div class="sin-permiso" *ngIf="!puedeVer">
+    <p>🔒 No tienes permiso para ver el historial de inspecciones.</p>
   </div>
 
-</div>
+  <ng-container *ngIf="puedeVer">
 
-<!-- PAGINACIÓN -->
-<div class="paginacion">
-  <button (click)="paginaAnterior()">← Anterior</button>
-  <span>Página {{ paginaActual }}</span>
-  <button (click)="paginaSiguiente()">Siguiente →</button>
+    <!-- FILTROS -->
+    <div class="filtros-panel">
+      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+        (input)="aplicarFiltros()"
+        placeholder="🔍 Buscar conductor o vehículo...">
+
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+        (change)="aplicarFiltros()">
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+        (change)="aplicarFiltros()">
+
+      <button class="btn-refresh" (click)="obtenerHistorial()">🔄</button>
+      <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
+    </div>
+
+    <p class="resultado-filtro" *ngIf="historialFiltrado.length !== historial.length">
+      Mostrando {{ historialFiltrado.length }} de {{ historial.length }} registros
+    </p>
+
+    <div class="tabla-container" *ngIf="historialPaginado.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Vehículo</th>
+            <th>Kilometraje</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of historialPaginado">
+            <td data-label="Fecha">{{ item.fecha | date:'short' }}</td>
+            <td data-label="Conductor">{{ item.conductor?.nombre }}</td>
+            <td data-label="Vehículo">{{ item.vehiculo?.placa }}</td>
+            <td data-label="Kilometraje">{{ item.kilometraje }} km</td>
+            <td data-label="Acción">
+              <div class="btn-acciones">
+                <button class="btn-ver" (click)="verDetalle(item.id)">👁️ Ver</button>
+                <button class="btn-pdf" (click)="descargarPDF(item)">📄 PDF</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="vacio" *ngIf="historialPaginado.length === 0 && historial.length > 0">
+      <p>🔍 No hay registros con ese filtro</p>
+      <button class="btn-limpiar" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </div>
+
+    <div class="vacio" *ngIf="historial.length === 0">
+      <p>No hay inspecciones registradas</p>
+    </div>
+
+    <!-- PAGINACIÓN -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">← Anterior</button>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+      <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">Siguiente →</button>
+    </div>
+
+  </ng-container>
+
 </div>
 
 <!-- MODAL DETALLE -->
 <div class="modal-overlay" *ngIf="detalleSeleccionado">
-
   <div class="modal-detalle">
 
     <div class="modal-header">
@@ -83,56 +88,31 @@
     </div>
 
     <div class="info-grid">
-
-      <div class="info-card">
-        <span>👤 Conductor</span>
-        <h3>{{ detalleSeleccionado.conductor.nombre }}</h3>
-      </div>
-
-      <div class="info-card">
-        <span>🚚 Vehículo</span>
-        <h3>{{ detalleSeleccionado.vehiculo.placa }}</h3>
-      </div>
-
-      <div class="info-card">
-        <span>📅 Fecha</span>
-        <h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3>
-      </div>
-
-      <div class="info-card">
-        <span>⛽ Kilometraje</span>
-        <h3>{{ detalleSeleccionado.kilometraje }} km</h3>
-      </div>
-
+      <div class="info-card"><span>👤 Conductor</span><h3>{{ detalleSeleccionado.conductor.nombre }}</h3></div>
+      <div class="info-card"><span>🚚 Vehículo</span><h3>{{ detalleSeleccionado.vehiculo.placa }}</h3></div>
+      <div class="info-card"><span>📅 Fecha</span><h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3></div>
+      <div class="info-card"><span>⛽ Kilometraje</span><h3>{{ detalleSeleccionado.kilometraje }} km</h3></div>
     </div>
 
     <div class="foto-odometro" *ngIf="detalleSeleccionado.fotoOdometro">
       <h3>Foto Odómetro</h3>
-      <img [src]="'https://localhost:7293/inspecciones/' + detalleSeleccionado.fotoOdometro">
+      <img [src]="'http://localhost:5214/inspecciones/' + detalleSeleccionado.fotoOdometro">
     </div>
 
     <div class="checklist-section">
       <h3>✅ Checklist</h3>
-
       <div class="check-item" *ngFor="let item of detalleSeleccionado.detalles">
-
         <div class="estado">
-          <span
-            [class.ok]="item.estado === 'Cumple'"
-            [class.fail]="item.estado !== 'Cumple'">
+          <span [class.ok]="item.estado === 'Cumple'" [class.fail]="item.estado !== 'Cumple'">
             {{ item.estado }}
           </span>
         </div>
-
         <div class="detalle-info">
           <p><strong>Ítem:</strong> {{ item.nombreItem || item.checklistItemId }}</p>
           <p><strong>Observación:</strong> {{ item.observacion || 'Sin observación' }}</p>
         </div>
-
       </div>
-
     </div>
 
   </div>
-
 </div>

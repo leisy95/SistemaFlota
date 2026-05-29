@@ -1,0 +1,367 @@
+<div class="hoja-vida" *ngIf="conductor">
+
+  <!-- HEADER -->
+  <div class="hv-header">
+    <div class="hv-avatar">
+      <img *ngIf="conductor.foto" [src]="'http://localhost:5214/conductores/' + conductor.foto">
+      <i *ngIf="!conductor.foto" class="fa-solid fa-user-tie"></i>
+    </div>
+    <div class="hv-info">
+      <h1>{{ conductor.nombre }}</h1>
+      <div class="hv-meta">
+        <span><i class="fa-solid fa-id-card"></i> {{ conductor.cedula || 'Sin cédula' }}</span>
+        <span><i class="fa-solid fa-phone"></i> {{ conductor.telefono }}</span>
+        <span *ngIf="edadConductor > 0"><i class="fa-solid fa-cake-candles"></i> {{ edadConductor }} años</span>
+      </div>
+      <div class="hv-badges">
+        <span class="badge-estado" [class.activo]="conductor.estado==='Activo'"
+          [class.inactivo]="conductor.estado==='Inactivo'"
+          [class.suspendido]="conductor.estado==='Suspendido'"
+          [class.vacaciones]="conductor.estado==='Vacaciones'">
+          {{ conductor.estado }}
+        </span>
+        <span class="badge-licencia" *ngIf="conductor.categoriaLicencia">
+          <i class="fa-solid fa-id-card"></i> Lic. {{ conductor.categoriaLicencia }}
+        </span>
+        <span class="badge-vence" *ngIf="licenciaVencida(conductor.fechaVencimientoLicencia)"
+          style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3)">
+          <i class="fa-solid fa-triangle-exclamation"></i> Licencia vencida
+        </span>
+        <span class="badge-vence" *ngIf="licenciaProxima(conductor.fechaVencimientoLicencia)"
+          style="background:rgba(245,158,11,0.15);color:#fcd34d;border-color:rgba(245,158,11,0.3)">
+          <i class="fa-solid fa-clock"></i> Licencia próxima a vencer
+        </span>
+      </div>
+    </div>
+
+    <!-- ALERTA GUARDADO -->
+    <div class="alerta-guardado" *ngIf="guardado">
+      <i class="fa-solid fa-circle-check"></i> Guardado correctamente
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="hv-tabs">
+    <button [class.activo]="tabActual==='datos'"          (click)="tabActual='datos'">
+      <i class="fa-solid fa-user"></i> Datos personales
+    </button>
+    <button [class.activo]="tabActual==='examenes'"       (click)="tabActual='examenes'">
+      <i class="fa-solid fa-stethoscope"></i> Exámenes médicos
+      <span class="tab-count" *ngIf="conductor.examenesMedicos?.length">{{ conductor.examenesMedicos.length }}</span>
+    </button>
+    <button [class.activo]="tabActual==='capacitaciones'" (click)="tabActual='capacitaciones'">
+      <i class="fa-solid fa-graduation-cap"></i> Capacitaciones
+      <span class="tab-count" *ngIf="conductor.capacitaciones?.length">{{ conductor.capacitaciones.length }}</span>
+    </button>
+    <button [class.activo]="tabActual==='infracciones'"   (click)="tabActual='infracciones'">
+      <i class="fa-solid fa-gavel"></i> Infracciones
+      <span class="tab-count rojo" *ngIf="conductor.infracciones?.length">{{ conductor.infracciones.length }}</span>
+    </button>
+  </div>
+
+  <!-- ══════════ TAB DATOS ══════════ -->
+  <div class="tab-contenido" *ngIf="tabActual==='datos'">
+    <div class="form-seccion">
+      <h3><i class="fa-solid fa-user"></i> Información personal</h3>
+      <div class="form-grid">
+        <div class="fg"><label>Nombre completo *</label><input [(ngModel)]="formDatos.nombre" placeholder="Nombre"></div>
+        <div class="fg"><label>Cédula</label><input [(ngModel)]="formDatos.cedula" placeholder="Número de cédula"></div>
+        <div class="fg"><label>Fecha de nacimiento</label><input type="date" [(ngModel)]="formDatos.fechaNacimiento"></div>
+        <div class="fg"><label>Tipo de sangre</label>
+          <select [(ngModel)]="formDatos.tipoSangre">
+            <option value="">Seleccione</option>
+            <option *ngFor="let t of tiposSangre" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="fg full"><label>Dirección</label><input [(ngModel)]="formDatos.direccion" placeholder="Dirección de residencia"></div>
+        <div class="fg"><label>Teléfono</label><input [(ngModel)]="formDatos.telefono" placeholder="Celular"></div>
+        <div class="fg"><label>Email</label><input type="email" [(ngModel)]="formDatos.email" placeholder="Correo"></div>
+        <div class="fg"><label>Contacto de emergencia</label><input [(ngModel)]="formDatos.contactoEmergencia" placeholder="Nombre"></div>
+        <div class="fg"><label>Teléfono emergencia</label><input [(ngModel)]="formDatos.telefonoEmergencia" placeholder="Número"></div>
+      </div>
+    </div>
+
+    <div class="form-seccion">
+      <h3><i class="fa-solid fa-shield-halved"></i> Seguridad social</h3>
+      <div class="form-grid">
+        <div class="fg"><label>EPS</label><input [(ngModel)]="formDatos.eps" placeholder="Nombre EPS"></div>
+        <div class="fg"><label>ARL</label><input [(ngModel)]="formDatos.arl" placeholder="Nombre ARL"></div>
+        <div class="fg"><label>Fondo de pensión</label><input [(ngModel)]="formDatos.fondoPension" placeholder="Nombre fondo"></div>
+        <div class="fg"><label>Estado</label>
+          <select [(ngModel)]="formDatos.estado">
+            <option *ngFor="let e of estadosConductor" [value]="e">{{ e }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-seccion">
+      <h3><i class="fa-solid fa-id-card"></i> Licencia de conducción</h3>
+      <div class="form-grid">
+        <div class="fg"><label>Número de licencia</label><input [(ngModel)]="formDatos.licencia" placeholder="Número"></div>
+        <div class="fg"><label>Categoría</label>
+          <select [(ngModel)]="formDatos.categoriaLicencia">
+            <option value="">Seleccione</option>
+            <option *ngFor="let c of categoriasLic" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="fg"><label>Fecha expedición</label><input type="date" [(ngModel)]="formDatos.fechaExpedicionLicencia"></div>
+        <div class="fg"><label>Fecha vencimiento</label><input type="date" [(ngModel)]="formDatos.fechaVencimientoLicencia"></div>
+      </div>
+    </div>
+
+    <div class="footer-guardar">
+      <button class="btn-guardar-hv" (click)="guardarDatos()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB EXÁMENES ══════════ -->
+  <div class="tab-contenido" *ngIf="tabActual==='examenes'">
+    <div class="tab-header-accion">
+      <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Resolución 2346 — examen médico ocupacional obligatorio</p>
+      <button class="btn-agregar-tab" (click)="abrirModalExamen()">
+        <i class="fa-solid fa-plus"></i> Agregar examen
+      </button>
+    </div>
+
+    <div class="lista-items" *ngIf="conductor.examenesMedicos?.length > 0">
+      <div class="item-card" *ngFor="let e of conductor.examenesMedicos">
+        <div class="item-icono"><i class="fa-solid fa-stethoscope"></i></div>
+        <div class="item-info">
+          <strong>{{ e.tipoExamen }}</strong>
+          <span>{{ e.entidad }} — Dr. {{ e.medico }}</span>
+          <span class="item-fecha"><i class="fa-solid fa-calendar"></i> {{ e.fechaExamen | date:'mediumDate' }}</span>
+          <span *ngIf="e.fechaVencimiento" class="item-vence"
+            [class.vencido]="examenVencido(e.fechaVencimiento)">
+            <i class="fa-solid fa-clock"></i> Vence: {{ e.fechaVencimiento | date:'mediumDate' }}
+          </span>
+        </div>
+        <div class="item-resultado">
+          <span class="badge-resultado" [class.apto]="e.resultado==='Apto'"
+            [class.restricciones]="e.resultado==='Apto con restricciones'"
+            [class.no-apto]="e.resultado==='No apto'">
+            {{ e.resultado }}
+          </span>
+        </div>
+        <div class="item-acciones">
+          <a *ngIf="e.documento" [href]="'http://localhost:5214/hojavida/examenes/'+e.documento"
+            target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
+          <button class="btn-del" (click)="eliminarExamen(e.id)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vacio-tab" *ngIf="!conductor.examenesMedicos?.length">
+      <i class="fa-solid fa-stethoscope"></i>
+      <p>No hay exámenes médicos registrados</p>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB CAPACITACIONES ══════════ -->
+  <div class="tab-contenido" *ngIf="tabActual==='capacitaciones'">
+    <div class="tab-header-accion">
+      <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Decreto 1079 — capacitación obligatoria en normas de tránsito</p>
+      <button class="btn-agregar-tab" (click)="abrirModalCapacitacion()">
+        <i class="fa-solid fa-plus"></i> Agregar capacitación
+      </button>
+    </div>
+
+    <div class="lista-items" *ngIf="conductor.capacitaciones?.length > 0">
+      <div class="item-card" *ngFor="let c of conductor.capacitaciones">
+        <div class="item-icono"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="item-info">
+          <strong>{{ c.nombre }}</strong>
+          <span>{{ c.tipo }} — {{ c.entidad }}</span>
+          <span class="item-fecha">
+            <i class="fa-solid fa-calendar"></i>
+            {{ c.fechaInicio | date:'mediumDate' }}
+            <span *ngIf="c.fechaFin"> → {{ c.fechaFin | date:'mediumDate' }}</span>
+          </span>
+          <span *ngIf="c.duracionHoras"><i class="fa-solid fa-clock"></i> {{ c.duracionHoras }} horas</span>
+        </div>
+        <div class="item-resultado">
+          <span class="badge-resultado" [class.apto]="c.aprobado" [class.no-apto]="!c.aprobado">
+            {{ c.aprobado ? 'Aprobado' : 'No aprobado' }}
+          </span>
+        </div>
+        <div class="item-acciones">
+          <a *ngIf="c.documento" [href]="'http://localhost:5214/hojavida/capacitaciones/'+c.documento"
+            target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
+          <button class="btn-del" (click)="eliminarCapacitacion(c.id)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vacio-tab" *ngIf="!conductor.capacitaciones?.length">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <p>No hay capacitaciones registradas</p>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB INFRACCIONES ══════════ -->
+  <div class="tab-contenido" *ngIf="tabActual==='infracciones'">
+    <div class="tab-header-accion">
+      <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Registro de comparendos e infracciones de tránsito</p>
+      <button class="btn-agregar-tab rojo" (click)="abrirModalInfraccion()">
+        <i class="fa-solid fa-plus"></i> Registrar infracción
+      </button>
+    </div>
+
+    <div class="lista-items" *ngIf="conductor.infracciones?.length > 0">
+      <div class="item-card" *ngFor="let i of conductor.infracciones">
+        <div class="item-icono rojo"><i class="fa-solid fa-gavel"></i></div>
+        <div class="item-info">
+          <strong>{{ i.tipoInfraccion }}</strong>
+          <span>{{ i.descripcion }}</span>
+          <span class="item-fecha"><i class="fa-solid fa-calendar"></i> {{ i.fechaInfraccion | date:'mediumDate' }}</span>
+          <span *ngIf="i.lugar"><i class="fa-solid fa-location-dot"></i> {{ i.lugar }}</span>
+          <span *ngIf="i.valor"><i class="fa-solid fa-dollar-sign"></i> ${{ i.valor | number }}</span>
+          <span *ngIf="i.numeroComparendo"><i class="fa-solid fa-hashtag"></i> {{ i.numeroComparendo }}</span>
+        </div>
+        <div class="item-resultado">
+          <select class="select-estado-inf" [(ngModel)]="i.estado"
+            (change)="cambiarEstadoInfraccion(i.id, i.estado)">
+            <option *ngFor="let e of estadosInfraccion" [value]="e">{{ e }}</option>
+          </select>
+        </div>
+        <div class="item-acciones">
+          <a *ngIf="i.documento" [href]="'http://localhost:5214/hojavida/infracciones/'+i.documento"
+            target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
+          <button class="btn-del" (click)="eliminarInfraccion(i.id)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vacio-tab" *ngIf="!conductor.infracciones?.length">
+      <i class="fa-solid fa-gavel"></i>
+      <p>No hay infracciones registradas</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- CARGANDO -->
+<div class="hv-cargando" *ngIf="cargando">
+  <i class="fa-solid fa-spinner fa-spin"></i> Cargando hoja de vida...
+</div>
+
+<!-- ══════════ MODAL EXAMEN ══════════ -->
+<div class="modal-overlay" *ngIf="mostrarModalExamen">
+  <div class="modal-hv">
+    <div class="modal-hv-header">
+      <h3><i class="fa-solid fa-stethoscope"></i> Agregar Examen Médico</h3>
+      <button (click)="mostrarModalExamen=false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-hv-body">
+      <div class="fg"><label>Tipo de examen *</label>
+        <select [(ngModel)]="formExamen.tipoExamen">
+          <option value="">Seleccione</option>
+          <option *ngFor="let t of tiposExamen" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="fg"><label>Fecha del examen *</label><input type="date" [(ngModel)]="formExamen.fechaExamen"></div>
+      <div class="fg"><label>Fecha de vencimiento</label><input type="date" [(ngModel)]="formExamen.fechaVencimiento"></div>
+      <div class="fg"><label>Resultado *</label>
+        <select [(ngModel)]="formExamen.resultado">
+          <option value="">Seleccione</option>
+          <option *ngFor="let r of resultadosExamen" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+      <div class="fg"><label>Médico</label><input [(ngModel)]="formExamen.medico" placeholder="Dr. Nombre"></div>
+      <div class="fg"><label>Entidad</label><input [(ngModel)]="formExamen.entidad" placeholder="Nombre de la clínica"></div>
+      <div class="fg full"><label>Observaciones</label><textarea [(ngModel)]="formExamen.observaciones"></textarea></div>
+      <div class="fg full"><label><i class="fa-solid fa-file-pdf"></i> Documento (PDF)</label>
+        <input type="file" accept=".pdf,image/*" (change)="seleccionarArchivo($event,'examen')">
+      </div>
+    </div>
+    <div class="modal-hv-footer">
+      <button class="btn-cancelar-hv" (click)="mostrarModalExamen=false">Cancelar</button>
+      <button class="btn-guardar-hv" (click)="guardarExamen()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL CAPACITACIÓN ══════════ -->
+<div class="modal-overlay" *ngIf="mostrarModalCapacitacion">
+  <div class="modal-hv">
+    <div class="modal-hv-header">
+      <h3><i class="fa-solid fa-graduation-cap"></i> Agregar Capacitación</h3>
+      <button (click)="mostrarModalCapacitacion=false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-hv-body">
+      <div class="fg"><label>Nombre del curso *</label><input [(ngModel)]="formCapacitacion.nombre" placeholder="Ej: Manejo defensivo"></div>
+      <div class="fg"><label>Tipo *</label>
+        <select [(ngModel)]="formCapacitacion.tipo">
+          <option value="">Seleccione</option>
+          <option *ngFor="let t of tiposCapacitacion" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="fg"><label>Entidad</label><input [(ngModel)]="formCapacitacion.entidad" placeholder="Nombre entidad"></div>
+      <div class="fg"><label>Instructor</label><input [(ngModel)]="formCapacitacion.instructor" placeholder="Nombre instructor"></div>
+      <div class="fg"><label>Fecha inicio *</label><input type="date" [(ngModel)]="formCapacitacion.fechaInicio"></div>
+      <div class="fg"><label>Fecha fin</label><input type="date" [(ngModel)]="formCapacitacion.fechaFin"></div>
+      <div class="fg"><label>Duración (horas)</label><input type="number" [(ngModel)]="formCapacitacion.duracionHoras"></div>
+      <div class="fg">
+        <label>Resultado</label>
+        <div class="toggle-aprobado" (click)="formCapacitacion.aprobado = !formCapacitacion.aprobado">
+          <span [class.on]="formCapacitacion.aprobado">
+            <i class="fa-solid fa-{{formCapacitacion.aprobado ? 'circle-check' : 'circle-xmark'}}"></i>
+            {{ formCapacitacion.aprobado ? 'Aprobado' : 'No aprobado' }}
+          </span>
+        </div>
+      </div>
+      <div class="fg full"><label>Observaciones</label><textarea [(ngModel)]="formCapacitacion.observaciones"></textarea></div>
+      <div class="fg full"><label><i class="fa-solid fa-file-pdf"></i> Certificado</label>
+        <input type="file" accept=".pdf,image/*" (change)="seleccionarArchivo($event,'capacitacion')">
+      </div>
+    </div>
+    <div class="modal-hv-footer">
+      <button class="btn-cancelar-hv" (click)="mostrarModalCapacitacion=false">Cancelar</button>
+      <button class="btn-guardar-hv" (click)="guardarCapacitacion()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL INFRACCIÓN ══════════ -->
+<div class="modal-overlay" *ngIf="mostrarModalInfraccion">
+  <div class="modal-hv">
+    <div class="modal-hv-header">
+      <h3><i class="fa-solid fa-gavel"></i> Registrar Infracción</h3>
+      <button (click)="mostrarModalInfraccion=false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-hv-body">
+      <div class="fg"><label>Fecha infracción *</label><input type="date" [(ngModel)]="formInfraccion.fechaInfraccion"></div>
+      <div class="fg"><label>Tipo *</label>
+        <select [(ngModel)]="formInfraccion.tipoInfraccion">
+          <option value="">Seleccione</option>
+          <option *ngFor="let t of tiposInfraccion" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="fg"><label>Número comparendo</label><input [(ngModel)]="formInfraccion.numeroComparendo" placeholder="Número"></div>
+      <div class="fg"><label>Lugar</label><input [(ngModel)]="formInfraccion.lugar" placeholder="Donde ocurrió"></div>
+      <div class="fg"><label>Valor ($)</label><input type="number" [(ngModel)]="formInfraccion.valor" placeholder="0"></div>
+      <div class="fg"><label>Estado</label>
+        <select [(ngModel)]="formInfraccion.estado">
+          <option *ngFor="let e of estadosInfraccion" [value]="e">{{ e }}</option>
+        </select>
+      </div>
+      <div class="fg full"><label>Descripción</label><textarea [(ngModel)]="formInfraccion.descripcion" placeholder="Descripción del incidente"></textarea></div>
+      <div class="fg full"><label>Observaciones</label><textarea [(ngModel)]="formInfraccion.observaciones"></textarea></div>
+      <div class="fg full"><label><i class="fa-solid fa-file-pdf"></i> Documento</label>
+        <input type="file" accept=".pdf,image/*" (change)="seleccionarArchivo($event,'infraccion')">
+      </div>
+    </div>
+    <div class="modal-hv-footer">
+      <button class="btn-cancelar-hv" (click)="mostrarModalInfraccion=false">Cancelar</button>
+      <button class="btn-guardar-hv rojo" (click)="guardarInfraccion()">
+        <i class="fa-solid fa-floppy-disk"></i> Registrar
+      </button>
+    </div>
+  </div>
+</div>

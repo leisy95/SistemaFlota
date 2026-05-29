@@ -1,6 +1,5 @@
 <div class="contenedor">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <h1>🔧 Solicitudes de Taller</h1>
@@ -8,11 +7,10 @@
     </div>
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" (click)="nuevo()">+ Nueva Solicitud</button>
+      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nueva Solicitud</button>
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card azul">
       <span class="stat-numero">{{ solicitudes.length }}</span>
@@ -32,14 +30,17 @@
     </div>
   </div>
 
-  <!-- ALERTA FACTURAS PENDIENTES -->
   <div class="alerta-facturas" *ngIf="pendientesFactura > 0">
     📄 Hay <strong>{{ pendientesFactura }}</strong> factura(s) de taller pendiente(s) de validar
   </div>
 
   <!-- FILTROS -->
-  <div class="filtros">
-    <select [(ngModel)]="filtroEstado">
+  <div class="filtros-panel">
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+      (input)="aplicarFiltros()"
+      placeholder="🔍 Buscar conductor, vehículo, tipo...">
+
+    <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
       <option value="">Todos los estados</option>
       <option value="Pendiente">⏳ Pendiente</option>
       <option value="Autorizado">✅ Autorizado</option>
@@ -47,22 +48,27 @@
       <option value="Finalizado">✔️ Finalizado</option>
       <option value="Rechazado">❌ Rechazado</option>
     </select>
-    <button class="btn-refresh" (click)="cargarSolicitudes()">🔄 Actualizar</button>
+
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+      (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+      (change)="aplicarFiltros()">
+
+    <button class="btn-refresh" (click)="cargarSolicitudes()">🔄</button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
   </div>
+
+  <p class="resultado-filtro" *ngIf="solicitudesFiltradas.length !== solicitudes.length">
+    Mostrando {{ solicitudesFiltradas.length }} de {{ solicitudes.length }} registros
+  </p>
 
   <!-- TABLA -->
   <div class="tabla-container" *ngIf="solicitudesFiltradas.length > 0">
     <table>
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Conductor</th>
-          <th>Vehículo</th>
-          <th>Tipo</th>
-          <th>Km</th>
-          <th>Estado</th>
-          <th>Factura</th>
-          <th>Acciones</th>
+          <th>Fecha</th><th>Conductor</th><th>Vehículo</th>
+          <th>Tipo</th><th>Km</th><th>Estado</th><th>Factura</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -74,55 +80,31 @@
           [class.fila-rechazado]="s.estado === 'Rechazado'">
 
           <td data-label="Fecha">{{ s.fechaSolicitud | date:'short' }}</td>
-
-          <td data-label="Conductor">
-            <strong>{{ s.conductor?.nombre }}</strong>
-          </td>
-
+          <td data-label="Conductor"><strong>{{ s.conductor?.nombre }}</strong></td>
           <td data-label="Vehículo">{{ s.vehiculo?.placa }}</td>
-
           <td data-label="Tipo">{{ s.tipoMantenimiento }}</td>
-
           <td data-label="Km">{{ s.kilometraje ? (s.kilometraje | number) + ' km' : '-' }}</td>
-
           <td data-label="Estado">
-            <span [class]="getBadgeEstado(s.estado)">
-              {{ getLabelEstado(s.estado) }}
-            </span>
+            <span [class]="getBadgeEstado(s.estado)">{{ getLabelEstado(s.estado) }}</span>
           </td>
-
           <td data-label="Factura">
             <span class="badge-factura-ok" *ngIf="s.facturaValidada">✅ Validada</span>
-            <span class="badge-factura-no" *ngIf="!s.facturaValidada && s.estado === 'Finalizado'">
-              ⚠️ Pendiente
-            </span>
+            <span class="badge-factura-no" *ngIf="!s.facturaValidada && s.estado === 'Finalizado'">⚠️ Pendiente</span>
             <span *ngIf="s.estado !== 'Finalizado' && !s.facturaValidada">-</span>
           </td>
-
           <td data-label="Acciones">
             <div class="btn-acciones">
               <button class="btn-ver" (click)="verDetalle(s)">👁️</button>
-              <button class="btn-autorizar"
-                *ngIf="s.estado === 'Pendiente'"
-                (click)="abrirAutorizar(s)">
-                ✅
-              </button>
-              <button class="btn-rechazar"
-                *ngIf="s.estado === 'Pendiente'"
-                (click)="abrirRechazar(s)">
-                ❌
-              </button>
-              <button class="btn-taller"
-                *ngIf="s.estado === 'Autorizado'"
-                (click)="marcarEnTaller(s.id)">
-                🔧
-              </button>
-              <button class="btn-factura"
-                *ngIf="s.estado === 'EnTaller' || s.estado === 'Finalizado'"
-                (click)="abrirFactura(s)">
-                📄
-              </button>
-              <button class="btn-eliminar" (click)="eliminar(s.id)">🗑️</button>
+              <button class="btn-autorizar" *ngIf="s.estado === 'Pendiente' && puedeEditar"
+                (click)="abrirAutorizar(s)">✅</button>
+              <button class="btn-rechazar"  *ngIf="s.estado === 'Pendiente' && puedeEditar"
+                (click)="abrirRechazar(s)">❌</button>
+              <button class="btn-taller"    *ngIf="s.estado === 'Autorizado' && puedeEditar"
+                (click)="marcarEnTaller(s.id)">🔧</button>
+              <button class="btn-factura"   *ngIf="(s.estado === 'EnTaller' || s.estado === 'Finalizado') && puedeEditar"
+                (click)="abrirFactura(s)">📄</button>
+              <button class="btn-eliminar"  *ngIf="puedeEliminar"
+                (click)="eliminar(s.id)">🗑️</button>
             </div>
           </td>
 
@@ -131,9 +113,14 @@
     </table>
   </div>
 
-  <div class="vacio" *ngIf="solicitudesFiltradas.length === 0">
+  <div class="vacio" *ngIf="solicitudesFiltradas.length === 0 && solicitudes.length > 0">
+    <p>🔍 No hay solicitudes con ese filtro</p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+  <div class="vacio" *ngIf="solicitudes.length === 0">
     <p>🔧 No hay solicitudes de taller</p>
-    <button class="btn-nueva" (click)="nuevo()">+ Crear primera solicitud</button>
+    <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Crear primera solicitud</button>
   </div>
 
 </div>
@@ -141,14 +128,11 @@
 <!-- MODAL NUEVA SOLICITUD -->
 <div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal">
-
     <div class="modal-header">
       <h2>🔧 Nueva Solicitud de Taller</h2>
       <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
     </div>
-
     <div class="form-grid">
-
       <div class="form-group">
         <label>👤 Conductor *</label>
         <select [(ngModel)]="form.conductorId">
@@ -156,7 +140,6 @@
           <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>🚗 Vehículo *</label>
         <select [(ngModel)]="form.vehiculoId">
@@ -164,7 +147,6 @@
           <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>🔧 Tipo de Mantenimiento *</label>
         <select [(ngModel)]="form.tipoMantenimiento">
@@ -172,257 +154,159 @@
           <option *ngFor="let t of tiposMantenimiento" [value]="t">{{ t }}</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>🛣️ Kilometraje actual</label>
-        <input type="number" [(ngModel)]="form.kilometraje"
-          placeholder="Ej: 45000">
+        <input type="number" [(ngModel)]="form.kilometraje" placeholder="Ej: 45000">
       </div>
-
       <div class="form-group full">
         <label>📋 Descripción del problema *</label>
         <textarea [(ngModel)]="form.descripcionProblema"
-          placeholder="Describa detalladamente el problema o mantenimiento requerido...">
-        </textarea>
+          placeholder="Describa detalladamente el problema o mantenimiento requerido..."></textarea>
       </div>
-
-      <!-- FOTO ODÓMETRO -->
       <div class="form-group full">
         <label>📸 Foto del odómetro</label>
-
         <div class="foto-preview" *ngIf="fotoPreview">
           <img [src]="fotoPreview" alt="Odómetro">
           <button class="btn-eliminar-foto" (click)="eliminarFoto()">✕</button>
         </div>
-
         <label class="btn-foto" *ngIf="!fotoPreview" for="inputFoto">
-          <span>📷</span>
-          <p>Agregar foto del odómetro</p>
+          <span>📷</span><p>Agregar foto del odómetro</p>
         </label>
-
         <input id="inputFoto" type="file" accept="image/*"
           (change)="seleccionarFoto($event)" style="display:none">
       </div>
-
     </div>
-
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardar()">🔧 Enviar Solicitud</button>
+      <button class="btn-guardar"  (click)="guardar()">🔧 Enviar Solicitud</button>
     </div>
-
   </div>
 </div>
 
 <!-- MODAL AUTORIZAR / RECHAZAR -->
 <div class="modal-overlay" *ngIf="mostrarAut">
   <div class="modal modal-pequeno">
-
     <div class="modal-header">
-      <h2>
-        {{ accionAut === 'autorizar' ? '✅ Autorizar' : '❌ Rechazar' }}
-        Solicitud de Taller
-      </h2>
+      <h2>{{ accionAut === 'autorizar' ? '✅ Autorizar' : '❌ Rechazar' }} Solicitud de Taller</h2>
       <button class="btn-cerrar" (click)="cerrarAut()">✕</button>
     </div>
-
     <div class="resumen-solicitud"
       [class.resumen-autorizar]="accionAut === 'autorizar'"
       [class.resumen-rechazar]="accionAut === 'rechazar'">
       <p><strong>👤 Conductor:</strong> {{ seleccionado?.conductor?.nombre }}</p>
-      <p><strong>🚗 Vehículo:</strong> {{ seleccionado?.vehiculo?.placa }}</p>
-      <p><strong>🔧 Tipo:</strong> {{ seleccionado?.tipoMantenimiento }}</p>
-      <p><strong>📋 Problema:</strong> {{ seleccionado?.descripcionProblema }}</p>
+      <p><strong>🚗 Vehículo:</strong>  {{ seleccionado?.vehiculo?.placa }}</p>
+      <p><strong>🔧 Tipo:</strong>      {{ seleccionado?.tipoMantenimiento }}</p>
+      <p><strong>📋 Problema:</strong>  {{ seleccionado?.descripcionProblema }}</p>
     </div>
-
     <div class="form-grid">
       <div class="form-group full">
         <label>👤 Nombre de quien {{ accionAut === 'autorizar' ? 'autoriza' : 'rechaza' }} *</label>
-        <input type="text" [(ngModel)]="formAut.autorizadoPor"
-          placeholder="Nombre completo">
+        <input type="text" [(ngModel)]="formAut.autorizadoPor" placeholder="Nombre completo">
       </div>
       <div class="form-group full">
         <label>💬 Observación <span class="opcional">(opcional)</span></label>
-        <textarea [(ngModel)]="formAut.observacion"
-          placeholder="Observaciones adicionales...">
-        </textarea>
+        <textarea [(ngModel)]="formAut.observacion" placeholder="Observaciones adicionales..."></textarea>
       </div>
     </div>
-
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarAut()">Cancelar</button>
-      <button
-        [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'"
+      <button [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'"
         (click)="confirmarAut()">
         {{ accionAut === 'autorizar' ? '✅ Confirmar Autorización' : '❌ Confirmar Rechazo' }}
       </button>
     </div>
-
   </div>
 </div>
 
 <!-- MODAL FACTURA TALLER -->
 <div class="modal-overlay" *ngIf="mostrarFactura">
   <div class="modal modal-pequeno">
-
     <div class="modal-header">
       <h2>📄 Factura del Taller</h2>
       <button class="btn-cerrar" (click)="cerrarFactura()">✕</button>
     </div>
-
     <div class="info-solicitud">
-      <p><strong>🚗</strong> {{ seleccionado?.vehiculo?.placa }} —
-         {{ seleccionado?.tipoMantenimiento }}</p>
+      <p><strong>🚗</strong> {{ seleccionado?.vehiculo?.placa }} — {{ seleccionado?.tipoMantenimiento }}</p>
     </div>
-
     <div class="form-grid">
-
       <div class="form-group">
         <label>📄 Número de Factura *</label>
-        <input type="text" [(ngModel)]="formFactura.numeroFacturaTaller"
-          placeholder="Ej: FAC-001">
+        <input type="text" [(ngModel)]="formFactura.numeroFacturaTaller" placeholder="Ej: FAC-001">
       </div>
-
       <div class="form-group">
         <label>💰 Valor de la Factura</label>
-        <input type="number" [(ngModel)]="formFactura.valorFactura"
-          placeholder="Ej: 250000">
+        <input type="number" [(ngModel)]="formFactura.valorFactura" placeholder="Ej: 250000">
       </div>
-
       <div class="form-group">
         <label>📅 Fecha de la Factura</label>
         <input type="date" [(ngModel)]="formFactura.fechaFactura">
       </div>
-
       <div class="form-group">
         <label>✅ Factura Validada</label>
         <div class="toggle-group">
-          <button class="btn-toggle"
-            [class.activo-verde]="formFactura.facturaValidada"
-            (click)="formFactura.facturaValidada = true">
-            ✅ Validada
-          </button>
-          <button class="btn-toggle"
-            [class.activo-rojo]="!formFactura.facturaValidada"
-            (click)="formFactura.facturaValidada = false">
-            ⚠️ Pendiente
-          </button>
+          <button class="btn-toggle" [class.activo-verde]="formFactura.facturaValidada"
+            (click)="formFactura.facturaValidada = true">✅ Validada</button>
+          <button class="btn-toggle" [class.activo-rojo]="!formFactura.facturaValidada"
+            (click)="formFactura.facturaValidada = false">⚠️ Pendiente</button>
         </div>
       </div>
-
       <div class="form-group full">
         <label>💬 Observaciones <span class="opcional">(opcional)</span></label>
         <textarea [(ngModel)]="formFactura.observacionFactura"
-          placeholder="Observaciones sobre la factura...">
-        </textarea>
+          placeholder="Observaciones sobre la factura..."></textarea>
       </div>
-
     </div>
-
     <div class="aviso-validar" *ngIf="formFactura.facturaValidada">
       ✅ Al guardar con factura validada la solicitud pasará a <strong>Finalizado</strong>
     </div>
-
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarFactura()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardarFactura()">
-        💾 Guardar Factura
-      </button>
+      <button class="btn-guardar"  (click)="guardarFactura()">💾 Guardar Factura</button>
     </div>
-
   </div>
 </div>
 
 <!-- MODAL DETALLE -->
 <div class="modal-overlay" *ngIf="mostrarDetalle">
   <div class="modal">
-
     <div class="modal-header">
       <h2>🔧 Detalle Solicitud #{{ seleccionado?.id }}</h2>
       <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
     </div>
-
     <div class="detalle-grid">
-
-      <div class="detalle-item">
-        <span>👤 Conductor</span>
-        <strong>{{ seleccionado?.conductor?.nombre }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🚗 Vehículo</span>
-        <strong>{{ seleccionado?.vehiculo?.placa }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🔧 Tipo</span>
-        <strong>{{ seleccionado?.tipoMantenimiento }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>🛣️ Kilometraje</span>
-        <strong>{{ seleccionado?.kilometraje ? (seleccionado.kilometraje | number) + ' km' : '-' }}</strong>
-      </div>
-
-      <div class="detalle-item">
-        <span>📅 Fecha solicitud</span>
-        <strong>{{ seleccionado?.fechaSolicitud | date:'medium' }}</strong>
-      </div>
-
+      <div class="detalle-item"><span>👤 Conductor</span><strong>{{ seleccionado?.conductor?.nombre }}</strong></div>
+      <div class="detalle-item"><span>🚗 Vehículo</span><strong>{{ seleccionado?.vehiculo?.placa }}</strong></div>
+      <div class="detalle-item"><span>🔧 Tipo</span><strong>{{ seleccionado?.tipoMantenimiento }}</strong></div>
+      <div class="detalle-item"><span>🛣️ Kilometraje</span><strong>{{ seleccionado?.kilometraje ? (seleccionado.kilometraje | number) + ' km' : '-' }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha solicitud</span><strong>{{ seleccionado?.fechaSolicitud | date:'medium' }}</strong></div>
       <div class="detalle-item">
         <span>📊 Estado</span>
-        <strong>
-          <span [class]="getBadgeEstado(seleccionado?.estado)">
-            {{ getLabelEstado(seleccionado?.estado) }}
-          </span>
-        </strong>
+        <strong><span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado) }}</span></strong>
       </div>
-
-      <div class="detalle-item full">
-        <span>📋 Descripción del problema</span>
-        <strong>{{ seleccionado?.descripcionProblema }}</strong>
-      </div>
-
-      <!-- FOTO ODÓMETRO -->
+      <div class="detalle-item full"><span>📋 Descripción del problema</span><strong>{{ seleccionado?.descripcionProblema }}</strong></div>
       <div class="detalle-item full" *ngIf="seleccionado?.fotoOdometro">
         <span>📸 Foto odómetro</span>
-        <img
-          [src]="'https://localhost:7293/solicitudes-taller/' + seleccionado.fotoOdometro"
+        <img [src]="'http://localhost:5214/solicitudes-taller/' + seleccionado.fotoOdometro"
           alt="Odómetro" class="foto-detalle">
       </div>
-
-      <!-- AUTORIZACIÓN -->
       <div class="detalle-item" *ngIf="seleccionado?.autorizadoPor">
-        <span>✅ Autorizado por</span>
-        <strong>{{ seleccionado?.autorizadoPor }}</strong>
+        <span>✅ Autorizado por</span><strong>{{ seleccionado?.autorizadoPor }}</strong>
       </div>
-
       <div class="detalle-item" *ngIf="seleccionado?.fechaAutorizacion">
-        <span>📅 Fecha autorización</span>
-        <strong>{{ seleccionado?.fechaAutorizacion | date:'medium' }}</strong>
+        <span>📅 Fecha autorización</span><strong>{{ seleccionado?.fechaAutorizacion | date:'medium' }}</strong>
       </div>
-
       <div class="detalle-item full" *ngIf="seleccionado?.observacionAut">
-        <span>💬 Obs. autorización</span>
-        <strong>{{ seleccionado?.observacionAut }}</strong>
+        <span>💬 Obs. autorización</span><strong>{{ seleccionado?.observacionAut }}</strong>
       </div>
-
-      <!-- FACTURA -->
       <div class="detalle-item" *ngIf="seleccionado?.numeroFacturaTaller">
-        <span>📄 Nº Factura taller</span>
-        <strong>{{ seleccionado?.numeroFacturaTaller }}</strong>
+        <span>📄 Nº Factura taller</span><strong>{{ seleccionado?.numeroFacturaTaller }}</strong>
       </div>
-
       <div class="detalle-item" *ngIf="seleccionado?.valorFactura">
-        <span>💰 Valor factura</span>
-        <strong>${{ seleccionado?.valorFactura | number:'1.0-0' }}</strong>
+        <span>💰 Valor factura</span><strong>${{ seleccionado?.valorFactura | number:'1.0-0' }}</strong>
       </div>
-
       <div class="detalle-item" *ngIf="seleccionado?.fechaFactura">
-        <span>📅 Fecha factura</span>
-        <strong>{{ seleccionado?.fechaFactura | date:'shortDate' }}</strong>
+        <span>📅 Fecha factura</span><strong>{{ seleccionado?.fechaFactura | date:'shortDate' }}</strong>
       </div>
-
       <div class="detalle-item" *ngIf="seleccionado?.numeroFacturaTaller">
         <span>✅ Factura validada</span>
         <strong>
@@ -430,22 +314,17 @@
           <span class="badge-factura-no" *ngIf="!seleccionado?.facturaValidada">⚠️ No</span>
         </strong>
       </div>
-
       <div class="detalle-item full" *ngIf="seleccionado?.observacionFactura">
-        <span>💬 Obs. factura</span>
-        <strong>{{ seleccionado?.observacionFactura }}</strong>
+        <span>💬 Obs. factura</span><strong>{{ seleccionado?.observacionFactura }}</strong>
       </div>
-
     </div>
-
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
       <button class="btn-factura-modal"
-        *ngIf="seleccionado?.estado === 'EnTaller' || seleccionado?.estado === 'Finalizado'"
+        *ngIf="(seleccionado?.estado === 'EnTaller' || seleccionado?.estado === 'Finalizado') && puedeEditar"
         (click)="abrirFactura(seleccionado); cerrarDetalle()">
         📄 Gestionar Factura
       </button>
     </div>
-
   </div>
 </div>

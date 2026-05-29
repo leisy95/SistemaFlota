@@ -1,13 +1,10 @@
-import {
-  Component,
-  OnInit
-} from '@angular/core';
-
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MantenimientoService } from '../../services/mantenimiento.service';
-import { VehiculosService } from '../../services/vehiculos.service';
-import { PdfService } from '../../services/pdf.service';
+import { VehiculosService }     from '../../services/vehiculos.service';
+import { PermisosService }      from '../../services/permisos.service';
+import { PdfService }           from '../../services/pdf.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,55 +16,54 @@ import autoTable from 'jspdf-autotable';
   templateUrl: './mantenimiento.html',
   styleUrls: ['./mantenimiento.scss']
 })
-
 export class MantenimientoComponent implements OnInit {
 
-  mantenimientos:    any[] = [];
-  vehiculos:         any[] = [];
-  proximos:          any[] = [];
-  seleccionado:      any   = null;
-  mostrarModal       = false;
-  mostrarDetalle     = false;
-  mostrarFinalizar   = false;
-  editando           = false;
-  editandoId:        number | null = null;
+  mantenimientos:        any[] = [];
+  mantenimientosFiltrados: any[] = [];
+  vehiculos:             any[] = [];
+  proximos:              any[] = [];
+  seleccionado:          any   = null;
+  mostrarModal           = false;
+  mostrarDetalle         = false;
+  mostrarFinalizar       = false;
+  editando               = false;
+  editandoId:            number | null = null;
 
   filtroVehiculo = 0;
   filtroEstado   = '';
+  filtroFechaDesde = '';
+  filtroFechaHasta = '';
 
   fotosSeleccionadas: File[]   = [];
   fotosPreview:       string[] = [];
-
-  fechaSalida      = '';
-  observacionFinal = '';
+  fechaSalida        = '';
+  observacionFinal   = '';
 
   form = {
-    vehiculoId:           0,
-    tipoMantenimiento:    '',
-    fechaEntrada:         new Date().toISOString().slice(0, 16),
-    kilometrajeEntrada:   0,
-    nombreTaller:         '',
-    tecnicoResponsable:   '',
-    telefonoTaller:       '',
-    trabajosRealizados:   '',
-    repuestosUtilizados:  '',
-    costoManoObra:        0,
-    costoRepuestos:       0,
-    observaciones:        '',
-    kilometrajeSiguiente: 0,
-    fechaSiguiente:       ''
+    vehiculoId: 0, tipoMantenimiento: '',
+    fechaEntrada: new Date().toISOString().slice(0, 16),
+    kilometrajeEntrada: 0, nombreTaller: '',
+    tecnicoResponsable: '', telefonoTaller: '',
+    trabajosRealizados: '', repuestosUtilizados: '',
+    costoManoObra: 0, costoRepuestos: 0,
+    observaciones: '', kilometrajeSiguiente: 0, fechaSiguiente: ''
   };
 
   readonly tiposMantenimiento = [
-    'Preventivo', 'Correctivo', 'Predictivo',
-    'Cambio de aceite', 'Cambio de frenos',
-    'Cambio de llantas', 'Revisión general',
-    'Mantenimiento eléctrico', 'Mantenimiento de suspensión', 'Otro'
+    'Preventivo','Correctivo','Predictivo','Cambio de aceite',
+    'Cambio de frenos','Cambio de llantas','Revisión general',
+    'Mantenimiento eléctrico','Mantenimiento de suspensión','Otro'
   ];
+
+  // ── Permisos ─────────────────────────────────────────────────────────────────
+  get puedeCrear():    boolean { return this.permisosService.puedeCrear('mantenimiento'); }
+  get puedeEditar():   boolean { return this.permisosService.puedeEditar('mantenimiento'); }
+  get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('mantenimiento'); }
 
   constructor(
     private mantenimientoService: MantenimientoService,
     private vehiculosService:     VehiculosService,
+    private permisosService:      PermisosService,
     private pdfService:           PdfService
   ) {}
 
@@ -79,46 +75,50 @@ export class MantenimientoComponent implements OnInit {
 
   cargarMantenimientos() {
     this.mantenimientoService.obtenerTodos().subscribe({
-      next: (data) => this.mantenimientos = data,
-      error: (err) => console.error(err)
+      next: (data) => { this.mantenimientos = data; this.aplicarFiltros(); },
+      error: (err)  => console.error(err)
     });
   }
 
   cargarVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
   cargarProximos() {
     this.mantenimientoService.obtenerProximos().subscribe({
       next: (data) => this.proximos = data,
-      error: (err) => console.error(err)
+      error: (err)  => console.error(err)
     });
   }
 
-  get mantenimientosFiltrados(): any[] {
-    return this.mantenimientos.filter(m => {
-      const okVehiculo = !this.filtroVehiculo || m.vehiculo?.id === this.filtroVehiculo;
+  aplicarFiltros() {
+    this.mantenimientosFiltrados = this.mantenimientos.filter(m => {
+      const okVehiculo = !this.filtroVehiculo || m.vehiculo?.id === Number(this.filtroVehiculo);
       const okEstado   = !this.filtroEstado   || m.estado === this.filtroEstado;
-      return okVehiculo && okEstado;
+      const fecha      = new Date(m.fechaEntrada);
+      const okDesde    = !this.filtroFechaDesde || fecha >= new Date(this.filtroFechaDesde);
+      const okHasta    = !this.filtroFechaHasta || fecha <= new Date(this.filtroFechaHasta + 'T23:59:59');
+      return okVehiculo && okEstado && okDesde && okHasta;
     });
   }
 
-  get enTaller(): number {
-    return this.mantenimientos.filter(m => m.estado === 'EnTaller').length;
+  limpiarFiltros() {
+    this.filtroVehiculo   = 0;
+    this.filtroEstado     = '';
+    this.filtroFechaDesde = '';
+    this.filtroFechaHasta = '';
+    this.aplicarFiltros();
   }
 
-  get costoTotal(): number {
-    return this.mantenimientos.reduce((sum, m) => sum + (m.costoTotal || 0), 0);
-  }
+  get enTaller():    number { return this.mantenimientos.filter(m => m.estado === 'EnTaller').length; }
+  get costoTotal():  number { return this.mantenimientos.reduce((s, m) => s + (m.costoTotal || 0), 0); }
 
   seleccionarFotos(event: any) {
     const archivos = Array.from(event.target.files) as File[];
-    if (archivos.length + this.fotosSeleccionadas.length > 5) {
-      alert('Máximo 5 fotos'); return;
-    }
+    if (archivos.length + this.fotosSeleccionadas.length > 5) { alert('Máximo 5 fotos'); return; }
     archivos.forEach(archivo => {
       this.fotosSeleccionadas.push(archivo);
       const reader = new FileReader();
@@ -138,8 +138,7 @@ export class MantenimientoComponent implements OnInit {
   }
 
   nuevoMantenimiento() {
-    this.editando   = false;
-    this.editandoId = null;
+    this.editando = false; this.editandoId = null;
     this.form = {
       vehiculoId: 0, tipoMantenimiento: '',
       fechaEntrada: new Date().toISOString().slice(0, 16),
@@ -147,12 +146,10 @@ export class MantenimientoComponent implements OnInit {
       tecnicoResponsable: '', telefonoTaller: '',
       trabajosRealizados: '', repuestosUtilizados: '',
       costoManoObra: 0, costoRepuestos: 0,
-      observaciones: '', kilometrajeSiguiente: 0,
-      fechaSiguiente: ''
+      observaciones: '', kilometrajeSiguiente: 0, fechaSiguiente: ''
     };
-    this.fotosSeleccionadas = [];
-    this.fotosPreview       = [];
-    this.mostrarModal       = true;
+    this.fotosSeleccionadas = []; this.fotosPreview = [];
+    this.mostrarModal = true;
   }
 
   guardar() {
@@ -161,45 +158,38 @@ export class MantenimientoComponent implements OnInit {
     if (!this.form.nombreTaller)       { alert('Ingrese el nombre del taller'); return; }
     if (!this.form.trabajosRealizados) { alert('Ingrese los trabajos realizados'); return; }
 
-    const formData = new FormData();
-    formData.append('VehiculoId',          this.form.vehiculoId.toString());
-    formData.append('TipoMantenimiento',   this.form.tipoMantenimiento);
-    formData.append('FechaEntrada',        this.form.fechaEntrada);
-    formData.append('KilometrajeEntrada',  this.form.kilometrajeEntrada.toString());
-    formData.append('NombreTaller',        this.form.nombreTaller);
-    formData.append('TecnicoResponsable',  this.form.tecnicoResponsable);
-    formData.append('TelefonoTaller',      this.form.telefonoTaller);
-    formData.append('TrabajosRealizados',  this.form.trabajosRealizados);
-    formData.append('RepuestosUtilizados', this.form.repuestosUtilizados);
-    formData.append('CostoManoObra',       this.form.costoManoObra.toString());
-    formData.append('CostoRepuestos',      this.form.costoRepuestos.toString());
-    formData.append('Observaciones',       this.form.observaciones);
-    formData.append('Estado',             'EnTaller');
-
+    const fd = new FormData();
+    fd.append('VehiculoId',          this.form.vehiculoId.toString());
+    fd.append('TipoMantenimiento',   this.form.tipoMantenimiento);
+    fd.append('FechaEntrada',        this.form.fechaEntrada);
+    fd.append('KilometrajeEntrada',  this.form.kilometrajeEntrada.toString());
+    fd.append('NombreTaller',        this.form.nombreTaller);
+    fd.append('TecnicoResponsable',  this.form.tecnicoResponsable);
+    fd.append('TelefonoTaller',      this.form.telefonoTaller);
+    fd.append('TrabajosRealizados',  this.form.trabajosRealizados);
+    fd.append('RepuestosUtilizados', this.form.repuestosUtilizados);
+    fd.append('CostoManoObra',       this.form.costoManoObra.toString());
+    fd.append('CostoRepuestos',      this.form.costoRepuestos.toString());
+    fd.append('Observaciones',       this.form.observaciones);
+    fd.append('Estado',              'EnTaller');
     if (this.form.kilometrajeSiguiente)
-      formData.append('KilometrajeSiguiente', this.form.kilometrajeSiguiente.toString());
+      fd.append('KilometrajeSiguiente', this.form.kilometrajeSiguiente.toString());
     if (this.form.fechaSiguiente)
-      formData.append('FechaSiguiente', this.form.fechaSiguiente);
+      fd.append('FechaSiguiente', this.form.fechaSiguiente);
+    this.fotosSeleccionadas.forEach(foto => fd.append('Fotos', foto));
 
-    this.fotosSeleccionadas.forEach(foto => formData.append('Fotos', foto));
+    const peticion = this.editando && this.editandoId
+      ? this.mantenimientoService.editar(this.editandoId, fd)
+      : this.mantenimientoService.crear(fd);
 
-    if (this.editando && this.editandoId) {
-      this.mantenimientoService.editar(this.editandoId, formData).subscribe({
-        next: () => { this.cargarMantenimientos(); this.cerrarModal(); },
-        error: (err) => console.error(err)
-      });
-    } else {
-      this.mantenimientoService.crear(formData).subscribe({
-        next: () => { this.cargarMantenimientos(); this.cerrarModal(); },
-        error: (err) => console.error(err)
-      });
-    }
+    peticion.subscribe({
+      next: () => { this.cargarMantenimientos(); this.cerrarModal(); },
+      error: (err) => console.error(err)
+    });
   }
 
   verDetalle(m: any) {
-    this.seleccionado     = m;
-    this.mostrarDetalle   = true;
-    this.mostrarFinalizar = false;
+    this.seleccionado = m; this.mostrarDetalle = true; this.mostrarFinalizar = false;
   }
 
   abrirFinalizar(m: any) {
@@ -215,11 +205,7 @@ export class MantenimientoComponent implements OnInit {
       this.seleccionado.id,
       { fechaSalida: this.fechaSalida, observacionesFinal: this.observacionFinal }
     ).subscribe({
-      next: () => {
-        this.cerrarDetalle();
-        this.cargarMantenimientos();
-        this.cargarProximos();
-      },
+      next: () => { this.cerrarDetalle(); this.cargarMantenimientos(); this.cargarProximos(); },
       error: (err) => console.error(err)
     });
   }
@@ -250,131 +236,78 @@ export class MantenimientoComponent implements OnInit {
     }
   }
 
-  cerrarModal() { this.mostrarModal = false; }
+  cerrarModal()   { this.mostrarModal = false; }
+  cerrarDetalle() { this.mostrarDetalle = false; this.seleccionado = null; this.mostrarFinalizar = false; }
 
-  cerrarDetalle() {
-    this.mostrarDetalle   = false;
-    this.seleccionado     = null;
-    this.mostrarFinalizar = false;
-  }
-
-  // =========================
-  // PDF INDIVIDUAL
-  // =========================
-
-  async descargarPDF(m: any) {
-    await this.pdfService.generarPDFMantenimiento(m);
-  }
-
-  // =========================
-  // EXPORTAR EXCEL
-  // =========================
+  async descargarPDF(m: any) { await this.pdfService.generarPDFMantenimiento(m); }
 
   exportarExcel() {
     const datos = this.mantenimientosFiltrados.map(m => ({
-      'ID':                  m.id,
-      'Vehículo':            m.vehiculo?.placa      ?? '-',
-      'Marca/Modelo':        `${m.vehiculo?.marca ?? ''} ${m.vehiculo?.modelo ?? ''}`.trim(),
-      'Tipo':                m.tipoMantenimiento,
-      'Taller':              m.nombreTaller,
-      'Técnico':             m.tecnicoResponsable   || '-',
-      'Teléfono taller':     m.telefonoTaller       || '-',
-      'Fecha entrada':       new Date(m.fechaEntrada).toLocaleString(),
-      'Fecha salida':        m.fechaSalida ? new Date(m.fechaSalida).toLocaleString() : '-',
+      'ID': m.id,
+      'Vehículo': m.vehiculo?.placa ?? '-',
+      'Marca/Modelo': `${m.vehiculo?.marca ?? ''} ${m.vehiculo?.modelo ?? ''}`.trim(),
+      'Tipo': m.tipoMantenimiento,
+      'Taller': m.nombreTaller,
+      'Técnico': m.tecnicoResponsable || '-',
+      'Teléfono taller': m.telefonoTaller || '-',
+      'Fecha entrada': new Date(m.fechaEntrada).toLocaleString(),
+      'Fecha salida': m.fechaSalida ? new Date(m.fechaSalida).toLocaleString() : '-',
       'Kilometraje entrada': m.kilometrajeEntrada,
-      'Próximo km':          m.kilometrajeSiguiente || '-',
-      'Próxima fecha':       m.fechaSiguiente ? new Date(m.fechaSiguiente).toLocaleDateString() : '-',
-      'Trabajos':            m.trabajosRealizados,
-      'Repuestos':           m.repuestosUtilizados  || '-',
-      'Costo mano obra':     m.costoManoObra,
-      'Costo repuestos':     m.costoRepuestos,
-      'Costo total':         m.costoTotal,
-      'Estado':              m.estado,
-      'Observaciones':       m.observaciones        || '-',
+      'Próximo km': m.kilometrajeSiguiente || '-',
+      'Próxima fecha': m.fechaSiguiente ? new Date(m.fechaSiguiente).toLocaleDateString() : '-',
+      'Trabajos': m.trabajosRealizados,
+      'Repuestos': m.repuestosUtilizados || '-',
+      'Costo mano obra': m.costoManoObra,
+      'Costo repuestos': m.costoRepuestos,
+      'Costo total': m.costoTotal,
+      'Estado': m.estado,
+      'Observaciones': m.observaciones || '-',
     }));
-
     const hoja = XLSX.utils.json_to_sheet(datos);
     hoja['!cols'] = [
-      { wch: 6  }, { wch: 12 }, { wch: 20 }, { wch: 22 },
-      { wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 20 },
-      { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
-      { wch: 40 }, { wch: 30 }, { wch: 15 }, { wch: 15 },
-      { wch: 12 }, { wch: 12 }, { wch: 30 }
+      {wch:6},{wch:12},{wch:20},{wch:22},{wch:25},{wch:20},{wch:15},
+      {wch:20},{wch:20},{wch:15},{wch:12},{wch:15},{wch:40},{wch:30},
+      {wch:15},{wch:15},{wch:12},{wch:12},{wch:30}
     ];
-
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Mantenimiento');
     XLSX.writeFile(libro, `mantenimiento_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
-  // =========================
-  // EXPORTAR PDF GENERAL
-  // =========================
-
   exportarPDF() {
     const doc   = new jsPDF('landscape');
     const VERDE = [21, 128, 61] as [number, number, number];
-
-    doc.setFillColor(...VERDE);
-    doc.rect(0, 0, 297, 20, 'F');
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(...VERDE); doc.rect(0, 0, 297, 20, 'F');
+    doc.setFontSize(14); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
     doc.text('REPORTE DE TALLER Y MANTENIMIENTO', 148, 13, { align: 'center' });
-
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9); doc.setTextColor(80,80,80); doc.setFont('helvetica','normal');
     doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
-    doc.text(`Total registros: ${this.mantenimientosFiltrados.length}`, 14, 35);
-    doc.text(`En taller: ${this.enTaller}`, 80, 35);
-    doc.text(`Costo total: $${this.costoTotal.toLocaleString()}`, 140, 35);
-
+    doc.text(`Total: ${this.mantenimientosFiltrados.length}`, 14, 35);
+    doc.text(`En taller: ${this.enTaller}`, 60, 35);
+    doc.text(`Costo total: $${this.costoTotal.toLocaleString()}`, 110, 35);
     autoTable(doc, {
       startY: 42,
-      head: [[
-        '#', 'Vehículo', 'Tipo', 'Taller',
-        'Fecha entrada', 'Km entrada',
-        'Costo total', 'Estado'
-      ]],
+      head: [['#','Vehículo','Tipo','Taller','Fecha entrada','Km entrada','Costo total','Estado']],
       body: this.mantenimientosFiltrados.map(m => [
-        m.id,
-        m.vehiculo?.placa   ?? '-',
-        m.tipoMantenimiento,
-        m.nombreTaller,
-        new Date(m.fechaEntrada).toLocaleDateString(),
-        m.kilometrajeEntrada,
-        `$${(m.costoTotal || 0).toLocaleString()}`,
-        m.estado
+        m.id, m.vehiculo?.placa ?? '-', m.tipoMantenimiento, m.nombreTaller,
+        new Date(m.fechaEntrada).toLocaleDateString(), m.kilometrajeEntrada,
+        `$${(m.costoTotal||0).toLocaleString()}`, m.estado
       ]),
       headStyles: { fillColor: VERDE, textColor: [255,255,255], fontStyle: 'bold', fontSize: 8 },
       bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      alternateRowStyles: { fillColor: [245,245,245] },
       columnStyles: {
-        0: { cellWidth: 10, halign: 'center' },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 35 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 20, halign: 'right' },
-        6: { cellWidth: 25, halign: 'right' },
-        7: { cellWidth: 22, halign: 'center' },
+        0:{cellWidth:10,halign:'center'},1:{cellWidth:20},2:{cellWidth:30},3:{cellWidth:35},
+        4:{cellWidth:25},5:{cellWidth:20,halign:'right'},6:{cellWidth:25,halign:'right'},7:{cellWidth:22,halign:'center'}
       }
     });
-
-    const numPaginas = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= numPaginas; i++) {
-      doc.setPage(i);
-      doc.setDrawColor(...VERDE);
-      doc.setLineWidth(0.3);
-      doc.line(14, 200, 283, 200);
-      doc.setFontSize(7);
-      doc.setTextColor(120, 120, 120);
+    const n = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= n; i++) {
+      doc.setPage(i); doc.setDrawColor(...VERDE); doc.setLineWidth(0.3);
+      doc.line(14, 200, 283, 200); doc.setFontSize(7); doc.setTextColor(120,120,120);
       doc.text('Sistema de Gestión de Flota', 148, 204, { align: 'center' });
-      doc.text(`Página ${i} de ${numPaginas}`, 283, 204, { align: 'right' });
+      doc.text(`Página ${i} de ${n}`, 283, 204, { align: 'right' });
     }
-
     doc.save(`mantenimiento_${new Date().toISOString().slice(0,10)}.pdf`);
   }
-
 }

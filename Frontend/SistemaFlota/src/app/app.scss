@@ -1,22 +1,31 @@
-// CSS VARIABLE GLOBAL
 :root {
-  --color-primario: var(--color-primario);
+  --color-primario: #15803d;
+  --glass-bg:       rgba(255,255,255,0.05);
+  --glass-border:   rgba(255,255,255,0.1);
+  --glass-blur:     blur(20px);
+  --text:           #f1f5f9;
+  --muted:          #64748b;
 }
+
+* { box-sizing: border-box; }
 
 .layout {
   display: flex;
   min-height: 100vh;
   position: relative;
+  background: transparent;
 }
 
+// ── SIDEBAR GLASS ─────────────────────────────────────────────────────────────
 .sidebar {
   width: 240px;
   height: 100vh;
-  background: #0f172a;
-  color: white;
+  background: rgba(10,8,30,0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255,255,255,0.08);
   position: fixed;
-  left: 0;
-  top: 0;
+  left: 0; top: 0;
   z-index: 1000;
   transition: transform 0.3s ease;
   display: flex;
@@ -28,235 +37,250 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 16px 10px;
+  padding: 20px 16px 14px;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .logo {
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 20px;
+  font-weight: 700;
   color: white;
   margin: 0;
 }
 
+.logo-empresa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1; min-width: 0; overflow: hidden;
+}
+
+.logo-img {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.1);
+  padding: 3px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo-con-img {
+  font-size: 13px; font-weight: 600;
+  color: white; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; margin: 0;
+}
+
 .btn-cerrar-sidebar {
   display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-
-  &:hover { background: rgba(255,255,255,0.1); }
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8; font-size: 16px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: 0.2s; width: auto;
+  &:hover { background: rgba(255,255,255,0.12); color: white; }
 }
 
 .sidebar nav {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
-  gap: 4px;
+  padding: 10px 10px;
+  gap: 2px;
   flex: 1;
   overflow-y: auto;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15);
-    border-radius: 4px;
-  }
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 }
 
 .sidebar nav button {
-  background: none;
+  background: transparent;
   border: none;
-  color: #94a3b8;
+  color: rgba(255,255,255,0.5);
   text-align: left;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
   width: 100%;
-  transition: 0.2s;
-  flex-shrink: 0;
+  transition: all 0.2s;
 
   &:hover {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.07);
     color: white;
   }
 
   &.activo {
-    background: var(--color-primario);
-    color: white;
+    background: rgba(21,128,61,0.2);
+    color: #4ade80;
+    border: 1px solid rgba(21,128,61,0.3);
+    backdrop-filter: blur(10px);
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+      box-shadow: 0 0 8px rgba(74,222,128,0.6);
+    }
   }
 }
 
 .sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
+  background: rgba(0,0,0,0.15);
 }
 
-.usuario-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.usuario-nombre {
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-}
-
+.usuario-info { display: flex; flex-direction: column; gap: 4px; }
+.usuario-nombre { font-size: 13px; font-weight: 600; color: white; }
 .usuario-rol {
-  font-size: 11px;
-  color: #64748b;
-  background: rgba(255,255,255,0.08);
-  padding: 2px 8px;
-  border-radius: 20px;
-  width: fit-content;
+  font-size: 11px; color: #64748b;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 2px 8px; border-radius: 20px; width: fit-content;
 }
 
 .sidebar-overlay {
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
   z-index: 999;
 }
 
+// ── MAIN ──────────────────────────────────────────────────────────────────────
 .main {
   margin-left: 240px;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: transparent;
   transition: margin-left 0.3s ease;
 }
 
+// ── TOPBAR GLASS ──────────────────────────────────────────────────────────────
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 14px 24px;
+  background: rgba(15,12,41,0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
   position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 3px solid var(--color-primario);
+  top: 0; z-index: 100;
 }
 
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
 
 .topbar h1 {
-  font-size: 20px;
-  color: #0f172a;
-  font-weight: 600;
+  font-size: 15px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
   margin: 0;
   text-transform: capitalize;
+  letter-spacing: 0.3px;
 }
 
 .btn-hamburguesa {
   display: none;
-  background: none;
-  border: none;
-  font-size: 22px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 20px;
   cursor: pointer;
-  color: #0f172a;
+  color: #94a3b8;
   padding: 6px 10px;
   border-radius: 8px;
-  transition: 0.2s;
-
-  &:hover { background: #f1f5f9; }
+  transition: 0.2s; width: auto;
+  &:hover { background: rgba(255,255,255,0.12); color: white; }
 }
 
 .btn-logout {
-  background: var(--color-primario);
-  color: white;
-  border: none;
-  padding: 8px 16px;
+  background: rgba(21,128,61,0.15);
+  color: #4ade80;
+  border: 1px solid rgba(21,128,61,0.25);
+  padding: 8px 18px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: 0.2s;
-  opacity: 1;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: auto;
+  backdrop-filter: blur(10px);
 
-  &:hover { opacity: 0.85; }
+  &:hover {
+    background: rgba(21,128,61,0.3);
+    border-color: rgba(21,128,61,0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(21,128,61,0.2);
+  }
 }
 
-.content {
-  flex: 1;
-  background: #f1f5f9;
+// ── CONTENT ───────────────────────────────────────────────────────────────────
+.content { flex: 1; background: transparent; }
+
+// ── RESPONSIVE ────────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-240px); }
+  .sidebar.visible { transform: translateX(0); }
+  .sidebar-overlay.visible { display: block; }
+  .btn-cerrar-sidebar { display: block; }
+  .btn-hamburguesa { display: block; }
+  .main { margin-left: 0; }
+  .topbar { padding: 12px 16px; }
 }
 
-// LOGO EMPRESA
-.logo-empresa {
+// ── NAV CON ICONOS FA ─────────────────────────────────────────────────────────
+.sidebar nav button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+  gap: 10px;
+
+  i { font-size: 14px; width: 16px; flex-shrink: 0; }
+  span { flex: 1; }
 }
 
-.logo-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  object-fit: contain;
-  background: white;
-  padding: 2px;
+// ── FOOTER SIDEBAR ────────────────────────────────────────────────────────────
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.usuario-avatar {
+  font-size: 28px;
+  color: rgba(255,255,255,0.3);
   flex-shrink: 0;
 }
 
-.logo-con-img {
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
+// ── TOPBAR MODULO ─────────────────────────────────────────────────────────────
+.topbar-modulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.5);
+  font-size: 15px;
+  font-weight: 500;
+
+  i { font-size: 14px; }
 }
 
-// RESPONSIVE
-@media (max-width: 768px) {
-
-  .sidebar {
-    transform: translateX(-240px);
-  }
-
-  .sidebar.visible {
-    transform: translateX(0);
-  }
-
-  .sidebar-overlay.visible {
-    display: block;
-  }
-
-  .btn-cerrar-sidebar {
-    display: block;
-  }
-
-  .btn-hamburguesa {
-    display: block;
-  }
-
-  .main {
-    margin-left: 0;
-  }
-
-  .topbar {
-    padding: 12px 16px;
-  }
-
-  .topbar h1 {
-    font-size: 16px;
-  }
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  i { font-size: 13px; }
 }
+
+.btn-hamburguesa i { font-size: 18px; }
+.btn-cerrar-sidebar i { font-size: 14px; }
+
+.usuario-rol i { font-size: 10px; margin-right: 2px; }

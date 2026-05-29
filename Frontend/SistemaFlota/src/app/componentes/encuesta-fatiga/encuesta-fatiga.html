@@ -7,11 +7,11 @@
     </div>
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" (click)="nuevaEncuesta()">+ Nueva Encuesta</button>
+      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevaEncuesta()">+ Nueva Encuesta</button>
     </div>
   </div>
 
-  <!-- ESTADÍSTICAS -->
+  <!-- STATS -->
   <div class="stats-grid" *ngIf="estadisticas">
     <div class="stat-card azul">
       <span class="stat-numero">{{ estadisticas.total }}</span>
@@ -55,12 +55,10 @@
       </div>
       <div class="form-group">
         <label>👤 Registrado por *</label>
-        <input type="text" [(ngModel)]="form.registradoPor"
-          placeholder="Nombre de quien registra">
+        <input type="text" [(ngModel)]="form.registradoPor" placeholder="Nombre de quien registra">
       </div>
     </div>
 
-    <!-- PREGUNTAS FIJAS -->
     <div class="preguntas-seccion">
       <h3>🔍 Preguntas de Fatiga</h3>
       <p class="preguntas-info">
@@ -68,95 +66,61 @@
         el conductor será marcado como <strong class="texto-no-apto">NO APTO</strong>.
       </p>
 
-      <div class="pregunta-item"
-        *ngFor="let p of preguntas"
+      <div class="pregunta-item" *ngFor="let p of preguntas"
         [class.activa]="getPregunta(p.key)">
         <div class="pregunta-texto">
           <span class="pregunta-icono">{{ getPregunta(p.key) ? '⚠️' : '✅' }}</span>
           <p>{{ p.texto }}</p>
         </div>
         <div class="pregunta-opciones">
-          <button class="btn-si"
-            [class.seleccionado]="getPregunta(p.key)"
-            (click)="setPregunta(p.key, true)">
-            SÍ
-          </button>
-          <button class="btn-no"
-            [class.seleccionado]="!getPregunta(p.key)"
-            (click)="setPregunta(p.key, false)">
-            NO
-          </button>
+          <button class="btn-si" [class.seleccionado]="getPregunta(p.key)"
+            (click)="setPregunta(p.key, true)">SÍ</button>
+          <button class="btn-no" [class.seleccionado]="!getPregunta(p.key)"
+            (click)="setPregunta(p.key, false)">NO</button>
         </div>
       </div>
 
-      <!-- PREGUNTAS EXTRA -->
       <div class="preguntas-extra">
-        <h4>➕ Preguntas adicionales
-          <span class="opcional">(opcional)</span>
-        </h4>
-
+        <h4>➕ Preguntas adicionales <span class="opcional">(opcional)</span></h4>
         <div class="pregunta-extra-fila"
           *ngFor="let pe of preguntasExtra; let i = index">
-          <input type="text" [(ngModel)]="pe.pregunta"
-            placeholder="Escriba la pregunta adicional...">
+          <input type="text" [(ngModel)]="pe.pregunta" placeholder="Escriba la pregunta adicional...">
           <div class="pregunta-opciones">
-            <button class="btn-si"
-              [class.seleccionado]="pe.respuesta"
-              (click)="pe.respuesta = true">
-              SÍ
-            </button>
-            <button class="btn-no"
-              [class.seleccionado]="!pe.respuesta"
-              (click)="pe.respuesta = false">
-              NO
-            </button>
+            <button class="btn-si" [class.seleccionado]="pe.respuesta"
+              (click)="pe.respuesta = true">SÍ</button>
+            <button class="btn-no" [class.seleccionado]="!pe.respuesta"
+              (click)="pe.respuesta = false">NO</button>
           </div>
           <button class="btn-eliminar-fila" (click)="eliminarPreguntaExtra(i)">🗑️</button>
         </div>
-
         <button class="btn-agregar-pregunta" (click)="agregarPreguntaExtra()">
           ➕ Agregar pregunta
         </button>
       </div>
-
     </div>
 
-    <!-- CAMPO ADICIONAL -->
     <div class="form-group full">
-      <label>📝 Observación adicional
-        <span class="opcional">(opcional)</span>
-      </label>
+      <label>📝 Observación adicional <span class="opcional">(opcional)</span></label>
       <textarea [(ngModel)]="form.otraObservacion"
-        placeholder="Ingrese cualquier otra observación relevante...">
-      </textarea>
+        placeholder="Ingrese cualquier otra observación relevante..."></textarea>
     </div>
 
     <div class="form-group full">
-      <label>💬 Observaciones generales
-        <span class="opcional">(opcional)</span>
-      </label>
-      <textarea [(ngModel)]="form.observaciones"
-        placeholder="Observaciones adicionales...">
-      </textarea>
+      <label>💬 Observaciones generales <span class="opcional">(opcional)</span></label>
+      <textarea [(ngModel)]="form.observaciones" placeholder="Observaciones adicionales..."></textarea>
     </div>
 
-    <!-- PREVIEW RESULTADO -->
     <div class="resultado-preview"
       [class.apto]="resultadoPreview === 'Apto'"
       [class.no-apto]="resultadoPreview === 'No Apto'">
-      <div class="resultado-icono">
-        {{ resultadoPreview === 'Apto' ? '✅' : '🚨' }}
-      </div>
+      <div class="resultado-icono">{{ resultadoPreview === 'Apto' ? '✅' : '🚨' }}</div>
       <div class="resultado-info">
         <span class="resultado-label">Resultado estimado:</span>
         <span class="resultado-valor">{{ resultadoPreview }}</span>
-        <span class="resultado-detalle">
-          {{ respuestasSi }} respuesta(s) afirmativa(s)
-        </span>
+        <span class="resultado-detalle">{{ respuestasSi }} respuesta(s) afirmativa(s)</span>
       </div>
     </div>
 
-    <!-- ALERTAS ACTIVAS -->
     <div class="alertas-activas" *ngIf="alertasActivas.length > 0">
       <h4>⚠️ Alertas detectadas:</h4>
       <div class="alerta-chip" *ngFor="let a of alertasActivas">{{ a }}</div>
@@ -168,7 +132,6 @@
         {{ cargando ? 'Guardando...' : '💾 Guardar Encuesta' }}
       </button>
     </div>
-
   </div>
 
   <!-- RESULTADO FINAL -->
@@ -176,13 +139,8 @@
     <div class="resultado-card"
       [class.apto]="resultadoActual.resultado === 'Apto'"
       [class.no-apto]="resultadoActual.resultado === 'No Apto'">
-
-      <div class="resultado-grande">
-        {{ resultadoActual.resultado === 'Apto' ? '✅' : '🚨' }}
-      </div>
-
+      <div class="resultado-grande">{{ resultadoActual.resultado === 'Apto' ? '✅' : '🚨' }}</div>
       <h2>{{ resultadoActual.resultado === 'Apto' ? 'CONDUCTOR APTO' : 'CONDUCTOR NO APTO' }}</h2>
-
       <p *ngIf="resultadoActual.resultado === 'Apto'" class="resultado-mensaje apto">
         El conductor se encuentra en condiciones óptimas para conducir.
       </p>
@@ -190,17 +148,10 @@
         ⚠️ El conductor presenta {{ resultadoActual.respuestasSi }} factores de riesgo.
         <strong>NO debe salir a ruta.</strong>
       </p>
-
       <div class="resultado-acciones">
-        <button class="btn-pdf"
-          (click)="generarPDFIndividual(resultadoActual.encuesta)">
-          📄 Descargar PDF
-        </button>
-        <button class="btn-cerrar-resultado" (click)="cerrarResultado()">
-          Cerrar
-        </button>
+        <button class="btn-pdf" (click)="generarPDFIndividual(resultadoActual.encuesta)">📄 Descargar PDF</button>
+        <button class="btn-cerrar-resultado" (click)="cerrarResultado()">Cerrar</button>
       </div>
-
     </div>
   </div>
 
@@ -216,13 +167,8 @@
       <table>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Conductor</th>
-            <th>Vehículo</th>
-            <th>Resp. Sí</th>
-            <th>Resultado</th>
-            <th>Registrado por</th>
-            <th>Acciones</th>
+            <th>Fecha</th><th>Conductor</th><th>Vehículo</th>
+            <th>Resp. Sí</th><th>Resultado</th><th>Registrado por</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -241,7 +187,7 @@
             <td data-label="Acciones">
               <div class="btn-acciones">
                 <button class="btn-pdf-individual" (click)="generarPDFIndividual(e)">📄</button>
-                <button class="btn-eliminar" (click)="eliminar(e.id)">🗑️</button>
+                <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(e.id)">🗑️</button>
               </div>
             </td>
           </tr>

@@ -1,365 +1,173 @@
 <div class="contenedor">
 
   <div class="header">
-
-    <h2>
-      Conductores Activos
-      ({{ conductoresFiltrados.length }})
-    </h2>
-
-    <button
-      class="btn-agregar"
-      (click)="agregar()">
-
-      + Nuevo Conductor
-
+    <div class="header-titulo">
+      <i class="fa-solid fa-id-card"></i>
+      <h2>Conductores ({{ conductoresFiltrados.length }})</h2>
+    </div>
+    <button class="btn-agregar" *ngIf="puedeCrear" (click)="agregar()">
+      <i class="fa-solid fa-plus"></i> Nuevo Conductor
     </button>
-
   </div>
 
   <!-- BUSCADOR -->
-
-  <div class="buscador">
-
-    <input
-      type="text"
-
-      [(ngModel)]="busqueda"
-
+  <div class="buscador-wrap">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input class="buscador" type="text" [(ngModel)]="busqueda"
       (input)="filtrarConductores()"
-
-      placeholder="Buscar conductor..."
-    >
-
+      placeholder="Buscar por nombre, licencia, email...">
   </div>
 
   <!-- TARJETAS -->
-
-  <div
-    *ngFor="
-      let c of
-      obtenerConductoresPaginados()
-    "
-
-    class="card"
-  >
-
-    <!-- FOTO -->
+  <div *ngFor="let c of conductoresPaginados" class="card">
 
     <div class="foto-container">
-
-      <img
-        *ngIf="c.foto"
-
-        [src]="
-          fotosUrl +
-          '/fotos/' +
-          c.foto
-        "
-
-        class="foto"
-      >
-
-      <img
-        *ngIf="!c.foto"
-
-        src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-
-        class="foto"
-      >
-
+      <img *ngIf="c.foto"  [src]="fotosUrl + '/fotos/' + c.foto" class="foto">
+      <div *ngIf="!c.foto" class="foto-placeholder">
+        <i class="fa-solid fa-user-tie"></i>
+      </div>
     </div>
-
-    <!-- INFO -->
 
     <div class="info">
-
-      <h3>
-
-        {{ c.nombre }}
-
-        <span class="estado">
-          Activo
-        </span>
-
-      </h3>
-
-      <p>
-
-        <strong>
-          Licencia:
-        </strong>
-
-        {{ c.licencia }}
-
-      </p>
-
-      <p>
-
-        <strong>
-          Teléfono:
-        </strong>
-
-        {{ c.telefono }}
-
-      </p>
-
-      <p>
-
-        <strong>
-          Email:
-        </strong>
-
-        {{ c.email }}
-
-      </p>
-
+      <div class="info-top">
+        <h3>{{ c.nombre }}</h3>
+        <span class="estado-badge activo">Activo</span>
+      </div>
+      <p><i class="fa-solid fa-id-card"></i> {{ c.licencia }}</p>
+      <p><i class="fa-solid fa-phone"></i> {{ c.telefono }}</p>
+      <p><i class="fa-solid fa-envelope"></i> {{ c.email }}</p>
     </div>
-
-    <!-- ACCIONES -->
 
     <div class="acciones">
-
-      <button
-        class="btn-ver"
-
-        (click)="ver(c)"
-      >
-
-        Ver
-
+      <button class="btn-ver"       (click)="ver(c)">
+        <i class="fa-solid fa-eye"></i> Ver
       </button>
-
-      <button
-        class="btn-editar"
-
-        (click)="editar(c)"
-      >
-
-        Editar
-
+      <button class="btn-hoja-vida" (click)="abrirHojaVida(c)">
+        <i class="fa-solid fa-file-medical"></i> Hoja de vida
       </button>
-
-      <button
-        class="btn-eliminar"
-
-        (click)="eliminar(c.id)"
-      >
-
-        Eliminar
-
+      <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(c)">
+        <i class="fa-solid fa-pen"></i> Editar
       </button>
-
+      <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(c.id)">
+        <i class="fa-solid fa-trash"></i>
+      </button>
     </div>
 
+  </div>
+
+  <!-- VACÍO -->
+  <div class="vacio" *ngIf="conductoresPaginados.length === 0">
+    <i class="fa-solid fa-id-card"></i>
+    <p>No hay conductores registrados</p>
   </div>
 
   <!-- PAGINACIÓN -->
-
-  <div class="paginacion">
-
-    <button
-      (click)="paginaAnterior()"
-    >
-
-      ← Anterior
-
+  <div class="paginacion" *ngIf="conductoresFiltrados.length > itemsPorPagina">
+    <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+      <i class="fa-solid fa-chevron-left"></i> Anterior
     </button>
-
-    <span>
-
-      Página
-      {{ paginaActual }}
-
-    </span>
-
-    <button
-      (click)="paginaSiguiente()"
-    >
-
-      Siguiente →
-
+    <span>Página {{ paginaActual }}</span>
+    <button class="btn-pagina" (click)="paginaSiguiente()"
+      [disabled]="paginaActual * itemsPorPagina >= conductoresFiltrados.length">
+      Siguiente <i class="fa-solid fa-chevron-right"></i>
     </button>
-
   </div>
 
 </div>
 
-<!-- PERFIL CONDUCTOR -->
-
-<div
-  class="modal"
-
-  *ngIf="
-    conductorSeleccionado
-  "
->
-
+<!-- ═══════════ MODAL PERFIL ═══════════ -->
+<div class="modal-overlay" *ngIf="conductorSeleccionado">
   <div class="modal-perfil">
 
-    <button
-      class="cerrar-perfil"
-
-      (click)="
-        conductorSeleccionado = null
-      "
-    >
-
-      ✕
-
+    <button class="btn-cerrar-modal" (click)="conductorSeleccionado = null">
+      <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <h2>
-      Perfil del Conductor
-    </h2>
+    <div class="perfil-foto">
+      <img *ngIf="conductorSeleccionado.foto"
+        [src]="fotosUrl + '/fotos/' + conductorSeleccionado.foto">
+      <div *ngIf="!conductorSeleccionado.foto" class="foto-placeholder grande">
+        <i class="fa-solid fa-user-tie"></i>
+      </div>
+    </div>
 
-    <!-- FOTO GRANDE -->
+    <h2>{{ conductorSeleccionado.nombre }}</h2>
+    <span class="estado-badge activo">Activo</span>
 
-    <img
-      *ngIf="
-        conductorSeleccionado.foto
-      "
+    <div class="perfil-info">
+      <p><i class="fa-solid fa-id-card"></i> <strong>Licencia:</strong> {{ conductorSeleccionado.licencia }}</p>
+      <p><i class="fa-solid fa-phone"></i> <strong>Teléfono:</strong> {{ conductorSeleccionado.telefono }}</p>
+      <p><i class="fa-solid fa-envelope"></i> <strong>Email:</strong> {{ conductorSeleccionado.email }}</p>
+    </div>
 
-      [src]="
-        fotosUrl +
-        '/fotos/' +
-        conductorSeleccionado.foto
-      "
-
-      class="foto-grande"
-    >
-
-    <img
-      *ngIf="
-        !conductorSeleccionado.foto
-      "
-
-      src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-
-      class="foto-grande"
-    >
-
-    <p>
-
-      <strong>
-        Nombre:
-      </strong>
-
-      {{ conductorSeleccionado.nombre }}
-
-    </p>
-
-    <p>
-
-      <strong>
-        Licencia:
-      </strong>
-
-      {{ conductorSeleccionado.licencia }}
-
-    </p>
-
-    <p>
-
-      <strong>
-        Teléfono:
-      </strong>
-
-      {{ conductorSeleccionado.telefono }}
-
-    </p>
-
-    <p>
-
-      <strong>
-        Email:
-      </strong>
-
-      {{ conductorSeleccionado.email }}
-
-    </p>
+    <button class="btn-hoja-vida-modal" (click)="abrirHojaVida(conductorSeleccionado)">
+      <i class="fa-solid fa-file-medical"></i> Ver hoja de vida completa
+    </button>
 
   </div>
-
 </div>
 
-<!-- MODAL CREAR / EDITAR -->
-
-<div
-  class="modal"
-
-  *ngIf="
-    mostrarModal
-  "
->
-
+<!-- ═══════════ MODAL CREAR / EDITAR ═══════════ -->
+<div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal-content">
 
-    <h2>
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid fa-{{ editando ? 'pen' : 'plus' }}"></i>
+        {{ editando ? 'Editar Conductor' : 'Nuevo Conductor' }}
+      </h2>
+      <button class="btn-cerrar-modal" (click)="cerrar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
 
-      {{ editando
-        ? 'Editar Conductor'
-        : 'Nuevo Conductor'
-      }}
-
-    </h2>
-
-    <input
-      [(ngModel)]="nuevo.nombre"
-
-      placeholder="Nombre"
-    >
-
-    <input
-      [(ngModel)]="nuevo.licencia"
-
-      placeholder="Licencia"
-    >
-
-    <input
-      [(ngModel)]="nuevo.telefono"
-
-      placeholder="Teléfono"
-    >
-
-    <input
-      [(ngModel)]="nuevo.email"
-
-      placeholder="Email"
-    >
-
-    <input
-      type="file"
-
-      (change)="
-        seleccionarImagen($event)
-      "
-    >
+    <div class="form-grid">
+      <div class="form-group">
+        <label><i class="fa-solid fa-user"></i> Nombre *</label>
+        <input [(ngModel)]="nuevo.nombre" placeholder="Nombre completo">
+      </div>
+      <div class="form-group">
+        <label><i class="fa-solid fa-id-card"></i> Licencia *</label>
+        <input [(ngModel)]="nuevo.licencia" placeholder="Número de licencia">
+      </div>
+      <div class="form-group">
+        <label><i class="fa-solid fa-phone"></i> Teléfono</label>
+        <input [(ngModel)]="nuevo.telefono" placeholder="Celular">
+      </div>
+      <div class="form-group">
+        <label><i class="fa-solid fa-envelope"></i> Email</label>
+        <input type="email" [(ngModel)]="nuevo.email" placeholder="Correo electrónico">
+      </div>
+      <div class="form-group full">
+        <label><i class="fa-solid fa-image"></i> Foto</label>
+        <input type="file" accept="image/*" (change)="seleccionarImagen($event)">
+      </div>
+    </div>
 
     <div class="acciones-modal">
-
-      <button
-        class="btn-guardar"
-
-        (click)="guardar()"
-      >
-
-        Guardar
-
+      <button class="btn-cancelar" (click)="cerrar()">Cancelar</button>
+      <button class="btn-guardar"  (click)="guardar()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar
       </button>
-
-      <button
-        class="btn-cancelar"
-
-        (click)="cerrar()"
-      >
-
-        Cancelar
-
-      </button>
-
     </div>
 
   </div>
+</div>
 
+<!-- ═══════════ PANEL HOJA DE VIDA ═══════════ -->
+<div class="hoja-vida-overlay" *ngIf="mostrarHojaVida">
+  <div class="hoja-vida-panel">
+    <div class="hoja-vida-panel-header">
+      <div class="hv-panel-titulo">
+        <i class="fa-solid fa-file-medical"></i>
+        <span>Hoja de vida — <strong>{{ conductorHojaVida?.nombre }}</strong></span>
+      </div>
+      <button class="btn-cerrar-hv" (click)="cerrarHojaVida()">
+        <i class="fa-solid fa-xmark"></i> Cerrar
+      </button>
+    </div>
+    <div class="hoja-vida-panel-body">
+      <app-hoja-vida [conductorId]="conductorHojaVida!.id"></app-hoja-vida>
+    </div>
+  </div>
 </div>

@@ -1,218 +1,327 @@
-.contenedor {
-
-  padding: 30px;
-
-  width: 100%;
+// ── VARIABLES GLASS ───────────────────────────────────────────────────────────
+%glass {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* TÍTULO */
-
-h1 {
-
-  font-size: 42px;
-
-  font-weight: bold;
-
-  margin-bottom: 30px;
-
-  color: #0f172a;
+.checklist-contenedor {
+  padding: 24px;
+  min-height: 100vh;
+  background: transparent;
+  color: #f1f5f9;
 }
 
-/* FORMULARIO */
-
-.formulario {
-
+// ── HEADER ────────────────────────────────────────────────────────────────────
+.checklist-header {
   display: flex;
-
-  gap: 15px;
-
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+}
 
-  margin-bottom: 30px;
+.header-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
+  i { font-size: 22px; color: #818cf8; }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+}
+
+.badge-total {
+  background: rgba(99,102,241,0.2);
+  border: 1px solid rgba(99,102,241,0.3);
+  color: #a5b4fc;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+// ── FORMULARIO ────────────────────────────────────────────────────────────────
+.formulario-card {
+  @extend %glass;
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.formulario-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i { color: #818cf8; }
+}
+
+.formulario-campos {
+  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-/* SELECT */
-
-select {
-
-  padding: 14px;
-
+.glass-select, .glass-input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 12px;
-
-  border: 1px solid #d1d5db;
-
-  min-width: 220px;
-
-  font-size: 15px;
-
+  padding: 11px 16px;
+  font-size: 14px;
+  color: #f1f5f9;
   outline: none;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+
+  &:focus {
+    border-color: rgba(99,102,241,0.5);
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+
+  option {
+    background: #1e1b4b;
+    color: #f1f5f9;
+  }
 }
 
-/* INPUT */
+.glass-select { min-width: 220px; cursor: pointer; }
+.glass-input  { flex: 1; min-width: 260px; }
 
-input {
-
-  padding: 14px;
-
-  border-radius: 12px;
-
-  border: 1px solid #d1d5db;
-
-  min-width: 280px;
-
-  font-size: 15px;
-
-  outline: none;
+.formulario-botones {
+  display: flex;
+  gap: 8px;
 }
 
-/* BOTÓN */
-
-button {
-
-  background: #1d4ed8;
-
-  color: white;
-
-  border: none;
-
-  padding: 14px 22px;
-
+.btn-guardar {
+  background: rgba(99,102,241,0.25);
+  border: 1px solid rgba(99,102,241,0.4);
+  color: #a5b4fc;
+  padding: 11px 20px;
   border-radius: 12px;
-
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  font-size: 15px;
-
-  font-weight: bold;
-
-  transition: 0.3s;
+  &:hover {
+    background: rgba(99,102,241,0.4);
+    border-color: rgba(99,102,241,0.6);
+    transform: translateY(-2px);
+  }
 }
 
-button:hover {
+.btn-cancelar {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5;
+  padding: 11px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  background: #1e40af;
+  &:hover { background: rgba(239,68,68,0.25); }
 }
 
-/* TABLA */
-
-.tabla-container {
-
-  background: white;
-
-  border-radius: 18px;
-
+// ── TABLA ─────────────────────────────────────────────────────────────────────
+.tabla-card {
+  @extend %glass;
+  border-radius: 20px;
   overflow: hidden;
-
-  box-shadow:
-    0 4px 20px rgba(
-      0,
-      0,
-      0,
-      0.08
-    );
+  margin-bottom: 16px;
 }
-
-/* TABLE */
 
 table {
-
   width: 100%;
-
   border-collapse: collapse;
 }
 
-/* HEADER */
-
 thead {
+  background: rgba(99,102,241,0.2);
+  border-bottom: 1px solid rgba(99,102,241,0.3);
 
-  background: #1d4ed8;
-
-  color: white;
+  th {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a5b4fc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 }
 
-th {
+tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.2s;
 
-  padding: 18px;
-
-  text-align: left;
-
-  font-size: 14px;
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(255,255,255,0.04); }
 }
-
-/* FILAS */
 
 td {
-
-  padding: 16px;
-
-  border-bottom:
-    1px solid #e5e7eb;
-
+  padding: 14px 18px;
   font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  vertical-align: middle;
 }
 
-tr:hover {
-
-  background: #f8fafc;
+.num-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
 }
 
-/* RESPONSIVE */
-
-@media (
-  max-width: 768px
-) {
-
-  .formulario {
-
-    flex-direction: column;
-
-    align-items: stretch;
-  }
-
-  select,
-  input,
-  button {
-
-    width: 100%;
-  }
-
-}
-
-.paginacion {
-
-  display: flex;
-
-  justify-content: center;
-
+.tipo-badge {
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: #6ee7b7;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
 
-  gap: 15px;
-
-  margin-top: 20px;
+  i { font-size: 11px; }
 }
 
-.paginacion button {
+.btn-acciones {
+  display: flex;
+  gap: 6px;
+}
 
-  background: #2563eb;
-
-  color: white;
-
-  border: none;
-
-  padding: 10px 18px;
-
-  border-radius: 10px;
-
+.btn-editar {
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.25);
+  color: #93c5fd;
+  padding: 7px 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+  width: auto;
 
-  font-weight: bold;
+  &:hover { background: rgba(59,130,246,0.3); }
 }
 
-.paginacion span {
+.btn-eliminar {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #fca5a5;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+  width: auto;
 
-  font-weight: bold;
+  &:hover { background: rgba(239,68,68,0.25); }
+}
 
-  color: #1e293b;
+// ── VACÍO ─────────────────────────────────────────────────────────────────────
+.vacio {
+  @extend %glass;
+  border-radius: 20px;
+  padding: 60px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+
+  i { font-size: 40px; color: rgba(255,255,255,0.15); display: block; margin-bottom: 16px; }
+  p { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+  small { font-size: 13px; color: rgba(255,255,255,0.2); }
+}
+
+// ── PAGINACIÓN ────────────────────────────────────────────────────────────────
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+
+  button {
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: #a5b4fc;
+    padding: 9px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover:not(:disabled) {
+      background: rgba(99,102,241,0.3);
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+  }
+}
+
+// ── RESPONSIVE ────────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .checklist-contenedor { padding: 16px; }
+  .formulario-campos    { flex-direction: column; }
+  .glass-select, .glass-input, .btn-guardar, .btn-cancelar { width: 100%; }
+
+  thead { display: none; }
+  tbody tr {
+    display: block;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+    &:last-child { border-bottom: none; }
+    &::before { content: attr(data-label); font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; }
+  }
 }

@@ -1,5 +1,6 @@
 <div class="contenedor">
 
+  <!-- ENVIADO OK -->
   <div class="enviado-ok" *ngIf="enviado">
     <div class="enviado-icon">✅</div>
     <h2>¡Reporte enviado!</h2>
@@ -11,7 +12,15 @@
     <button class="btn-nuevo" (click)="nuevoReporte()">+ Nuevo Reporte</button>
   </div>
 
-  <div *ngIf="!enviado">
+  <!-- Sin permiso -->
+  <div class="enviado-ok" *ngIf="!enviado && !puedeCrear">
+    <div class="enviado-icon">🔒</div>
+    <h2>Sin permiso</h2>
+    <p>No tienes permiso para enviar reportes de ruta.</p>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div *ngIf="!enviado && puedeCrear">
 
     <div class="reporte-header">
       <div class="header-icon">⚠️</div>
@@ -52,10 +61,8 @@
 
     <div class="form-group">
       <label>📋 Descripción Detallada *</label>
-      <textarea
-        [(ngModel)]="form.descripcionDetallada"
-        placeholder="Explique qué sucedió, dónde, cuándo, y qué acciones ha tomado...">
-      </textarea>
+      <textarea [(ngModel)]="form.descripcionDetallada"
+        placeholder="Explique qué sucedió, dónde, cuándo, y qué acciones ha tomado..."></textarea>
       <small>Sea específico: ubicación exacta, gravedad, si necesita asistencia</small>
     </div>
 
@@ -77,29 +84,19 @@
 
     <div class="form-group">
       <label>📸 Fotos de Evidencia (Máximo 5)</label>
-
       <div class="fotos-preview" *ngIf="fotosPreview.length > 0">
         <div class="foto-item" *ngFor="let foto of fotosPreview; let i = index">
           <img [src]="foto" alt="Foto evidencia">
           <button class="btn-eliminar-foto" (click)="eliminarFoto(i)">✕</button>
         </div>
       </div>
-
       <label class="btn-foto" *ngIf="fotosPreview.length < 5" for="inputFotos">
         <span>📷</span>
         <p>Toque para capturar fotos</p>
         <small>Tome fotos del daño, ubicación o situación</small>
       </label>
-
-      <input
-        id="inputFotos"
-        type="file"
-        accept="image/*"
-        capture="environment"
-        multiple
-        (change)="seleccionarFotos($event)"
-        style="display: none">
-
+      <input id="inputFotos" type="file" accept="image/*" capture="environment" multiple
+        (change)="seleccionarFotos($event)" style="display:none">
       <p class="fotos-contador">{{ fotosPreview.length }}/5 fotos</p>
     </div>
 

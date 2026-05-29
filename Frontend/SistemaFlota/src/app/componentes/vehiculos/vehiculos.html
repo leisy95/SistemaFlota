@@ -1,49 +1,62 @@
 <div class="contenedor">
 
-  <!-- HEADER -->
   <div class="header">
-    <h2>Vehículos</h2>
+    <div class="header-titulo">
+      <i class="fa-solid fa-truck"></i>
+      <h2>Vehículos</h2>
+    </div>
     <button class="btn-agregar" *ngIf="puedeCrear" (click)="agregar()">
-      + Nuevo Vehículo
+      <i class="fa-solid fa-plus"></i> Nuevo Vehículo
     </button>
   </div>
 
   <!-- BUSCADOR -->
-  <input
-    class="buscador"
-    type="text"
-    [(ngModel)]="textoBusqueda"
-    placeholder="Buscar vehículo..."
-  >
+  <div class="buscador-wrap">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input class="buscador" type="text" [(ngModel)]="textoBusqueda"
+      placeholder="Buscar por placa, marca, modelo...">
+  </div>
 
   <!-- LISTA -->
-  <div
-    *ngFor="let v of vehiculosFiltrados
-      | slice: (paginaActual-1)*itemsPorPagina : paginaActual*itemsPorPagina"
+  <div *ngFor="let v of vehiculosFiltrados
+    | slice: (paginaActual-1)*itemsPorPagina : paginaActual*itemsPorPagina"
     class="card">
 
-    <!-- FOTO -->
     <img *ngIf="v.foto" [src]="fotosUrl + '/' + v.foto" class="foto">
+    <div class="foto-placeholder" *ngIf="!v.foto">
+      <i class="fa-solid fa-truck"></i>
+    </div>
 
-    <!-- INFO -->
     <div class="info">
-      <h3>{{ v.placa }}</h3>
-      <p>Marca: {{ v.marca }}</p>
-      <p>Modelo: {{ v.modelo }}</p>
-      <p>Color: {{ v.color }}</p>
-      <p>Año: {{ v.modeloAnio }}</p>
-      <span class="estado" [ngClass]="{ activo: v.estado==='Activo', inactivo: v.estado==='Inactivo' }">
+      <div class="info-top">
+        <h3>{{ v.placa }}</h3>
+        <span class="tipo-badge" *ngIf="v.tipoVehiculoId">
+          <i class="fa-solid fa-tag"></i> {{ getNombreTipo(v.tipoVehiculoId) }}
+        </span>
+      </div>
+      <p><i class="fa-solid fa-industry"></i> {{ v.marca }} · {{ v.modelo }}</p>
+      <p><i class="fa-solid fa-palette"></i> {{ v.color }} · {{ v.modeloAnio }}</p>
+      <span class="estado" [class.activo]="v.estado==='Activo'" [class.inactivo]="v.estado==='Inactivo'">
         {{ v.estado }}
       </span>
     </div>
 
-    <!-- ACCIONES -->
     <div class="acciones">
-      <button class="btn-ver"      (click)="ver(v)">Ver</button>
-      <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(v)">Editar</button>
-      <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(v.id)">Eliminar</button>
+      <button class="btn-ver"      (click)="ver(v)">
+        <i class="fa-solid fa-eye"></i> Ver
+      </button>
+      <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(v)">
+        <i class="fa-solid fa-pen"></i> Editar
+      </button>
+      <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(v.id)">
+        <i class="fa-solid fa-trash"></i>
+      </button>
     </div>
+  </div>
 
+  <div class="vacio" *ngIf="vehiculosFiltrados.length === 0">
+    <i class="fa-solid fa-truck"></i>
+    <p>No hay vehículos registrados</p>
   </div>
 
 </div>
@@ -52,29 +65,78 @@
 <div class="modal" *ngIf="mostrarModal">
   <div class="modal-content">
 
-    <h2>{{ modoEdicion ? 'Editar Vehículo' : 'Nuevo Vehículo' }}</h2>
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-{{ modoEdicion ? 'pen' : 'plus' }}"></i>
+        {{ modoEdicion ? 'Editar Vehículo' : 'Nuevo Vehículo' }}</h2>
+      <button class="btn-cerrar" (click)="cerrar()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
 
-    <input [(ngModel)]="nuevo.placa"      placeholder="Placa">
-    <input [(ngModel)]="nuevo.marca"      placeholder="Marca">
-    <input [(ngModel)]="nuevo.modelo"     placeholder="Modelo">
-    <input type="number" [(ngModel)]="nuevo.modeloAnio" placeholder="Año">
-    <input [(ngModel)]="nuevo.color"      placeholder="Color">
+    <div class="form-grid">
 
-    <select [(ngModel)]="nuevo.estado">
-      <option value="Activo">Activo</option>
-      <option value="Inactivo">Inactivo</option>
-    </select>
+      <div class="form-group">
+        <label>Placa *</label>
+        <input [(ngModel)]="nuevo.placa" placeholder="Ej: ABC123">
+      </div>
 
-    <select [(ngModel)]="nuevo.conductorId">
-      <option [value]="0">Seleccionar conductor</option>
-      <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
-    </select>
+      <div class="form-group">
+        <label>Marca *</label>
+        <input [(ngModel)]="nuevo.marca" placeholder="Ej: Chevrolet">
+      </div>
 
-    <input type="file" (change)="seleccionarImagen($event)">
+      <div class="form-group">
+        <label>Modelo</label>
+        <input [(ngModel)]="nuevo.modelo" placeholder="Ej: NHR">
+      </div>
+
+      <div class="form-group">
+        <label>Año</label>
+        <input type="number" [(ngModel)]="nuevo.modeloAnio" placeholder="2024">
+      </div>
+
+      <div class="form-group">
+        <label>Color</label>
+        <input [(ngModel)]="nuevo.color" placeholder="Ej: Blanco">
+      </div>
+
+      <div class="form-group">
+        <label>Estado</label>
+        <select [(ngModel)]="nuevo.estado">
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+      </div>
+
+      <!-- TIPO VEHÍCULO -->
+      <div class="form-group full">
+        <label><i class="fa-solid fa-tag"></i> Tipo de Vehículo *</label>
+        <select [(ngModel)]="nuevo.tipoVehiculoId">
+          <option [value]="0">Seleccione el tipo</option>
+          <option *ngFor="let t of tiposVehiculo" [value]="t.id">{{ t.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- CONDUCTOR -->
+      <div class="form-group full">
+        <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
+        <select [(ngModel)]="nuevo.conductorId">
+          <option [value]="0">Seleccionar conductor</option>
+          <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- FOTO -->
+      <div class="form-group full">
+        <label><i class="fa-solid fa-image"></i> Foto del vehículo</label>
+        <input type="file" accept="image/*" (change)="seleccionarImagen($event)">
+      </div>
+
+    </div>
 
     <div class="acciones-modal">
-      <button class="btn-guardar"   (click)="guardar()">Guardar</button>
-      <button class="btn-cancelar"  (click)="cerrar()">Cancelar</button>
+      <button class="btn-cancelar" (click)="cerrar()">Cancelar</button>
+      <button class="btn-guardar"  (click)="guardar()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar
+      </button>
     </div>
 
   </div>
@@ -83,36 +145,43 @@
 <!-- MODAL PERFIL -->
 <div class="perfil-modal" *ngIf="vehiculoSeleccionado">
   <div class="perfil-content">
-
-    <button class="cerrar-perfil" (click)="vehiculoSeleccionado = null">X</button>
-
-    <img
-      *ngIf="vehiculoSeleccionado.foto"
-      [src]="fotosUrl + '/' + vehiculoSeleccionado.foto"
-      class="foto-perfil"
-    >
-
+    <button class="cerrar-perfil" (click)="vehiculoSeleccionado = null">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="perfil-foto">
+      <img *ngIf="vehiculoSeleccionado.foto"
+        [src]="fotosUrl + '/' + vehiculoSeleccionado.foto" class="foto-perfil">
+      <div class="foto-placeholder grande" *ngIf="!vehiculoSeleccionado.foto">
+        <i class="fa-solid fa-truck"></i>
+      </div>
+    </div>
     <h2>{{ vehiculoSeleccionado.placa }}</h2>
-    <p><strong>Marca:</strong>  {{ vehiculoSeleccionado.marca }}</p>
-    <p><strong>Modelo:</strong> {{ vehiculoSeleccionado.modelo }}</p>
-    <p><strong>Año:</strong>    {{ vehiculoSeleccionado.modeloAnio }}</p>
-    <p><strong>Color:</strong>  {{ vehiculoSeleccionado.color }}</p>
-    <p><strong>Estado:</strong> {{ vehiculoSeleccionado.estado }}</p>
-
+    <div class="perfil-info">
+      <p><strong>Marca:</strong> {{ vehiculoSeleccionado.marca }}</p>
+      <p><strong>Modelo:</strong> {{ vehiculoSeleccionado.modelo }}</p>
+      <p><strong>Año:</strong> {{ vehiculoSeleccionado.modeloAnio }}</p>
+      <p><strong>Color:</strong> {{ vehiculoSeleccionado.color }}</p>
+      <p><strong>Tipo:</strong> {{ getNombreTipo(vehiculoSeleccionado.tipoVehiculoId) }}</p>
+      <p><strong>Estado:</strong>
+        <span class="estado" [class.activo]="vehiculoSeleccionado.estado==='Activo'"
+          [class.inactivo]="vehiculoSeleccionado.estado==='Inactivo'">
+          {{ vehiculoSeleccionado.estado }}
+        </span>
+      </p>
+    </div>
   </div>
 </div>
 
 <!-- PAGINACIÓN -->
 <div class="paginacion">
-  <button class="btn-pagina"
-    (click)="paginaActual = paginaActual - 1"
+  <button class="btn-pagina" (click)="paginaActual = paginaActual - 1"
     [disabled]="paginaActual === 1">
-    Anterior
+    <i class="fa-solid fa-chevron-left"></i> Anterior
   </button>
   <span>Página {{ paginaActual }}</span>
   <button class="btn-pagina"
     (click)="paginaActual = paginaActual + 1"
     [disabled]="paginaActual * itemsPorPagina >= vehiculosFiltrados.length">
-    Siguiente
+    Siguiente <i class="fa-solid fa-chevron-right"></i>
   </button>
 </div>

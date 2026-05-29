@@ -1,16 +1,21 @@
-<div class="contenedor">
+<div class="config-contenedor">
 
-  <div class="header">
-    <h1>⚙️ Configuración de la Empresa</h1>
-    <p class="subtitulo">Personalice la información y apariencia del sistema</p>
+  <div class="config-header">
+    <div class="header-titulo">
+      <i class="fa-solid fa-sliders"></i>
+      <div>
+        <h1>Configuración de la Empresa</h1>
+        <p>Personalice la información y apariencia del sistema</p>
+      </div>
+    </div>
   </div>
 
-  <!-- ALERTA GUARDADO -->
+  <!-- ALERTAS -->
   <div class="alerta-ok" *ngIf="guardado">
-    ✅ Configuración guardada correctamente
+    <i class="fa-solid fa-circle-check"></i> Configuración guardada correctamente
   </div>
   <div class="alerta-error" *ngIf="errorMsg">
-    ❌ {{ errorMsg }}
+    <i class="fa-solid fa-circle-xmark"></i> {{ errorMsg }}
   </div>
 
   <div class="grid-config">
@@ -20,36 +25,30 @@
 
       <!-- LOGO -->
       <div class="seccion">
-        <h2>🖼️ Logo de la Empresa</h2>
+        <h2><i class="fa-solid fa-image"></i> Logo de la Empresa</h2>
 
         <div class="logo-preview" *ngIf="logoPreview">
           <img [src]="logoPreview" alt="Logo empresa">
         </div>
-
         <div class="logo-vacio" *ngIf="!logoPreview">
-          <span>🏢</span>
+          <i class="fa-solid fa-building"></i>
           <p>Sin logo</p>
         </div>
 
         <label class="btn-subir-logo" for="inputLogo">
-          📁 Seleccionar Logo
+          <i class="fa-solid fa-upload"></i> Seleccionar Logo
         </label>
-        <input
-          id="inputLogo"
-          type="file"
-          accept="image/*"
-          (change)="seleccionarLogo($event)"
-          style="display: none">
+        <input id="inputLogo" type="file" accept="image/*"
+          (change)="seleccionarLogo($event)" style="display:none">
         <small>PNG o JPG recomendado. Máx 2MB</small>
       </div>
 
       <!-- COLOR CORPORATIVO -->
       <div class="seccion">
-        <h2>🎨 Color Corporativo</h2>
+        <h2><i class="fa-solid fa-palette"></i> Color Corporativo</h2>
 
         <div class="colores-grid">
-          <div
-            class="color-item"
+          <div class="color-item"
             *ngFor="let c of coloresSugeridos"
             [style.background]="c.value"
             [class.seleccionado]="config.colorCorporativo === c.value"
@@ -59,15 +58,14 @@
         </div>
 
         <div class="color-custom">
-          <label>Color personalizado:</label>
-          <input
-            type="color"
-            [(ngModel)]="config.colorCorporativo">
+          <label>Personalizado:</label>
+          <input type="color" [(ngModel)]="config.colorCorporativo"
+            (change)="seleccionarColor(config.colorCorporativo)">
           <span class="color-hex">{{ config.colorCorporativo }}</span>
         </div>
 
         <div class="color-preview" [style.background]="config.colorCorporativo">
-          <span>Vista previa del color</span>
+          <span>Vista previa del color corporativo</span>
         </div>
       </div>
 
@@ -75,69 +73,55 @@
 
     <!-- COLUMNA DERECHA -->
     <div class="columna">
-
-      <!-- DATOS EMPRESA -->
       <div class="seccion">
-        <h2>🏢 Datos de la Empresa</h2>
+        <h2><i class="fa-solid fa-building"></i> Datos de la Empresa</h2>
 
         <div class="form-group">
-          <label>Nombre de la Empresa *</label>
+          <label><i class="fa-solid fa-font"></i> Nombre de la Empresa *</label>
           <input type="text" [(ngModel)]="config.nombreEmpresa"
             placeholder="Ej: Transportes García S.A.S">
         </div>
-
         <div class="form-group">
-          <label>NIT *</label>
+          <label><i class="fa-solid fa-id-card"></i> NIT *</label>
           <input type="text" [(ngModel)]="config.nit"
             placeholder="Ej: 900.123.456-7">
         </div>
-
         <div class="form-group">
-          <label>Dirección</label>
+          <label><i class="fa-solid fa-location-dot"></i> Dirección</label>
           <input type="text" [(ngModel)]="config.direccion"
             placeholder="Ej: Calle 45 #12-34, Bogotá">
         </div>
-
         <div class="form-group">
-          <label>Teléfono</label>
+          <label><i class="fa-solid fa-phone"></i> Teléfono</label>
           <input type="tel" [(ngModel)]="config.telefono"
             placeholder="Ej: 3001234567">
         </div>
-
         <div class="form-group">
-          <label>Correo Electrónico</label>
+          <label><i class="fa-solid fa-envelope"></i> Correo Electrónico</label>
           <input type="email" [(ngModel)]="config.email"
             placeholder="Ej: info@empresa.com">
         </div>
-
         <div class="form-group">
-          <label>Sitio Web</label>
+          <label><i class="fa-solid fa-globe"></i> Sitio Web</label>
           <input type="url" [(ngModel)]="config.sitioWeb"
             placeholder="Ej: www.empresa.com">
         </div>
-
         <div class="form-group">
-          <label>Descripción</label>
+          <label><i class="fa-solid fa-align-left"></i> Descripción</label>
           <textarea [(ngModel)]="config.descripcion"
-            placeholder="Descripción breve de la empresa...">
-          </textarea>
+            placeholder="Descripción breve de la empresa..."></textarea>
         </div>
-
       </div>
-
     </div>
 
   </div>
 
-  <!-- BOTÓN GUARDAR -->
+  <!-- GUARDAR -->
   <div class="footer-guardar">
-    <button
-      class="btn-guardar"
-      (click)="guardar()"
-      [disabled]="guardando"
+    <button class="btn-guardar" (click)="guardar()" [disabled]="guardando"
       [style.background]="config.colorCorporativo">
-      <span *ngIf="!guardando">💾 Guardar Configuración</span>
-      <span *ngIf="guardando">⏳ Guardando...</span>
+      <i class="fa-solid fa-{{ guardando ? 'spinner fa-spin' : 'floppy-disk' }}"></i>
+      {{ guardando ? 'Guardando...' : 'Guardar Configuración' }}
     </button>
   </div>
 

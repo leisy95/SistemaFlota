@@ -1,22 +1,26 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { catchError }                           from 'rxjs/operators';
-import { throwError }                           from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
-  const token = localStorage.getItem('token');
+  const rutasPublicas = ['/Auth/login', '/Auth/recuperar', '/Auth/cambiar-password'];
+  const esPublica = rutasPublicas.some(ruta => req.url.includes(ruta));
 
-  // Si hay token, clona la request y agrega el header Authorization
-  const authReq = token
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
+  const authReq = (token && !esPublica)
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        console.error('🔒 401 — token vencido o inválido');
-        // Opcional: redirigir al login
-        // window.location.href = '/login';
+      if (error.status === 401 && !esPublica && token) {
+        // Solo limpiar — sin reload. El usuario verá el login al navegar
+        sessionStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('rol');
       }
       return throwError(() => error);
     })

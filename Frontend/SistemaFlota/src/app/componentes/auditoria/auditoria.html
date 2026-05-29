@@ -1,196 +1,151 @@
 <div class="contenedor">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <h1>🔍 Auditoría del Sistema</h1>
       <p class="subtitulo">Registro completo de actividad por usuario y módulo</p>
     </div>
     <div class="header-acciones">
-      <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-limpiar" (click)="limpiarRegistros()">🗑️ Limpiar antiguos</button>
+      <button class="btn-excel"   (click)="exportarExcel()">📊 Excel</button>
+      <button class="btn-limpiar" *ngIf="puedeEliminar" (click)="limpiarRegistros()">
+        🗑️ Limpiar antiguos
+      </button>
     </div>
   </div>
 
-  <!-- ESTADÍSTICAS -->
-  <div class="stats-grid" *ngIf="estadisticas">
-
-    <div class="stat-card azul">
-      <span class="stat-numero">{{ estadisticas.totalRegistros }}</span>
-      <span class="stat-label">Total registros</span>
-    </div>
-
-    <div class="stat-card verde">
-      <span class="stat-numero">{{ estadisticas.actividadHoy }}</span>
-      <span class="stat-label">Actividad hoy</span>
-    </div>
-
-    <div class="stat-card rojo" *ngIf="estadisticas.fallidosHoy > 0">
-      <span class="stat-numero">{{ estadisticas.fallidosHoy }}</span>
-      <span class="stat-label">Fallidos hoy</span>
-    </div>
-
-    <div class="stat-card morado">
-      <span class="stat-numero">{{ estadisticas.porUsuario?.length }}</span>
-      <span class="stat-label">Usuarios activos</span>
-    </div>
-
+  <!-- Sin permiso -->
+  <div class="vacio" *ngIf="!puedeVer">
+    <p>🔒 No tienes permiso para ver la auditoría del sistema.</p>
   </div>
 
-  <!-- TOP USUARIOS -->
-  <div class="top-usuarios" *ngIf="estadisticas?.porUsuario?.length > 0">
-    <h3>👥 Usuarios más activos</h3>
-    <div class="usuario-bar" *ngFor="let u of estadisticas.porUsuario">
-      <span class="usuario-nombre">{{ u.usuario }}</span>
-      <div class="barra-container">
-        <div class="barra"
-          [style.width.%]="(u.total / estadisticas.porUsuario[0].total) * 100">
+  <ng-container *ngIf="puedeVer">
+
+    <!-- STATS -->
+    <div class="stats-grid" *ngIf="estadisticas">
+      <div class="stat-card azul">
+        <span class="stat-numero">{{ estadisticas.totalRegistros }}</span>
+        <span class="stat-label">Total registros</span>
+      </div>
+      <div class="stat-card verde">
+        <span class="stat-numero">{{ estadisticas.actividadHoy }}</span>
+        <span class="stat-label">Actividad hoy</span>
+      </div>
+      <div class="stat-card rojo" *ngIf="estadisticas.fallidosHoy > 0">
+        <span class="stat-numero">{{ estadisticas.fallidosHoy }}</span>
+        <span class="stat-label">Fallidos hoy</span>
+      </div>
+      <div class="stat-card morado">
+        <span class="stat-numero">{{ estadisticas.porUsuario?.length }}</span>
+        <span class="stat-label">Usuarios activos</span>
+      </div>
+    </div>
+
+    <!-- TOP USUARIOS -->
+    <div class="top-usuarios" *ngIf="estadisticas?.porUsuario?.length > 0">
+      <h3>👥 Usuarios más activos</h3>
+      <div class="usuario-bar" *ngFor="let u of estadisticas.porUsuario">
+        <span class="usuario-nombre">{{ u.usuario }}</span>
+        <div class="barra-container">
+          <div class="barra"
+            [style.width.%]="(u.total / estadisticas.porUsuario[0].total) * 100">
+          </div>
+        </div>
+        <span class="usuario-total">{{ u.total }}</span>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros-card">
+      <h3>🔎 Filtros</h3>
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label>👤 Usuario</label>
+          <input type="text" [(ngModel)]="filtros.usuario" placeholder="Nombre de usuario...">
+        </div>
+        <div class="form-group">
+          <label>📦 Módulo</label>
+          <select [(ngModel)]="filtros.modulo">
+            <option value="">Todos</option>
+            <option *ngFor="let m of modulos" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>⚡ Acción</label>
+          <select [(ngModel)]="filtros.accion">
+            <option value="">Todas</option>
+            <option *ngFor="let a of acciones" [value]="a">{{ a }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>✅ Resultado</label>
+          <select [(ngModel)]="filtros.resultado">
+            <option value="">Todos</option>
+            <option *ngFor="let r of resultados" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>📅 Desde</label>
+          <input type="date" [(ngModel)]="filtros.fechaDesde">
+        </div>
+        <div class="form-group">
+          <label>📅 Hasta</label>
+          <input type="date" [(ngModel)]="filtros.fechaHasta">
         </div>
       </div>
-      <span class="usuario-total">{{ u.total }}</span>
-    </div>
-  </div>
-
-  <!-- FILTROS -->
-  <div class="filtros-card">
-    <h3>🔎 Filtros</h3>
-    <div class="filtros-grid">
-
-      <div class="form-group">
-        <label>👤 Usuario</label>
-        <input type="text" [(ngModel)]="filtros.usuario"
-          placeholder="Nombre de usuario...">
+      <div class="filtros-botones">
+        <button class="btn-limpiar-filtros" (click)="limpiarFiltros()">🗑️ Limpiar filtros</button>
+        <button class="btn-buscar" (click)="buscar()">🔍 Buscar</button>
       </div>
-
-      <div class="form-group">
-        <label>📦 Módulo</label>
-        <select [(ngModel)]="filtros.modulo">
-          <option value="">Todos</option>
-          <option *ngFor="let m of modulos" [value]="m">{{ m }}</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>⚡ Acción</label>
-        <select [(ngModel)]="filtros.accion">
-          <option value="">Todas</option>
-          <option *ngFor="let a of acciones" [value]="a">{{ a }}</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>✅ Resultado</label>
-        <select [(ngModel)]="filtros.resultado">
-          <option value="">Todos</option>
-          <option *ngFor="let r of resultados" [value]="r">{{ r }}</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>📅 Desde</label>
-        <input type="date" [(ngModel)]="filtros.fechaDesde">
-      </div>
-
-      <div class="form-group">
-        <label>📅 Hasta</label>
-        <input type="date" [(ngModel)]="filtros.fechaHasta">
-      </div>
-
     </div>
 
-    <div class="filtros-botones">
-      <button class="btn-limpiar-filtros" (click)="limpiarFiltros()">
-        🗑️ Limpiar filtros
-      </button>
-      <button class="btn-buscar" (click)="buscar()">
-        🔍 Buscar
-      </button>
+    <!-- RESULTADOS -->
+    <div class="resultados-header">
+      <span>{{ totalRegistros }} registros encontrados</span>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
     </div>
-  </div>
 
-  <!-- RESULTADOS -->
-  <div class="resultados-header">
-    <span>{{ totalRegistros }} registros encontrados</span>
-    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
-  </div>
+    <!-- TABLA -->
+    <div class="tabla-container" *ngIf="registros.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Usuario</th><th>Rol</th><th>Módulo</th>
+            <th>Acción</th><th>Detalle</th><th>IP</th><th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of registros"
+            [class.fila-fallida]="r.resultado === 'Fallido'">
+            <td data-label="Fecha"><span class="fecha">{{ r.fecha | date:'short' }}</span></td>
+            <td data-label="Usuario"><strong>{{ r.usuario }}</strong></td>
+            <td data-label="Rol"><span class="rol-badge">{{ r.rol }}</span></td>
+            <td data-label="Módulo"><span class="modulo-badge">{{ r.modulo }}</span></td>
+            <td data-label="Acción"><span [class]="getBadgeAccion(r.accion)">{{ r.accion }}</span></td>
+            <td data-label="Detalle"><span class="detalle">{{ r.detalle || '-' }}</span></td>
+            <td data-label="IP"><span class="ip">{{ r.ipAddress || '-' }}</span></td>
+            <td data-label="Resultado">
+              <span [class]="getBadgeResultado(r.resultado)">{{ r.resultado }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <!-- TABLA -->
-  <div class="tabla-container" *ngIf="registros.length > 0">
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Usuario</th>
-          <th>Rol</th>
-          <th>Módulo</th>
-          <th>Acción</th>
-          <th>Detalle</th>
-          <th>IP</th>
-          <th>Resultado</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let r of registros"
-          [class.fila-fallida]="r.resultado === 'Fallido'">
+    <div class="vacio" *ngIf="registros.length === 0 && !cargando">
+      <p>🔍 No hay registros con los filtros seleccionados</p>
+    </div>
 
-          <td data-label="Fecha">
-            <span class="fecha">{{ r.fecha | date:'short' }}</span>
-          </td>
+    <div class="cargando" *ngIf="cargando">
+      <p>⏳ Cargando registros...</p>
+    </div>
 
-          <td data-label="Usuario">
-            <strong>{{ r.usuario }}</strong>
-          </td>
+    <!-- PAGINACIÓN -->
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">← Anterior</button>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+      <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">Siguiente →</button>
+    </div>
 
-          <td data-label="Rol">
-            <span class="rol-badge">{{ r.rol }}</span>
-          </td>
-
-          <td data-label="Módulo">
-            <span class="modulo-badge">{{ r.modulo }}</span>
-          </td>
-
-          <td data-label="Acción">
-            <span [class]="getBadgeAccion(r.accion)">{{ r.accion }}</span>
-          </td>
-
-          <td data-label="Detalle">
-            <span class="detalle">{{ r.detalle || '-' }}</span>
-          </td>
-
-          <td data-label="IP">
-            <span class="ip">{{ r.ipAddress || '-' }}</span>
-          </td>
-
-          <td data-label="Resultado">
-            <span [class]="getBadgeResultado(r.resultado)">
-              {{ r.resultado }}
-            </span>
-          </td>
-
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- VACÍO -->
-  <div class="vacio" *ngIf="registros.length === 0 && !cargando">
-    <p>🔍 No hay registros con los filtros seleccionados</p>
-  </div>
-
-  <!-- CARGANDO -->
-  <div class="cargando" *ngIf="cargando">
-    <p>⏳ Cargando registros...</p>
-  </div>
-
-  <!-- PAGINACIÓN -->
-  <div class="paginacion" *ngIf="totalPaginas > 1">
-    <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">
-      ← Anterior
-    </button>
-    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
-    <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
-      Siguiente →
-    </button>
-  </div>
+  </ng-container>
 
 </div>

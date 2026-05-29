@@ -375,3 +375,54 @@ tbody {
 
   &:hover { background: var(--color-primario); transform: translateY(-2px); }
 }
+
+// ── FILTROS PANEL ─────────────────────────────────────────────────────────────
+.filtros-panel {
+  display: flex; gap: 10px; margin-bottom: 16px;
+  flex-wrap: wrap; align-items: center;
+}
+
+.input-busqueda {
+  padding: 9px 14px; border: 1px solid #d1d5db;
+  border-radius: 10px; font-size: 14px; background: white;
+  flex: 1; min-width: 220px; height: 40px;
+  &:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+}
+
+.input-fecha {
+  padding: 9px 14px; border: 1px solid #d1d5db;
+  border-radius: 10px; font-size: 14px; background: white;
+  height: 40px; min-width: 145px; color: #374151;
+  &:focus { outline: none; border-color: #2563eb; }
+}
+
+.btn-refresh {
+  background: white; border: 1px solid #d1d5db;
+  padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  font-size: 14px; height: 40px; width: auto; transition: 0.2s;
+  &:hover { background: #f8fafc; }
+}
+
+.btn-limpiar {
+  background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;
+  padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  font-size: 13px; font-weight: 600; height: 40px;
+  white-space: nowrap; width: auto; transition: 0.2s;
+  &:hover { background: #fecaca; }
+}
+
+.resultado-filtro {
+  font-size: 12px; color: #64748b;
+  margin: -8px 0 12px; font-style: italic;
+}
+
+.sin-permiso, .vacio {
+  text-align: center; padding: 40px; background: white;
+  border-radius: 16px; color: #64748b; font-size: 15px;
+  button { margin-top: 12px; }
+}
+
+@media (max-width: 768px) {
+  .filtros-panel { flex-direction: column; }
+  .input-busqueda, .input-fecha, .btn-limpiar, .btn-refresh { width: 100%; flex: none; }
+}
