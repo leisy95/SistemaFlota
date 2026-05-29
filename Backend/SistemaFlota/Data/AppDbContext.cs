@@ -1,12 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Conductor> Conductores { get; set; }
         public DbSet<Vehiculo> Vehiculos { get; set; }
@@ -28,8 +25,11 @@ namespace SistemaFlota
         public DbSet<TrazabilidadFactura> TrazabilidadFacturas { get; set; }
         public DbSet<NotaTrazabilidad> NotasTrazabilidad { get; set; }
         public DbSet<CambioRuta> CambiosRuta { get; set; }
-
-        // NUEVO
         public DbSet<SolicitudTaller> SolicitudesTaller { get; set; }
+
+        // ── HOJA DE VIDA ──────────────────────────────────────────────────────
+        public DbSet<ExamenMedico> ExamenesMedicos { get; set; }
+        public DbSet<Capacitacion> Capacitaciones { get; set; }
+        public DbSet<InfraccionConductor> Infracciones { get; set; }
     }
 }

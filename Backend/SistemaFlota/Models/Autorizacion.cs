@@ -1,13 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace SistemaFlota
 {
     public class Autorizacion
     {
         [Key]
         public int Id { get; set; }
-
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
         // Pendiente | Bodega | Porteria | Autorizado | Rechazado
@@ -57,11 +55,33 @@ namespace SistemaFlota
         public string? ObservacionBodega { get; set; }
 
         // ========================
-        // FIRMA PORTERÍA
+        // FIRMA PORTERÍA SALIDA
         // ========================
         public string? FirmaPorteria { get; set; }
         public DateTime? FechaPorteria { get; set; }
         public string? UsuarioPorteria { get; set; }
         public string? ObservacionPorteria { get; set; }
+
+        // ========================
+        // LLEGADA — REPORTE CONDUCTOR
+        // El conductor reporta cuando llega a la empresa
+        // ========================
+        public DateTime? FechaReporteLlegada { get; set; }
+        public int? KilometrajeFinal { get; set; }
+        public string? NovedadesViaje { get; set; }
+        public string? EstadoVehiculoLlegada { get; set; } // Bueno | Novedad | Requiere taller
+        public string? FotoOdometroLlegada { get; set; }
+
+        // ========================
+        // LLEGADA — CONFIRMACIÓN PORTERÍA
+        // Portería confirma la entrada física del vehículo
+        // ========================
+        public DateTime? FechaConfirmacionLlegada { get; set; }
+        public string? UsuarioPorteriaLlegada { get; set; }
+        public string? ObservacionPorteriaLlegada { get; set; }
+        public string? FirmaPorteriaLlegada { get; set; }
+
+        // Estado del turno: null = en ruta | ReportadaLlegada | Completada
+        public string? EstadoLlegada { get; set; }
     }
 }

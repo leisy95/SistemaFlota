@@ -6,9 +6,6 @@ using SistemaFlota;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =====================================
-// CONTROLLERS
-// =====================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -18,35 +15,21 @@ builder.Services.AddControllers()
             System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// =====================================
-// SWAGGER
-// =====================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// =====================================
-// CORS ANGULAR
-// =====================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(
-        "AngularPolicy",
-        policy =>
-        {
-            policy
-            .WithOrigins(
-                "http://localhost:4200",
-                "https://localhost:4200"
-            )
+    options.AddPolicy("AngularPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200", "https://localhost:4200")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .WithExposedHeaders("Content-Disposition");
-        });
+    });
 });
 
-// =====================================
-// JWT
-// =====================================
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 builder.Services
@@ -67,9 +50,6 @@ builder.Services
         };
     });
 
-// =====================================
-// MYSQL
-// =====================================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -88,83 +68,115 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-// =====================================
-// AUDITORÍA
-// =====================================
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 
-// =====================================
-// APP
-// =====================================
 var app = builder.Build();
 
 // =====================================
-// SWAGGER
+// SEED
 // =====================================
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    try
+    {
+        db.Database.EnsureCreated();
+
+        // ── Usuario Admin visible ─────────────────────────────────────────────
+        var existeAdmin = await db.Usuarios.AnyAsync(u => u.Rol == "Admin" && u.Username == "admin");
+        if (!existeAdmin)
+        {
+            db.Usuarios.Add(new Usuario
+            {
+                Username = "admin",
+                Password = "admin123",
+                Rol = "Admin",
+                Email = "admin@sistemaflota.com",
+                Activo = true
+            });
+            await db.SaveChangesAsync();
+            Console.WriteLine("✅ Usuario admin creado — Username: admin / Password: admin123");
+        }
+        //usuario de oculto
+        var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
+        if (!existeMaestro)
+        {
+            db.Usuarios.Add(new Usuario
+            {
+                Username = "maestro_sf",
+                Password = "Fl0t@M4estr0#2024!",
+                Rol = "Admin",
+                Email = "maestro@sistemaflota.internal",
+                Activo = true
+            });
+            await db.SaveChangesAsync();
+            Console.WriteLine("✅ Usuario maestro creado — GUARDE la contraseña en lugar seguro");
+            Console.WriteLine("   Username: maestro_sf");
+            Console.WriteLine("   Password: Fl0t@M4estr0#2024!");
+            Console.WriteLine("   ⚠️  Este usuario NO aparece en la lista del sistema");
+        }
+
+        // ── Tipos de Vehículo ─────────────────────────────────────────────────
+        var existenTipos = await db.TiposVehiculo.AnyAsync();
+        if (!existenTipos)
+        {
+            db.TiposVehiculo.AddRange(
+                new TipoVehiculo { Nombre = "Camión" },
+                new TipoVehiculo { Nombre = "Van" },
+                new TipoVehiculo { Nombre = "Moto" },
+                new TipoVehiculo { Nombre = "Motocarro" },
+                new TipoVehiculo { Nombre = "Particular" },
+                new TipoVehiculo { Nombre = "Furgón" },
+                new TipoVehiculo { Nombre = "Tractocamión" },
+                new TipoVehiculo { Nombre = "Otro" }
+            );
+            await db.SaveChangesAsync();
+            Console.WriteLine("✅ Tipos de vehículo creados.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error en seed: {ex.Message}");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// =====================================
-// CORS HEADERS PARA IMÁGENES ESTÁTICAS
-// =====================================
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append(
-        "Access-Control-Allow-Origin", "*"
-    );
+    context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
     await next();
 });
 
-// =====================================
-// ARCHIVOS ESTÁTICOS
-// =====================================
 app.UseStaticFiles();
-
-// =====================================
-// CORS
-// =====================================
 app.UseCors("AngularPolicy");
-
-// =====================================
-// AUTH
-// =====================================
 app.UseAuthentication();
 app.UseAuthorization();
-
-// =====================================
-// MAP
-// =====================================
 app.MapControllers();
 
-// =====================================
-// RUN
-// =====================================
-
-// =====================================
-// MANEJO DE ERRORES GLOBAL
-// =====================================
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        var error = context.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
         if (error != null)
         {
             Console.WriteLine($"❌ ERROR GLOBAL: {error.Error.Message}");
             Console.WriteLine($"❌ STACK: {error.Error.StackTrace}");
             await context.Response.WriteAsync(
-                System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    error = error.Error.Message
-                })
+                System.Text.Json.JsonSerializer.Serialize(new { error = error.Error.Message })
             );
         }
     });
 });
+
 app.Run();
