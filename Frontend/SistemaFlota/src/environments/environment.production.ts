@@ -2,7 +2,7 @@ export const environment = {
 
   production: true,
 
-  apiUrl: 'https://miservidor.com/api',
+  apiUrl: 'sistemaflota-production.up.railway.app',
 
   fotosUrl: 'https://miservidor.com/fotos'
 
