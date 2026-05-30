@@ -18,12 +18,18 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// ── CORS ──────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200", "https://localhost:4200")
+            .WithOrigins(
+                "http://localhost:4200",
+                "https://localhost:4200",
+                "https://flota.gecobagsci.com",
+                "http://flota.gecobagsci.com"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .WithExposedHeaders("Content-Disposition");
@@ -52,10 +58,11 @@ builder.Services
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// ── MySQL con versión fija — evita AutoDetect en Railway ──────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString),
+        new MySqlServerVersion(new Version(8, 0, 0)),
         mySqlOptions =>
         {
             mySqlOptions.CommandTimeout(30);
@@ -71,6 +78,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 var app = builder.Build();
 
 // =====================================
@@ -84,7 +94,6 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.EnsureCreated();
 
-        // ── Usuario Admin visible ─────────────────────────────────────────────
         var existeAdmin = await db.Usuarios.AnyAsync(u => u.Rol == "Admin" && u.Username == "admin");
         if (!existeAdmin)
         {
@@ -97,9 +106,9 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario admin creado — Username: admin / Password: admin123");
+            Console.WriteLine("✅ Usuario admin creado");
         }
-        //usuario de oculto
+
         var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
         if (!existeMaestro)
         {
@@ -112,13 +121,9 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario maestro creado — GUARDE la contraseña en lugar seguro");
-            Console.WriteLine("   Username: maestro_sf");
-            Console.WriteLine("   Password: Fl0t@M4estr0#2024!");
-            Console.WriteLine("   ⚠️  Este usuario NO aparece en la lista del sistema");
+            Console.WriteLine("✅ Usuario maestro creado");
         }
 
-        // ── Tipos de Vehículo ─────────────────────────────────────────────────
         var existenTipos = await db.TiposVehiculo.AnyAsync();
         if (!existenTipos)
         {
@@ -147,12 +152,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
-    await next();
-});
 
 app.UseStaticFiles();
 app.UseCors("AngularPolicy");
