@@ -27,6 +27,7 @@ import { SolicitudTallerComponent } from './componentes/solicitud-taller/solicit
 import { ConfiguracionService }     from './services/configuracion.service';
 import { AuthService }              from './services/auth.service';
 import { PermisosService }          from './services/permisos.service';
+import { environment }              from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -57,7 +58,9 @@ export class AppComponent implements OnInit {
   empresaLogo:   string | null = null;
   colorPrimario  = '#15803d';
 
-  // Módulos con iconos Font Awesome
+  // ── URL base dinámica desde environment ──────────────────────────────────
+  private readonly baseUrl = environment.apiUrl.replace('/api', '');
+
   readonly todosModulos = [
     { key: 'dashboard',              label: 'Panel de control',       icon: 'fa-solid fa-gauge-high' },
     { key: 'conductores',            label: 'Conductores',            icon: 'fa-solid fa-id-card' },
@@ -114,7 +117,8 @@ export class AppComponent implements OnInit {
     this.configuracionService.obtenerConfiguracion().subscribe({
       next: (data: any) => {
         if (data.nombreEmpresa?.trim()) this.empresaNombre = data.nombreEmpresa;
-        if (data.logo?.trim()) this.empresaLogo = `http://localhost:5214/config/${data.logo}`;
+        // ── URL dinámica — usa baseUrl del environment ─────────────────────
+        if (data.logo?.trim()) this.empresaLogo = `${this.baseUrl}/config/${data.logo}`;
         if (data.colorCorporativo) {
           this.colorPrimario = data.colorCorporativo;
           document.documentElement.style.setProperty('--color-primario', data.colorCorporativo);
@@ -139,18 +143,19 @@ export class AppComponent implements OnInit {
 
   tieneAcceso(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
+    if (this.rol === 'PESV')  return true;
     if (this.permisosGranulares.length > 0) {
       const p = this.permisosGranulares.find((p: any) => p.modulo === modulo);
       return !!p && (p.puedeVer !== false);
     }
     switch (this.rol) {
-      case 'Auxiliar': return ['dashboard','conductores','vehiculos','inspecciones','ver-inspecciones'].includes(modulo);
-      case 'Conductor': return ['dashboard','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Jefe': return ['dashboard','ver-inspecciones','incidentes','mantenimiento','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Auxiliar':        return ['dashboard','conductores','vehiculos','inspecciones','ver-inspecciones'].includes(modulo);
+      case 'Conductor':       return ['dashboard','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Jefe':            return ['dashboard','ver-inspecciones','incidentes','mantenimiento','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
       case 'RecursosHumanos': return ['dashboard','conductores','usuarios','autorizaciones','incidentes','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Facturacion': return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Bodega':      return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Porteria':    return ['dashboard','autorizaciones','encuesta-fatiga'].includes(modulo);
+      case 'Facturacion':     return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Bodega':          return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Porteria':        return ['dashboard','autorizaciones','encuesta-fatiga'].includes(modulo);
       default: return false;
     }
   }
@@ -181,13 +186,10 @@ export class AppComponent implements OnInit {
   }
 
   getIconoModulo(key: string): string {
-    return this.todosModulos.find(m => m.key === key)?.icon ?? "fa-solid fa-circle";
+    return this.todosModulos.find(m => m.key === key)?.icon ?? 'fa-solid fa-circle';
   }
 
   getLabelModulo(key: string): string {
     return this.todosModulos.find(m => m.key === key)?.label ?? key;
   }
 }
-
-// Métodos para la topbar
-// (agregar dentro de la clase antes del último })

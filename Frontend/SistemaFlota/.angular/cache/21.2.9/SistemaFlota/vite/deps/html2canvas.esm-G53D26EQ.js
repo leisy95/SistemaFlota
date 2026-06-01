@@ -7783,4 +7783,4 @@ var html2canvas_esm_default = html2canvas;
 export {
   html2canvas_esm_default as default
 };
-//# sourceMappingURL=html2canvas.esm-GYISZ7TF.js.map
+//# sourceMappingURL=html2canvas.esm-G53D26EQ.js.map
