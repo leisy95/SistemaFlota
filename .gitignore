@@ -1,7 +1,29 @@
-.vs/
+# Archivos de configuración con datos sensibles
+appsettings.Development.json
+appsettings.Production.json
+
+# Build
 bin/
 obj/
+
+# Visual Studio
+.vs/
 *.user
 *.suo
-node_modules/
-dist/
+
+# Publicación
+publish/
+out/
+
+# Logs
+*.log
+logs/
+
+# Variables de entorno
+.env
+.env.local
+
+# Archivos temporales
+*.tmp
+*.temp
+Thumbs.db

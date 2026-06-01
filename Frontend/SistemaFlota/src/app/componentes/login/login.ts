@@ -1,12 +1,9 @@
-import {
-  Component,
-  Output,
-  EventEmitter
-} from '@angular/core';
-
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { FormsModule }  from '@angular/forms';
+import { AuthService }  from '../../services/auth.service';
+import { ConfiguracionService } from '../../services/configuracion.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -15,25 +12,58 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
+export class LoginComponent implements OnInit {
 
-export class LoginComponent {
-
-  @Output()
-  loginSuccess = new EventEmitter<any>();
+  @Output() loginSuccess = new EventEmitter<any>();
 
   username = '';
   password = '';
+  cargando         = false;
+  error             = '';
+  mostrarPassword   = false;
 
-  constructor(private auth: AuthService) {}
+  // ── Datos de la empresa ───────────────────────────────────────────────────
+  nombreEmpresa = 'Sistema de Flota';
+  logoUrl: string | null = null;
+
+  // ── Bienvenida post-login ─────────────────────────────────────────────────
+  mostrarBienvenida = false;
+  nombreUsuario     = '';
+  readonly baseUrl  = environment.apiUrl.replace('/api', '');
+
+  constructor(
+    private auth: AuthService,
+    private configuracionService: ConfiguracionService
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarEmpresa();
+  }
+
+  cargarEmpresa() {
+    this.configuracionService.obtenerConfiguracion().subscribe({
+      next: (data: any) => {
+        if (data.nombreEmpresa) this.nombreEmpresa = data.nombreEmpresa;
+        if (data.logo)          this.logoUrl = `${this.baseUrl}/config/${data.logo}`;
+        if (data.colorCorporativo)
+          document.documentElement.style.setProperty('--color-primario', data.colorCorporativo);
+      },
+      error: () => {} // Si no hay config, usa valores por defecto
+    });
+  }
 
   iniciarSesion() {
-    this.auth.login(this.username, this.password)
-    .subscribe({
+    if (!this.username || !this.password) {
+      this.error = 'Ingrese usuario y contraseña';
+      return;
+    }
+
+    this.cargando = true;
+    this.error    = '';
+
+    this.auth.login(this.username, this.password).subscribe({
       next: (res: any) => {
-        console.log('LOGIN OK ✅', res);
-
         localStorage.setItem('token', res.token);
-
         localStorage.setItem('user', JSON.stringify({
           username: res.username,
           rol:      res.rol,
@@ -41,13 +71,23 @@ export class LoginComponent {
           permisos: res.permisos ?? []
         }));
 
-        this.loginSuccess.emit(res);
+        // Mostrar pantalla de bienvenida 2 segundos antes de entrar
+        this.nombreUsuario     = res.username;
+        this.mostrarBienvenida = true;
+        this.cargando          = false;
+
+        setTimeout(() => {
+          this.loginSuccess.emit(res);
+        }, 2500);
       },
       error: (err) => {
-        console.error('ERROR LOGIN ❌', err);
-        alert('Usuario o contraseña incorrectos');
+        this.cargando = false;
+        if (err.status === 429) {
+          this.error = err.error?.mensaje ?? 'Demasiados intentos. Espera unos minutos.';
+        } else {
+          this.error = 'Usuario o contraseña incorrectos';
+        }
       }
     });
   }
-
 }

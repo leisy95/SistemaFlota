@@ -1,57 +1,171 @@
+// ── BIENVENIDA POST-LOGIN ─────────────────────────────────────────────────────
+.bienvenida-overlay {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 60% 40%, rgba(99,102,241,0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(16,185,129,0.2) 0%, transparent 50%),
+              #070b14;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; animation: fadeIn 0.4s ease;
+}
+
+.bienvenida-card {
+  text-align: center; padding: 48px 40px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  animation: scaleIn 0.4s ease;
+  max-width: 380px; width: 90%;
+}
+
+.bienvenida-logo {
+  width: 120px; height: 120px; margin: 0 auto 20px;
+  border-radius: 20px; overflow: hidden;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; }
+}
+
+.bienvenida-icono {
+  width: 100px; height: 100px; margin: 0 auto 20px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.2);
+  border: 2px solid rgba(99,102,241,0.4);
+  display: flex; align-items: center; justify-content: center;
+  i { font-size: 44px; color: #a5b4fc; }
+}
+
+.bienvenida-empresa {
+  font-size: 22px; font-weight: 700; color: white;
+  margin: 0 0 8px; letter-spacing: -0.5px;
+}
+
+.bienvenida-saludo {
+  font-size: 15px; color: rgba(255,255,255,0.5); margin: 0 0 28px;
+  strong { color: #a5b4fc; font-weight: 600; }
+}
+
+.bienvenida-loader {
+  height: 3px; background: rgba(255,255,255,0.1);
+  border-radius: 3px; overflow: hidden; margin-bottom: 12px;
+}
+
+.loader-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #6366f1, #10b981);
+  border-radius: 3px;
+  animation: loading 2.5s ease forwards;
+}
+
+.bienvenida-cargando {
+  font-size: 12px; color: rgba(255,255,255,0.3); margin: 0;
+}
+
+// ── LOGIN FORM ────────────────────────────────────────────────────────────────
 .login-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #6f42c1, #0d6efd);
+  height: 100vh; display: flex;
+  justify-content: center; align-items: center;
+  background: radial-gradient(ellipse at 60% 40%, rgba(99,102,241,0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(16,185,129,0.2) 0%, transparent 50%),
+              #070b14;
 }
 
 .login-card {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  width: 320px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px; padding: 40px 36px;
+  width: 100%; max-width: 380px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  animation: scaleIn 0.4s ease;
+}
+
+.login-logo {
+  width: 90px; height: 90px; margin: 0 auto 16px;
+  border-radius: 16px; overflow: hidden;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; }
+}
+
+.login-icono {
+  width: 80px; height: 80px; margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.15);
+  border: 2px solid rgba(99,102,241,0.3);
+  display: flex; align-items: center; justify-content: center;
+  i { font-size: 34px; color: #a5b4fc; }
 }
 
 .login-card h2 {
-  margin-bottom: 10px;
-  color: #6f42c1;
+  font-size: 20px; font-weight: 700; color: white;
+  margin: 0 0 4px; letter-spacing: -0.5px;
 }
 
 .subtitle {
-  margin-bottom: 25px;
-  color: #666;
+  font-size: 13px; color: rgba(255,255,255,0.4);
+  margin: 0 0 24px;
 }
 
-.login-card input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  outline: none;
-  transition: 0.3s;
+.error-msg {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px;
+  margin-bottom: 16px; text-align: left;
+  display: flex; align-items: center; gap: 8px;
 }
 
-.login-card input:focus {
-  border-color: #6f42c1;
-  box-shadow: 0 0 8px rgba(111,66,193,0.3);
+.input-group {
+  position: relative; margin-bottom: 14px; text-align: left;
+  display: flex; align-items: center;
+  i {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.3); font-size: 14px;
+  }
+  .btn-ojo {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; padding: 4px;
+    color: rgba(255,255,255,0.3); transition: 0.2s;
+    &:hover { color: rgba(255,255,255,0.7); }
+    i { font-size: 14px; }
+  }
+  input {
+    width: 100%; padding: 12px 40px 12px 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; font-size: 14px;
+    color: #f1f5f9; outline: none; transition: 0.2s;
+    &::placeholder { color: rgba(255,255,255,0.25); }
+    &:focus { border-color: rgba(99,102,241,0.5); background: rgba(255,255,255,0.09); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
 }
 
 .login-card button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background: #6f42c1;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
+  width: 100%; padding: 13px;
+  background: rgba(99,102,241,0.3);
+  border: 1px solid rgba(99,102,241,0.4);
+  color: white; border-radius: 12px;
+  cursor: pointer; font-weight: 600;
+  font-size: 15px; transition: 0.2s;
+  display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+  margin-top: 8px;
+  &:hover:not(:disabled) {
+    background: rgba(99,102,241,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
+  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
-.login-card button:hover {
-  background: #5a32a3;
-}
+// ── ANIMACIONES ───────────────────────────────────────────────────────────────
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes loading { from { width: 0%; } to { width: 100%; } }

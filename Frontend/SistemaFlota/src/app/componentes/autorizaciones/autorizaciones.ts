@@ -53,7 +53,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   rolUsuario    = '';
   nombreEmpresa = 'la empresa';
 
-  // ── Llegada ───────────────────────────────────────────────────────────────────
   mostrarModalLlegada    = false;
   mostrarModalConfirmar  = false;
   autorizacionLlegada:   any = null;
@@ -66,7 +65,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly estadosVehiculo = ['Bueno', 'Novedad', 'Requiere taller'];
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   filtroBusqueda   = '';
   filtroEstado     = '';
   filtroTipo       = '';
@@ -111,8 +109,9 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     const q = this.filtroBusqueda.toLowerCase();
     let base: any[];
     switch (this.rolUsuario) {
-      case 'Facturacion': base = this.autorizaciones.filter(a => a.estado === 'Pendiente'); break;
-      case 'Bodega':      base = this.autorizaciones.filter(a => a.estado === 'Bodega');    break;
+      // ── Facturación ve TODAS las autorizaciones ────────────────────────────
+      case 'Facturacion': base = [...this.autorizaciones]; break;
+      case 'Bodega':      base = this.autorizaciones.filter(a => a.estado === 'Bodega'); break;
       case 'Porteria':    base = this.autorizaciones.filter(a => a.estado === 'Porteria' || (a.estado === 'Autorizado' && a.estadoLlegada === 'ReportadaLlegada')); break;
       default:            base = [...this.autorizaciones];
     }
@@ -140,11 +139,12 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   private actualizarFiltradas(): void { this.aplicarFiltros(); }
 
-  get puedeCrear(): boolean { return !['Facturacion','Bodega','Porteria'].includes(this.rolUsuario); }
+  // ── Facturación SÍ puede crear autorizaciones ─────────────────────────────
+  get puedeCrear(): boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
 
   get tituloPorRol(): string {
     switch (this.rolUsuario) {
-      case 'Facturacion': return 'Pendientes de Facturación';
+      case 'Facturacion': return 'Autorizaciones de Salida';
       case 'Bodega':      return 'Pendientes de Bodega';
       case 'Porteria':    return 'Control de Portería';
       default:            return 'Autorizaciones de Salida';
@@ -173,7 +173,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // ── LLEGADA — Conductor reporta ───────────────────────────────────────────────
   abrirReporteLlegada(autorizacion: any) {
     this.autorizacionLlegada = autorizacion;
     this.formLlegada = { kilometrajeFinal: null, novedadesViaje: '', estadoVehiculo: 'Bueno' };
@@ -183,7 +182,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   guardarReporteLlegada() {
     if (!this.formLlegada.kilometrajeFinal) { alert('Ingrese el kilometraje final'); return; }
-
     this.autorizacionesService.reportarLlegada(this.autorizacionLlegada.id, {
       kilometrajeFinal: this.formLlegada.kilometrajeFinal,
       novedadesViaje:   this.formLlegada.novedadesViaje,
@@ -195,30 +193,23 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarModalLlegada = false;
         this.mostrarNotificacion(`✅ Llegada reportada correctamente`);
         this.obtenerAutorizaciones();
-        // WhatsApp al grupo notificando llegada
         this.enviarWhatsAppLlegada(this.autorizacionLlegada);
         this.cdr.markForCheck();
-      },
-      error: () => {}
+      }, error: () => {}
     });
   }
 
-  // ── LLEGADA — Portería confirma ───────────────────────────────────────────────
   abrirConfirmarLlegada(autorizacion: any) {
     this.autorizacionLlegada = autorizacion;
-    this.usuarioFirma     = '';
-    this.observacionFirma = '';
+    this.usuarioFirma = ''; this.observacionFirma = '';
     this.mostrarModalConfirmar = true;
     this.cdr.markForCheck();
   }
 
   guardarConfirmarLlegada() {
     if (!this.usuarioFirma) { alert('Ingrese nombre del portero'); return; }
-
     this.autorizacionesService.confirmarLlegada(this.autorizacionLlegada.id, {
-      firma:       this.usuarioFirma,
-      usuario:     this.usuarioFirma,
-      observacion: this.observacionFirma
+      firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
     ).subscribe({
@@ -227,8 +218,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion(`✅ Llegada confirmada por portería`);
         this.obtenerAutorizaciones();
         this.cdr.markForCheck();
-      },
-      error: () => {}
+      }, error: () => {}
     });
   }
 
@@ -256,7 +246,6 @@ _${this.nombreEmpresa}_`
     });
   }
 
-  // ── Flujo de pasos ────────────────────────────────────────────────────────────
   seleccionarConductor(conductor: any) {
     this.conductorSeleccionado = conductor; this.pasoActual = 2; this.vistaLista = false; this.cdr.markForCheck();
   }

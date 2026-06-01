@@ -1,20 +1,29 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class UsuariosService {
 
   private apiUrl = `${environment.apiUrl}/Usuarios`;
 
   constructor(private http: HttpClient) {}
 
-  // GET TODOS
-  obtenerUsuarios(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  // GET TODOS — con paginación y búsqueda
+  obtenerUsuarios(
+    pagina    = 1,
+    porPagina = 20,
+    buscar    = ''
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('pagina',    pagina.toString())
+      .set('porPagina', porPagina.toString());
+
+    if (buscar?.trim())
+      params = params.set('buscar', buscar.trim());
+
+    return this.http.get<any>(this.apiUrl, { params });
   }
 
   // GET POR ID
@@ -48,21 +57,12 @@ export class UsuariosService {
   }
 
   // CAMBIAR CONTRASEÑA CON TOKEN
-  cambiarPassword(
-    email: string,
-    token: string,
-    nuevaPassword: string
-  ): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cambiar-password`, {
-      email,
-      token,
-      nuevaPassword
-    });
+  cambiarPassword(email: string, token: string, nuevaPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cambiar-password`, { email, token, nuevaPassword });
   }
 
   // MIS PERMISOS
   misPermisos(): Observable<any> {
     return this.http.get(`${this.apiUrl}/mis-permisos`);
   }
-
 }

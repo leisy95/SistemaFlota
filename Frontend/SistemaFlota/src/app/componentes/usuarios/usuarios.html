@@ -1,23 +1,27 @@
 <div class="contenedor">
 
   <div class="header">
-    <div>
-      <h1>👥 Gestión de Usuarios</h1>
-      <p class="subtitulo">Administración de accesos y permisos</p>
+    <div class="header-titulo">
+      <i class="fa-solid fa-users-gear"></i>
+      <div>
+        <h1>Gestión de Usuarios</h1>
+        <p class="subtitulo">Administración de accesos y permisos</p>
+      </div>
     </div>
     <div class="header-acciones">
       <button class="btn-recuperar" (click)="abrirRecuperar()">
-        🔑 Recuperar contraseña
+        <i class="fa-solid fa-key"></i> Recuperar contraseña
       </button>
       <button class="btn-agregar" (click)="agregarUsuario()">
-        + Nuevo Usuario
+        <i class="fa-solid fa-plus"></i> Nuevo Usuario
       </button>
     </div>
   </div>
 
+  <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card azul">
-      <span class="stat-numero">{{ usuarios.length }}</span>
+      <span class="stat-numero">{{ totalUsuarios || usuarios.length }}</span>
       <span class="stat-label">Total usuarios</span>
     </div>
     <div class="stat-card verde">
@@ -26,6 +30,21 @@
     </div>
   </div>
 
+  <!-- BUSCADOR Y PAGINACIÓN SUPERIOR -->
+  <div class="filtros-bar">
+    <div class="buscador-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" [(ngModel)]="buscar"
+        (keyup.enter)="buscarUsuarios()"
+        placeholder="Buscar usuario o correo...">
+      <button class="btn-buscar" (click)="buscarUsuarios()">Buscar</button>
+    </div>
+    <div class="paginacion-info" *ngIf="totalPaginas > 1">
+      Página {{ paginaActual }} de {{ totalPaginas }}
+    </div>
+  </div>
+
+  <!-- TABLA -->
   <div class="tabla-container">
     <table>
       <thead>
@@ -39,107 +58,118 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let u of usuarios"
-          [class.fila-inactivo]="!u.activo">
-
-          <td data-label="Usuario">
-            <strong>{{ u.username }}</strong>
-          </td>
-
+        <tr *ngFor="let u of usuarios" [class.fila-inactivo]="!u.activo">
+          <td data-label="Usuario"><strong>{{ u.username }}</strong></td>
           <td data-label="Correo">{{ u.email || '-' }}</td>
-
           <td data-label="Rol">
             <span [class]="getBadgeRol(u.rol)">{{ u.rol }}</span>
           </td>
-
           <td data-label="Permisos">
             <span *ngIf="u.permisos && u.permisos.length > 0" class="permisos-count">
-              🔐 {{ u.permisos.length }} módulo(s)
+              <i class="fa-solid fa-lock"></i> {{ u.permisos.length }} módulo(s)
             </span>
             <span *ngIf="!u.permisos || u.permisos.length === 0" class="rol-base">
-              📋 Rol base
+              <i class="fa-solid fa-list-check"></i> Rol base
             </span>
           </td>
-
           <td data-label="Estado">
-            <span class="estado"
-              [class.activo]="u.activo"
-              [class.inactivo]="!u.activo">
-              {{ u.activo ? '🟢 Activo' : '🔴 Inactivo' }}
+            <span class="estado" [class.activo]="u.activo" [class.inactivo]="!u.activo">
+              <i class="fa-solid fa-circle"></i>
+              {{ u.activo ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
-
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-editar"   (click)="editarUsuario(u)">✏️</button>
-              <button class="btn-estado"   (click)="cambiarEstado(u)">
-                {{ u.activo ? '🔴' : '🟢' }}
+              <button class="btn-editar"   (click)="editarUsuario(u)" title="Editar">
+                <i class="fa-solid fa-pen"></i>
               </button>
-              <button class="btn-eliminar" (click)="eliminarUsuario(u.id)">🗑️</button>
+              <button class="btn-estado"   (click)="cambiarEstado(u)"
+                [title]="u.activo ? 'Desactivar' : 'Activar'">
+                <i class="fa-solid fa-{{u.activo ? 'toggle-on' : 'toggle-off'}}"></i>
+              </button>
+              <button class="btn-eliminar" (click)="eliminarUsuario(u.id)" title="Eliminar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </td>
-
         </tr>
       </tbody>
     </table>
+
+    <div class="vacio" *ngIf="usuarios.length === 0">
+      <i class="fa-solid fa-users-gear"></i>
+      <p>No hay usuarios registrados</p>
+    </div>
+  </div>
+
+  <!-- PAGINACIÓN -->
+  <div class="paginacion" *ngIf="totalPaginas > 1">
+    <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+      <i class="fa-solid fa-chevron-left"></i> Anterior
+    </button>
+    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+    <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">
+      Siguiente <i class="fa-solid fa-chevron-right"></i>
+    </button>
   </div>
 
 </div>
 
-<!-- MODAL USUARIO -->
+<!-- ══════════ MODAL USUARIO ══════════ -->
 <div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal modal-grande">
 
     <div class="modal-header">
-      <h2>{{ editando ? '✏️ Editar Usuario' : '👤 Nuevo Usuario' }}</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      <h2>
+        <i class="fa-solid fa-{{ editando ? 'pen' : 'user-plus' }}"></i>
+        {{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <div class="seccion">
-      <h3>👤 Datos básicos</h3>
+      <h3><i class="fa-solid fa-user"></i> Datos básicos</h3>
       <div class="form-grid">
-
         <div class="form-group">
-          <label>👤 Usuario *</label>
-          <input type="text" [(ngModel)]="nuevoUsuario.username"
-            placeholder="Nombre de usuario">
+          <label><i class="fa-solid fa-user"></i> Usuario *</label>
+          <input type="text" [(ngModel)]="nuevoUsuario.username" placeholder="Nombre de usuario">
         </div>
-
         <div class="form-group">
-          <label>📧 Correo electrónico *</label>
-          <input type="email" [(ngModel)]="nuevoUsuario.email"
-            placeholder="correo@empresa.com">
+          <label><i class="fa-solid fa-envelope"></i> Correo electrónico *</label>
+          <input type="email" [(ngModel)]="nuevoUsuario.email" placeholder="correo@empresa.com">
         </div>
-
         <div class="form-group">
-          <label>🔒 Contraseña {{ editando ? '(vacío = no cambiar)' : '*' }}</label>
-          <input type="password" [(ngModel)]="nuevoUsuario.password"
-            placeholder="Contraseña">
+          <label><i class="fa-solid fa-lock"></i> Contraseña {{ editando ? '(vacío = no cambiar)' : '*' }}</label>
+          <input type="password" [(ngModel)]="nuevoUsuario.password" placeholder="Mínimo 6 caracteres">
         </div>
-
         <div class="form-group">
-          <label>🎭 Rol base</label>
+          <label><i class="fa-solid fa-user-tag"></i> Rol base</label>
           <select [(ngModel)]="nuevoUsuario.rol">
             <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
           </select>
         </div>
-
       </div>
     </div>
 
     <div class="seccion">
       <div class="permisos-header">
-        <h3>🔐 Permisos por módulo</h3>
+        <h3><i class="fa-solid fa-shield-halved"></i> Permisos por módulo</h3>
         <div class="permisos-acciones-rapidas">
-          <button class="btn-rapido verde" (click)="seleccionarTodos()">✅ Todo acceso</button>
-          <button class="btn-rapido azul"  (click)="soloLectura()">👁️ Solo lectura</button>
-          <button class="btn-rapido gris"  (click)="deseleccionarTodos()">❌ Ninguno</button>
+          <button class="btn-rapido verde" (click)="seleccionarTodos()">
+            <i class="fa-solid fa-circle-check"></i> Todo acceso
+          </button>
+          <button class="btn-rapido azul"  (click)="soloLectura()">
+            <i class="fa-solid fa-eye"></i> Solo lectura
+          </button>
+          <button class="btn-rapido gris"  (click)="deseleccionarTodos()">
+            <i class="fa-solid fa-circle-xmark"></i> Ninguno
+          </button>
         </div>
       </div>
 
-      <p class="permisos-nota">
-        Si no configura permisos se usarán los del rol base.
-      </p>
+      <p class="permisos-nota">Si no configura permisos se usarán los del rol base.</p>
 
       <div class="leyenda-permisos">
         <span class="leyenda-item"><span class="dot-leyenda verde"></span> Ver</span>
@@ -149,18 +179,16 @@
       </div>
 
       <div class="permisos-tabla">
-
         <div class="permiso-fila encabezado">
           <div class="permiso-modulo">Módulo</div>
           <div class="permiso-acceso">Acceso</div>
-          <div class="permiso-accion">👁️ Ver</div>
-          <div class="permiso-accion">➕ Crear</div>
-          <div class="permiso-accion">✏️ Editar</div>
-          <div class="permiso-accion">🗑️ Eliminar</div>
+          <div class="permiso-accion"><i class="fa-solid fa-eye"></i></div>
+          <div class="permiso-accion"><i class="fa-solid fa-plus"></i></div>
+          <div class="permiso-accion"><i class="fa-solid fa-pen"></i></div>
+          <div class="permiso-accion"><i class="fa-solid fa-trash"></i></div>
         </div>
 
-        <div class="permiso-fila"
-          *ngFor="let m of modulos"
+        <div class="permiso-fila" *ngFor="let m of modulos"
           [class.activo]="tienePermiso(m.key)">
 
           <div class="permiso-modulo">
@@ -172,7 +200,8 @@
               [class.con-acceso]="tienePermiso(m.key)"
               [class.sin-acceso]="!tienePermiso(m.key)"
               (click)="toggleModulo(m.key)">
-              {{ tienePermiso(m.key) ? '✅ Sí' : '⬜ No' }}
+              <i class="fa-solid fa-{{ tienePermiso(m.key) ? 'circle-check' : 'circle' }}"></i>
+              {{ tienePermiso(m.key) ? 'Sí' : 'No' }}
             </button>
           </div>
 
@@ -181,7 +210,7 @@
               [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeVer"
               [disabled]="!tienePermiso(m.key)"
               (click)="toggleAccion(m.key, 'puedeVer')">
-              {{ tienePermiso(m.key) && getPermiso(m.key).puedeVer ? '✅' : '⬜' }}
+              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeVer ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
@@ -190,7 +219,7 @@
               [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeCrear"
               [disabled]="!tienePermiso(m.key)"
               (click)="toggleAccion(m.key, 'puedeCrear')">
-              {{ tienePermiso(m.key) && getPermiso(m.key).puedeCrear ? '✅' : '⬜' }}
+              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeCrear ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
@@ -199,7 +228,7 @@
               [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEditar"
               [disabled]="!tienePermiso(m.key)"
               (click)="toggleAccion(m.key, 'puedeEditar')">
-              {{ tienePermiso(m.key) && getPermiso(m.key).puedeEditar ? '✅' : '⬜' }}
+              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEditar ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
@@ -208,71 +237,72 @@
               [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEliminar"
               [disabled]="!tienePermiso(m.key)"
               (click)="toggleAccion(m.key, 'puedeEliminar')">
-              {{ tienePermiso(m.key) && getPermiso(m.key).puedeEliminar ? '✅' : '⬜' }}
+              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEliminar ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
         </div>
-
       </div>
     </div>
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardarUsuario()">
-        {{ editando ? '💾 Guardar cambios' : '👤 Crear usuario' }}
+      <button class="btn-guardar"  (click)="guardarUsuario()">
+        <i class="fa-solid fa-{{ editando ? 'floppy-disk' : 'user-plus' }}"></i>
+        {{ editando ? 'Guardar cambios' : 'Crear usuario' }}
       </button>
     </div>
 
   </div>
 </div>
 
-<!-- MODAL RECUPERAR CONTRASEÑA -->
+<!-- ══════════ MODAL RECUPERAR CONTRASEÑA ══════════ -->
 <div class="modal-overlay" *ngIf="mostrarRecuperar">
   <div class="modal modal-recuperar">
 
     <div class="modal-header">
-      <h2>🔑 Recuperar Contraseña</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      <h2><i class="fa-solid fa-key"></i> Recuperar Contraseña</h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <div class="seccion" *ngIf="!mostrarCambiar">
       <p class="recuperar-info">
+        <i class="fa-solid fa-circle-info"></i>
         Ingresa el correo del usuario para generar un token de recuperación.
       </p>
       <div class="form-group">
-        <label>📧 Correo electrónico</label>
-        <input type="email" [(ngModel)]="emailRecuperar"
-          placeholder="correo@empresa.com">
+        <label><i class="fa-solid fa-envelope"></i> Correo electrónico</label>
+        <input type="email" [(ngModel)]="emailRecuperar" placeholder="correo@empresa.com">
       </div>
       <div class="modal-botones">
         <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-        <button class="btn-guardar" (click)="solicitarRecuperacion()">
-          Generar token →
+        <button class="btn-guardar"  (click)="solicitarRecuperacion()">
+          Generar token <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
     </div>
 
     <div class="seccion" *ngIf="mostrarCambiar">
       <div class="token-info" *ngIf="tokenGenerado">
+        <i class="fa-solid fa-key"></i>
         <p>Token generado:</p>
         <strong class="token-valor">{{ tokenGenerado }}</strong>
         <small>Válido por 1 hora</small>
       </div>
       <div class="form-group">
-        <label>🔑 Token de recuperación</label>
-        <input type="text" [(ngModel)]="tokenRecuperar"
-          placeholder="Ingrese el token">
+        <label><i class="fa-solid fa-key"></i> Token de recuperación</label>
+        <input type="text" [(ngModel)]="tokenRecuperar" placeholder="Ingrese el token">
       </div>
       <div class="form-group">
-        <label>🔒 Nueva contraseña</label>
-        <input type="password" [(ngModel)]="nuevaPassword"
-          placeholder="Nueva contraseña">
+        <label><i class="fa-solid fa-lock"></i> Nueva contraseña</label>
+        <input type="password" [(ngModel)]="nuevaPassword" placeholder="Mínimo 6 caracteres">
       </div>
       <div class="modal-botones">
         <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-        <button class="btn-guardar" (click)="cambiarPassword()">
-          Cambiar contraseña
+        <button class="btn-guardar"  (click)="cambiarPassword()">
+          <i class="fa-solid fa-floppy-disk"></i> Cambiar contraseña
         </button>
       </div>
     </div>

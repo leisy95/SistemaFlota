@@ -1,10 +1,6 @@
-import {
-  Component,
-  OnInit
-} from '@angular/core';
-
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule }  from '@angular/forms';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
@@ -14,7 +10,6 @@ import { UsuariosService } from '../../services/usuarios.service';
   templateUrl: './usuarios.html',
   styleUrls: ['./usuarios.scss']
 })
-
 export class UsuariosComponent implements OnInit {
 
   usuarios: any[] = [];
@@ -23,6 +18,12 @@ export class UsuariosComponent implements OnInit {
   mostrarCambiar   = false;
   editando         = false;
   usuarioEditarId: number | null = null;
+
+  paginaActual  = 1;
+  porPagina     = 20;
+  totalUsuarios = 0;
+  totalPaginas  = 0;
+  buscar        = '';
 
   nuevoUsuario = {
     username: '',
@@ -40,61 +41,66 @@ export class UsuariosComponent implements OnInit {
   mensajeRecuperar = '';
 
   readonly modulos = [
-    { key: 'dashboard',              label: '📊 Dashboard' },
-    { key: 'inspecciones',           label: '📝 Inspecciones' },
-    { key: 'ver-inspecciones',       label: '📋 Historial Inspecciones' },
-    { key: 'autorizaciones',         label: '✅ Autorizaciones' },
-    { key: 'reporte-ruta',           label: '🚨 Reporte en Ruta' },
-    { key: 'cambio-ruta',            label: '🔄 Cambio de Ruta' },
-    { key: 'incidentes',             label: '⚠️ Incidentes' },
-    { key: 'contactos-notificacion', label: '📱 Contactos WhatsApp' },
-    { key: 'mantenimiento',          label: '🛠 Taller' },
-    { key: 'solicitud-taller',       label: '🛠️ Solicitud Taller' },
-    { key: 'documentos',             label: '📁 Documentos' },
-    { key: 'encuesta-fatiga',        label: '😴 Encuesta Fatiga' },
-    { key: 'trazabilidad',           label: '📦 Trazabilidad' },
-    { key: 'auditoria',              label: '🔍 Auditoría' },
-    { key: 'configuracion',          label: '⚙️ Configuración' },
-    { key: 'conductores',            label: '👤 Conductores' },
-    { key: 'vehiculos',              label: '🚚 Vehículos' },
-    { key: 'usuarios',               label: '👥 Usuarios' },
-    { key: 'checklist',              label: '✅ Checklist' },
+    { key: 'dashboard',              label: 'Dashboard' },
+    { key: 'inspecciones',           label: 'Inspecciones' },
+    { key: 'ver-inspecciones',       label: 'Historial Inspecciones' },
+    { key: 'autorizaciones',         label: 'Autorizaciones' },
+    { key: 'reporte-ruta',           label: 'Reporte en Ruta' },
+    { key: 'cambio-ruta',            label: 'Cambio de Ruta' },
+    { key: 'incidentes',             label: 'Incidentes' },
+    { key: 'contactos-notificacion', label: 'Contactos WhatsApp' },
+    { key: 'mantenimiento',          label: 'Taller' },
+    { key: 'solicitud-taller',       label: 'Solicitud Taller' },
+    { key: 'documentos',             label: 'Documentos' },
+    { key: 'encuesta-fatiga',        label: 'Encuesta Fatiga' },
+    { key: 'trazabilidad',           label: 'Trazabilidad' },
+    { key: 'auditoria',              label: 'Auditoría' },
+    { key: 'configuracion',          label: 'Configuración' },
+    { key: 'conductores',            label: 'Conductores' },
+    { key: 'vehiculos',              label: 'Vehículos' },
+    { key: 'usuarios',               label: 'Usuarios' },
+    { key: 'checklist',              label: 'Checklist' },
   ];
 
+  // ── Roles válidos — deben coincidir con el backend ─────────────────────────
   readonly roles = [
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
-    'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos'
+    'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
+    'PESV'  // ← Plan Estratégico de Seguridad Vial
   ];
 
   constructor(private usuariosService: UsuariosService) {}
 
-  ngOnInit(): void {
-    this.cargarUsuarios();
-  }
+  ngOnInit(): void { this.cargarUsuarios(); }
 
   cargarUsuarios() {
-    this.usuariosService.obtenerUsuarios().subscribe({
-      next: (data) => this.usuarios = data,
-      error: (err) => console.error(err)
-    });
+    this.usuariosService
+      .obtenerUsuarios(this.paginaActual, this.porPagina, this.buscar)
+      .subscribe({
+        next: (resp: any) => {
+          if (Array.isArray(resp)) {
+            this.usuarios      = resp;
+            this.totalUsuarios = resp.length;
+            this.totalPaginas  = 1;
+          } else {
+            this.usuarios      = resp.data         ?? [];
+            this.totalUsuarios = resp.total        ?? 0;
+            this.totalPaginas  = resp.totalPaginas ?? 1;
+          }
+        },
+        error: (err: any) => console.error(err)
+      });
   }
 
-  get totalActivos(): number {
-    return this.usuarios.filter(u => u.activo).length;
-  }
+  buscarUsuarios()  { this.paginaActual = 1; this.cargarUsuarios(); }
+  paginaAnterior()  { if (this.paginaActual > 1) { this.paginaActual--; this.cargarUsuarios(); } }
+  paginaSiguiente() { if (this.paginaActual < this.totalPaginas) { this.paginaActual++; this.cargarUsuarios(); } }
 
-  // =========================
-  // PERMISOS GRANULARES
-  // =========================
+  get totalActivos(): number { return this.usuarios.filter(u => u.activo).length; }
 
   getPermiso(modulo: string): PermisoGranular {
-    const p = this.nuevoUsuario.permisos.find(p => p.modulo === modulo);
-    return p ?? {
-      modulo,
-      puedeVer:      false,
-      puedeCrear:    false,
-      puedeEditar:   false,
-      puedeEliminar: false
+    return this.nuevoUsuario.permisos.find(p => p.modulo === modulo) ?? {
+      modulo, puedeVer: false, puedeCrear: false, puedeEditar: false, puedeEliminar: false
     };
   }
 
@@ -104,198 +110,104 @@ export class UsuariosComponent implements OnInit {
 
   toggleModulo(modulo: string) {
     const idx = this.nuevoUsuario.permisos.findIndex(p => p.modulo === modulo);
-    if (idx >= 0) {
-      this.nuevoUsuario.permisos.splice(idx, 1);
-    } else {
-      this.nuevoUsuario.permisos.push({
-        modulo,
-        puedeVer:      true,
-        puedeCrear:    false,
-        puedeEditar:   false,
-        puedeEliminar: false
-      });
-    }
+    if (idx >= 0) this.nuevoUsuario.permisos.splice(idx, 1);
+    else this.nuevoUsuario.permisos.push({ modulo, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false });
   }
 
   toggleAccion(modulo: string, accion: 'puedeVer' | 'puedeCrear' | 'puedeEditar' | 'puedeEliminar') {
     const p = this.nuevoUsuario.permisos.find(p => p.modulo === modulo);
     if (!p) return;
-
     p[accion] = !p[accion];
-
-    // Si desactiva Ver desactiva todo
     if (accion === 'puedeVer' && !p.puedeVer) {
-      p.puedeCrear    = false;
-      p.puedeEditar   = false;
-      p.puedeEliminar = false;
+      p.puedeCrear = false; p.puedeEditar = false; p.puedeEliminar = false;
     }
-
-    // Si activa crear/editar/eliminar activa Ver automáticamente
-    if ((accion === 'puedeCrear' || accion === 'puedeEditar' || accion === 'puedeEliminar') && p[accion]) {
+    if ((accion === 'puedeCrear' || accion === 'puedeEditar' || accion === 'puedeEliminar') && p[accion])
       p.puedeVer = true;
-    }
   }
 
   seleccionarTodos() {
     this.nuevoUsuario.permisos = this.modulos.map(m => ({
-      modulo:        m.key,
-      puedeVer:      true,
-      puedeCrear:    true,
-      puedeEditar:   true,
-      puedeEliminar: true
+      modulo: m.key, puedeVer: true, puedeCrear: true, puedeEditar: true, puedeEliminar: true
     }));
   }
 
   soloLectura() {
     this.nuevoUsuario.permisos = this.modulos.map(m => ({
-      modulo:        m.key,
-      puedeVer:      true,
-      puedeCrear:    false,
-      puedeEditar:   false,
-      puedeEliminar: false
+      modulo: m.key, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false
     }));
   }
 
-  deseleccionarTodos() {
-    this.nuevoUsuario.permisos = [];
-  }
-
-  // =========================
-  // NUEVO USUARIO
-  // =========================
+  deseleccionarTodos() { this.nuevoUsuario.permisos = []; }
 
   agregarUsuario() {
-    this.editando        = false;
-    this.usuarioEditarId = null;
-    this.nuevoUsuario = {
-      username: '', password: '', rol: 'Auxiliar',
-      email: '', activo: true, permisos: []
-    };
+    this.editando = false; this.usuarioEditarId = null;
+    this.nuevoUsuario = { username: '', password: '', rol: 'Auxiliar', email: '', activo: true, permisos: [] };
     this.mostrarModal = true;
   }
-
-  // =========================
-  // GUARDAR
-  // =========================
 
   guardarUsuario() {
     if (!this.nuevoUsuario.username)                   { alert('Ingrese el nombre de usuario');  return; }
     if (!this.editando && !this.nuevoUsuario.password) { alert('Ingrese la contraseña');          return; }
     if (!this.nuevoUsuario.email)                      { alert('Ingrese el correo electrónico'); return; }
 
-    if (this.editando) {
-      this.usuariosService
-        .actualizarUsuario(this.usuarioEditarId!, this.nuevoUsuario)
-        .subscribe({
-          next: () => { this.cargarUsuarios(); this.cerrarModal(); },
-          error: (err) => console.error(err)
-        });
-    } else {
-      this.usuariosService
-        .crearUsuario(this.nuevoUsuario)
-        .subscribe({
-          next: () => { this.cargarUsuarios(); this.cerrarModal(); },
-          error: (err) => { console.error(err); alert(err.error || 'Error creando usuario'); }
-        });
-    }
-  }
+    const peticion = this.editando
+      ? this.usuariosService.actualizarUsuario(this.usuarioEditarId!, this.nuevoUsuario)
+      : this.usuariosService.crearUsuario(this.nuevoUsuario);
 
-  // =========================
-  // EDITAR
-  // =========================
+    peticion.subscribe({
+      next: () => { this.cargarUsuarios(); this.cerrarModal(); },
+      error: (err: any) => { console.error(err); alert(err.error || 'Error guardando usuario'); }
+    });
+  }
 
   editarUsuario(usuario: any) {
-    this.editando        = true;
-    this.usuarioEditarId = usuario.id;
-
+    this.editando = true; this.usuarioEditarId = usuario.id;
     const permisos: PermisoGranular[] = (usuario.permisos ?? []).map((p: any) => ({
-      modulo:        p.modulo,
-      puedeVer:      p.puedeVer      ?? true,
-      puedeCrear:    p.puedeCrear    ?? false,
-      puedeEditar:   p.puedeEditar   ?? false,
-      puedeEliminar: p.puedeEliminar ?? false
+      modulo: p.modulo, puedeVer: p.puedeVer ?? true, puedeCrear: p.puedeCrear ?? false,
+      puedeEditar: p.puedeEditar ?? false, puedeEliminar: p.puedeEliminar ?? false
     }));
-
-    this.nuevoUsuario = {
-      username: usuario.username,
-      password: '',
-      rol:      usuario.rol,
-      email:    usuario.email ?? '',
-      activo:   usuario.activo,
-      permisos
-    };
+    this.nuevoUsuario = { username: usuario.username, password: '', rol: usuario.rol, email: usuario.email ?? '', activo: usuario.activo, permisos };
     this.mostrarModal = true;
   }
-
-  // =========================
-  // ELIMINAR
-  // =========================
 
   eliminarUsuario(id: number) {
     if (!confirm('¿Eliminar usuario?')) return;
     this.usuariosService.eliminarUsuario(id).subscribe({
       next: () => this.cargarUsuarios(),
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
-
-  // =========================
-  // CAMBIAR ESTADO
-  // =========================
 
   cambiarEstado(usuario: any) {
     this.usuariosService.cambiarEstado(usuario.id).subscribe({
       next: () => this.cargarUsuarios(),
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
 
-  // =========================
-  // RECUPERAR CONTRASEÑA
-  // =========================
-
   abrirRecuperar() {
-    this.emailRecuperar   = '';
-    this.tokenGenerado    = '';
-    this.mensajeRecuperar = '';
-    this.mostrarRecuperar = true;
-    this.mostrarCambiar   = false;
+    this.emailRecuperar = ''; this.tokenGenerado = ''; this.mensajeRecuperar = '';
+    this.mostrarRecuperar = true; this.mostrarCambiar = false;
   }
 
   solicitarRecuperacion() {
     if (!this.emailRecuperar) { alert('Ingrese el correo'); return; }
-
     this.usuariosService.solicitarRecuperacion(this.emailRecuperar).subscribe({
-      next: (data) => {
-        this.tokenGenerado    = data.token;
-        this.mensajeRecuperar = `Token: ${data.token}`;
-        this.mostrarCambiar   = true;
-      },
-      error: (err) => alert(err.error || 'Error solicitando recuperación')
+      next: (data: any) => { this.tokenGenerado = data.token; this.mensajeRecuperar = `Token: ${data.token}`; this.mostrarCambiar = true; },
+      error: (err: any) => alert(err.error || 'Error solicitando recuperación')
     });
   }
 
   cambiarPassword() {
-    if (!this.tokenRecuperar) { alert('Ingrese el token');            return; }
+    if (!this.tokenRecuperar) { alert('Ingrese el token'); return; }
     if (!this.nuevaPassword)  { alert('Ingrese la nueva contraseña'); return; }
-
-    this.usuariosService.cambiarPassword(
-      this.emailRecuperar, this.tokenRecuperar, this.nuevaPassword
-    ).subscribe({
-      next: () => {
-        alert('Contraseña cambiada correctamente');
-        this.mostrarRecuperar = false;
-        this.mostrarCambiar   = false;
-      },
-      error: (err) => alert(err.error || 'Token inválido o expirado')
+    this.usuariosService.cambiarPassword(this.emailRecuperar, this.tokenRecuperar, this.nuevaPassword).subscribe({
+      next: () => { alert('Contraseña cambiada correctamente'); this.mostrarRecuperar = false; this.mostrarCambiar = false; },
+      error: (err: any) => alert(err.error || 'Token inválido o expirado')
     });
   }
 
-  cerrarModal() {
-    this.mostrarModal     = false;
-    this.mostrarRecuperar = false;
-    this.mostrarCambiar   = false;
-  }
+  cerrarModal() { this.mostrarModal = false; this.mostrarRecuperar = false; this.mostrarCambiar = false; }
 
   getBadgeRol(rol: string): string {
     switch (rol) {
@@ -307,15 +219,14 @@ export class UsuariosComponent implements OnInit {
       case 'Bodega':          return 'badge-bodega';
       case 'Porteria':        return 'badge-porteria';
       case 'RecursosHumanos': return 'badge-rrhh';
+      case 'PESV':            return 'badge-pesv';
+      case 'PESV':            return 'badge-pesv';
       default:                return 'badge-auxiliar';
     }
   }
 }
 
 interface PermisoGranular {
-  modulo:        string;
-  puedeVer:      boolean;
-  puedeCrear:    boolean;
-  puedeEditar:   boolean;
-  puedeEliminar: boolean;
+  modulo: string; puedeVer: boolean; puedeCrear: boolean;
+  puedeEditar: boolean; puedeEliminar: boolean;
 }
