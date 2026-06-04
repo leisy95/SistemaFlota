@@ -13,23 +13,22 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ITwilioService _twilio;
 
         public InspeccionesController(
             AppDbContext context,
-            AuditoriaService auditoria)
+            AuditoriaService auditoria,
+            ITwilioService twilio)
         {
             _context = context;
             _auditoria = auditoria;
+            _twilio = twilio;
         }
 
         private string GetUsuario() =>
             User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
-
-        // =====================================
-        // GET HISTORIAL
-        // =====================================
 
         [HttpGet]
         public async Task<IActionResult> Get()
@@ -39,13 +38,8 @@ namespace SistemaFlota
                 .Include(i => i.Conductor)
                 .OrderByDescending(i => i.Fecha)
                 .ToListAsync();
-
             return Ok(lista);
         }
-
-        // =====================================
-        // GET DETALLE
-        // =====================================
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetalle(int id)
@@ -54,9 +48,7 @@ namespace SistemaFlota
                 .Include(i => i.Conductor)
                 .Include(i => i.Vehiculo)
                 .FirstOrDefaultAsync(i => i.Id == id);
-
-            if (inspeccion == null)
-                return NotFound();
+            if (inspeccion == null) return NotFound();
 
             var detalles = await _context.InspeccionDetalles
                 .Include(d => d.ChecklistItem)
@@ -65,9 +57,7 @@ namespace SistemaFlota
                 {
                     d.Id,
                     d.ChecklistItemId,
-                    NombreItem = d.ChecklistItem != null
-                        ? d.ChecklistItem.Descripcion
-                        : d.ChecklistItemId.ToString(),
+                    NombreItem = d.ChecklistItem != null ? d.ChecklistItem.Descripcion : d.ChecklistItemId.ToString(),
                     d.Estado,
                     d.Observacion,
                     d.FotoEvidencia
@@ -85,23 +75,11 @@ namespace SistemaFlota
                 inspeccion.FotoOdometro,
                 inspeccion.FirmaCondutor,
                 EstadoGeneral = estadoGeneral,
-                Conductor = new
-                {
-                    inspeccion.Conductor!.Id,
-                    inspeccion.Conductor.Nombre
-                },
-                Vehiculo = new
-                {
-                    inspeccion.Vehiculo!.Id,
-                    inspeccion.Vehiculo.Placa
-                },
+                Conductor = new { inspeccion.Conductor!.Id, inspeccion.Conductor.Nombre },
+                Vehiculo = new { inspeccion.Vehiculo!.Id, inspeccion.Vehiculo.Placa },
                 Detalles = detalles
             });
         }
-
-        // =====================================
-        // POST
-        // =====================================
 
         [HttpPost]
         public async Task<IActionResult> Post(
@@ -112,36 +90,26 @@ namespace SistemaFlota
             IFormFile? FotoOdometro,
             IFormFile? FirmaCondutor,
             [FromForm] List<IFormFile> Evidencias,
-            [FromForm] List<int> EvidenciaIndices
-        )
+            [FromForm] List<int> EvidenciaIndices)
         {
             try
             {
-                var carpeta = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot/inspecciones"
-                );
-
-                if (!Directory.Exists(carpeta))
-                    Directory.CreateDirectory(carpeta);
+                var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/inspecciones");
+                if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
 
                 string? nombreOdometro = null;
                 if (FotoOdometro != null)
                 {
-                    nombreOdometro = Guid.NewGuid().ToString()
-                        + Path.GetExtension(FotoOdometro.FileName);
-                    using var s1 = new FileStream(
-                        Path.Combine(carpeta, nombreOdometro), FileMode.Create);
+                    nombreOdometro = Guid.NewGuid().ToString() + Path.GetExtension(FotoOdometro.FileName);
+                    using var s1 = new FileStream(Path.Combine(carpeta, nombreOdometro), FileMode.Create);
                     await FotoOdometro.CopyToAsync(s1);
                 }
 
                 string? nombreFirma = null;
                 if (FirmaCondutor != null)
                 {
-                    nombreFirma = Guid.NewGuid().ToString()
-                        + Path.GetExtension(FirmaCondutor.FileName);
-                    using var s2 = new FileStream(
-                        Path.Combine(carpeta, nombreFirma), FileMode.Create);
+                    nombreFirma = Guid.NewGuid().ToString() + Path.GetExtension(FirmaCondutor.FileName);
+                    using var s2 = new FileStream(Path.Combine(carpeta, nombreFirma), FileMode.Create);
                     await FirmaCondutor.CopyToAsync(s2);
                 }
 
@@ -158,8 +126,8 @@ namespace SistemaFlota
                 _context.Inspecciones.Add(inspeccion);
                 await _context.SaveChangesAsync();
 
-                var items = JsonSerializer
-                    .Deserialize<List<ChecklistGuardar>>(Checklist);
+                var items = JsonSerializer.Deserialize<List<ChecklistGuardar>>(Checklist);
+                var itemsNoCumplen = new List<string>();
 
                 if (items != null)
                 {
@@ -170,10 +138,8 @@ namespace SistemaFlota
                         if (idx >= 0)
                         {
                             var archivo = Evidencias[idx];
-                            nombreEvidencia = Guid.NewGuid().ToString()
-                                + Path.GetExtension(archivo.FileName);
-                            using var s3 = new FileStream(
-                                Path.Combine(carpeta, nombreEvidencia), FileMode.Create);
+                            nombreEvidencia = Guid.NewGuid().ToString() + Path.GetExtension(archivo.FileName);
+                            using var s3 = new FileStream(Path.Combine(carpeta, nombreEvidencia), FileMode.Create);
                             await archivo.CopyToAsync(s3);
                         }
 
@@ -185,36 +151,66 @@ namespace SistemaFlota
                             Observacion = item.v.observacion,
                             FotoEvidencia = nombreEvidencia
                         });
+
+                        if (item.v.estado == "No cumple")
+                            itemsNoCumplen.Add(item.v.observacion ?? $"Ítem #{item.v.id}");
                     }
                     await _context.SaveChangesAsync();
                 }
 
-                // AUDITORÍA
-                var conductor = await _context.Conductores
-                    .FindAsync(ConductorId);
-                var vehiculo = await _context.Vehiculos
-                    .FindAsync(VehiculoId);
+                var conductor = await _context.Conductores.FindAsync(ConductorId);
+                var vehiculo = await _context.Vehiculos.FindAsync(VehiculoId);
 
                 await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(),
-                    rol: GetRol(),
-                    accion: "Crear",
-                    modulo: "Inspecciones",
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Crear", modulo: "Inspecciones",
                     detalle: $"Inspección creada — Conductor: {conductor?.Nombre ?? "-"}, Vehículo: {vehiculo?.Placa ?? "-"}, Km: {Kilometraje}",
                     registroId: inspeccion.Id
                 );
+
+                // ── TWILIO ──
+                var hora = DateTime.Now.ToString("hh:mm tt");
+                var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                var estadoGeneral = itemsNoCumplen.Any() ? "⚠️ RECHAZADA" : "✅ APROBADA";
+
+                var mensajeGrupo =
+                    $"📋 *INSPECCIÓN {estadoGeneral}*\n" +
+                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
+                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
+                    $"🛣 Km: {Kilometraje}\n" +
+                    $"🕐 Hora: {hora} — {fecha}";
+
+                if (itemsNoCumplen.Any())
+                    mensajeGrupo += $"\n⚠️ No cumplen: {string.Join(", ", itemsNoCumplen)}";
+
+                var numerosGrupo = await _context.ContactosNotificacion
+                    .Where(c => c.Activo && c.RecibeIncidentes)
+                    .Select(c => c.NumeroWhatsApp)
+                    .ToListAsync();
+
+                Console.WriteLine($"📱 Contactos grupo: {numerosGrupo.Count}");
+                if (numerosGrupo.Any())
+                    await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+
+                if (itemsNoCumplen.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))
+                {
+                    var mensajeConductor =
+                        $"⚠️ *INSPECCIÓN CON OBSERVACIONES*\n" +
+                        $"Hola {conductor.Nombre.Split(' ')[0]},\n" +
+                        $"Tu inspección del vehículo {vehiculo?.Placa ?? "-"} tiene items que no cumplen:\n" +
+                        $"• {string.Join("\n• ", itemsNoCumplen)}\n" +
+                        $"Por favor repórtalo al área de mantenimiento.";
+                    await _twilio.EnviarMensajeAsync(conductor.Telefono, mensajeConductor);
+                }
 
                 return Ok(inspeccion);
             }
             catch (Exception ex)
             {
                 await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(),
-                    rol: GetRol(),
-                    accion: "Crear",
-                    modulo: "Inspecciones",
-                    detalle: $"Error: {ex.Message}",
-                    resultado: "Fallido"
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Crear", modulo: "Inspecciones",
+                    detalle: $"Error: {ex.Message}", resultado: "Fallido"
                 );
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }

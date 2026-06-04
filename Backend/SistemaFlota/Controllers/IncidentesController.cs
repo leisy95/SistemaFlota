@@ -12,23 +12,22 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ITwilioService _twilio;
 
         public IncidentesController(
             AppDbContext context,
-            AuditoriaService auditoria)
+            AuditoriaService auditoria,
+            ITwilioService twilio)
         {
             _context = context;
             _auditoria = auditoria;
+            _twilio = twilio;
         }
 
         private string GetUsuario() =>
             User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
-
-        // =====================================
-        // GET TODOS
-        // =====================================
 
         [HttpGet]
         public async Task<IActionResult> Get()
@@ -57,13 +56,8 @@ namespace SistemaFlota
                     Vehiculo = new { i.Vehiculo!.Id, i.Vehiculo.Placa }
                 })
                 .ToListAsync();
-
             return Ok(lista);
         }
-
-        // =====================================
-        // GET POR ID
-        // =====================================
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -92,14 +86,9 @@ namespace SistemaFlota
                     Vehiculo = new { i.Vehiculo!.Id, i.Vehiculo.Placa }
                 })
                 .FirstOrDefaultAsync();
-
             if (incidente == null) return NotFound();
             return Ok(incidente);
         }
-
-        // =====================================
-        // POST — CREAR INCIDENTE
-        // =====================================
 
         [HttpPost]
         public async Task<IActionResult> Post(
@@ -111,26 +100,18 @@ namespace SistemaFlota
             [FromForm] string? UbicacionGPS,
             [FromForm] double? Latitud,
             [FromForm] double? Longitud,
-            [FromForm] List<IFormFile> Fotos
-        )
+            [FromForm] List<IFormFile> Fotos)
         {
             try
             {
-                var carpeta = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot/incidentes"
-                );
-
-                if (!Directory.Exists(carpeta))
-                    Directory.CreateDirectory(carpeta);
+                var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/incidentes");
+                if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
 
                 var nombresfotos = new List<string>();
                 foreach (var foto in Fotos.Take(5))
                 {
-                    var nombre = Guid.NewGuid().ToString()
-                        + Path.GetExtension(foto.FileName);
-                    using var stream = new FileStream(
-                        Path.Combine(carpeta, nombre), FileMode.Create);
+                    var nombre = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
+                    using var stream = new FileStream(Path.Combine(carpeta, nombre), FileMode.Create);
                     await foto.CopyToAsync(stream);
                     nombresfotos.Add(nombre);
                 }
@@ -157,64 +138,86 @@ namespace SistemaFlota
                 var vehiculo = await _context.Vehiculos.FindAsync(VehiculoId);
 
                 await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(),
-                    rol: GetRol(),
-                    accion: "Crear",
-                    modulo: "Incidentes",
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Crear", modulo: "Incidentes",
                     detalle: $"Incidente reportado — Conductor: {conductor?.Nombre ?? "-"}, Vehículo: {vehiculo?.Placa ?? "-"}, Tipo: {TipoIncidente}",
                     registroId: incidente.Id
                 );
+
+                // ── TWILIO ──
+                var hora = DateTime.Now.ToString("hh:mm tt");
+                var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                var mensajeGrupo =
+                    $"🚨 *INCIDENTE REPORTADO*\n" +
+                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
+                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
+                    $"⚠️ Tipo: {TipoIncidente}\n" +
+                    $"📋 Descripción: {DescripcionDetallada}\n" +
+                    $"📍 Ubicación: {UbicacionGPS ?? "No especificada"}\n" +
+                    $"🕐 Hora: {hora} — {fecha}";
+
+                var numerosGrupo = await _context.ContactosNotificacion
+                    .Where(c => c.Activo && c.RecibeIncidentes)
+                    .Select(c => c.NumeroWhatsApp)
+                    .ToListAsync();
+
+                Console.WriteLine($"📱 Contactos grupo: {numerosGrupo.Count}");
+                if (numerosGrupo.Any())
+                    await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
 
                 return Ok(incidente);
             }
             catch (Exception ex)
             {
                 await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(),
-                    rol: GetRol(),
-                    accion: "Crear",
-                    modulo: "Incidentes",
-                    detalle: $"Error: {ex.Message}",
-                    resultado: "Fallido"
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Crear", modulo: "Incidentes",
+                    detalle: $"Error: {ex.Message}", resultado: "Fallido"
                 );
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
 
-        // =====================================
-        // PUT — MARCAR COMO REVISADO
-        // =====================================
-
         [HttpPut("{id}/revisar")]
-        public async Task<IActionResult> Revisar(
-            int id,
-            [FromBody] RevisarIncidenteDto dto)
+        public async Task<IActionResult> Revisar(int id, [FromBody] RevisarIncidenteDto dto)
         {
-            var incidente = await _context.Incidentes.FindAsync(id);
+            var incidente = await _context.Incidentes
+                .Include(i => i.Conductor)
+                .Include(i => i.Vehiculo)
+                .FirstOrDefaultAsync(i => i.Id == id);
             if (incidente == null) return NotFound();
 
             incidente.Estado = "Revisado";
             incidente.FechaRevision = DateTime.Now;
             incidente.RevisadoPor = dto.RevisadoPor;
             incidente.ObservacionRevision = dto.Observacion;
-
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Revisar",
-                modulo: "Incidentes",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Revisar", modulo: "Incidentes",
                 detalle: $"Incidente #{id} marcado como revisado por: {dto.RevisadoPor}",
                 registroId: id
             );
 
+            // ── TWILIO ──
+            Console.WriteLine($"📱 Teléfono conductor: '{incidente.Conductor?.Telefono}'");
+            if (!string.IsNullOrWhiteSpace(incidente.Conductor?.Telefono))
+            {
+                var mensaje =
+                    $"✅ *INCIDENTE REVISADO*\n" +
+                    $"Hola {incidente.Conductor.Nombre.Split(' ')[0]},\n" +
+                    $"Tu reporte de incidente #{id} fue revisado.\n" +
+                    $"🚗 Vehículo: {incidente.Vehiculo?.Placa ?? "-"}\n" +
+                    $"👤 Revisado por: {dto.RevisadoPor}\n" +
+                    $"📋 Observación: {dto.Observacion ?? "Sin observación"}";
+                await _twilio.EnviarMensajeAsync(incidente.Conductor.Telefono, mensaje);
+            }
+            else
+                Console.WriteLine("⚠️ Conductor sin teléfono");
+
             return Ok(incidente);
         }
-
-        // =====================================
-        // GET CONTACTOS WHATSAPP
-        // =====================================
 
         [HttpGet("contactos-whatsapp")]
         public async Task<IActionResult> GetContactos()
@@ -222,7 +225,6 @@ namespace SistemaFlota
             var contactos = await _context.ContactosNotificacion
                 .Where(c => c.Activo && c.RecibeIncidentes)
                 .ToListAsync();
-
             return Ok(contactos);
         }
     }

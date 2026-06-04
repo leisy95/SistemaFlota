@@ -12,11 +12,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ITwilioService _twilio;
 
-        public AutorizacionesController(AppDbContext context, AuditoriaService auditoria)
+        public AutorizacionesController(
+            AppDbContext context,
+            AuditoriaService auditoria,
+            ITwilioService twilio)
         {
             _context = context;
             _auditoria = auditoria;
+            _twilio = twilio;
         }
 
         private string GetUsuario() =>
@@ -30,9 +35,6 @@ namespace SistemaFlota
                 .Include(a => a.Vehiculo)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
-        // =====================================
-        // GET TODAS
-        // =====================================
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -52,9 +54,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // GET — GENERAR NÚMERO DE GUÍA
-        // =====================================
         [HttpGet("generar-guia")]
         public async Task<IActionResult> GenerarGuia()
         {
@@ -73,9 +72,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // GET POR ID
-        // =====================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -91,9 +87,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // POST — CREAR
-        // =====================================
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CrearAutorizacionDto dto)
         {
@@ -135,9 +128,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — FIRMA FACTURACIÓN
-        // =====================================
         [HttpPut("{id}/facturacion")]
         public async Task<IActionResult> FirmarFacturacion(int id, [FromBody] FirmaDto dto)
         {
@@ -145,22 +135,18 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
                 a.FirmaFacturacion = dto.Firma;
                 a.UsuarioFacturacion = dto.Usuario;
                 a.ObservacionFacturacion = dto.Observacion;
                 a.FechaFacturacion = DateTime.Now;
                 a.Estado = "Bodega";
-
                 await _context.SaveChangesAsync();
-
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
                     detalle: $"Firma Facturación — #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
-
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
@@ -169,9 +155,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — FIRMA BODEGA
-        // =====================================
         [HttpPut("{id}/bodega")]
         public async Task<IActionResult> FirmarBodega(int id, [FromBody] FirmaDto dto)
         {
@@ -179,22 +162,18 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
                 a.FirmaBodega = dto.Firma;
                 a.UsuarioBodega = dto.Usuario;
                 a.ObservacionBodega = dto.Observacion;
                 a.FechaBodega = DateTime.Now;
                 a.Estado = "Porteria";
-
                 await _context.SaveChangesAsync();
-
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
                     detalle: $"Firma Bodega — #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
-
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
@@ -203,9 +182,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — FIRMA PORTERÍA SALIDA
-        // =====================================
         [HttpPut("{id}/porteria")]
         public async Task<IActionResult> FirmarPorteria(int id, [FromBody] FirmaDto dto)
         {
@@ -213,16 +189,13 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
                 a.FirmaPorteria = dto.Firma;
                 a.UsuarioPorteria = dto.Usuario;
                 a.ObservacionPorteria = dto.Observacion;
                 a.FechaPorteria = DateTime.Now;
                 a.Estado = "Autorizado";
-                a.EstadoLlegada = null; // ← en ruta, aún no ha llegado
-
+                a.EstadoLlegada = null;
                 await _context.SaveChangesAsync();
-
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
@@ -230,7 +203,38 @@ namespace SistemaFlota
                     registroId: id
                 );
 
-                return Ok(await CargarConRelaciones(id));
+                // ── TWILIO ──
+                var resultado = await CargarConRelaciones(id);
+                if (resultado != null)
+                {
+                    var hora = DateTime.Now.ToString("hh:mm tt");
+                    var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var destino = resultado.DestinoCompleto ?? "-";
+
+                    var mensajeSalida =
+                        $"🚚 *SALIDA AUTORIZADA*\n" +
+                        $"👤 Conductor: {conductor}\n" +
+                        $"🚗 Vehículo: {placa}\n" +
+                        $"📍 Destino: {destino}\n" +
+                        $"🕐 Hora: {hora} — {fecha}\n" +
+                        $"✅ Autorizado por: {dto.Usuario}";
+
+                    var numeroConductor = resultado.Conductor?.Telefono;
+                    if (!string.IsNullOrWhiteSpace(numeroConductor))
+                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeSalida);
+
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (numerosGrupo.Any())
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeSalida);
+                }
+
+                return Ok(resultado);
             }
             catch (Exception ex)
             {
@@ -238,10 +242,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — REPORTE LLEGADA (CONDUCTOR)
-        // El conductor reporta que llegó a la empresa
-        // =====================================
         [HttpPut("{id}/reportar-llegada")]
         public async Task<IActionResult> ReportarLlegada(int id, [FromBody] LlegadaConductorDto dto)
         {
@@ -249,31 +249,65 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
-                // Solo se puede reportar llegada si ya fue autorizada la salida
                 if (a.Estado != "Autorizado")
                     return BadRequest("Solo se puede reportar llegada de autorizaciones en estado Autorizado");
-
-                // Solo se puede reportar una vez
                 if (a.EstadoLlegada == "ReportadaLlegada" || a.EstadoLlegada == "Completada")
                     return BadRequest("La llegada ya fue reportada");
 
                 a.FechaReporteLlegada = DateTime.Now;
                 a.KilometrajeFinal = dto.KilometrajeFinal;
                 a.NovedadesViaje = dto.NovedadesViaje;
-                a.EstadoVehiculoLlegada = dto.EstadoVehiculo; // Bueno | Novedad | Requiere taller
+                a.EstadoVehiculoLlegada = dto.EstadoVehiculo;
                 a.EstadoLlegada = "ReportadaLlegada";
-
                 await _context.SaveChangesAsync();
 
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "ReportarLlegada", modulo: "Autorizaciones",
-                    detalle: $"Llegada reportada por conductor — #{id}, Km final: {dto.KilometrajeFinal}, Estado vehículo: {dto.EstadoVehiculo}",
+                    detalle: $"Llegada reportada — #{id}, Km: {dto.KilometrajeFinal}, Estado: {dto.EstadoVehiculo}",
                     registroId: id
                 );
 
-                return Ok(await CargarConRelaciones(id));
+                // ── TWILIO ──
+                var resultado = await CargarConRelaciones(id);
+                if (resultado != null)
+                {
+                    var hora = DateTime.Now.ToString("hh:mm tt");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var km = dto.KilometrajeFinal?.ToString() ?? "-";
+                    var estado = dto.EstadoVehiculo ?? "Bueno";
+                    var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
+
+                    var mensajeLlegada =
+                        $"🏁 *LLEGADA REPORTADA*\n" +
+                        $"👤 Conductor: {conductor}\n" +
+                        $"🚗 Vehículo: {placa}\n" +
+                        $"🛣 Km final: {km}\n" +
+                        $"🔧 Estado: {estado}\n" +
+                        $"📋 Novedades: {novedades}\n" +
+                        $"🕐 Hora: {hora}";
+
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (numerosGrupo.Any())
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeLlegada);
+
+                    var numeroConductor = resultado.Conductor?.Telefono;
+                    if (!string.IsNullOrWhiteSpace(numeroConductor))
+                    {
+                        var mensajeConfirmacion =
+                            $"✅ *Tu llegada fue registrada*\n" +
+                            $"Autorización #{id} — {hora}\n" +
+                            $"Gracias {conductor.Split(' ')[0]}!";
+                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
+                    }
+                }
+
+                return Ok(resultado);
             }
             catch (Exception ex)
             {
@@ -282,10 +316,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — CONFIRMAR LLEGADA (PORTERÍA)
-        // Portería confirma que el vehículo entró físicamente
-        // =====================================
         [HttpPut("{id}/confirmar-llegada")]
         public async Task<IActionResult> ConfirmarLlegada(int id, [FromBody] FirmaDto dto)
         {
@@ -293,26 +323,20 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
-                // Solo se puede confirmar si el conductor ya reportó
                 if (a.EstadoLlegada != "ReportadaLlegada")
                     return BadRequest("El conductor aún no ha reportado la llegada");
-
                 a.FechaConfirmacionLlegada = DateTime.Now;
                 a.UsuarioPorteriaLlegada = dto.Usuario;
                 a.ObservacionPorteriaLlegada = dto.Observacion;
                 a.FirmaPorteriaLlegada = dto.Firma;
                 a.EstadoLlegada = "Completada";
-
                 await _context.SaveChangesAsync();
-
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "ConfirmarLlegada", modulo: "Autorizaciones",
                     detalle: $"Llegada confirmada por portería — #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
-
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
@@ -322,9 +346,6 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // PUT — RECHAZAR
-        // =====================================
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] FirmaDto dto)
         {
@@ -332,17 +353,14 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-
                 a.Estado = "Rechazado";
                 await _context.SaveChangesAsync();
-
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Rechazar", modulo: "Autorizaciones",
                     detalle: $"Autorización #{id} RECHAZADA",
                     registroId: id
                 );
-
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
@@ -352,9 +370,6 @@ namespace SistemaFlota
         }
     }
 
-    // =====================================
-    // DTOs
-    // =====================================
     public class CrearAutorizacionDto
     {
         public int ConductorId { get; set; }
@@ -375,12 +390,10 @@ namespace SistemaFlota
         public string? Observacion { get; set; }
     }
 
-    // DTO específico para el reporte de llegada del conductor
     public class LlegadaConductorDto
     {
         public int? KilometrajeFinal { get; set; }
         public string? NovedadesViaje { get; set; }
-        // Bueno | Novedad | Requiere taller
         public string EstadoVehiculo { get; set; } = "Bueno";
     }
 }
