@@ -252,3 +252,15 @@ tbody {
     &::before { content: attr(data-label); font-weight: 600; color: #64748b; font-size: 11px; text-transform: uppercase; }
   }
 }
+
+.badge-confirmado  { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.fila-confirmado   { background: #f0f9ff; }
+.fila-confirmado:hover { background: #e0f2fe; }
+.stat-card.cyan    { border-top-color: #0ea5e9; }
+
+.btn-confirmar-conductor {
+  background: #e0f2fe; color: #0369a1; border: none;
+  padding: 6px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: 0.2s; width: auto;
+  &:hover { background: #bae6fd; }
+}

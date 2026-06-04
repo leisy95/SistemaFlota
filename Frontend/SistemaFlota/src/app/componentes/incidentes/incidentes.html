@@ -81,9 +81,10 @@
           <p *ngIf="i.ubicacionGPS"><strong>📍</strong> {{ i.ubicacionGPS }}</p>
         </div>
 
+        <!-- ✅ fotos con baseUrl dinámico -->
         <div class="fotos-mini" *ngIf="obtenerFotos(i.fotos).length > 0">
           <img *ngFor="let foto of obtenerFotos(i.fotos)"
-            [src]="'http://localhost:5214/incidentes/' + foto"
+            [src]="baseUrl + '/incidentes/' + foto"
             alt="Foto incidente">
         </div>
 
@@ -132,11 +133,12 @@
       </div>
     </div>
 
+    <!-- ✅ fotos con baseUrl dinámico -->
     <div class="fotos-detalle" *ngIf="obtenerFotos(incidenteSeleccionado.fotos).length > 0">
       <h3>📸 Fotos de evidencia</h3>
       <div class="fotos-grid">
         <img *ngFor="let foto of obtenerFotos(incidenteSeleccionado.fotos)"
-          [src]="'http://localhost:5214/incidentes/' + foto"
+          [src]="baseUrl + '/incidentes/' + foto"
           alt="Foto evidencia">
       </div>
     </div>
@@ -169,9 +171,13 @@
     </div>
 
     <div class="modal-botones">
-      <button class="btn-whatsapp" (click)="contactarConductor(incidenteSeleccionado)">
+      <!-- ✅ Link directo WhatsApp sin método automático -->
+      <a class="btn-whatsapp"
+        *ngIf="incidenteSeleccionado.conductor?.telefono"
+        [href]="getLinkWhatsApp(incidenteSeleccionado.conductor.telefono)"
+        target="_blank">
         📱 Contactar Conductor
-      </button>
+      </a>
       <button class="btn-pdf-individual" (click)="descargarPDF(incidenteSeleccionado)">
         📄 Descargar PDF
       </button>

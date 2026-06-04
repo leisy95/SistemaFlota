@@ -79,16 +79,28 @@ namespace SistemaFlota
             return Ok(cambio);
         }
 
+        // =====================================
+        // POST — SOLICITAR CAMBIO
+        // =====================================
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CrearCambioRutaDto dto)
         {
             string rutaOriginal = dto.RutaOriginal;
+            string? numeroGuia = null;
+            string? destino = null;
+
+            // ── Tomar datos de la autorización de salida ──
             if (dto.AutorizacionId.HasValue)
             {
-                var autorizacion = await _context.Autorizaciones
+                var aut = await _context.Autorizaciones
                     .FirstOrDefaultAsync(a => a.Id == dto.AutorizacionId.Value);
-                if (autorizacion != null && !string.IsNullOrWhiteSpace(autorizacion.DestinoCompleto))
-                    rutaOriginal = autorizacion.DestinoCompleto;
+                if (aut != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(aut.DestinoCompleto))
+                        rutaOriginal = aut.DestinoCompleto;
+                    numeroGuia = aut.NumeroGuia;
+                    destino = aut.DestinoCompleto;
+                }
             }
 
             var cambio = new CambioRuta
@@ -116,13 +128,16 @@ namespace SistemaFlota
                 registroId: cambio.Id
             );
 
-            // ── TWILIO ──
+            // ── TWILIO: notificar al grupo ──
             var hora = DateTime.Now.ToString("hh:mm tt");
             var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+
             var mensajeGrupo =
                 $"🔄 *SOLICITUD CAMBIO DE RUTA*\n" +
                 $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
                 $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
+                (dto.AutorizacionId.HasValue ? $"📋 Auth #{dto.AutorizacionId}\n" : "") +
+                (numeroGuia != null ? $"🔖 Guía: {numeroGuia}\n" : "") +
                 $"📍 Ruta autorizada: {rutaOriginal}\n" +
                 $"🆕 Nueva ruta solicitada: {dto.NuevaRuta}\n" +
                 $"📋 Motivo: {dto.MotivoCambio}\n" +
@@ -141,12 +156,16 @@ namespace SistemaFlota
             return Ok(cambio);
         }
 
+        // =====================================
+        // PUT — AUTORIZAR
+        // =====================================
         [HttpPut("{id}/autorizar")]
         public async Task<IActionResult> Autorizar(int id, [FromBody] AutorizarCambioDto dto)
         {
             var cambio = await _context.CambiosRuta
                 .Include(c => c.Conductor)
                 .Include(c => c.Vehiculo)
+                .Include(c => c.Autorizacion)
                 .FirstOrDefaultAsync(c => c.Id == id);
             if (cambio == null) return NotFound();
 
@@ -163,22 +182,79 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
+            // ── TWILIO: notificar al conductor ──
             if (!string.IsNullOrWhiteSpace(cambio.Conductor?.Telefono))
             {
                 var mensaje =
                     $"✅ *CAMBIO DE RUTA AUTORIZADO*\n" +
                     $"Hola {cambio.Conductor.Nombre.Split(' ')[0]},\n" +
                     $"Tu cambio de ruta fue autorizado.\n" +
+                    (cambio.AutorizacionId.HasValue ? $"📋 Auth #{cambio.AutorizacionId}\n" : "") +
                     $"📍 Ruta autorizada: {cambio.RutaOriginal}\n" +
                     $"🆕 Nueva ruta confirmada: {cambio.NuevaRuta}\n" +
-                    $"✍️ Autorizado por: {dto.AutorizadoPor}";
+                    $"✍️ Autorizado por: {dto.AutorizadoPor}\n" +
+                    $"⚠️ Por favor confirma que recibiste este mensaje respondiendo CONFIRMO";
+
                 await _twilio.EnviarMensajeAsync(cambio.Conductor.Telefono, mensaje);
             }
 
             return Ok(cambio);
         }
 
+        // =====================================
+        // PUT — CONFIRMAR (CONDUCTOR)
+        // =====================================
+        [HttpPut("{id}/confirmar")]
+        public async Task<IActionResult> Confirmar(int id)
+        {
+            var cambio = await _context.CambiosRuta
+                .Include(c => c.Conductor)
+                .Include(c => c.Vehiculo)
+                .Include(c => c.Autorizacion)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cambio == null) return NotFound();
+            if (cambio.Estado != "Autorizado")
+                return BadRequest("Solo se puede confirmar un cambio autorizado");
+
+            cambio.Estado = "Confirmado";
+            await _context.SaveChangesAsync();
+
+            await _auditoria.RegistrarAsync(
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Confirmar", modulo: "CambioRuta",
+                detalle: $"Cambio de ruta #{id} CONFIRMADO por conductor: {cambio.Conductor?.Nombre ?? "-"}",
+                registroId: id
+            );
+
+            // ── TWILIO: notificar al grupo que conductor confirmó ──
+            var hora = DateTime.Now.ToString("hh:mm tt");
+            var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+
+            var mensajeGrupo =
+                $"✅ *CAMBIO DE RUTA CONFIRMADO*\n" +
+                $"👤 Conductor: {cambio.Conductor?.Nombre ?? "-"}\n" +
+                $"🚗 Vehículo: {cambio.Vehiculo?.Placa ?? "-"}\n" +
+                (cambio.AutorizacionId.HasValue ? $"📋 Auth #{cambio.AutorizacionId}\n" : "") +
+                $"📍 Ruta autorizada: {cambio.RutaOriginal}\n" +
+                $"🆕 Nueva ruta confirmada: {cambio.NuevaRuta}\n" +
+                $"✅ El conductor confirmó el cambio de ruta\n" +
+                $"🕐 Hora: {hora} — {fecha}";
+
+            var numerosGrupo = await _context.ContactosNotificacion
+                .Where(c => c.Activo && c.RecibeIncidentes)
+                .Select(c => c.NumeroWhatsApp)
+                .ToListAsync();
+
+            if (numerosGrupo.Any())
+                await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+
+            return Ok(cambio);
+        }
+
+        // =====================================
+        // PUT — RECHAZAR
+        // =====================================
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] AutorizarCambioDto dto)
         {
@@ -201,7 +277,7 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
+            // ── TWILIO: notificar al conductor ──
             if (!string.IsNullOrWhiteSpace(cambio.Conductor?.Telefono))
             {
                 var mensaje =
@@ -216,6 +292,9 @@ namespace SistemaFlota
             return Ok(cambio);
         }
 
+        // =====================================
+        // DELETE
+        // =====================================
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)

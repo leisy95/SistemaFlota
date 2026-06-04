@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IncidentesService } from '../../services/incidentes.service';
 import { PermisosService }   from '../../services/permisos.service';
 import { PdfService }        from '../../services/pdf.service';
+import { environment }       from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -31,6 +32,9 @@ export class IncidentesComponent implements OnInit {
   revisadoPor  = '';
   observacion  = '';
 
+  // ✅ URL dinámica desde environment
+  baseUrl = environment.fotosUrl.replace('/fotos', '');
+
   readonly tiposIncidente = [
     { value: 'DañoMecanico', label: '🔧 Daño mecánico' },
     { value: 'Averia',       label: '⚠️ Avería' },
@@ -40,12 +44,9 @@ export class IncidentesComponent implements OnInit {
     { value: 'Otro',         label: '📋 Otro' },
   ];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeVer():    boolean { return this.permisosService.puedeVer('incidentes'); }
   get puedeEditar(): boolean { return this.permisosService.puedeEditar('incidentes'); }
-
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  get pendientes(): number { return this.incidentes.filter(i => i.estado === 'Pendiente').length; }
+  get pendientes():  number  { return this.incidentes.filter(i => i.estado === 'Pendiente').length; }
 
   constructor(
     private incidentesService: IncidentesService,
@@ -62,7 +63,6 @@ export class IncidentesComponent implements OnInit {
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   aplicarFiltros() {
     const q = this.filtroBusqueda.toLowerCase();
     this.incidentesFiltrados = this.incidentes.filter(i => {
@@ -98,14 +98,9 @@ export class IncidentesComponent implements OnInit {
     return fotosStr.split(',').filter(f => f.trim() !== '');
   }
 
-  contactarConductor(incidente: any) {
-    if (!incidente.conductor?.telefono) {
-      alert('El conductor no tiene número de teléfono registrado'); return;
-    }
-    const mensaje = encodeURIComponent(
-      `Hola ${incidente.conductor.nombre}, hemos recibido su reporte de incidente #${incidente.id}. Un supervisor le contactará pronto.`
-    );
-    window.open(`https://wa.me/${incidente.conductor.telefono}?text=${mensaje}`, '_blank');
+  // ✅ Contacto manual — el supervisor puede llamar al conductor si necesita
+  getLinkWhatsApp(telefono: string): string {
+    return `https://wa.me/${telefono.replace(/\D/g, '')}`;
   }
 
   abrirRevisar() {

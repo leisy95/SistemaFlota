@@ -71,6 +71,9 @@ namespace SistemaFlota
             return Ok(s);
         }
 
+        // =====================================
+        // POST — CREAR SOLICITUD
+        // =====================================
         [HttpPost]
         public async Task<IActionResult> Post(
             [FromForm] int ConductorId,
@@ -147,6 +150,9 @@ namespace SistemaFlota
             }
         }
 
+        // =====================================
+        // PUT — AUTORIZAR
+        // =====================================
         [HttpPut("{id}/autorizar")]
         public async Task<IActionResult> Autorizar(int id, [FromBody] AutorizarSolicitudDto dto)
         {
@@ -179,7 +185,8 @@ namespace SistemaFlota
                     $"Tu solicitud de taller fue autorizada.\n" +
                     $"🚗 Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
                     $"⚙️ Tipo: {s.TipoMantenimiento}\n" +
-                    $"✍️ Autorizado por: {dto.AutorizadoPor}";
+                    $"✍️ Autorizado por: {dto.AutorizadoPor}\n" +
+                    $"⚠️ Por favor confirma que recibiste este mensaje en el sistema.";
                 await _twilio.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
             }
             else
@@ -188,6 +195,57 @@ namespace SistemaFlota
             return Ok(s);
         }
 
+        // =====================================
+        // PUT — CONFIRMAR (CONDUCTOR)
+        // =====================================
+        [HttpPut("{id}/confirmar")]
+        public async Task<IActionResult> Confirmar(int id)
+        {
+            var s = await _context.SolicitudesTaller
+                .Include(s => s.Conductor)
+                .Include(s => s.Vehiculo)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (s == null) return NotFound();
+            if (s.Estado != "Autorizado")
+                return BadRequest("Solo se puede confirmar una solicitud autorizada");
+
+            s.Estado = "Confirmado";
+            await _context.SaveChangesAsync();
+
+            await _auditoria.RegistrarAsync(
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Confirmar", modulo: "SolicitudTaller",
+                detalle: $"Solicitud #{id} CONFIRMADA por conductor: {s.Conductor?.Nombre ?? "-"}",
+                registroId: id
+            );
+
+            // ── TWILIO: notificar al grupo ──
+            var hora = DateTime.Now.ToString("hh:mm tt");
+            var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+
+            var mensajeGrupo =
+                $"✅ *SOLICITUD TALLER CONFIRMADA*\n" +
+                $"👤 Conductor: {s.Conductor?.Nombre ?? "-"}\n" +
+                $"🚗 Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
+                $"⚙️ Tipo: {s.TipoMantenimiento}\n" +
+                $"✅ El conductor confirmó la autorización\n" +
+                $"🕐 Hora: {hora} — {fecha}";
+
+            var numerosGrupo = await _context.ContactosNotificacion
+                .Where(c => c.Activo && c.RecibeIncidentes)
+                .Select(c => c.NumeroWhatsApp)
+                .ToListAsync();
+
+            if (numerosGrupo.Any())
+                await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+
+            return Ok(s);
+        }
+
+        // =====================================
+        // PUT — RECHAZAR
+        // =====================================
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] AutorizarSolicitudDto dto)
         {
@@ -225,6 +283,9 @@ namespace SistemaFlota
             return Ok(s);
         }
 
+        // =====================================
+        // PUT — MARCAR EN TALLER
+        // =====================================
         [HttpPut("{id}/en-taller")]
         public async Task<IActionResult> EnTaller(int id)
         {
@@ -257,6 +318,9 @@ namespace SistemaFlota
             return Ok(s);
         }
 
+        // =====================================
+        // PUT — REGISTRAR FACTURA
+        // =====================================
         [HttpPut("{id}/factura")]
         public async Task<IActionResult> RegistrarFactura(int id, [FromBody] FacturaTallerDto dto)
         {
@@ -296,6 +360,9 @@ namespace SistemaFlota
             return Ok(s);
         }
 
+        // =====================================
+        // DELETE
+        // =====================================
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)

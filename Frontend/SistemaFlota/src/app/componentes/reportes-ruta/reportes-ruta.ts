@@ -17,7 +17,6 @@ export class ReporteRutaComponent implements OnInit {
 
   conductores: any[] = [];
   vehiculos:   any[] = [];
-  contactos:   any[] = [];
 
   enviando  = false;
   enviado   = false;
@@ -43,7 +42,6 @@ export class ReporteRutaComponent implements OnInit {
     { value: 'Otro',         label: '📋 Otro' },
   ];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('reportes-ruta'); }
 
   constructor(
@@ -56,7 +54,6 @@ export class ReporteRutaComponent implements OnInit {
   ngOnInit(): void {
     this.obtenerConductores();
     this.obtenerVehiculos();
-    this.obtenerContactos();
   }
 
   obtenerConductores() {
@@ -69,13 +66,6 @@ export class ReporteRutaComponent implements OnInit {
   obtenerVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err)  => console.error(err)
-    });
-  }
-
-  obtenerContactos() {
-    this.incidentesService.obtenerContactosWhatsApp().subscribe({
-      next: (data) => this.contactos = data,
       error: (err)  => console.error(err)
     });
   }
@@ -113,10 +103,10 @@ export class ReporteRutaComponent implements OnInit {
   }
 
   enviarReporte() {
-    if (!this.form.conductorId)          { alert('Seleccione el conductor');         return; }
-    if (!this.form.vehiculoId)           { alert('Seleccione el vehículo');          return; }
-    if (!this.form.tipoIncidente)        { alert('Seleccione el tipo de incidente'); return; }
-    if (!this.form.descripcionDetallada) { alert('Ingrese la descripción detallada');return; }
+    if (!this.form.conductorId)          { alert('Seleccione el conductor');          return; }
+    if (!this.form.vehiculoId)           { alert('Seleccione el vehículo');           return; }
+    if (!this.form.tipoIncidente)        { alert('Seleccione el tipo de incidente');  return; }
+    if (!this.form.descripcionDetallada) { alert('Ingrese la descripción detallada'); return; }
 
     this.enviando = true; this.errorMsg = '';
     const fd = new FormData();
@@ -130,36 +120,9 @@ export class ReporteRutaComponent implements OnInit {
     this.fotosSeleccionadas.forEach(foto => fd.append('Fotos', foto));
 
     this.incidentesService.crearIncidente(fd).subscribe({
-      next: (data) => { this.enviando = false; this.enviado = true; this.enviarWhatsApp(data); },
-      error: (err)  => { console.error(err); this.enviando = false; this.errorMsg = 'Error enviando el reporte. Intente de nuevo.'; }
-    });
-  }
-
-  enviarWhatsApp(incidente: any) {
-    const conductor = this.conductores.find(c => c.id === this.form.conductorId);
-    const vehiculo  = this.vehiculos.find(v  => v.id  === this.form.vehiculoId);
-    const tipo      = this.tiposIncidente.find(t => t.value === this.form.tipoIncidente);
-
-    const mensaje = encodeURIComponent(
-`🚨 *INCIDENTE EN RUTA* 🚨
-━━━━━━━━━━━━━━━━━━
-🆔 *ID Reporte:* ${incidente.id}
-📅 *Fecha:* ${new Date().toLocaleString()}
-👤 *Conductor:* ${conductor?.nombre ?? '-'}
-🚚 *Vehículo:* ${vehiculo?.placa ?? '-'}
-⚠️ *Tipo:* ${tipo?.label ?? this.form.tipoIncidente}
-📍 *Ubicación:* ${this.form.ubicacionGPS || 'No capturada'}
-━━━━━━━━━━━━━━━━━━
-📋 *Descripción:*
-${this.form.descripcionDetallada}
-━━━━━━━━━━━━━━━━━━
-_Sistema de Gestión de Flota_`
-    );
-
-    this.contactos.forEach((contacto, index) => {
-      setTimeout(() => {
-        window.open(`https://wa.me/${contacto.numeroWhatsApp}?text=${mensaje}`, '_blank');
-      }, index * 1000);
+      // ✅ Twilio envía WhatsApp automáticamente desde el backend
+      next: () => { this.enviando = false; this.enviado = true; },
+      error: (err) => { console.error(err); this.enviando = false; this.errorMsg = 'Error enviando el reporte. Intente de nuevo.'; }
     });
   }
 

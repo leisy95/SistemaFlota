@@ -11,7 +11,6 @@ import { TimeoutError, throwError } from 'rxjs';
 import { ConductoresService }    from '../../services/conductores.service';
 import { VehiculosService }      from '../../services/vehiculos.service';
 import { AutorizacionesService } from '../../services/autorizaciones.service';
-import { ContactosService }      from '../../services/contactos.service';
 import { ConfiguracionService }  from '../../services/configuracion.service';
 import { PdfService }            from '../../services/pdf.service';
 import * as XLSX from 'xlsx';
@@ -83,7 +82,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     private conductoresService:    ConductoresService,
     private vehiculosService:      VehiculosService,
     private autorizacionesService: AutorizacionesService,
-    private contactosService:      ContactosService,
     private configuracionService:  ConfiguracionService,
     private pdfService:            PdfService,
     private cdr:                   ChangeDetectorRef
@@ -104,12 +102,10 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   ngAfterViewInit(): void {}
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   aplicarFiltros(): void {
     const q = this.filtroBusqueda.toLowerCase();
     let base: any[];
     switch (this.rolUsuario) {
-      // ── Facturación ve TODAS las autorizaciones ────────────────────────────
       case 'Facturacion': base = [...this.autorizaciones]; break;
       case 'Bodega':      base = this.autorizaciones.filter(a => a.estado === 'Bodega'); break;
       case 'Porteria':    base = this.autorizaciones.filter(a => a.estado === 'Porteria' || (a.estado === 'Autorizado' && a.estadoLlegada === 'ReportadaLlegada')); break;
@@ -139,7 +135,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   private actualizarFiltradas(): void { this.aplicarFiltros(); }
 
-  // ── Facturación SÍ puede crear autorizaciones ─────────────────────────────
   get puedeCrear(): boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
 
   get tituloPorRol(): string {
@@ -157,19 +152,22 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   obtenerConductores() {
     this.conductoresService.obtenerConductores().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.conductores = data; this.cdr.markForCheck(); }, error: (err) => console.error(err)
+      next: (data) => { this.conductores = data; this.cdr.markForCheck(); },
+      error: (err) => console.error(err)
     });
   }
 
   obtenerVehiculos() {
     this.vehiculosService.obtenerVehiculos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.vehiculos = data; this.cdr.markForCheck(); }, error: (err) => console.error(err)
+      next: (data) => { this.vehiculos = data; this.cdr.markForCheck(); },
+      error: (err) => console.error(err)
     });
   }
 
   obtenerAutorizaciones() {
     this.autorizacionesService.obtenerAutorizaciones().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.autorizaciones = data; this.actualizarFiltradas(); }, error: (err) => console.error(err)
+      next: (data) => { this.autorizaciones = data; this.actualizarFiltradas(); },
+      error: (err) => console.error(err)
     });
   }
 
@@ -191,9 +189,9 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe({
       next: () => {
         this.mostrarModalLlegada = false;
-        this.mostrarNotificacion(`✅ Llegada reportada correctamente`);
+        // ✅ Twilio envía WhatsApp automáticamente desde el backend
+        this.mostrarNotificacion(`✅ Llegada reportada — WhatsApp enviado automáticamente`);
         this.obtenerAutorizaciones();
-        this.enviarWhatsAppLlegada(this.autorizacionLlegada);
         this.cdr.markForCheck();
       }, error: () => {}
     });
@@ -219,30 +217,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.obtenerAutorizaciones();
         this.cdr.markForCheck();
       }, error: () => {}
-    });
-  }
-
-  enviarWhatsAppLlegada(autorizacion: any) {
-    this.contactosService.obtenerContactos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (contactos: any[]) => {
-        const activos = contactos.filter(c => c.activo && c.recibeIncidentes);
-        const mensaje = encodeURIComponent(
-`🏁 *LLEGADA REPORTADA*
-━━━━━━━━━━━━━━━━━━
-👤 *Conductor:* ${autorizacion.conductor?.nombre ?? '-'}
-🚗 *Vehículo:* ${autorizacion.vehiculo?.placa ?? '-'}
-📍 *Venía de:* ${autorizacion.destinoCompleto || 'Mensajería'}
-🛣 *Km final:* ${this.formLlegada.kilometrajeFinal}
-🔧 *Estado vehículo:* ${this.formLlegada.estadoVehiculo}
-📋 *Novedades:* ${this.formLlegada.novedadesViaje || 'Sin novedad'}
-📅 *Fecha:* ${new Date().toLocaleString()}
-━━━━━━━━━━━━━━━━━━
-_${this.nombreEmpresa}_`
-        );
-        activos.forEach((c, i) => {
-          setTimeout(() => window.open(`https://wa.me/${c.numeroWhatsApp.replace(/\D/g,'')}?text=${mensaje}`, '_blank'), i * 1000);
-        });
-      }
     });
   }
 
@@ -309,9 +283,10 @@ _${this.nombreEmpresa}_`
     ).subscribe({
       next: (data) => {
         this.autorizacionActual = data;
-        this.mostrarNotificacion(`${this.conductorSeleccionado.nombre} — ¡Buen viaje!`);
-        this.enviarWhatsAppConductor(); this.enviarWhatsAppGrupo();
-        this.obtenerAutorizaciones(); this.cdr.markForCheck();
+        // ✅ Twilio envía WhatsApp automáticamente desde el backend
+        this.mostrarNotificacion(`✅ ${this.conductorSeleccionado.nombre} — ¡Buen viaje! WhatsApp enviado automáticamente`);
+        this.obtenerAutorizaciones();
+        this.cdr.markForCheck();
         setTimeout(() => this.resetear(), 3000);
       }, error: () => {}
     });
@@ -342,37 +317,6 @@ _${this.nombreEmpresa}_`
     this.form = { vehiculoId: 0, destinoCompleto: '', cantidadClientes: 0, pesoKilos: 0, tipoVuelta: '', descripcionCarga: '', numeroGuia: '' };
     this.usuarioFirma = ''; this.observacionFirma = '';
     this.obtenerAutorizaciones(); this.cdr.markForCheck();
-  }
-
-  enviarWhatsAppConductor() {
-    const telefono = this.conductorSeleccionado?.telefono;
-    if (!telefono?.trim()) return;
-    const mensaje = encodeURIComponent(`Hola ${this.conductorSeleccionado.nombre}, tu salida ha sido autorizada. Buen viaje. - ${this.nombreEmpresa}`);
-    window.open(`https://wa.me/${telefono.replace(/\D/g,'')}?text=${mensaje}`, '_blank');
-  }
-
-  enviarWhatsAppGrupo() {
-    this.contactosService.obtenerContactos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (contactos: any[]) => {
-        const activos = contactos.filter(c => c.activo && c.recibeIncidentes);
-        const vehiculo = this.autorizacionActual?.vehiculo?.placa ?? '-';
-        const destino  = this.autorizacionActual?.destinoCompleto || 'Mensajería';
-        const tipo     = this.autorizacionActual?.tipoVuelta ?? '-';
-        const mensaje  = encodeURIComponent(
-`🚚 *SALIDA AUTORIZADA*
-━━━━━━━━━━━━━━━━━━
-👤 *Conductor:* ${this.conductorSeleccionado.nombre}
-🚗 *Vehículo:* ${vehiculo}
-📍 *Destino:* ${destino}
-🔄 *Tipo:* ${tipo}
-🚪 *Portería:* ${this.usuarioFirma}
-📅 *Fecha:* ${new Date().toLocaleString()}
-━━━━━━━━━━━━━━━━━━
-_${this.nombreEmpresa}_`
-        );
-        activos.forEach((c, i) => setTimeout(() => window.open(`https://wa.me/${c.numeroWhatsApp.replace(/\D/g,'')}?text=${mensaje}`, '_blank'), i * 1000));
-      }
-    });
   }
 
   mostrarNotificacion(mensaje: string) {

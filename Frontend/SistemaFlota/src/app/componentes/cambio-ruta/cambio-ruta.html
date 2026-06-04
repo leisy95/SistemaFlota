@@ -25,6 +25,10 @@
       <span class="stat-numero">{{ autorizados }}</span>
       <span class="stat-label">Autorizados</span>
     </div>
+    <div class="stat-card cyan">
+      <span class="stat-numero">{{ confirmados }}</span>
+      <span class="stat-label">Confirmados</span>
+    </div>
     <div class="stat-card rojo">
       <span class="stat-numero">{{ rechazados }}</span>
       <span class="stat-label">Rechazados</span>
@@ -45,6 +49,7 @@
       <option value="">Todos los estados</option>
       <option value="Pendiente">⏳ Pendiente</option>
       <option value="Autorizado">✅ Autorizado</option>
+      <option value="Confirmado">🤝 Confirmado</option>
       <option value="Rechazado">❌ Rechazado</option>
     </select>
 
@@ -75,6 +80,7 @@
         <tr *ngFor="let c of cambiosFiltrados"
           [class.fila-pendiente]="c.estado === 'Pendiente'"
           [class.fila-autorizado]="c.estado === 'Autorizado'"
+          [class.fila-confirmado]="c.estado === 'Confirmado'"
           [class.fila-rechazado]="c.estado === 'Rechazado'">
 
           <td data-label="Fecha">{{ c.fechaSolicitud | date:'short' }}</td>
@@ -93,18 +99,24 @@
           <td data-label="Autorizado por">{{ c.autorizadoPor || '-' }}</td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-autorizar" *ngIf="c.estado === 'Pendiente' && puedeEditar"
+              <button class="btn-autorizar"
+                *ngIf="c.estado === 'Pendiente' && puedeEditar"
                 (click)="abrirAutorizar(c)">✅</button>
-              <button class="btn-rechazar"  *ngIf="c.estado === 'Pendiente' && puedeEditar"
+              <button class="btn-rechazar"
+                *ngIf="c.estado === 'Pendiente' && puedeEditar"
                 (click)="abrirRechazar(c)">❌</button>
-              <button class="btn-whatsapp"
-                *ngIf="c.estado === 'Autorizado' && c.conductor?.telefono"
-                (click)="notificarConductor(c)">📱</button>
-              <button class="btn-eliminar" *ngIf="puedeEliminar"
+              <!-- ✅ Botón confirmar — visible para Conductor cuando está Autorizado -->
+              <button class="btn-confirmar-conductor"
+                *ngIf="c.estado === 'Autorizado' &&
+                  (rolUsuario === 'Conductor' || rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
+                (click)="confirmarCambio(c)">
+                🤝 Confirmar
+              </button>
+              <button class="btn-eliminar"
+                *ngIf="puedeEliminar"
                 (click)="eliminar(c.id)">🗑️</button>
             </div>
           </td>
-
         </tr>
       </tbody>
     </table>

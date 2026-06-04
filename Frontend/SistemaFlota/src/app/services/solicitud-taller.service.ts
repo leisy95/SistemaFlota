@@ -34,6 +34,11 @@ export class SolicitudTallerService {
     return this.http.put(`${this.apiUrl}/${id}/en-taller`, {});
   }
 
+  // ✅ Conductor confirma que recibió la autorización
+  confirmar(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/confirmar`, {});
+  }
+
   registrarFactura(id: number, dto: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/factura`, dto);
   }

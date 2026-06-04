@@ -2,16 +2,11 @@
 
   <!-- ENVIADO OK -->
   <div class="enviado-ok" *ngIf="enviado">
-    <div class="enviado-icon">✅</div>
-    <h2>¡Reporte enviado!</h2>
-    <p>El reporte fue registrado y se notificó a la empresa vía WhatsApp.</p>
-    <p class="enviado-nota">
-      Si WhatsApp no abrió automáticamente, abre WhatsApp manualmente
-      y envía el mensaje a los contactos de operaciones.
-    </p>
-    <button class="btn-nuevo" (click)="nuevoReporte()">+ Nuevo Reporte</button>
-  </div>
-
+  <div class="enviado-icon">✅</div>
+  <h2>¡Reporte enviado!</h2>
+  <p>El reporte fue registrado y la empresa fue notificada automáticamente.</p>
+  <button class="btn-nuevo" (click)="nuevoReporte()">+ Nuevo Reporte</button>
+</div>
   <!-- Sin permiso -->
   <div class="enviado-ok" *ngIf="!enviado && !puedeCrear">
     <div class="enviado-icon">🔒</div>
@@ -101,12 +96,10 @@
     </div>
 
     <div class="error-msg" *ngIf="errorMsg">❌ {{ errorMsg }}</div>
-
-    <div class="aviso-whatsapp">
-      📱 <strong>Su reporte se enviará inmediatamente</strong> al equipo de
-      operaciones con todos los datos. Un supervisor lo contactará a la brevedad.
-    </div>
-
+<div class="aviso-whatsapp">
+  📱 <strong>Su reporte se enviará inmediatamente</strong> al equipo de
+  operaciones. Un supervisor lo contactará a la brevedad.
+</div>
     <div class="botones">
       <button class="btn-cancelar" (click)="nuevoReporte()">Cancelar</button>
       <button class="btn-enviar" (click)="enviarReporte()" [disabled]="enviando">

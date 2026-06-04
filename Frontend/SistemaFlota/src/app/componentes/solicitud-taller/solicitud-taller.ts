@@ -5,6 +5,7 @@ import { SolicitudTallerService } from '../../services/solicitud-taller.service'
 import { ConductoresService }     from '../../services/conductores.service';
 import { VehiculosService }       from '../../services/vehiculos.service';
 import { PermisosService }        from '../../services/permisos.service';
+import { environment }            from '../../../environments/environment';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -29,11 +30,14 @@ export class SolicitudTallerComponent implements OnInit {
   accionAut      = '';
   fotoPreview:   string | null = null;
   fotoSeleccionada: File | null = null;
+  rolUsuario     = '';
 
   filtroEstado     = '';
   filtroBusqueda   = '';
   filtroFechaDesde = '';
   filtroFechaHasta = '';
+
+  baseUrl = environment.fotosUrl.replace('/fotos', '');
 
   form = {
     conductorId: 0, vehiculoId: 0,
@@ -53,16 +57,15 @@ export class SolicitudTallerComponent implements OnInit {
     'Mantenimiento de suspensión','Otro'
   ];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('solicitud-taller'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('solicitud-taller'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('solicitud-taller'); }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  get pendientes():       number { return this.solicitudes.filter(s => s.estado === 'Pendiente').length; }
-  get enTaller():         number { return this.solicitudes.filter(s => s.estado === 'EnTaller').length; }
-  get finalizados():      number { return this.solicitudes.filter(s => s.estado === 'Finalizado').length; }
-  get pendientesFactura():number { return this.solicitudes.filter(s => s.estado === 'Finalizado' && !s.facturaValidada).length; }
+  get pendientes():        number { return this.solicitudes.filter(s => s.estado === 'Pendiente').length; }
+  get enTaller():          number { return this.solicitudes.filter(s => s.estado === 'EnTaller').length; }
+  get finalizados():       number { return this.solicitudes.filter(s => s.estado === 'Finalizado').length; }
+  get confirmados():       number { return this.solicitudes.filter(s => s.estado === 'Confirmado').length; }
+  get pendientesFactura(): number { return this.solicitudes.filter(s => s.estado === 'Finalizado' && !s.facturaValidada).length; }
 
   constructor(
     private solicitudService:   SolicitudTallerService,
@@ -72,6 +75,8 @@ export class SolicitudTallerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+    if (raw) this.rolUsuario = JSON.parse(raw).rol;
     this.cargarSolicitudes();
     this.cargarConductores();
     this.cargarVehiculos();
@@ -98,7 +103,6 @@ export class SolicitudTallerComponent implements OnInit {
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   aplicarFiltros() {
     const q = this.filtroBusqueda.toLowerCase();
     this.solicitudesFiltradas = this.solicitudes.filter(s => {
@@ -121,7 +125,6 @@ export class SolicitudTallerComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // ── Foto ──────────────────────────────────────────────────────────────────────
   seleccionarFoto(event: any) {
     const archivo = event.target.files[0];
     if (!archivo) return;
@@ -133,7 +136,6 @@ export class SolicitudTallerComponent implements OnInit {
 
   eliminarFoto() { this.fotoSeleccionada = null; this.fotoPreview = null; }
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────────
   nuevo() {
     this.form = { conductorId: 0, vehiculoId: 0, tipoMantenimiento: '', descripcionProblema: '', kilometraje: null };
     this.fotoSeleccionada = null; this.fotoPreview = null;
@@ -141,18 +143,18 @@ export class SolicitudTallerComponent implements OnInit {
   }
 
   guardar() {
-    if (!this.form.conductorId)               { alert('Seleccione un conductor');         return; }
-    if (!this.form.vehiculoId)                { alert('Seleccione un vehículo');           return; }
-    if (!this.form.tipoMantenimiento)         { alert('Seleccione tipo de mantenimiento'); return; }
-    if (!this.form.descripcionProblema.trim()){ alert('Describa el problema');             return; }
+    if (!this.form.conductorId)                { alert('Seleccione un conductor');         return; }
+    if (!this.form.vehiculoId)                 { alert('Seleccione un vehículo');           return; }
+    if (!this.form.tipoMantenimiento)          { alert('Seleccione tipo de mantenimiento'); return; }
+    if (!this.form.descripcionProblema.trim()) { alert('Describa el problema');             return; }
 
     const fd = new FormData();
     fd.append('ConductorId',         this.form.conductorId.toString());
     fd.append('VehiculoId',          this.form.vehiculoId.toString());
     fd.append('TipoMantenimiento',   this.form.tipoMantenimiento);
     fd.append('DescripcionProblema', this.form.descripcionProblema);
-    if (this.form.kilometraje)    fd.append('Kilometraje',  this.form.kilometraje.toString());
-    if (this.fotoSeleccionada)    fd.append('FotoOdometro', this.fotoSeleccionada);
+    if (this.form.kilometraje)  fd.append('Kilometraje',  this.form.kilometraje.toString());
+    if (this.fotoSeleccionada)  fd.append('FotoOdometro', this.fotoSeleccionada);
 
     this.solicitudService.crear(fd).subscribe({
       next: () => { this.cargarSolicitudes(); this.cerrarModal(); },
@@ -179,6 +181,15 @@ export class SolicitudTallerComponent implements OnInit {
       : this.solicitudService.rechazar(this.seleccionado.id, this.formAut);
     accion$.subscribe({
       next: () => { this.cargarSolicitudes(); this.cerrarAut(); },
+      error: (err) => console.error(err)
+    });
+  }
+
+  // ✅ Conductor confirma que recibió la autorización
+  confirmarSolicitud(s: any) {
+    if (!confirm('¿Confirmar que recibiste la autorización de taller?')) return;
+    this.solicitudService.confirmar(s.id).subscribe({
+      next: () => { this.cargarSolicitudes(); },
       error: (err) => console.error(err)
     });
   }
@@ -230,6 +241,7 @@ export class SolicitudTallerComponent implements OnInit {
     switch (estado) {
       case 'Pendiente':  return 'badge-pendiente';
       case 'Autorizado': return 'badge-autorizado';
+      case 'Confirmado': return 'badge-confirmado';
       case 'EnTaller':   return 'badge-taller';
       case 'Finalizado': return 'badge-finalizado';
       case 'Rechazado':  return 'badge-rechazado';
@@ -241,6 +253,7 @@ export class SolicitudTallerComponent implements OnInit {
     switch (estado) {
       case 'Pendiente':  return '⏳ Pendiente';
       case 'Autorizado': return '✅ Autorizado';
+      case 'Confirmado': return '🤝 Confirmado';
       case 'EnTaller':   return '🔧 En Taller';
       case 'Finalizado': return '✔️ Finalizado';
       case 'Rechazado':  return '❌ Rechazado';

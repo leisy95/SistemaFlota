@@ -5,8 +5,6 @@ import { CambioRutaService }     from '../../services/cambio-ruta.service';
 import { ConductoresService }    from '../../services/conductores.service';
 import { VehiculosService }      from '../../services/vehiculos.service';
 import { AutorizacionesService } from '../../services/autorizaciones.service';
-import { ContactosService }      from '../../services/contactos.service';
-import { ConfiguracionService }  from '../../services/configuracion.service';
 import { PermisosService }       from '../../services/permisos.service';
 import * as XLSX from 'xlsx';
 
@@ -29,7 +27,7 @@ export class CambioRutaComponent implements OnInit {
   mostrarAut    = false;
   seleccionado: any = null;
   accionAut     = '';
-  nombreEmpresa = 'la empresa';
+  rolUsuario    = '';
 
   filtroEstado      = '';
   filtroBusqueda    = '';
@@ -47,37 +45,30 @@ export class CambioRutaComponent implements OnInit {
 
   formAut = { autorizadoPor: '', observacion: '' };
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('cambio-ruta'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('cambio-ruta'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('cambio-ruta'); }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  get pendientes():  number { return this.cambios.filter(c => c.estado === 'Pendiente').length; }
-  get autorizados(): number { return this.cambios.filter(c => c.estado === 'Autorizado').length; }
-  get rechazados():  number { return this.cambios.filter(c => c.estado === 'Rechazado').length; }
+  get pendientes():   number { return this.cambios.filter(c => c.estado === 'Pendiente').length; }
+  get autorizados():  number { return this.cambios.filter(c => c.estado === 'Autorizado').length; }
+  get rechazados():   number { return this.cambios.filter(c => c.estado === 'Rechazado').length; }
+  get confirmados():  number { return this.cambios.filter(c => c.estado === 'Confirmado').length; }
 
   constructor(
     private cambioRutaService:     CambioRutaService,
     private conductoresService:    ConductoresService,
     private vehiculosService:      VehiculosService,
     private autorizacionesService: AutorizacionesService,
-    private contactosService:      ContactosService,
-    private configuracionService:  ConfiguracionService,
     private permisosService:       PermisosService
   ) {}
 
   ngOnInit(): void {
+    const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+    if (raw) this.rolUsuario = JSON.parse(raw).rol;
     this.cargarCambios();
     this.cargarConductores();
     this.cargarVehiculos();
     this.cargarAutorizaciones();
-    this.configuracionService.obtenerConfiguracion().subscribe({
-      next: (data: any) => {
-        if (data.nombreEmpresa?.trim()) this.nombreEmpresa = data.nombreEmpresa;
-      },
-      error: () => {}
-    });
   }
 
   cargarCambios() {
@@ -108,7 +99,6 @@ export class CambioRutaComponent implements OnInit {
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   aplicarFiltros() {
     const q = this.filtroBusqueda.toLowerCase();
     this.cambiosFiltrados = this.cambios.filter(c => {
@@ -127,14 +117,11 @@ export class CambioRutaComponent implements OnInit {
   }
 
   limpiarFiltros() {
-    this.filtroEstado     = '';
-    this.filtroBusqueda   = '';
-    this.filtroFechaDesde = '';
-    this.filtroFechaHasta = '';
+    this.filtroEstado = ''; this.filtroBusqueda = '';
+    this.filtroFechaDesde = ''; this.filtroFechaHasta = '';
     this.aplicarFiltros();
   }
 
-  // ── Importar ──────────────────────────────────────────────────────────────────
   importarAutorizacion(autorizacionId: number) {
     const aut = this.autorizaciones.find(a => a.id == autorizacionId);
     if (!aut) return;
@@ -144,7 +131,6 @@ export class CambioRutaComponent implements OnInit {
     this.form.rutaOriginal   = aut.destinoCompleto ?? '';
   }
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────────
   nuevo() {
     this.form = { autorizacionId: null, conductorId: 0, vehiculoId: 0, rutaOriginal: '', nuevaRuta: '', motivoCambio: '' };
     this.mostrarModal = true;
@@ -158,36 +144,7 @@ export class CambioRutaComponent implements OnInit {
     if (!this.form.motivoCambio.trim()) { alert('Ingrese el motivo');        return; }
 
     this.cambioRutaService.crear(this.form).subscribe({
-      next: (data) => { this.cargarCambios(); this.cerrarModal(); this.notificarContactos(data); },
-      error: (err)  => console.error(err)
-    });
-  }
-
-  notificarContactos(cambio: any) {
-    const conductor = this.conductores.find(c => c.id === this.form.conductorId);
-    const vehiculo  = this.vehiculos.find(v  => v.id  === this.form.vehiculoId);
-    this.contactosService.obtenerContactos().subscribe({
-      next: (contactos: any[]) => {
-        const activos = contactos.filter(c => c.activo && c.recibeIncidentes);
-        const mensaje = encodeURIComponent(
-`🔄 *CAMBIO DE RUTA SOLICITADO* ⚠️
-━━━━━━━━━━━━━━━━━━
-👤 *Conductor:* ${conductor?.nombre ?? '-'}
-🚗 *Vehículo:* ${vehiculo?.placa ?? '-'}
-📍 *Ruta original:* ${this.form.rutaOriginal}
-🆕 *Nueva ruta:* ${this.form.nuevaRuta}
-❓ *Motivo:* ${this.form.motivoCambio}
-📅 *Fecha:* ${new Date().toLocaleString()}
-━━━━━━━━━━━━━━━━━━
-⚠️ Requiere autorización
-_${this.nombreEmpresa}_`
-        );
-        activos.forEach((contacto, index) => {
-          setTimeout(() => {
-            window.open(`https://wa.me/${contacto.numeroWhatsApp.replace(/\D/g,'')}?text=${mensaje}`, '_blank');
-          }, index * 1000);
-        });
-      },
+      next: () => { this.cargarCambios(); this.cerrarModal(); },
       error: (err) => console.error(err)
     });
   }
@@ -211,24 +168,18 @@ _${this.nombreEmpresa}_`
       : this.cambioRutaService.rechazar(this.seleccionado.id, this.formAut);
 
     accion$.subscribe({
-      next: (data) => {
-        this.cargarCambios(); this.cerrarAut();
-        if (this.accionAut === 'autorizar') this.notificarConductor(data);
-      },
+      next: () => { this.cargarCambios(); this.cerrarAut(); },
       error: (err) => console.error(err)
     });
   }
 
-  notificarConductor(cambio: any) {
-    const telefono = cambio.conductor?.telefono;
-    if (!telefono) return;
-    const mensaje = encodeURIComponent(
-      `Hola ${cambio.conductor.nombre}, tu cambio de ruta ha sido AUTORIZADO ✅.\n` +
-      `Nueva ruta: ${cambio.nuevaRuta}\n` +
-      `Autorizado por: ${cambio.autorizadoPor}\n` +
-      `- ${this.nombreEmpresa}`
-    );
-    window.open(`https://wa.me/${telefono.replace(/\D/g,'')}?text=${mensaje}`, '_blank');
+  // ✅ Conductor confirma que recibió la autorización
+  confirmarCambio(cambio: any) {
+    if (!confirm('¿Confirmar que recibiste la autorización del cambio de ruta?')) return;
+    this.cambioRutaService.confirmar(cambio.id).subscribe({
+      next: () => { this.cargarCambios(); },
+      error: (err) => console.error(err)
+    });
   }
 
   eliminar(id: number) {
@@ -244,10 +195,11 @@ _${this.nombreEmpresa}_`
 
   getBadgeEstado(estado: string): string {
     switch (estado) {
-      case 'Pendiente':  return 'badge-pendiente';
-      case 'Autorizado': return 'badge-autorizado';
-      case 'Rechazado':  return 'badge-rechazado';
-      default:           return 'badge-pendiente';
+      case 'Pendiente':   return 'badge-pendiente';
+      case 'Autorizado':  return 'badge-autorizado';
+      case 'Confirmado':  return 'badge-confirmado';
+      case 'Rechazado':   return 'badge-rechazado';
+      default:            return 'badge-pendiente';
     }
   }
 

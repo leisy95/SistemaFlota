@@ -30,6 +30,11 @@ export class CambioRutaService {
     return this.http.put(`${this.apiUrl}/${id}/rechazar`, dto);
   }
 
+  // ✅ Conductor confirma que recibió la autorización
+  confirmar(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/confirmar`, {});
+  }
+
   eliminar(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }

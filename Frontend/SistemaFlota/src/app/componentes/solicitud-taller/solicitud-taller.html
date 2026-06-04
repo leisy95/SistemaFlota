@@ -20,6 +20,10 @@
       <span class="stat-numero">{{ pendientes }}</span>
       <span class="stat-label">Pendientes</span>
     </div>
+    <div class="stat-card cyan">
+      <span class="stat-numero">{{ confirmados }}</span>
+      <span class="stat-label">Confirmados</span>
+    </div>
     <div class="stat-card naranja">
       <span class="stat-numero">{{ enTaller }}</span>
       <span class="stat-label">En taller</span>
@@ -44,6 +48,7 @@
       <option value="">Todos los estados</option>
       <option value="Pendiente">⏳ Pendiente</option>
       <option value="Autorizado">✅ Autorizado</option>
+      <option value="Confirmado">🤝 Confirmado</option>
       <option value="EnTaller">🔧 En Taller</option>
       <option value="Finalizado">✔️ Finalizado</option>
       <option value="Rechazado">❌ Rechazado</option>
@@ -75,6 +80,7 @@
         <tr *ngFor="let s of solicitudesFiltradas"
           [class.fila-pendiente]="s.estado === 'Pendiente'"
           [class.fila-autorizado]="s.estado === 'Autorizado'"
+          [class.fila-confirmado]="s.estado === 'Confirmado'"
           [class.fila-taller]="s.estado === 'EnTaller'"
           [class.fila-finalizado]="s.estado === 'Finalizado'"
           [class.fila-rechazado]="s.estado === 'Rechazado'">
@@ -95,19 +101,30 @@
           <td data-label="Acciones">
             <div class="btn-acciones">
               <button class="btn-ver" (click)="verDetalle(s)">👁️</button>
-              <button class="btn-autorizar" *ngIf="s.estado === 'Pendiente' && puedeEditar"
+              <button class="btn-autorizar"
+                *ngIf="s.estado === 'Pendiente' && puedeEditar"
                 (click)="abrirAutorizar(s)">✅</button>
-              <button class="btn-rechazar"  *ngIf="s.estado === 'Pendiente' && puedeEditar"
+              <button class="btn-rechazar"
+                *ngIf="s.estado === 'Pendiente' && puedeEditar"
                 (click)="abrirRechazar(s)">❌</button>
-              <button class="btn-taller"    *ngIf="s.estado === 'Autorizado' && puedeEditar"
+              <!-- ✅ Botón confirmar para conductor -->
+              <button class="btn-confirmar-conductor"
+                *ngIf="s.estado === 'Autorizado' &&
+                  (rolUsuario === 'Conductor' || rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
+                (click)="confirmarSolicitud(s)">
+                🤝 Confirmar
+              </button>
+              <button class="btn-taller"
+                *ngIf="s.estado === 'Confirmado' && puedeEditar"
                 (click)="marcarEnTaller(s.id)">🔧</button>
-              <button class="btn-factura"   *ngIf="(s.estado === 'EnTaller' || s.estado === 'Finalizado') && puedeEditar"
+              <button class="btn-factura"
+                *ngIf="(s.estado === 'EnTaller' || s.estado === 'Finalizado') && puedeEditar"
                 (click)="abrirFactura(s)">📄</button>
-              <button class="btn-eliminar"  *ngIf="puedeEliminar"
+              <button class="btn-eliminar"
+                *ngIf="puedeEliminar"
                 (click)="eliminar(s.id)">🗑️</button>
             </div>
           </td>
-
         </tr>
       </tbody>
     </table>
@@ -286,7 +303,7 @@
       <div class="detalle-item full"><span>📋 Descripción del problema</span><strong>{{ seleccionado?.descripcionProblema }}</strong></div>
       <div class="detalle-item full" *ngIf="seleccionado?.fotoOdometro">
         <span>📸 Foto odómetro</span>
-        <img [src]="'http://localhost:5214/solicitudes-taller/' + seleccionado.fotoOdometro"
+        <img [src]="baseUrl + '/solicitudes-taller/' + seleccionado.fotoOdometro"
           alt="Odómetro" class="foto-detalle">
       </div>
       <div class="detalle-item" *ngIf="seleccionado?.autorizadoPor">
