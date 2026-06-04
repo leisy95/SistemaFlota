@@ -81,6 +81,9 @@ builder.Services.AddScoped<AuditoriaService>();
 // ── TWILIO ────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<ITwilioService, TwilioService>();
 
+// ── Zona horaria Colombia UTC-5 ───────────────────────────────────────────────
+Environment.SetEnvironmentVariable("TZ", "America/Bogota");
+
 // ── Puerto — solo Railway en producción ──────────────────────────────────────
 if (!builder.Environment.IsDevelopment())
 {
@@ -179,7 +182,9 @@ app.UseExceptionHandler(errorApp =>
             Console.WriteLine($"❌ ERROR GLOBAL: {error.Error.Message}");
             Console.WriteLine($"❌ STACK: {error.Error.StackTrace}");
             await context.Response.WriteAsync(
-                System.Text.Json.JsonSerializer.Serialize(new { error = error.Error.Message })
+                System.Text.Json.JsonSerializer.Serialize(
+                    new { error = error.Error.Message }
+                )
             );
         }
     });
