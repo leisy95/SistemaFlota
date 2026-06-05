@@ -42,4 +42,9 @@ export class AutorizacionesService {
   confirmarLlegada(id: number, datos: { firma: string; usuario: string; observacion: string }): Observable<any> {
     return this.http.put<any>(`${this.api}/${id}/confirmar-llegada`, datos);
   }
+
+  // ── Salida en Ruta ────────────────────────────────────────────────────────
+  confirmarSalida(id: number): Observable<any> {
+    return this.http.put<any>(`${this.api}/${id}/confirmar-salida`, {});
+  }
 }

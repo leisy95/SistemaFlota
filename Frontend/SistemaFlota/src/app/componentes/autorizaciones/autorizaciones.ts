@@ -353,6 +353,20 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
+  confirmarSalida(autorizacion: any) {
+  if (!confirm(`¿Confirmar salida en ruta de ${autorizacion.conductor?.nombre}?`)) return;
+  this.autorizacionesService.confirmarSalida(autorizacion.id).pipe(
+    timeout(15000), takeUntil(this.destroy$),
+    catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
+  ).subscribe({
+    next: () => {
+      this.mostrarNotificacion(`🚛 Salida en ruta confirmada — WhatsApp enviado`);
+      this.obtenerAutorizaciones();
+      this.cdr.markForCheck();
+    }, error: () => {}
+  });
+}
+
   resetear() {
     this.pasoActual = 1; this.conductorSeleccionado = null; this.autorizacionActual = null; this.vistaLista = true;
     this.facturasClientes = []; this.guiaGenerada = '';

@@ -88,6 +88,14 @@
                 (click)="continuarAutorizacion(a)">
                 <i class="fa-solid fa-arrow-right"></i> Continuar
               </button>
+
+              <!-- Confirmar salida en ruta: solo Conductor cuando está Autorizado y no ha confirmado salida -->
+<button class="btn-salida-ruta"
+  *ngIf="a.estado === 'Autorizado' && !a.fechaSalidaReal &&
+    (rolUsuario === 'Conductor')"
+  (click)="confirmarSalida(a)">
+  <i class="fa-solid fa-truck-fast"></i> Salir en ruta
+</button>
               <button class="btn-reportar-llegada"
                 *ngIf="a.estado === 'Autorizado' && !a.estadoLlegada &&
                   (rolUsuario === 'Conductor' || rolUsuario === 'Admin' ||
