@@ -48,19 +48,13 @@
       <option value="no">🔴 No entregadas</option>
     </select>
 
-    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
-      (change)="aplicarFiltros()" placeholder="Desde">
-
-    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
-      (change)="aplicarFiltros()" placeholder="Hasta">
-
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
     <button class="btn-refresh" (click)="cargarRegistros()">🔄</button>
     <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
   </div>
 
-  <!-- Resultado filtro -->
-  <p class="resultado-filtro"
-    *ngIf="registrosFiltrados.length !== registros.length">
+  <p class="resultado-filtro" *ngIf="registrosFiltrados.length !== registros.length">
     Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
   </p>
 
@@ -75,8 +69,8 @@
           <th>Conductor</th>
           <th>Vehículo</th>
           <th>Flete</th>
-          <th>Ajuste</th>
           <th>Entregada</th>
+          <th>Ajuste</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -95,14 +89,17 @@
             <span *ngIf="r.valorFlete">${{ r.valorFlete | number:'1.0-0' }}</span>
             <span *ngIf="!r.valorFlete">-</span>
           </td>
-          <td data-label="Ajuste">
-            <span class="badge-si" *ngIf="r.ajusteRecibido">✅ Sí</span>
-            <span class="badge-no" *ngIf="!r.ajusteRecibido">❌ No</span>
-          </td>
+          <!-- ✅ Entregada primero -->
           <td data-label="Entregada">
             <span class="badge-entregada"    *ngIf="r.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">🔴 Pendiente</span>
           </td>
+          <!-- ✅ Ajuste segundo -->
+          <td data-label="Ajuste">
+            <span class="badge-si" *ngIf="r.ajusteRecibido">✅ Sí</span>
+            <span class="badge-no" *ngIf="!r.ajusteRecibido">❌ No</span>
+          </td>
+          <!-- ✅ Estado tercero -->
           <td data-label="Estado">
             <span [class]="getBadgeEstado(r.estado)">{{ getLabelEstado(r.estado) }}</span>
           </td>
@@ -113,7 +110,6 @@
               <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)">🗑️</button>
             </div>
           </td>
-
         </tr>
       </tbody>
     </table>
@@ -140,15 +136,27 @@
       <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
     </div>
 
+    <!-- ✅ Importar autorización — muestra solo #id -->
     <div class="importar-aut">
       <label>🔗 Importar desde autorización <span class="opcional">(opcional)</span></label>
       <select (change)="importarAutorizacion(+$any($event.target).value)">
         <option value="0">Seleccione una autorización...</option>
         <option *ngFor="let a of autorizaciones" [value]="a.id">
           #{{ a.id }} — {{ a.conductor }} — {{ a.vehiculo }}
-          {{ a.facturasClientes ? '| ' + a.facturasClientes : '' }}
         </option>
       </select>
+
+      <!-- ✅ Selector de factura individual -->
+      <div *ngIf="facturasDisponibles.length > 0" class="facturas-disponibles">
+        <label>📄 Seleccionar factura de esta autorización</label>
+        <select (change)="seleccionarFactura(+$any($event.target).value)">
+          <option value="-1">Seleccione una factura...</option>
+          <option *ngFor="let f of facturasDisponibles; let i = index" [value]="i">
+            {{ f.facturaRemision }} — {{ f.cliente }}
+            {{ f.pesoKilos ? '— ' + f.pesoKilos + ' kg' : '' }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <div class="form-grid">
@@ -193,21 +201,12 @@
         <input type="number" [(ngModel)]="form.valorFlete" placeholder="Ej: 250000">
       </div>
 
+      <!-- ✅ Orden: Estado → Factura entregada → Ajuste -->
       <div class="form-group">
         <label>🔄 Estado</label>
         <select [(ngModel)]="form.estado">
           <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label>💱 Ajuste recibido</label>
-        <div class="toggle-group">
-          <button class="btn-toggle" [class.activo-verde]="form.ajusteRecibido"
-            (click)="form.ajusteRecibido = true">✅ Sí</button>
-          <button class="btn-toggle" [class.activo-rojo]="!form.ajusteRecibido"
-            (click)="form.ajusteRecibido = false">❌ No</button>
-        </div>
       </div>
 
       <div class="form-group">
@@ -217,6 +216,16 @@
             (click)="form.facturaEntregada = true">✅ Entregada</button>
           <button class="btn-toggle" [class.activo-rojo]="!form.facturaEntregada"
             (click)="form.facturaEntregada = false">🔴 Pendiente</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>💱 Ajuste</label>
+        <div class="toggle-group">
+          <button class="btn-toggle" [class.activo-verde]="form.ajusteRecibido"
+            (click)="form.ajusteRecibido = true">✅ Sí</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.ajusteRecibido"
+            (click)="form.ajusteRecibido = false">❌ No</button>
         </div>
       </div>
 
@@ -257,11 +266,8 @@
       <div class="detalle-item"><span>⚖️ Peso</span><strong>{{ registroSeleccionado?.pesoKilos ? registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong></div>
       <div class="detalle-item"><span>💰 Valor flete</span><strong>{{ registroSeleccionado?.valorFlete ? '$' + (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong></div>
       <div class="detalle-item">
-        <span>💱 Ajuste recibido</span>
-        <strong>
-          <span class="badge-si" *ngIf="registroSeleccionado?.ajusteRecibido">✅ Sí</span>
-          <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
-        </strong>
+        <span>📊 Estado</span>
+        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{ getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
       </div>
       <div class="detalle-item">
         <span>📬 Factura entregada</span>
@@ -270,11 +276,14 @@
           <span class="badge-no-entregada" *ngIf="!registroSeleccionado?.facturaEntregada">🔴 Pendiente</span>
         </strong>
       </div>
-      <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
       <div class="detalle-item">
-        <span>📊 Estado</span>
-        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{ getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
+        <span>💱 Ajuste</span>
+        <strong>
+          <span class="badge-si" *ngIf="registroSeleccionado?.ajusteRecibido">✅ Sí</span>
+          <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
+        </strong>
       </div>
+      <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
       <div class="detalle-item full" *ngIf="registroSeleccionado?.novedad">
         <span>⚠️ Novedad</span>
         <strong>{{ registroSeleccionado?.novedad }}</strong>

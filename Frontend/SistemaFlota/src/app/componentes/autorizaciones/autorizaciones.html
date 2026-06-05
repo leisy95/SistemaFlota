@@ -333,25 +333,33 @@
         <textarea [(ngModel)]="form.descripcionCarga"
           [placeholder]="esMensajeria ? 'Descripción opcional...' : 'Describa el tipo de mercancía...'"></textarea>
       </div>
-      <div class="form-group full">
-        <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span class="opcional">(opcional)</span></label>
-        <div class="facturas-lista">
-          <div class="factura-header" *ngIf="facturasClientes.length > 0">
-            <span>Factura o Remisión</span><span>Cliente</span><span></span>
-          </div>
-          <div class="factura-fila" *ngFor="let f of facturasClientes; let i = index; trackBy: trackByIdx">
-            <input type="text" [(ngModel)]="f.facturaRemision" placeholder="F-001">
-            <input type="text" [(ngModel)]="f.cliente" placeholder="Nombre del cliente">
-            <button class="btn-eliminar-fila" (click)="eliminarFactura(i)">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-          <button class="btn-agregar-fila" (click)="agregarFactura()">
-            <i class="fa-solid fa-plus"></i> Agregar factura
-          </button>
-        </div>
-      </div>
+    <div class="form-group full">
+  <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span class="opcional">(opcional)</span></label>
+  <div class="facturas-lista">
+    <div class="factura-header" *ngIf="facturasClientes.length > 0">
+      <span>Factura o Remisión</span>
+      <span>Cliente</span>
+      <span>Peso (kg)</span>
+      <span></span>
     </div>
+    <div class="factura-fila" *ngFor="let f of facturasClientes; let i = index; trackBy: trackByIdx">
+      <input type="text"   [(ngModel)]="f.facturaRemision" placeholder="F-001">
+      <input type="text"   [(ngModel)]="f.cliente"         placeholder="Nombre del cliente">
+      <input type="number" [(ngModel)]="f.pesoKilos"       placeholder="Kg"
+        (ngModelChange)="recalcularPeso()">
+      <button class="btn-eliminar-fila" (click)="eliminarFactura(i)">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+    <button class="btn-agregar-fila" (click)="agregarFactura()">
+      <i class="fa-solid fa-plus"></i> Agregar factura
+    </button>
+    <p class="peso-total" *ngIf="facturasClientes.length > 0 && pesoTotalFacturas > 0">
+      <i class="fa-solid fa-weight-hanging"></i>
+      Peso total facturas: <strong>{{ pesoTotalFacturas }} kg</strong>
+    </p>
+  </div>
+</div>
     <div class="aviso" *ngIf="!esMensajeria">
       <i class="fa-solid fa-circle-info"></i> Los campos marcados con * son obligatorios.
     </div>

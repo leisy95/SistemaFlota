@@ -18,6 +18,7 @@ export class TrazabilidadComponent implements OnInit {
   registrosFiltrados:   any[] = [];
   autorizaciones:       any[] = [];
   notas:                any[] = [];
+  facturasDisponibles:  any[] = [];
 
   mostrarModal          = false;
   mostrarDetalle        = false;
@@ -28,7 +29,6 @@ export class TrazabilidadComponent implements OnInit {
   editandoNotaId:       number | null = null;
   registroSeleccionado: any = null;
 
-  // Filtros
   filtroEstado      = '';
   filtroEntregada   = '';
   filtroBusqueda    = '';
@@ -63,12 +63,10 @@ export class TrazabilidadComponent implements OnInit {
     { value: 'Novedad',    label: '⚠️ Novedad'      },
   ];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('trazabilidad'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('trazabilidad'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('trazabilidad'); }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────────
   get totalFlete(): number { return this.registrosFiltrados.reduce((s, r) => s + (r.valorFlete || 0), 0); }
   get entregados(): number { return this.registros.filter(r =>  r.facturaEntregada).length; }
   get pendientes(): number { return this.registros.filter(r => !r.facturaEntregada).length; }
@@ -97,7 +95,6 @@ export class TrazabilidadComponent implements OnInit {
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────────
   aplicarFiltros() {
     const q = this.filtroBusqueda.toLowerCase();
     this.registrosFiltrados = this.registros.filter(r => {
@@ -127,28 +124,43 @@ export class TrazabilidadComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // ── Importar desde autorización ───────────────────────────────────────────────
+  // ✅ Importar autorización — solo número de salida, facturas disponibles para seleccionar
   importarAutorizacion(autorizacionId: number) {
     const aut = this.autorizaciones.find(a => a.id == autorizacionId);
-    if (!aut) return;
+    if (!aut) { this.facturasDisponibles = []; return; }
+
     this.form.autorizacionId = aut.id;
-    this.form.conductor      = aut.conductor ?? '';
-    this.form.vehiculo       = aut.vehiculo  ?? '';
+    this.form.conductor      = aut.conductor  ?? '';
+    this.form.vehiculo       = aut.vehiculo   ?? '';
     this.form.guia           = aut.numeroGuia ?? '';
+
+    // Limpiar campos de factura para que el usuario seleccione
+    this.form.facturaRemision = '';
+    this.form.cliente         = '';
+    this.form.pesoKilos       = null;
+
+    // Cargar facturas disponibles de la autorización
     if (aut.facturasClientes) {
       try {
-        const facturas = JSON.parse(aut.facturasClientes);
-        if (facturas.length > 0) {
-          this.form.facturaRemision = facturas[0].facturaRemision ?? '';
-          this.form.cliente         = facturas[0].cliente         ?? '';
-        }
-      } catch {}
+        this.facturasDisponibles = JSON.parse(aut.facturasClientes);
+      } catch { this.facturasDisponibles = []; }
+    } else {
+      this.facturasDisponibles = [];
     }
   }
 
-  // ── CRUD registros ────────────────────────────────────────────────────────────
+  // ✅ Seleccionar factura individual — autocompleta cliente, peso
+  seleccionarFactura(index: number) {
+    if (index < 0 || index >= this.facturasDisponibles.length) return;
+    const f = this.facturasDisponibles[index];
+    this.form.facturaRemision = f.facturaRemision ?? '';
+    this.form.cliente         = f.cliente         ?? '';
+    this.form.pesoKilos       = f.pesoKilos       ?? null;
+  }
+
   nuevo() {
     this.editando = false; this.editandoId = null;
+    this.facturasDisponibles = [];
     this.form = {
       autorizacionId: null, facturaRemision: '', cliente: '',
       conductor: '', transportadora: '', guia: '', vehiculo: '',
@@ -161,6 +173,7 @@ export class TrazabilidadComponent implements OnInit {
 
   editar(r: any) {
     this.editando = true; this.editandoId = r.id;
+    this.facturasDisponibles = [];
     this.form = {
       autorizacionId:   r.autorizacionId   ?? null,
       facturaRemision:  r.facturaRemision,
@@ -202,7 +215,6 @@ export class TrazabilidadComponent implements OnInit {
     });
   }
 
-  // ── Detalle y notas ───────────────────────────────────────────────────────────
   verDetalle(r: any) {
     this.registroSeleccionado = r;
     this.mostrarDetalle = true;
@@ -254,9 +266,9 @@ export class TrazabilidadComponent implements OnInit {
     });
   }
 
-  cerrarModal()   { this.mostrarModal   = false; }
+  cerrarModal()   { this.mostrarModal = false; this.facturasDisponibles = []; }
   cerrarDetalle() { this.mostrarDetalle = false; this.registroSeleccionado = null; this.notas = []; }
-  cerrarNota()    { this.mostrarNota    = false; }
+  cerrarNota()    { this.mostrarNota = false; }
 
   getBadgeEstado(estado: string): string {
     switch (estado) {
@@ -290,8 +302,8 @@ export class TrazabilidadComponent implements OnInit {
       'Guía':              r.guia             || '-',
       'Peso (kg)':         r.pesoKilos        ?? '-',
       'Valor flete':       r.valorFlete       ?? '-',
-      'Ajuste recibido':   r.ajusteRecibido   ? 'Sí' : 'No',
       'Factura entregada': r.facturaEntregada ? 'Sí' : 'No',
+      'Ajuste':            r.ajusteRecibido   ? 'Sí' : 'No',
       'Fecha entrega':     r.fechaEntrega ? new Date(r.fechaEntrega).toLocaleString() : '-',
       'Estado':            r.estado,
       'Novedad':           r.novedad || '-',

@@ -40,7 +40,9 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     pesoKilos: 0, tipoVuelta: '', descripcionCarga: '', numeroGuia: ''
   };
 
-  facturasClientes: { facturaRemision: string; cliente: string }[] = [];
+  // ✅ Facturas con peso individual
+  facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: number | null }[] = [];
+
   guiaGenerada     = '';
   usuarioFirma     = '';
   observacionFirma = '';
@@ -150,6 +152,18 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   trackById(_i: number, item: any): number { return item.id; }
   trackByIdx(i: number, _item: any): number { return i; }
 
+  // ✅ Peso total de todas las facturas
+  get pesoTotalFacturas(): number {
+    return this.facturasClientes.reduce((sum, f) => sum + (f.pesoKilos || 0), 0);
+  }
+
+  // ✅ Recalcular peso en kilos al cambiar facturas
+  recalcularPeso(): void {
+    const total = this.pesoTotalFacturas;
+    if (total > 0) this.form.pesoKilos = total;
+    this.cdr.markForCheck();
+  }
+
   obtenerConductores() {
     this.conductoresService.obtenerConductores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.conductores = data; this.cdr.markForCheck(); },
@@ -189,7 +203,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe({
       next: () => {
         this.mostrarModalLlegada = false;
-        // ✅ Twilio envía WhatsApp automáticamente desde el backend
         this.mostrarNotificacion(`✅ Llegada reportada — WhatsApp enviado automáticamente`);
         this.obtenerAutorizaciones();
         this.cdr.markForCheck();
@@ -231,9 +244,21 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  agregarFactura()  { this.facturasClientes = [...this.facturasClientes, { facturaRemision: '', cliente: '' }]; this.cdr.markForCheck(); }
-  eliminarFactura(i: number) { this.facturasClientes = this.facturasClientes.filter((_,idx) => idx !== i); this.cdr.markForCheck(); }
-  obtenerFacturas(json: string): any[] { if (!json) return []; try { return JSON.parse(json); } catch { return []; } }
+  agregarFactura() {
+    this.facturasClientes = [...this.facturasClientes, { facturaRemision: '', cliente: '', pesoKilos: null }];
+    this.cdr.markForCheck();
+  }
+
+  eliminarFactura(i: number) {
+    this.facturasClientes = this.facturasClientes.filter((_, idx) => idx !== i);
+    this.recalcularPeso();
+    this.cdr.markForCheck();
+  }
+
+  obtenerFacturas(json: string): any[] {
+    if (!json) return [];
+    try { return JSON.parse(json); } catch { return []; }
+  }
 
   guardarDetalles() {
     if (!this.form.vehiculoId) { alert('Seleccione una placa'); return; }
@@ -245,15 +270,22 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       if (!this.form.descripcionCarga) { alert('Ingrese descripción de la carga'); return; }
     }
     const datos = {
-      conductorId: Number(this.conductorSeleccionado.id), vehiculoId: Number(this.form.vehiculoId),
-      destinoCompleto: this.form.destinoCompleto || '', cantidadClientes: Number(this.form.cantidadClientes) || 0,
-      pesoKilos: Number(this.form.pesoKilos) || 0, tipoVuelta: this.form.tipoVuelta,
-      descripcionCarga: this.form.descripcionCarga || '', numeroGuia: this.form.numeroGuia || '',
+      conductorId:      Number(this.conductorSeleccionado.id),
+      vehiculoId:       Number(this.form.vehiculoId),
+      destinoCompleto:  this.form.destinoCompleto  || '',
+      cantidadClientes: Number(this.form.cantidadClientes) || 0,
+      pesoKilos:        Number(this.form.pesoKilos) || 0,
+      tipoVuelta:       this.form.tipoVuelta,
+      descripcionCarga: this.form.descripcionCarga || '',
+      numeroGuia:       this.form.numeroGuia       || '',
       facturasClientes: this.facturasClientes.length > 0 ? JSON.stringify(this.facturasClientes) : null
     };
     this.autorizacionesService.crear(datos).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(err instanceof TimeoutError ? 'Timeout' : `Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
-    ).subscribe({ next: (data) => { this.autorizacionActual = data; this.pasoActual = 3; this.cdr.markForCheck(); }, error: () => {} });
+    ).subscribe({
+      next: (data) => { this.autorizacionActual = data; this.pasoActual = 3; this.cdr.markForCheck(); },
+      error: () => {}
+    });
   }
 
   firmarFacturacion() {
@@ -262,7 +294,10 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       { firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma }
     ).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
-    ).subscribe({ next: (data) => { this.autorizacionActual = data; this.usuarioFirma = ''; this.observacionFirma = ''; this.pasoActual = 4; this.cdr.markForCheck(); }, error: () => {} });
+    ).subscribe({
+      next: (data) => { this.autorizacionActual = data; this.usuarioFirma = ''; this.observacionFirma = ''; this.pasoActual = 4; this.cdr.markForCheck(); },
+      error: () => {}
+    });
   }
 
   firmarBodega() {
@@ -271,7 +306,10 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       { firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma }
     ).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
-    ).subscribe({ next: (data) => { this.autorizacionActual = data; this.usuarioFirma = ''; this.observacionFirma = ''; this.pasoActual = 5; this.mostrarNotificacion(`Salida autorizada por Bodega`); this.cdr.markForCheck(); }, error: () => {} });
+    ).subscribe({
+      next: (data) => { this.autorizacionActual = data; this.usuarioFirma = ''; this.observacionFirma = ''; this.pasoActual = 5; this.mostrarNotificacion(`Salida autorizada por Bodega`); this.cdr.markForCheck(); },
+      error: () => {}
+    });
   }
 
   firmarPorteria() {
@@ -283,7 +321,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe({
       next: (data) => {
         this.autorizacionActual = data;
-        // ✅ Twilio envía WhatsApp automáticamente desde el backend
         this.mostrarNotificacion(`✅ ${this.conductorSeleccionado.nombre} — ¡Buen viaje! WhatsApp enviado automáticamente`);
         this.obtenerAutorizaciones();
         this.cdr.markForCheck();
