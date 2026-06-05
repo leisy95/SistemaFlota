@@ -4,6 +4,7 @@ import { FormsModule }  from '@angular/forms';
 import { AuthService }  from '../../services/auth.service';
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { environment } from '../../../environments/environment';
+import { retry } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -61,7 +62,8 @@ export class LoginComponent implements OnInit {
     this.cargando = true;
     this.error    = '';
 
-    this.auth.login(this.username, this.password).subscribe({
+    this.auth.login(this.username, this.password).pipe(
+    retry({ count: 2, delay: 2000 }) ).subscribe({
       next: (res: any) => {
         localStorage.setItem('token', res.token);
         localStorage.setItem('user', JSON.stringify({
