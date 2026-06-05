@@ -83,5 +83,12 @@ namespace SistemaFlota
 
         // Estado del turno: null = en ruta | ReportadaLlegada | Completada
         public string? EstadoLlegada { get; set; }
-    }
+
+        // ========================
+        // SALIDA EN RUTA
+        // Conductor confirma cuando sale al día siguiente
+        // ========================
+        public DateTime? FechaSalidaReal { get; set; }
+    
+}
 }

@@ -376,7 +376,65 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
+        [HttpPut("{id}/confirmar-salida")]
+        public async Task<IActionResult> ConfirmarSalida(int id)
+        {
+            try
+            {
+                var a = await _context.Autorizaciones.FindAsync(id);
+                if (a == null) return NotFound();
+                if (a.Estado != "Autorizado")
+                    return BadRequest("Solo se puede confirmar salida de autorizaciones en estado Autorizado");
+                if (a.FechaSalidaReal != null)
+                    return BadRequest("La salida ya fue confirmada");
 
+                a.FechaSalidaReal = FechaHelper.Ahora();
+                await _context.SaveChangesAsync();
+
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "ConfirmarSalida", modulo: "Autorizaciones",
+                    detalle: $"Salida en ruta confirmada — #{id}, hora: {a.FechaSalidaReal:hh:mm tt dd/MM/yyyy}",
+                    registroId: id
+                );
+
+                // ── TWILIO al grupo ──
+                var resultado = await CargarConRelaciones(id);
+                if (resultado != null)
+                {
+                    var ahora = a.FechaSalidaReal.Value;
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var destino = resultado.DestinoCompleto ?? "-";
+
+                    var mensaje =
+                        $"🚛 *SALIDA EN RUTA*\n" +
+                        $"━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n" +
+                        $"🚗 Vehículo: {placa}\n" +
+                        $"📍 Destino: {destino}\n" +
+                        $"🕐 Hora salida real: {hora} — {fecha}\n" +
+                        $"━━━━━━━━━━━━━━━━━━";
+
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (numerosGrupo.Any())
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                }
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR ConfirmarSalida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] FirmaDto dto)
         {
