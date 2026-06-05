@@ -41,7 +41,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   };
 
   // ✅ Facturas con peso individual
-  facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: number | null }[] = [];
+  facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
 
   guiaGenerada     = '';
   usuarioFirma     = '';
@@ -152,9 +152,12 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   trackById(_i: number, item: any): number { return item.id; }
   trackByIdx(i: number, _item: any): number { return i; }
 
-  // ✅ Peso total de todas las facturas
+  // ✅ Peso total sumando correctamente valores decimales
   get pesoTotalFacturas(): number {
-    return this.facturasClientes.reduce((sum, f) => sum + (f.pesoKilos || 0), 0);
+    return this.facturasClientes.reduce((sum, f) => {
+      const val = parseFloat(String(f.pesoKilos ?? '').replace(',', '.'));
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
   }
 
   // ✅ Recalcular peso en kilos al cambiar facturas
@@ -347,8 +350,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }
     this.cdr.markForCheck();
   }
-  
-setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
+
+  setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
   resetear() {
     this.pasoActual = 1; this.conductorSeleccionado = null; this.autorizacionActual = null; this.vistaLista = true;
