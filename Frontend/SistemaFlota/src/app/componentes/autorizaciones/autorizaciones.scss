@@ -372,16 +372,24 @@ tbody {
 // FACTURAS
 .facturas-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 
-.factura-header {
-  display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; padding: 0 4px;
-  span { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }
+.factura-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 40px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.factura-fila {
-  display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; align-items: center;
-  input { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; transition: 0.2s; width: 100%;
-    &:focus { outline: none; border-color: #15803d; box-shadow: 0 0 0 3px rgba(21,128,61,0.15); }
-  }
+.factura-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 40px;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+
 }
 
 .btn-eliminar-fila {
@@ -570,21 +578,3 @@ tbody {
   .factura-fila, .factura-header { grid-template-columns: 1fr 1fr 36px; }
 }
 
-.factura-fila {
-  display: grid;
-  grid-template-columns: 1fr 1fr 100px 40px;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.factura-header {
-  display: grid;
-  grid-template-columns: 1fr 1fr 100px 40px;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
