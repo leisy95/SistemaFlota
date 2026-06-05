@@ -24,6 +24,7 @@ import { EncuestaFatigaComponent }  from './componentes/encuesta-fatiga/encuesta
 import { TrazabilidadComponent }    from './componentes/trazabilidad/trazabilidad';
 import { CambioRutaComponent }      from './componentes/cambio-ruta/cambio-ruta';
 import { SolicitudTallerComponent } from './componentes/solicitud-taller/solicitud-taller';
+import { PedidosComponent }         from './componentes/pedidos/pedidos';
 import { ConfiguracionService }     from './services/configuracion.service';
 import { AuthService }              from './services/auth.service';
 import { PermisosService }          from './services/permisos.service';
@@ -40,7 +41,7 @@ import { environment }              from '../environments/environment';
     ContactosNotificacionComponent, ConfiguracionEmpresaComponent,
     MantenimientoComponent, DocumentosComponent, AuditoriaComponent,
     EncuestaFatigaComponent, TrazabilidadComponent, CambioRutaComponent,
-    SolicitudTallerComponent
+    SolicitudTallerComponent, PedidosComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
@@ -58,7 +59,6 @@ export class AppComponent implements OnInit {
   empresaLogo:   string | null = null;
   colorPrimario  = '#15803d';
 
-  // ── URL base dinámica desde environment ──────────────────────────────────
   private readonly baseUrl = environment.apiUrl.replace('/api', '');
 
   readonly todosModulos = [
@@ -76,6 +76,7 @@ export class AppComponent implements OnInit {
     { key: 'documentos',             label: 'Documentos',             icon: 'fa-solid fa-folder-open' },
     { key: 'encuesta-fatiga',        label: 'Encuesta Fatiga',        icon: 'fa-solid fa-face-tired' },
     { key: 'trazabilidad',           label: 'Trazabilidad',           icon: 'fa-solid fa-boxes-stacked' },
+    { key: 'pedidos',                label: 'Pedidos',                icon: 'fa-solid fa-box' },
     { key: 'contactos-notificacion', label: 'Contactos WhatsApp',     icon: 'fa-brands fa-whatsapp' },
     { key: 'auditoria',              label: 'Auditoría',              icon: 'fa-solid fa-shield-halved' },
     { key: 'usuarios',               label: 'Usuarios',               icon: 'fa-solid fa-users-gear' },
@@ -117,7 +118,6 @@ export class AppComponent implements OnInit {
     this.configuracionService.obtenerConfiguracion().subscribe({
       next: (data: any) => {
         if (data.nombreEmpresa?.trim()) this.empresaNombre = data.nombreEmpresa;
-        // ── URL dinámica — usa baseUrl del environment ─────────────────────
         if (data.logo?.trim()) this.empresaLogo = `${this.baseUrl}/config/${data.logo}`;
         if (data.colorCorporativo) {
           this.colorPrimario = data.colorCorporativo;
@@ -150,12 +150,13 @@ export class AppComponent implements OnInit {
     }
     switch (this.rol) {
       case 'Auxiliar':        return ['dashboard','conductores','vehiculos','inspecciones','ver-inspecciones'].includes(modulo);
-      case 'Conductor':       return ['dashboard','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Jefe':            return ['dashboard','ver-inspecciones','incidentes','mantenimiento','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Conductor':       return ['dashboard','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
+      case 'Jefe':            return ['dashboard','ver-inspecciones','incidentes','mantenimiento','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
       case 'RecursosHumanos': return ['dashboard','conductores','usuarios','autorizaciones','incidentes','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
       case 'Facturacion':     return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
-      case 'Bodega':          return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller'].includes(modulo);
+      case 'Bodega':          return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
       case 'Porteria':        return ['dashboard','autorizaciones','encuesta-fatiga'].includes(modulo);
+      case 'Vendedor':        return ['dashboard','pedidos'].includes(modulo);
       default: return false;
     }
   }
