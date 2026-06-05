@@ -67,9 +67,17 @@ namespace SistemaFlota
         private static string LimpiarNumero(string numero)
         {
             numero = numero.Trim().Replace(" ", "").Replace("-", "");
-            if (!numero.StartsWith("+"))
-                numero = "+57" + numero;
-            return numero;
+
+            // Si ya tiene +
+            if (numero.StartsWith("+"))
+                return numero;
+
+            // Si ya tiene código país 57 y longitud correcta (57 + 10 dígitos = 12)
+            if (numero.StartsWith("57") && numero.Length >= 12)
+                return "+" + numero;
+
+            // Número colombiano sin código (10 dígitos)
+            return "+57" + numero;
         }
     }
 }
