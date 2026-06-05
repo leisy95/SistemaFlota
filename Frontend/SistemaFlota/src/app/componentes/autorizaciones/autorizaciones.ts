@@ -29,7 +29,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   private destroy$ = new Subject<void>();
 
-  pasoActual = 1;
+  pasoActual: number = 1;
   conductores:           any[] = [];
   vehiculos:             any[] = [];
   conductorSeleccionado: any   = null;
@@ -347,6 +347,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }
     this.cdr.markForCheck();
   }
+setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
   resetear() {
     this.pasoActual = 1; this.conductorSeleccionado = null; this.autorizacionActual = null; this.vistaLista = true;
