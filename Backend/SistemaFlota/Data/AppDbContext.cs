@@ -31,5 +31,8 @@ namespace SistemaFlota
         public DbSet<ExamenMedico> ExamenesMedicos { get; set; }
         public DbSet<Capacitacion> Capacitaciones { get; set; }
         public DbSet<InfraccionConductor> Infracciones { get; set; }
+
+        // ── PEDIDOS ───────────────────────────────────────────────────────────
+        public DbSet<Pedido> Pedidos { get; set; }
     }
 }
