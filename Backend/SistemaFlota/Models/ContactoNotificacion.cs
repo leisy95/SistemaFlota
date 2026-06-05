@@ -22,5 +22,8 @@ namespace SistemaFlota
 
         // RECIBE NOTIFICACIONES DE INCIDENTES
         public bool RecibeIncidentes { get; set; } = true;
+
+        // ✅ RECIBE NOTIFICACIONES DE PEDIDOS
+        public bool RecibePedidos { get; set; } = false;
     }
 }
