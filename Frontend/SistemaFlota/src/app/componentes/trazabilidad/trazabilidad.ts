@@ -45,7 +45,7 @@ export class TrazabilidadComponent implements OnInit {
     vehiculo:         '',
     pesoKilos:        null as number | null,
     valorFlete:       null as number | null,
-    ajusteRecibido:   false,
+    acuseRecibido:   false,
     facturaEntregada: false,
     novedad:          '',
     estado:           'Pendiente'
@@ -165,7 +165,7 @@ export class TrazabilidadComponent implements OnInit {
       autorizacionId: null, facturaRemision: '', cliente: '',
       conductor: '', transportadora: '', guia: '', vehiculo: '',
       pesoKilos: null, valorFlete: null,
-      ajusteRecibido: false, facturaEntregada: false,
+      acuseRecibido: false, facturaEntregada: false,
       novedad: '', estado: 'Pendiente'
     };
     this.mostrarModal = true;
@@ -184,7 +184,7 @@ export class TrazabilidadComponent implements OnInit {
       vehiculo:         r.vehiculo         ?? '',
       pesoKilos:        r.pesoKilos        ?? null,
       valorFlete:       r.valorFlete       ?? null,
-      ajusteRecibido:   r.ajusteRecibido,
+      acuseRecibido:   r.acuseRecibido,
       facturaEntregada: r.facturaEntregada,
       novedad:          r.novedad          ?? '',
       estado:           r.estado
@@ -303,7 +303,7 @@ export class TrazabilidadComponent implements OnInit {
       'Peso (kg)':         r.pesoKilos        ?? '-',
       'Valor flete':       r.valorFlete       ?? '-',
       'Factura entregada': r.facturaEntregada ? 'Sí' : 'No',
-      'Ajuste':            r.ajusteRecibido   ? 'Sí' : 'No',
+      'Acuse':            r.acuseRecibido   ? 'Sí' : 'No',
       'Fecha entrega':     r.fechaEntrega ? new Date(r.fechaEntrega).toLocaleString() : '-',
       'Estado':            r.estado,
       'Novedad':           r.novedad || '-',

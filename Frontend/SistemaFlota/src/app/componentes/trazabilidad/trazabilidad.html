@@ -70,7 +70,7 @@
           <th>Vehículo</th>
           <th>Flete</th>
           <th>Entregada</th>
-          <th>Ajuste</th>
+          <th>Acuse</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -94,10 +94,10 @@
             <span class="badge-entregada"    *ngIf="r.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">🔴 Pendiente</span>
           </td>
-          <!-- ✅ Ajuste segundo -->
-          <td data-label="Ajuste">
-            <span class="badge-si" *ngIf="r.ajusteRecibido">✅ Sí</span>
-            <span class="badge-no" *ngIf="!r.ajusteRecibido">❌ No</span>
+          <!-- ✅ Acuse segundo -->
+          <td data-label="Acuse">
+            <span class="badge-si" *ngIf="r.acuseRecibido">✅ Sí</span>
+            <span class="badge-no" *ngIf="!r.acuseRecibido">❌ No</span>
           </td>
           <!-- ✅ Estado tercero -->
           <td data-label="Estado">
@@ -201,7 +201,7 @@
         <input type="number" [(ngModel)]="form.valorFlete" placeholder="Ej: 250000">
       </div>
 
-      <!-- ✅ Orden: Estado → Factura entregada → Ajuste -->
+      <!-- ✅ Orden: Estado → Factura entregada → Acuse -->
       <div class="form-group">
         <label>🔄 Estado</label>
         <select [(ngModel)]="form.estado">
@@ -220,12 +220,12 @@
       </div>
 
       <div class="form-group">
-        <label>💱 Ajuste</label>
+        <label>💱 Acuse</label>
         <div class="toggle-group">
-          <button class="btn-toggle" [class.activo-verde]="form.ajusteRecibido"
-            (click)="form.ajusteRecibido = true">✅ Sí</button>
-          <button class="btn-toggle" [class.activo-rojo]="!form.ajusteRecibido"
-            (click)="form.ajusteRecibido = false">❌ No</button>
+          <button class="btn-toggle" [class.activo-verde]="form.acuseRecibido"
+            (click)="form.acuseRecibido = true">✅ Sí</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.acuseRecibido"
+            (click)="form.acuseRecibido = false">❌ No</button>
         </div>
       </div>
 
@@ -277,10 +277,10 @@
         </strong>
       </div>
       <div class="detalle-item">
-        <span>💱 Ajuste</span>
+        <span>💱 Acuse</span>
         <strong>
-          <span class="badge-si" *ngIf="registroSeleccionado?.ajusteRecibido">✅ Sí</span>
-          <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
+          <span class="badge-si" *ngIf="registroSeleccionado?.acuseRecibido">✅ Sí</span>
+          <span class="badge-no" *ngIf="!registroSeleccionado?.acuseRecibido">❌ No</span>
         </strong>
       </div>
       <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>

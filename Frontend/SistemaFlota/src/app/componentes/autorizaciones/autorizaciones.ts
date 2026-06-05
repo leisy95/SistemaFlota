@@ -347,6 +347,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }
     this.cdr.markForCheck();
   }
+  
 setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
   resetear() {

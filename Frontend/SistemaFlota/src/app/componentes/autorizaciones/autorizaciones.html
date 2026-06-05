@@ -329,8 +329,8 @@
           <div class="factura-fila" *ngFor="let f of facturasClientes; let i = index; trackBy: trackByIdx">
             <input type="text"   [(ngModel)]="f.facturaRemision" placeholder="F-001">
             <input type="text"   [(ngModel)]="f.cliente"         placeholder="Nombre del cliente">
-            <input type="number" [(ngModel)]="f.pesoKilos"       placeholder="Kg"
-              (ngModelChange)="recalcularPeso()">
+            <input type="text" inputmode="decimal" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
+             (ngModelChange)="recalcularPeso()">
             <button class="btn-eliminar-fila" (click)="eliminarFactura(i)">
               <i class="fa-solid fa-trash"></i>
             </button>
