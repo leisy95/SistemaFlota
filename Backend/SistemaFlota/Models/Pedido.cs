@@ -11,19 +11,12 @@ namespace SistemaFlota
 
         // ── DATOS DEL PEDIDO ──────────────────────────────────────────────────
         public string Cliente { get; set; } = string.Empty;
-        public string Referencia { get; set; } = string.Empty;
         public string Destino { get; set; } = string.Empty;
 
-        // ── CANTIDAD ──────────────────────────────────────────────────────────
-        public decimal? CantidadKg { get; set; }
-        public decimal? CantidadUnidades { get; set; }
-
         // ── PRIORIDAD ─────────────────────────────────────────────────────────
-        // SOS | Urgente | Normal
         public string Prioridad { get; set; } = "Normal";
 
         // ── ESTADO ────────────────────────────────────────────────────────────
-        // Pendiente | EnProceso | Despachado | Entregado
         public string Estado { get; set; } = "Pendiente";
 
         // ── OBSERVACIONES ─────────────────────────────────────────────────────
@@ -37,6 +30,7 @@ namespace SistemaFlota
         // ── GESTIONADO POR ────────────────────────────────────────────────────
         public string? GestionadoPor { get; set; }
 
+        // ── REFERENCIAS ───────────────────────────────────────────────────────
         public List<PedidoReferencia> Referencias { get; set; } = new();
     }
 }
