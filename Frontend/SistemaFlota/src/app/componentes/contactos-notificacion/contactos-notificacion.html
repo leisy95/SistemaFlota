@@ -3,7 +3,7 @@
   <div class="header">
     <div>
       <h1>📱 Contactos de Notificación</h1>
-      <p class="subtitulo">Números WhatsApp que reciben alertas de incidentes</p>
+      <p class="subtitulo">Números WhatsApp que reciben alertas del sistema</p>
     </div>
     <button class="btn-agregar" *ngIf="puedeCrear" (click)="agregarContacto()">
       + Nuevo Contacto
@@ -11,8 +11,7 @@
   </div>
 
   <div class="aviso-info">
-    💡 Cuando un conductor reporte un incidente, se abrirá WhatsApp automáticamente
-    con un mensaje prellenado para cada contacto activo de esta lista.
+    💡 Configura qué contactos reciben alertas de incidentes y/o pedidos urgentes.
   </div>
 
   <!-- TABLA -->
@@ -21,7 +20,7 @@
       <thead>
         <tr>
           <th>Nombre</th><th>Área</th><th>WhatsApp</th>
-          <th>Recibe alertas</th><th>Estado</th><th>Acciones</th>
+          <th>Incidentes</th><th>Pedidos</th><th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -29,9 +28,14 @@
           <td data-label="Nombre"><strong>{{ c.nombre }}</strong></td>
           <td data-label="Área"><span class="area-badge">{{ c.area }}</span></td>
           <td data-label="WhatsApp"><span class="numero">+{{ c.numeroWhatsApp }}</span></td>
-          <td data-label="Recibe alertas">
+          <td data-label="Incidentes">
             <span [class]="c.recibeIncidentes ? 'si' : 'no'">
               {{ c.recibeIncidentes ? '✅ Sí' : '❌ No' }}
+            </span>
+          </td>
+          <td data-label="Pedidos">
+            <span [class]="c.recibePedidos ? 'si' : 'no'">
+              {{ c.recibePedidos ? '✅ Sí' : '❌ No' }}
             </span>
           </td>
           <td data-label="Estado">
@@ -41,9 +45,9 @@
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-probar" (click)="probarWhatsApp(c)">📱 Probar</button>
-              <button class="btn-editar"  *ngIf="puedeEditar"   (click)="editarContacto(c)">✏️</button>
-              <button class="btn-estado"  *ngIf="puedeEditar"   (click)="cambiarEstado(c)">
+              <button class="btn-probar"   (click)="probarWhatsApp(c)">📱 Probar</button>
+              <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editarContacto(c)">✏️</button>
+              <button class="btn-estado"   *ngIf="puedeEditar"   (click)="cambiarEstado(c)">
                 {{ c.activo ? '🔴' : '🟢' }}
               </button>
               <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminarContacto(c.id)">🗑️</button>
@@ -54,7 +58,6 @@
     </table>
   </div>
 
-  <!-- VACÍO -->
   <div class="vacio" *ngIf="contactos.length === 0">
     <p>📱 No hay contactos registrados</p>
     <small>Agrega los números de WhatsApp del equipo de operaciones</small>
@@ -94,12 +97,21 @@
       <small>Incluya código de país sin + ni espacios. Colombia: 57 + número. Ej: 573001234567</small>
     </div>
 
-    <div class="form-check">
-      <label class="check-label"
-        (click)="nuevoContacto.recibeIncidentes = !nuevoContacto.recibeIncidentes">
-        <span class="check-icon">{{ nuevoContacto.recibeIncidentes ? '✅' : '⬜' }}</span>
-        Recibe notificaciones de incidentes
-      </label>
+    <div class="checks-grupo">
+      <div class="form-check">
+        <label class="check-label"
+          (click)="nuevoContacto.recibeIncidentes = !nuevoContacto.recibeIncidentes">
+          <span class="check-icon">{{ nuevoContacto.recibeIncidentes ? '✅' : '⬜' }}</span>
+          Recibe notificaciones de incidentes en ruta
+        </label>
+      </div>
+      <div class="form-check">
+        <label class="check-label"
+          (click)="nuevoContacto.recibePedidos = !nuevoContacto.recibePedidos">
+          <span class="check-icon">{{ nuevoContacto.recibePedidos ? '✅' : '⬜' }}</span>
+          Recibe notificaciones de pedidos SOS/Urgentes
+        </label>
+      </div>
     </div>
 
     <div class="modal-botones">

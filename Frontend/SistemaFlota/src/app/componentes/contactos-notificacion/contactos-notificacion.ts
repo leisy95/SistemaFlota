@@ -20,12 +20,11 @@ export class ContactosNotificacionComponent implements OnInit {
 
   nuevoContacto = {
     nombre: '', area: '', numeroWhatsApp: '',
-    activo: true, recibeIncidentes: true
+    activo: true, recibeIncidentes: true, recibePedidos: false
   };
 
-  readonly areas = ['Operaciones','RRHH','Gerencia','Mantenimiento','Logística','Otro'];
+  readonly areas = ['Operaciones','RRHH','Gerencia','Mantenimiento','Logística','Bodega','Otro'];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('contactos-notificacion'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('contactos-notificacion'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('contactos-notificacion'); }
@@ -46,14 +45,17 @@ export class ContactosNotificacionComponent implements OnInit {
 
   agregarContacto() {
     this.editando = false; this.editandoId = null;
-    this.nuevoContacto = { nombre: '', area: '', numeroWhatsApp: '', activo: true, recibeIncidentes: true };
+    this.nuevoContacto = {
+      nombre: '', area: '', numeroWhatsApp: '',
+      activo: true, recibeIncidentes: true, recibePedidos: false
+    };
     this.mostrarModal = true;
   }
 
   guardarContacto() {
-    if (!this.nuevoContacto.nombre)         { alert('Ingrese el nombre');            return; }
-    if (!this.nuevoContacto.area)           { alert('Seleccione el área');           return; }
-    if (!this.nuevoContacto.numeroWhatsApp) { alert('Ingrese el número WhatsApp');   return; }
+    if (!this.nuevoContacto.nombre)         { alert('Ingrese el nombre');          return; }
+    if (!this.nuevoContacto.area)           { alert('Seleccione el área');         return; }
+    if (!this.nuevoContacto.numeroWhatsApp) { alert('Ingrese el número WhatsApp'); return; }
 
     this.nuevoContacto.numeroWhatsApp = this.nuevoContacto.numeroWhatsApp.replace(/\D/g, '');
 
@@ -74,7 +76,8 @@ export class ContactosNotificacionComponent implements OnInit {
       area:             contacto.area,
       numeroWhatsApp:   contacto.numeroWhatsApp,
       activo:           contacto.activo,
-      recibeIncidentes: contacto.recibeIncidentes
+      recibeIncidentes: contacto.recibeIncidentes,
+      recibePedidos:    contacto.recibePedidos ?? false
     };
     this.mostrarModal = true;
   }
@@ -96,7 +99,7 @@ export class ContactosNotificacionComponent implements OnInit {
 
   probarWhatsApp(contacto: any) {
     const mensaje = encodeURIComponent(
-      `✅ Prueba de notificación del Sistema de Gestión de Flota. Este número está configurado para recibir alertas de incidentes en ruta.`
+      `✅ Prueba de notificación del Sistema de Gestión de Flota.`
     );
     window.open(`https://wa.me/${contacto.numeroWhatsApp}?text=${mensaje}`, '_blank');
   }
