@@ -63,7 +63,7 @@ namespace SistemaFlota
                     .Where(a => a.NumeroGuia != null && a.NumeroGuia.StartsWith("GI-"))
                     .CountAsync();
                 var consecutivo = (total + 1).ToString("D4");
-                var fecha = DateTime.Now.ToString("yyyyMMdd");
+                var fecha = FechaHelper.Ahora().ToString("yyyyMMdd");
                 return Ok(new { guia = $"GI-{fecha}-{consecutivo}" });
             }
             catch (Exception ex)
@@ -104,7 +104,7 @@ namespace SistemaFlota
                     NumeroGuia = dto.NumeroGuia,
                     FacturasClientes = dto.FacturasClientes,
                     Estado = "Pendiente",
-                    FechaCreacion = DateTime.Now
+                    FechaCreacion = FechaHelper.Ahora()
                 };
 
                 _context.Autorizaciones.Add(autorizacion);
@@ -138,7 +138,7 @@ namespace SistemaFlota
                 a.FirmaFacturacion = dto.Firma;
                 a.UsuarioFacturacion = dto.Usuario;
                 a.ObservacionFacturacion = dto.Observacion;
-                a.FechaFacturacion = DateTime.Now;
+                a.FechaFacturacion = FechaHelper.Ahora();
                 a.Estado = "Bodega";
                 await _context.SaveChangesAsync();
                 await _auditoria.RegistrarAsync(
@@ -165,7 +165,7 @@ namespace SistemaFlota
                 a.FirmaBodega = dto.Firma;
                 a.UsuarioBodega = dto.Usuario;
                 a.ObservacionBodega = dto.Observacion;
-                a.FechaBodega = DateTime.Now;
+                a.FechaBodega = FechaHelper.Ahora();
                 a.Estado = "Porteria";
                 await _context.SaveChangesAsync();
                 await _auditoria.RegistrarAsync(
@@ -192,7 +192,7 @@ namespace SistemaFlota
                 a.FirmaPorteria = dto.Firma;
                 a.UsuarioPorteria = dto.Usuario;
                 a.ObservacionPorteria = dto.Observacion;
-                a.FechaPorteria = DateTime.Now;
+                a.FechaPorteria = FechaHelper.Ahora();
                 a.Estado = "Autorizado";
                 a.EstadoLlegada = null;
                 await _context.SaveChangesAsync();
@@ -207,31 +207,55 @@ namespace SistemaFlota
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
-                    var hora = DateTime.Now.ToString("hh:mm tt");
-                    var fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                    var ahora = FechaHelper.Ahora();
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
                     var conductor = resultado.Conductor?.Nombre ?? "-";
                     var placa = resultado.Vehiculo?.Placa ?? "-";
                     var destino = resultado.DestinoCompleto ?? "-";
+                    var tipo = resultado.TipoVuelta ?? "-";
+                    var guia = resultado.NumeroGuia ?? "-";
 
-                    var mensajeSalida =
-                        $"🚚 *SALIDA AUTORIZADA*\n" +
-                        $"👤 Conductor: {conductor}\n" +
-                        $"🚗 Vehículo: {placa}\n" +
-                        $"📍 Destino: {destino}\n" +
-                        $"🕐 Hora: {hora} — {fecha}\n" +
-                        $"✅ Autorizado por: {dto.Usuario}";
-
+                    // ── Mensaje personal al conductor ──
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
-                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeSalida);
+                    {
+                        var mensajeConductor =
+                            $"🚚 *SALIDA AUTORIZADA*\n" +
+                            $"Hola {conductor.Split(' ')[0]}, tu salida fue autorizada ✅\n" +
+                            $"━━━━━━━━━━━━━━━━━━\n" +
+                            $"🚗 Vehículo: {placa}\n" +
+                            $"📍 Destino: {destino}\n" +
+                            $"🔄 Tipo: {tipo}\n" +
+                            (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
+                            $"🕐 Hora: {hora} — {fecha}\n" +
+                            $"✍️ Autorizado por: {dto.Usuario}\n" +
+                            $"━━━━━━━━━━━━━━━━━━\n" +
+                            $"🛣️ ¡Buen viaje!";
+                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConductor);
+                    }
 
+                    // ── Mensaje informativo al grupo ──
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp)
                         .ToListAsync();
 
                     if (numerosGrupo.Any())
-                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeSalida);
+                    {
+                        var mensajeGrupo =
+                            $"🚚 *SALIDA AUTORIZADA*\n" +
+                            $"━━━━━━━━━━━━━━━━━━\n" +
+                            $"👤 Conductor: {conductor}\n" +
+                            $"🚗 Vehículo: {placa}\n" +
+                            $"📍 Destino: {destino}\n" +
+                            $"🔄 Tipo: {tipo}\n" +
+                            (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
+                            $"🚪 Portería: {dto.Usuario}\n" +
+                            $"🕐 Hora: {hora} — {fecha}\n" +
+                            $"━━━━━━━━━━━━━━━━━━";
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    }
                 }
 
                 return Ok(resultado);
@@ -254,7 +278,7 @@ namespace SistemaFlota
                 if (a.EstadoLlegada == "ReportadaLlegada" || a.EstadoLlegada == "Completada")
                     return BadRequest("La llegada ya fue reportada");
 
-                a.FechaReporteLlegada = DateTime.Now;
+                a.FechaReporteLlegada = FechaHelper.Ahora();
                 a.KilometrajeFinal = dto.KilometrajeFinal;
                 a.NovedadesViaje = dto.NovedadesViaje;
                 a.EstadoVehiculoLlegada = dto.EstadoVehiculo;
@@ -272,21 +296,26 @@ namespace SistemaFlota
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
-                    var hora = DateTime.Now.ToString("hh:mm tt");
+                    var ahora = FechaHelper.Ahora();
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
                     var conductor = resultado.Conductor?.Nombre ?? "-";
                     var placa = resultado.Vehiculo?.Placa ?? "-";
                     var km = dto.KilometrajeFinal?.ToString() ?? "-";
                     var estado = dto.EstadoVehiculo ?? "Bueno";
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
 
-                    var mensajeLlegada =
+                    // ── Mensaje al grupo ──
+                    var mensajeGrupo =
                         $"🏁 *LLEGADA REPORTADA*\n" +
+                        $"━━━━━━━━━━━━━━━━━━\n" +
                         $"👤 Conductor: {conductor}\n" +
                         $"🚗 Vehículo: {placa}\n" +
                         $"🛣 Km final: {km}\n" +
-                        $"🔧 Estado: {estado}\n" +
+                        $"🔧 Estado vehículo: {estado}\n" +
                         $"📋 Novedades: {novedades}\n" +
-                        $"🕐 Hora: {hora}";
+                        $"🕐 Hora: {hora} — {fecha}\n" +
+                        $"━━━━━━━━━━━━━━━━━━";
 
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
@@ -294,15 +323,17 @@ namespace SistemaFlota
                         .ToListAsync();
 
                     if (numerosGrupo.Any())
-                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeLlegada);
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
 
+                    // ── Confirmación al conductor ──
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
                         var mensajeConfirmacion =
-                            $"✅ *Tu llegada fue registrada*\n" +
-                            $"Autorización #{id} — {hora}\n" +
-                            $"Gracias {conductor.Split(' ')[0]}!";
+                            $"✅ *Llegada registrada*\n" +
+                            $"Hola {conductor.Split(' ')[0]}, tu llegada fue registrada correctamente.\n" +
+                            $"🕐 Hora: {hora} — {fecha}\n" +
+                            $"¡Gracias por el reporte!";
                         await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
                     }
                 }
@@ -325,7 +356,7 @@ namespace SistemaFlota
                 if (a == null) return NotFound();
                 if (a.EstadoLlegada != "ReportadaLlegada")
                     return BadRequest("El conductor aún no ha reportado la llegada");
-                a.FechaConfirmacionLlegada = DateTime.Now;
+                a.FechaConfirmacionLlegada = FechaHelper.Ahora();
                 a.UsuarioPorteriaLlegada = dto.Usuario;
                 a.ObservacionPorteriaLlegada = dto.Observacion;
                 a.FirmaPorteriaLlegada = dto.Firma;
