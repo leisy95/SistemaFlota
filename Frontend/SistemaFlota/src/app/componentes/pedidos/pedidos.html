@@ -80,9 +80,8 @@
           <th>Fecha</th>
           <th>Vendedor</th>
           <th>Cliente</th>
-          <th>Referencia</th>
+          <th>Referencias</th>
           <th>Destino</th>
-          <th>Cantidad</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -101,20 +100,28 @@
           <td data-label="Fecha">{{ p.fechaRegistro | date:'short' }}</td>
           <td data-label="Vendedor">{{ p.vendedorNombre }}</td>
           <td data-label="Cliente"><strong>{{ p.cliente }}</strong></td>
-          <td data-label="Referencia">{{ p.referencia }}</td>
+          <td data-label="Referencias">
+            <div class="refs-resumen">
+              <span *ngFor="let r of p.referencias" class="ref-chip">
+                {{ r.referencia }}
+                <small *ngIf="r.cantidadKg">{{ r.cantidadKg }}kg</small>
+                <small *ngIf="r.cantidadUnidades">{{ r.cantidadUnidades }}uds</small>
+              </span>
+              <span *ngIf="!p.referencias?.length">-</span>
+            </div>
+          </td>
           <td data-label="Destino">{{ p.destino }}</td>
-          <td data-label="Cantidad">{{ getCantidad(p) }}</td>
           <td data-label="Estado">
             <span [class]="getBadgeEstado(p.estado)">{{ getLabelEstado(p.estado) }}</span>
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-ver" (click)="verDetalle(p)">👁️</button>
+              <button class="btn-ver"       (click)="verDetalle(p)">👁️</button>
               <button class="btn-estado-btn" *ngIf="puedeEditar"
                 (click)="abrirEstado(p)">🔄</button>
-              <button class="btn-editar" *ngIf="puedeEditar && p.estado === 'Pendiente'"
+              <button class="btn-editar"    *ngIf="puedeEditar && p.estado === 'Pendiente'"
                 (click)="editar(p)">✏️</button>
-              <button class="btn-eliminar" *ngIf="puedeEliminar"
+              <button class="btn-eliminar"  *ngIf="puedeEliminar"
                 (click)="eliminar(p.id)">🗑️</button>
             </div>
           </td>
@@ -152,22 +159,35 @@
         <label>🏪 Cliente *</label>
         <input type="text" [(ngModel)]="form.cliente" placeholder="Nombre del cliente">
       </div>
-      <div class="form-group">
-        <label>📦 Referencia *</label>
-        <input type="text" [(ngModel)]="form.referencia" placeholder="Referencia del producto">
-      </div>
-      <div class="form-group">
+      <div class="form-group full">
         <label>📍 Destino *</label>
         <input type="text" [(ngModel)]="form.destino" placeholder="Ciudad / Municipio">
       </div>
-      <div class="form-group">
-        <label>⚖️ Cantidad en Kg</label>
-        <input type="number" step="0.01" min="0" [(ngModel)]="form.cantidadKg" placeholder="Ej: 150.5">
+
+      <!-- ✅ Referencias dinámicas -->
+      <div class="form-group full">
+        <label>📦 Referencias *</label>
+        <div class="referencias-lista">
+          <div class="ref-header" *ngIf="referencias.length > 0">
+            <span>Referencia</span>
+            <span>Kg</span>
+            <span>Unidades</span>
+            <span></span>
+          </div>
+          <div class="ref-fila" *ngFor="let r of referencias; let i = index">
+            <input type="text"   [(ngModel)]="r.referencia"       placeholder="Ej: REF-001">
+            <input type="number" [(ngModel)]="r.cantidadKg"       placeholder="Kg"  step="0.01" min="0">
+            <input type="number" [(ngModel)]="r.cantidadUnidades" placeholder="Uds" min="0">
+            <button class="btn-eliminar-fila" (click)="eliminarReferencia(i)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <button class="btn-agregar-fila" (click)="agregarReferencia()">
+            <i class="fa-solid fa-plus"></i> Agregar referencia
+          </button>
+        </div>
       </div>
-      <div class="form-group">
-        <label>🔢 Cantidad en Unidades</label>
-        <input type="number" min="0" [(ngModel)]="form.cantidadUnidades" placeholder="Ej: 10">
-      </div>
+
       <div class="form-group full">
         <label>🚨 Prioridad *</label>
         <div class="prioridad-btns">
@@ -178,6 +198,7 @@
           </button>
         </div>
       </div>
+
       <div class="form-group full">
         <label>📋 Observaciones</label>
         <textarea [(ngModel)]="form.observaciones"
@@ -207,7 +228,7 @@
     </div>
 
     <div class="resumen-pedido">
-      <p><strong>📦 Cliente:</strong> {{ seleccionado?.cliente }}</p>
+      <p><strong>🏪 Cliente:</strong> {{ seleccionado?.cliente }}</p>
       <p><strong>📍 Destino:</strong> {{ seleccionado?.destino }}</p>
       <p><strong>Estado actual:</strong>
         <span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado) }}</span>
@@ -254,14 +275,25 @@
       </div>
       <div class="detalle-item"><span>👤 Vendedor</span><strong>{{ seleccionado?.vendedorNombre }}</strong></div>
       <div class="detalle-item"><span>🏪 Cliente</span><strong>{{ seleccionado?.cliente }}</strong></div>
-      <div class="detalle-item"><span>📦 Referencia</span><strong>{{ seleccionado?.referencia }}</strong></div>
       <div class="detalle-item"><span>📍 Destino</span><strong>{{ seleccionado?.destino }}</strong></div>
-      <div class="detalle-item"><span>⚖️ Cantidad Kg</span><strong>{{ seleccionado?.cantidadKg ? seleccionado.cantidadKg + ' kg' : '-' }}</strong></div>
-      <div class="detalle-item"><span>🔢 Unidades</span><strong>{{ seleccionado?.cantidadUnidades ? seleccionado.cantidadUnidades + ' uds' : '-' }}</strong></div>
       <div class="detalle-item"><span>📅 Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium' }}</strong></div>
       <div class="detalle-item"><span>👷 Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong></div>
       <div class="detalle-item"><span>🚚 Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ? (seleccionado.fechaDespacho | date:'medium') : '-' }}</strong></div>
       <div class="detalle-item"><span>✅ Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ? (seleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
+
+      <!-- ✅ Referencias -->
+      <div class="detalle-item full">
+        <span>📦 Referencias</span>
+        <div class="referencias-detalle">
+          <div class="ref-detalle-item" *ngFor="let r of seleccionado?.referencias">
+            <strong>{{ r.referencia }}</strong>
+            <span *ngIf="r.cantidadKg">⚖️ {{ r.cantidadKg }} kg</span>
+            <span *ngIf="r.cantidadUnidades">🔢 {{ r.cantidadUnidades }} uds</span>
+          </div>
+          <span *ngIf="!seleccionado?.referencias?.length">-</span>
+        </div>
+      </div>
+
       <div class="detalle-item full" *ngIf="seleccionado?.observaciones">
         <span>📋 Observaciones</span>
         <strong>{{ seleccionado?.observaciones }}</strong>

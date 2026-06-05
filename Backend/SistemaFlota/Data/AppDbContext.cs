@@ -34,5 +34,7 @@ namespace SistemaFlota
 
         // ── PEDIDOS ───────────────────────────────────────────────────────────
         public DbSet<Pedido> Pedidos { get; set; }
+
+        public DbSet<PedidoReferencia> PedidoReferencias { get; set; }
     }
 }

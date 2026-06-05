@@ -32,15 +32,15 @@ export class PedidosComponent implements OnInit {
   filtroFechaHasta = '';
 
   form = {
-    vendedorNombre:   '',
-    cliente:          '',
-    referencia:       '',
-    destino:          '',
-    cantidadKg:       null as number | null,
-    cantidadUnidades: null as number | null,
-    prioridad:        'Normal',
-    observaciones:    ''
+    vendedorNombre: '',
+    cliente:        '',
+    destino:        '',
+    prioridad:      'Normal',
+    observaciones:  ''
   };
+
+  // ✅ Lista dinámica de referencias
+  referencias: { referencia: string; cantidadKg: any; cantidadUnidades: any }[] = [];
 
   formEstado = {
     estado:        '',
@@ -48,16 +48,16 @@ export class PedidosComponent implements OnInit {
   };
 
   readonly prioridades = [
-    { value: 'SOS',     label: '🔴 SOS',     class: 'prioridad-sos' },
-    { value: 'Urgente', label: '🟡 Urgente',  class: 'prioridad-urgente' },
-    { value: 'Normal',  label: '🟢 Normal',   class: 'prioridad-normal' },
+    { value: 'SOS',     label: '🔴 SOS',    class: 'prioridad-sos' },
+    { value: 'Urgente', label: '🟡 Urgente', class: 'prioridad-urgente' },
+    { value: 'Normal',  label: '🟢 Normal',  class: 'prioridad-normal' },
   ];
 
   readonly estadosList = [
-    { value: 'Pendiente',   label: '⏳ Pendiente'   },
-    { value: 'EnProceso',   label: '🔄 En Proceso'  },
-    { value: 'Despachado',  label: '🚚 Despachado'  },
-    { value: 'Entregado',   label: '✅ Entregado'   },
+    { value: 'Pendiente',  label: '⏳ Pendiente'  },
+    { value: 'EnProceso',  label: '🔄 En Proceso' },
+    { value: 'Despachado', label: '🚚 Despachado' },
+    { value: 'Entregado',  label: '✅ Entregado'  },
   ];
 
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('pedidos'); }
@@ -71,7 +71,7 @@ export class PedidosComponent implements OnInit {
   get sos():         number { return this.pedidos.filter(p => p.prioridad === 'SOS').length; }
 
   constructor(
-    private pedidosService: PedidosService,
+    private pedidosService:  PedidosService,
     private permisosService: PermisosService
   ) {}
 
@@ -79,8 +79,7 @@ export class PedidosComponent implements OnInit {
     const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (raw) {
       const user = JSON.parse(raw);
-      this.rolUsuario = user.rol;
-      // ✅ Autocompletar vendedor con nombre del usuario
+      this.rolUsuario          = user.rol;
       this.form.vendedorNombre = user.username ?? '';
     }
     this.cargarPedidos();
@@ -102,10 +101,10 @@ export class PedidosComponent implements OnInit {
       const okDesde     = !this.filtroFechaDesde || fecha >= new Date(this.filtroFechaDesde);
       const okHasta     = !this.filtroFechaHasta || fecha <= new Date(this.filtroFechaHasta + 'T23:59:59');
       const okBusq      = !q ||
-        p.cliente?.toLowerCase().includes(q)    ||
-        p.referencia?.toLowerCase().includes(q) ||
-        p.destino?.toLowerCase().includes(q)    ||
-        p.vendedorNombre?.toLowerCase().includes(q);
+        p.cliente?.toLowerCase().includes(q) ||
+        p.destino?.toLowerCase().includes(q) ||
+        p.vendedorNombre?.toLowerCase().includes(q) ||
+        p.referencias?.some((r: any) => r.referencia?.toLowerCase().includes(q));
       return okEstado && okPrioridad && okDesde && okHasta && okBusq;
     });
   }
@@ -116,50 +115,62 @@ export class PedidosComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // ✅ Agregar referencia
+  agregarReferencia() {
+    this.referencias = [...this.referencias, { referencia: '', cantidadKg: null, cantidadUnidades: null }];
+  }
+
+  // ✅ Eliminar referencia
+  eliminarReferencia(i: number) {
+    this.referencias = this.referencias.filter((_, idx) => idx !== i);
+  }
+
   nuevo() {
     this.editando = false; this.editandoId = null;
-    const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const raw  = sessionStorage.getItem('user') || localStorage.getItem('user');
     const user = raw ? JSON.parse(raw) : null;
     this.form = {
-      vendedorNombre:   user?.username ?? '',
-      cliente:          '',
-      referencia:       '',
-      destino:          '',
-      cantidadKg:       null,
-      cantidadUnidades: null,
-      prioridad:        'Normal',
-      observaciones:    ''
+      vendedorNombre: user?.username ?? '',
+      cliente:        '',
+      destino:        '',
+      prioridad:      'Normal',
+      observaciones:  ''
     };
+    this.referencias = [{ referencia: '', cantidadKg: null, cantidadUnidades: null }];
     this.mostrarModal = true;
   }
 
   editar(p: any) {
     this.editando = true; this.editandoId = p.id;
     this.form = {
-      vendedorNombre:   p.vendedorNombre,
-      cliente:          p.cliente,
-      referencia:       p.referencia,
-      destino:          p.destino,
-      cantidadKg:       p.cantidadKg       ?? null,
-      cantidadUnidades: p.cantidadUnidades ?? null,
-      prioridad:        p.prioridad,
-      observaciones:    p.observaciones    ?? ''
+      vendedorNombre: p.vendedorNombre,
+      cliente:        p.cliente,
+      destino:        p.destino,
+      prioridad:      p.prioridad,
+      observaciones:  p.observaciones ?? ''
     };
+    this.referencias = p.referencias?.map((r: any) => ({
+      referencia:       r.referencia,
+      cantidadKg:       r.cantidadKg       ?? null,
+      cantidadUnidades: r.cantidadUnidades ?? null
+    })) ?? [{ referencia: '', cantidadKg: null, cantidadUnidades: null }];
     this.mostrarModal = true;
   }
 
   guardar() {
     if (!this.form.vendedorNombre.trim()) { alert('Ingrese el nombre del vendedor'); return; }
     if (!this.form.cliente.trim())        { alert('Ingrese el cliente');             return; }
-    if (!this.form.referencia.trim())     { alert('Ingrese la referencia');          return; }
     if (!this.form.destino.trim())        { alert('Ingrese el destino');             return; }
-    if (!this.form.cantidadKg && !this.form.cantidadUnidades) {
-      alert('Ingrese al menos una cantidad (kg o unidades)'); return;
-    }
+    if (this.referencias.length === 0)    { alert('Agregue al menos una referencia'); return; }
+
+    const refInvalida = this.referencias.find(r => !r.referencia.trim());
+    if (refInvalida) { alert('Complete el nombre de todas las referencias'); return; }
+
+    const dto = { ...this.form, referencias: this.referencias };
 
     const peticion = this.editando && this.editandoId
-      ? this.pedidosService.editar(this.editandoId, this.form)
-      : this.pedidosService.crear(this.form);
+      ? this.pedidosService.editar(this.editandoId, dto)
+      : this.pedidosService.crear(dto);
 
     peticion.subscribe({
       next: () => { this.cargarPedidos(); this.cerrarModal(); },
@@ -174,8 +185,8 @@ export class PedidosComponent implements OnInit {
   }
 
   guardarEstado() {
-    if (!this.formEstado.estado)        { alert('Seleccione un estado'); return; }
-    if (!this.formEstado.gestionadoPor.trim()) { alert('Ingrese su nombre'); return; }
+    if (!this.formEstado.estado)               { alert('Seleccione un estado'); return; }
+    if (!this.formEstado.gestionadoPor.trim()) { alert('Ingrese su nombre');    return; }
 
     this.pedidosService.cambiarEstado(this.seleccionado.id, this.formEstado).subscribe({
       next: () => { this.cargarPedidos(); this.cerrarEstado(); },
@@ -183,7 +194,10 @@ export class PedidosComponent implements OnInit {
     });
   }
 
-  verDetalle(p: any) { this.seleccionado = p; this.mostrarDetalle = true; }
+  verDetalle(p: any)  { this.seleccionado = p; this.mostrarDetalle = true; }
+  cerrarModal()       { this.mostrarModal  = false; this.referencias = []; }
+  cerrarEstado()      { this.mostrarEstado = false; this.seleccionado = null; }
+  cerrarDetalle()     { this.mostrarDetalle = false; this.seleccionado = null; }
 
   eliminar(id: number) {
     if (!confirm('¿Eliminar este pedido?')) return;
@@ -193,15 +207,10 @@ export class PedidosComponent implements OnInit {
     });
   }
 
-  cerrarModal()  { this.mostrarModal  = false; }
-  cerrarEstado() { this.mostrarEstado = false; this.seleccionado = null; }
-  cerrarDetalle(){ this.mostrarDetalle = false; this.seleccionado = null; }
-
   getBadgePrioridad(p: string): string {
     switch (p) {
       case 'SOS':     return 'badge-sos';
       case 'Urgente': return 'badge-urgente';
-      case 'Normal':  return 'badge-normal';
       default:        return 'badge-normal';
     }
   }
@@ -226,28 +235,53 @@ export class PedidosComponent implements OnInit {
     }
   }
 
-  getCantidad(p: any): string {
-    const partes = [];
-    if (p.cantidadKg)       partes.push(`${p.cantidadKg} kg`);
-    if (p.cantidadUnidades) partes.push(`${p.cantidadUnidades} uds`);
-    return partes.join(' / ') || '-';
+  getResumenReferencias(p: any): string {
+    if (!p.referencias?.length) return '-';
+    return p.referencias.map((r: any) => {
+      const cant = [];
+      if (r.cantidadKg)       cant.push(`${r.cantidadKg} kg`);
+      if (r.cantidadUnidades) cant.push(`${r.cantidadUnidades} uds`);
+      return `${r.referencia}${cant.length ? ' (' + cant.join('/') + ')' : ''}`;
+    }).join(', ');
   }
 
   exportarExcel() {
-    const datos = this.pedidosFiltrados.map(p => ({
-      'ID':           p.id,
-      'Fecha':        new Date(p.fechaRegistro).toLocaleString(),
-      'Vendedor':     p.vendedorNombre,
-      'Cliente':      p.cliente,
-      'Referencia':   p.referencia,
-      'Destino':      p.destino,
-      'Kg':           p.cantidadKg       ?? '-',
-      'Unidades':     p.cantidadUnidades ?? '-',
-      'Prioridad':    p.prioridad,
-      'Estado':       p.estado,
-      'Gestionado por': p.gestionadoPor  || '-',
-      'Observaciones':  p.observaciones  || '-',
-    }));
+    const datos: any[] = [];
+    this.pedidosFiltrados.forEach(p => {
+      if (p.referencias?.length > 0) {
+        p.referencias.forEach((r: any) => {
+          datos.push({
+            'ID':           p.id,
+            'Fecha':        new Date(p.fechaRegistro).toLocaleString(),
+            'Vendedor':     p.vendedorNombre,
+            'Cliente':      p.cliente,
+            'Destino':      p.destino,
+            'Referencia':   r.referencia,
+            'Kg':           r.cantidadKg       ?? '-',
+            'Unidades':     r.cantidadUnidades ?? '-',
+            'Prioridad':    p.prioridad,
+            'Estado':       p.estado,
+            'Gestionado por': p.gestionadoPor  || '-',
+            'Observaciones':  p.observaciones  || '-',
+          });
+        });
+      } else {
+        datos.push({
+          'ID':           p.id,
+          'Fecha':        new Date(p.fechaRegistro).toLocaleString(),
+          'Vendedor':     p.vendedorNombre,
+          'Cliente':      p.cliente,
+          'Destino':      p.destino,
+          'Referencia':   '-',
+          'Kg':           '-',
+          'Unidades':     '-',
+          'Prioridad':    p.prioridad,
+          'Estado':       p.estado,
+          'Gestionado por': p.gestionadoPor  || '-',
+          'Observaciones':  p.observaciones  || '-',
+        });
+      }
+    });
     const hoja = XLSX.utils.json_to_sheet(datos);
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Pedidos');

@@ -36,5 +36,7 @@ namespace SistemaFlota
 
         // ── GESTIONADO POR ────────────────────────────────────────────────────
         public string? GestionadoPor { get; set; }
+
+        public List<PedidoReferencia> Referencias { get; set; } = new();
     }
 }
