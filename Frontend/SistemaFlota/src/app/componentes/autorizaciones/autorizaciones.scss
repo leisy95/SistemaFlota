@@ -569,3 +569,22 @@ tbody {
   .btn-estado-veh { width: 100%; }
   .factura-fila, .factura-header { grid-template-columns: 1fr 1fr 36px; }
 }
+
+.factura-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 40px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.factura-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 40px;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
