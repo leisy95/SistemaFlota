@@ -53,11 +53,14 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   rolUsuario    = '';
   nombreEmpresa = 'la empresa';
 
+  // ── Modales ───────────────────────────────────────────────────────────────
   mostrarModalLlegada    = false;
   mostrarModalConfirmar  = false;
   mostrarModalEditar     = false;
+  mostrarModalDetalle    = false;
   autorizacionLlegada:   any = null;
   autorizacionEditando:  any = null;
+  autorizacionDetalle:   any = null;
 
   formLlegada = {
     kilometrajeFinal: null as number | null,
@@ -65,7 +68,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     estadoVehiculo:   'Bueno'
   };
 
-  // ✅ Form de edición rápida
   formEditar = {
     destinoCompleto:  '',
     tipoVuelta:       '',
@@ -149,7 +151,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   private actualizarFiltradas(): void { this.aplicarFiltros(); }
 
-  get puedeCrear(): boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
+  get puedeCrear():  boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
   get puedeEditar(): boolean { return ['Admin', 'Jefe', 'Facturacion', 'Bodega'].includes(this.rolUsuario); }
 
   get tituloPorRol(): string {
@@ -199,7 +201,14 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // ✅ Abrir modal editar
+  // ── Ver Detalle ───────────────────────────────────────────────────────────
+  verDetalle(autorizacion: any) {
+    this.autorizacionDetalle = autorizacion;
+    this.mostrarModalDetalle = true;
+    this.cdr.markForCheck();
+  }
+
+  // ── Editar ────────────────────────────────────────────────────────────────
   abrirEditar(autorizacion: any) {
     this.autorizacionEditando = autorizacion;
     this.formEditar = {
@@ -214,7 +223,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     this.cdr.markForCheck();
   }
 
-  // ✅ Guardar edición
   guardarEdicion() {
     if (!this.autorizacionEditando) return;
     const datos = {
@@ -241,6 +249,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       });
   }
 
+  // ── Llegada ───────────────────────────────────────────────────────────────
   abrirReporteLlegada(autorizacion: any) {
     this.autorizacionLlegada = autorizacion;
     this.formLlegada = { kilometrajeFinal: null, novedadesViaje: '', estadoVehiculo: 'Bueno' };
@@ -289,6 +298,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
+  // ── Flujo pasos ───────────────────────────────────────────────────────────
   seleccionarConductor(conductor: any) {
     this.conductorSeleccionado = conductor; this.pasoActual = 2; this.vistaLista = false; this.cdr.markForCheck();
   }

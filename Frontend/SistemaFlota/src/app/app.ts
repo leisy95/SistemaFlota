@@ -156,7 +156,7 @@ export class AppComponent implements OnInit {
       case 'Facturacion':     return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
       case 'Bodega':          return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
       case 'Porteria':        return ['dashboard','autorizaciones','encuesta-fatiga'].includes(modulo);
-      case 'Vendedor':        return ['dashboard','pedidos','inspecciones','reporte-ruta','cambio-ruta','solicitud-taller','autorizaciones'].includes(modulo);
+      case 'Vendedor':        return ['dashboard','pedidos','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','autorizaciones'].includes(modulo);
       default: return false;
     }
   }

@@ -128,6 +128,11 @@
                 <i class="fa-solid fa-circle-xmark"></i> Rechazado
               </span>
 
+              <!-- ✅ Ver detalle — para todos -->
+              <button class="btn-ver-aut" (click)="verDetalle(a)">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+
               <button class="btn-pdf-individual" (click)="descargarPDF(a)">
                 <i class="fa-solid fa-file-pdf"></i>
               </button>
@@ -283,6 +288,119 @@
   </div>
 </div>
 
+<!-- ═══════════════ MODAL DETALLE AUTORIZACIÓN ═══════════════ -->
+<div class="modal-overlay" *ngIf="mostrarModalDetalle">
+  <div class="modal-llegada" style="max-width:620px">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-file-circle-check"></i> Autorización #{{ autorizacionDetalle?.id }}</h2>
+      <button class="btn-cerrar-modal" (click)="mostrarModalDetalle = false">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Info principal -->
+    <div class="llegada-info">
+      <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionDetalle?.conductor?.nombre }}</strong></p>
+      <p><i class="fa-solid fa-truck"></i> {{ autorizacionDetalle?.vehiculo?.placa }}</p>
+      <p><i class="fa-solid fa-rotate"></i> {{ autorizacionDetalle?.tipoVuelta }}</p>
+      <p><i class="fa-solid fa-location-dot"></i> {{ autorizacionDetalle?.destinoCompleto || 'Mensajería' }}</p>
+      <p *ngIf="autorizacionDetalle?.numeroGuia">
+        <i class="fa-solid fa-hashtag"></i> Guía: {{ autorizacionDetalle?.numeroGuia }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.pesoKilos">
+        <i class="fa-solid fa-weight-hanging"></i> Peso: {{ autorizacionDetalle?.pesoKilos }} kg
+      </p>
+      <p *ngIf="autorizacionDetalle?.cantidadClientes">
+        <i class="fa-solid fa-users"></i> Clientes: {{ autorizacionDetalle?.cantidadClientes }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.descripcionCarga">
+        <i class="fa-solid fa-boxes-stacked"></i> {{ autorizacionDetalle?.descripcionCarga }}
+      </p>
+    </div>
+
+    <!-- Facturas -->
+    <div *ngIf="autorizacionDetalle?.facturasClientes" style="margin-bottom:16px">
+      <strong style="font-size:13px; color:#374151">
+        <i class="fa-solid fa-receipt"></i> Facturas:
+      </strong>
+      <div class="facturas-resumen" style="margin-top:8px">
+        <div class="factura-resumen-item"
+          *ngFor="let f of obtenerFacturas(autorizacionDetalle?.facturasClientes)">
+          <span><i class="fa-solid fa-file"></i> {{ f.facturaRemision }}</span>
+          <span><i class="fa-solid fa-user"></i> {{ f.cliente }}</span>
+          <span *ngIf="f.pesoKilos">
+            <i class="fa-solid fa-weight-hanging"></i> {{ f.pesoKilos }} kg
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado y firmas -->
+    <div class="llegada-info">
+      <p>
+        <i class="fa-solid fa-circle-half-stroke"></i>
+        <strong>Estado:</strong>
+        <span [class]="getBadgeClass(autorizacionDetalle?.estado)" style="margin-left:6px">
+          {{ autorizacionDetalle?.estado }}
+        </span>
+      </p>
+      <p *ngIf="autorizacionDetalle?.usuarioFacturacion">
+        <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
+        <strong>Facturación:</strong> {{ autorizacionDetalle?.usuarioFacturacion }}
+        <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaFacturacion | date:'short' }}</span>
+      </p>
+      <p *ngIf="autorizacionDetalle?.observacionFacturacion" style="padding-left:20px; color:#64748b; font-size:13px">
+        {{ autorizacionDetalle?.observacionFacturacion }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.usuarioBodega">
+        <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
+        <strong>Bodega:</strong> {{ autorizacionDetalle?.usuarioBodega }}
+        <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaBodega | date:'short' }}</span>
+      </p>
+      <p *ngIf="autorizacionDetalle?.observacionBodega" style="padding-left:20px; color:#64748b; font-size:13px">
+        {{ autorizacionDetalle?.observacionBodega }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.usuarioPorteria">
+        <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
+        <strong>Portería:</strong> {{ autorizacionDetalle?.usuarioPorteria }}
+        <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaPorteria | date:'short' }}</span>
+      </p>
+      <p *ngIf="autorizacionDetalle?.observacionPorteria" style="padding-left:20px; color:#64748b; font-size:13px">
+        {{ autorizacionDetalle?.observacionPorteria }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.fechaSalidaReal">
+        <i class="fa-solid fa-truck-fast" style="color:#854d0e"></i>
+        <strong>Salida real:</strong>
+        {{ autorizacionDetalle?.fechaSalidaReal | date:'short' }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.fechaReporteLlegada">
+        <i class="fa-solid fa-flag-checkered" style="color:#15803d"></i>
+        <strong>Llegada reportada:</strong>
+        {{ autorizacionDetalle?.fechaReporteLlegada | date:'short' }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.kilometrajeFinal">
+        <i class="fa-solid fa-road"></i>
+        <strong>Km final:</strong> {{ autorizacionDetalle?.kilometrajeFinal }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.estadoVehiculoLlegada">
+        <i class="fa-solid fa-car"></i>
+        <strong>Estado vehículo:</strong> {{ autorizacionDetalle?.estadoVehiculoLlegada }}
+      </p>
+      <p *ngIf="autorizacionDetalle?.novedadesViaje">
+        <i class="fa-solid fa-clipboard"></i>
+        <strong>Novedades:</strong> {{ autorizacionDetalle?.novedadesViaje }}
+      </p>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar-modal" (click)="mostrarModalDetalle = false">Cerrar</button>
+      <button class="btn-guardar-llegada" (click)="descargarPDF(autorizacionDetalle); mostrarModalDetalle = false">
+        <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════ FLUJO DE PASOS ═══════════════════════ -->
 <div class="contenedor" *ngIf="!vistaLista">
 
@@ -402,8 +520,7 @@
             <input type="text"   [(ngModel)]="f.facturaRemision" placeholder="F-001">
             <input type="text"   [(ngModel)]="f.cliente"         placeholder="Nombre del cliente">
             <input type="number" step="0.01" min="0"
-              [(ngModel)]="f.pesoKilos"
-              placeholder="Ej: 12.5"
+              [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
               (ngModelChange)="recalcularPeso()">
             <button class="btn-eliminar-fila" (click)="eliminarFactura(i)">
               <i class="fa-solid fa-trash"></i>

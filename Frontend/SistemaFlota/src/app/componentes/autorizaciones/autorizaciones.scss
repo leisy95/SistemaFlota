@@ -558,6 +558,21 @@ tbody {
   display: flex; align-items: center; gap: 8px; transition: 0.2s;
   &:hover { opacity: 0.9; transform: translateY(-2px); }
 }
+// ── BOTÓN VER ─────────────────────────────────────────────────────────────────
+.btn-ver-aut {
+  background: #e0f2fe; color: #0369a1; border: none;
+  padding: 7px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; transition: 0.2s; width: auto;
+  &:hover { background: #bae6fd; transform: translateY(-2px); }
+}
+
+// ── MODAL DETALLE GRANDE ──────────────────────────────────────────────────────
+.modal-detalle {
+  background: white; border-radius: 20px; padding: 28px;
+  width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: aparecer 0.3s ease;
+}
 
 // ── RESPONSIVE ────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {

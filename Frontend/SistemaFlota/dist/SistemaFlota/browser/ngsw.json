@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1780710037893,
+  "timestamp": 1780712346093,
   "index": "/index.html",
   "assetGroups": [
     {
@@ -23,7 +23,7 @@
         "/chunk-UY7G5MNN.js",
         "/favicon.ico",
         "/index.html",
-        "/main-5LAPZPS4.js",
+        "/main-BN564UCB.js",
         "/manifest.webmanifest",
         "/styles-AHCNQF25.css"
       ],
@@ -71,8 +71,8 @@
     "/chunk-SAF66IPK.js": "659f6d23f47c482e1c17f2d48952567b9af7b6b5",
     "/chunk-UY7G5MNN.js": "307d7b2b9de6e4dcc5876b8498489b408660c84f",
     "/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
-    "/index.html": "afa7bad9b9c00e81bf7c2ac1c191c5a2e685b693",
-    "/main-5LAPZPS4.js": "fb7cf2b956c728e3f4d4d74ab465d420e5efee29",
+    "/index.html": "8e2c1b1472e90e5a32e8a6b3f065d1fc29a12a32",
+    "/main-BN564UCB.js": "10535a4604145ffddb246a999e2dbcc8ccbead8e",
     "/manifest.webmanifest": "e0befc67221f9344b62fe90b44aaaa44b9749a5e",
     "/styles-AHCNQF25.css": "8b1badc8117e575d680e233cf2e3aae1a92c7c14"
   },
