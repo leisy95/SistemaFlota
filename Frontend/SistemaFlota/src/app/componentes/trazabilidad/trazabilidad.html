@@ -89,23 +89,22 @@
             <span *ngIf="r.valorFlete">${{ r.valorFlete | number:'1.0-0' }}</span>
             <span *ngIf="!r.valorFlete">-</span>
           </td>
-          <!-- ✅ Entregada primero -->
           <td data-label="Entregada">
             <span class="badge-entregada"    *ngIf="r.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">🔴 Pendiente</span>
           </td>
-          <!-- ✅ Acuse segundo -->
+          <!-- ✅ Corregido ajusteRecibido -->
           <td data-label="Acuse">
-            <span class="badge-si" *ngIf="r.acuseRecibido">✅ Sí</span>
-            <span class="badge-no" *ngIf="!r.acuseRecibido">❌ No</span>
+            <span class="badge-si" *ngIf="r.ajusteRecibido">✅ Sí</span>
+            <span class="badge-no" *ngIf="!r.ajusteRecibido">❌ No</span>
           </td>
-          <!-- ✅ Estado tercero -->
           <td data-label="Estado">
             <span [class]="getBadgeEstado(r.estado)">{{ getLabelEstado(r.estado) }}</span>
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-ver"      (click)="verDetalle(r)">👁️</button>
+              <!-- ✅ Ver para todos -->
+              <button class="btn-ver" (click)="verDetalle(r)">👁️</button>
               <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(r)">✏️</button>
               <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)">🗑️</button>
             </div>
@@ -136,7 +135,6 @@
       <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
     </div>
 
-    <!-- ✅ Importar autorización — muestra solo #id -->
     <div class="importar-aut">
       <label>🔗 Importar desde autorización <span class="opcional">(opcional)</span></label>
       <select (change)="importarAutorizacion(+$any($event.target).value)">
@@ -146,7 +144,6 @@
         </option>
       </select>
 
-      <!-- ✅ Selector de factura individual -->
       <div *ngIf="facturasDisponibles.length > 0" class="facturas-disponibles">
         <label>📄 Seleccionar factura de esta autorización</label>
         <select (change)="seleccionarFactura(+$any($event.target).value)">
@@ -201,7 +198,6 @@
         <input type="number" [(ngModel)]="form.valorFlete" placeholder="Ej: 250000">
       </div>
 
-      <!-- ✅ Orden: Estado → Factura entregada → Acuse -->
       <div class="form-group">
         <label>🔄 Estado</label>
         <select [(ngModel)]="form.estado">
@@ -276,11 +272,12 @@
           <span class="badge-no-entregada" *ngIf="!registroSeleccionado?.facturaEntregada">🔴 Pendiente</span>
         </strong>
       </div>
+      <!-- ✅ Corregido ajusteRecibido -->
       <div class="detalle-item">
         <span>💱 Acuse</span>
         <strong>
-          <span class="badge-si" *ngIf="registroSeleccionado?.acuseRecibido">✅ Sí</span>
-          <span class="badge-no" *ngIf="!registroSeleccionado?.acuseRecibido">❌ No</span>
+          <span class="badge-si" *ngIf="registroSeleccionado?.ajusteRecibido">✅ Sí</span>
+          <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
         </strong>
       </div>
       <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>

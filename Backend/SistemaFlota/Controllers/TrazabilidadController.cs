@@ -275,7 +275,9 @@ namespace SistemaFlota
             var lista = await _context.Autorizaciones
                 .Include(a => a.Conductor)
                 .Include(a => a.Vehiculo)
-                .Where(a => a.Estado == "Autorizado")
+                .Where(a => a.Estado == "Bodega" ||
+                            a.Estado == "Porteria" ||
+                            a.Estado == "Autorizado")
                 .OrderByDescending(a => a.FechaCreacion)
                 .Select(a => new
                 {
