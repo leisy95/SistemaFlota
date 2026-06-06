@@ -128,6 +128,9 @@ namespace SistemaFlota
             }
         }
 
+        // =====================================
+        // FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO
+        // =====================================
         [HttpPut("{id}/facturacion")]
         public async Task<IActionResult> FirmarFacturacion(int id, [FromBody] FirmaDto dto)
         {
@@ -135,22 +138,105 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
+
                 a.FirmaFacturacion = dto.Firma;
                 a.UsuarioFacturacion = dto.Usuario;
                 a.ObservacionFacturacion = dto.Observacion;
                 a.FechaFacturacion = FechaHelper.Ahora();
                 a.Estado = "Bodega";
                 await _context.SaveChangesAsync();
+
+                // ✅ Crear registros automáticos en Trazabilidad
+                var resultado = await CargarConRelaciones(id);
+                if (resultado != null)
+                {
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var vehiculo = resultado.Vehiculo?.Placa ?? "-";
+                    var guia = resultado.NumeroGuia;
+
+                    Console.WriteLine($"📋 FirmarFacturacion #{id} — FacturasClientes: {resultado.FacturasClientes ?? "null"}");
+
+                    if (!string.IsNullOrWhiteSpace(resultado.FacturasClientes))
+                    {
+                        try
+                        {
+                            var facturas = System.Text.Json.JsonSerializer.Deserialize<List<FacturaClienteDto>>(
+                                resultado.FacturasClientes,
+                                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                            );
+
+                            Console.WriteLine($"📋 Facturas deserializadas: {facturas?.Count ?? 0}");
+
+                            if (facturas != null && facturas.Count > 0)
+                            {
+                                foreach (var f in facturas)
+                                {
+                                    var existe = await _context.TrazabilidadFacturas
+                                        .AnyAsync(t => t.AutorizacionId == id && t.FacturaRemision == f.FacturaRemision);
+                                    Console.WriteLine($"📋 Factura {f.FacturaRemision} — ¿existe? {existe}");
+                                    if (!existe)
+                                    {
+                                        _context.TrazabilidadFacturas.Add(new TrazabilidadFactura
+                                        {
+                                            AutorizacionId = id,
+                                            FechaRegistro = FechaHelper.Ahora(),
+                                            FacturaRemision = f.FacturaRemision ?? "-",
+                                            Cliente = f.Cliente ?? "-",
+                                            Conductor = conductor,
+                                            Vehiculo = vehiculo,
+                                            Guia = guia,
+                                            PesoKilos = f.PesoKilos,
+                                            Estado = "Pendiente"
+                                        });
+                                    }
+                                }
+                                await _context.SaveChangesAsync();
+                                Console.WriteLine($"✅ Trazabilidad creada desde facturas para autorización #{id}");
+                            }
+                        }
+                        catch (Exception exFact)
+                        {
+                            Console.WriteLine($"⚠️ Error creando trazabilidad desde facturas: {exFact.Message}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"📋 Sin facturas — creando registro general para autorización #{id}");
+                        var existe = await _context.TrazabilidadFacturas
+                            .AnyAsync(t => t.AutorizacionId == id);
+                        Console.WriteLine($"📋 ¿Ya existe registro general? {existe}");
+                        if (!existe)
+                        {
+                            _context.TrazabilidadFacturas.Add(new TrazabilidadFactura
+                            {
+                                AutorizacionId = id,
+                                FechaRegistro = FechaHelper.Ahora(),
+                                FacturaRemision = "-",
+                                Cliente = resultado.DestinoCompleto ?? "-",
+                                Conductor = conductor,
+                                Vehiculo = vehiculo,
+                                Guia = guia,
+                                PesoKilos = resultado.PesoKilos,
+                                Estado = "Pendiente"
+                            });
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine($"✅ Registro general de trazabilidad creado para autorización #{id}");
+                        }
+                    }
+                }
+
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
                     detalle: $"Firma Facturación — #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
+
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ ERROR FirmarFacturacion: {ex.Message}\n{ex.InnerException?.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -203,7 +289,6 @@ namespace SistemaFlota
                     registroId: id
                 );
 
-                // ── TWILIO ──
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
@@ -216,7 +301,6 @@ namespace SistemaFlota
                     var tipo = resultado.TipoVuelta ?? "-";
                     var guia = resultado.NumeroGuia ?? "-";
 
-                    // ── Mensaje personal al conductor ──
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
@@ -235,7 +319,6 @@ namespace SistemaFlota
                         await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConductor);
                     }
 
-                    // ── Mensaje informativo al grupo ──
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp)
@@ -292,7 +375,6 @@ namespace SistemaFlota
                     registroId: id
                 );
 
-                // ── TWILIO ──
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
@@ -305,7 +387,6 @@ namespace SistemaFlota
                     var estado = dto.EstadoVehiculo ?? "Bueno";
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
 
-                    // ── Mensaje al grupo ──
                     var mensajeGrupo =
                         $"🏁 *LLEGADA REPORTADA*\n" +
                         $"━━━━━━━━━━━━━━━━━━\n" +
@@ -325,7 +406,6 @@ namespace SistemaFlota
                     if (numerosGrupo.Any())
                         await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
 
-                    // ── Confirmación al conductor ──
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
@@ -376,6 +456,7 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
+
         [HttpPut("{id}/confirmar-salida")]
         public async Task<IActionResult> ConfirmarSalida(int id)
         {
@@ -398,7 +479,6 @@ namespace SistemaFlota
                     registroId: id
                 );
 
-                // ── TWILIO al grupo ──
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
@@ -435,6 +515,34 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] CrearAutorizacionDto dto)
+        {
+            try
+            {
+                var a = await _context.Autorizaciones.FindAsync(id);
+                if (a == null) return NotFound();
+                a.DestinoCompleto = dto.DestinoCompleto;
+                a.CantidadClientes = dto.CantidadClientes;
+                a.PesoKilos = dto.PesoKilos;
+                a.TipoVuelta = dto.TipoVuelta;
+                a.DescripcionCarga = dto.DescripcionCarga;
+                a.NumeroGuia = dto.NumeroGuia;
+                await _context.SaveChangesAsync();
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Editar", modulo: "Autorizaciones",
+                    detalle: $"Autorización #{id} editada por: {GetUsuario()}",
+                    registroId: id
+                );
+                return Ok(await CargarConRelaciones(id));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] FirmaDto dto)
         {
@@ -459,6 +567,7 @@ namespace SistemaFlota
         }
     }
 
+    // ── DTOs ──────────────────────────────────────────────────────────────────
     public class CrearAutorizacionDto
     {
         public int ConductorId { get; set; }
@@ -484,5 +593,12 @@ namespace SistemaFlota
         public int? KilometrajeFinal { get; set; }
         public string? NovedadesViaje { get; set; }
         public string EstadoVehiculo { get; set; } = "Bueno";
+    }
+
+    public class FacturaClienteDto
+    {
+        public string? FacturaRemision { get; set; }
+        public string? Cliente { get; set; }
+        public decimal? PesoKilos { get; set; }
     }
 }

@@ -45,7 +45,7 @@ export class TrazabilidadComponent implements OnInit {
     vehiculo:         '',
     pesoKilos:        null as number | null,
     valorFlete:       null as number | null,
-    acuseRecibido:   false,
+    acuseRecibido:    false,
     facturaEntregada: false,
     novedad:          '',
     estado:           'Pendiente'
@@ -124,22 +124,18 @@ export class TrazabilidadComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // ✅ Importar autorización — solo número de salida, facturas disponibles para seleccionar
   importarAutorizacion(autorizacionId: number) {
     const aut = this.autorizaciones.find(a => a.id == autorizacionId);
     if (!aut) { this.facturasDisponibles = []; return; }
 
-    this.form.autorizacionId = aut.id;
-    this.form.conductor      = aut.conductor  ?? '';
-    this.form.vehiculo       = aut.vehiculo   ?? '';
-    this.form.guia           = aut.numeroGuia ?? '';
-
-    // Limpiar campos de factura para que el usuario seleccione
+    this.form.autorizacionId  = aut.id;
+    this.form.conductor       = aut.conductor  ?? '';
+    this.form.vehiculo        = aut.vehiculo   ?? '';
+    this.form.guia            = aut.numeroGuia ?? '';
     this.form.facturaRemision = '';
     this.form.cliente         = '';
     this.form.pesoKilos       = null;
 
-    // Cargar facturas disponibles de la autorización
     if (aut.facturasClientes) {
       try {
         this.facturasDisponibles = JSON.parse(aut.facturasClientes);
@@ -149,7 +145,6 @@ export class TrazabilidadComponent implements OnInit {
     }
   }
 
-  // ✅ Seleccionar factura individual — autocompleta cliente, peso
   seleccionarFactura(index: number) {
     if (index < 0 || index >= this.facturasDisponibles.length) return;
     const f = this.facturasDisponibles[index];
@@ -162,11 +157,19 @@ export class TrazabilidadComponent implements OnInit {
     this.editando = false; this.editandoId = null;
     this.facturasDisponibles = [];
     this.form = {
-      autorizacionId: null, facturaRemision: '', cliente: '',
-      conductor: '', transportadora: '', guia: '', vehiculo: '',
-      pesoKilos: null, valorFlete: null,
-      acuseRecibido: false, facturaEntregada: false,
-      novedad: '', estado: 'Pendiente'
+      autorizacionId:   null,
+      facturaRemision:  '',
+      cliente:          '',
+      conductor:        '',
+      transportadora:   '',
+      guia:             '',
+      vehiculo:         '',
+      pesoKilos:        null,
+      valorFlete:       null,
+      acuseRecibido:    false,
+      facturaEntregada: false,
+      novedad:          '',
+      estado:           'Pendiente'
     };
     this.mostrarModal = true;
   }
@@ -184,7 +187,7 @@ export class TrazabilidadComponent implements OnInit {
       vehiculo:         r.vehiculo         ?? '',
       pesoKilos:        r.pesoKilos        ?? null,
       valorFlete:       r.valorFlete       ?? null,
-      acuseRecibido:   r.acuseRecibido,
+      acuseRecibido:    r.ajusteRecibido,  
       facturaEntregada: r.facturaEntregada,
       novedad:          r.novedad          ?? '',
       estado:           r.estado
@@ -197,9 +200,26 @@ export class TrazabilidadComponent implements OnInit {
     if (!this.form.cliente.trim())         { alert('Ingrese el cliente');         return; }
     if (!this.form.conductor.trim())       { alert('Ingrese el conductor');       return; }
 
+    // ✅ Mapear acuseRecibido → ajusteRecibido para el backend
+    const dto = {
+      autorizacionId:   this.form.autorizacionId,
+      facturaRemision:  this.form.facturaRemision,
+      cliente:          this.form.cliente,
+      conductor:        this.form.conductor,
+      transportadora:   this.form.transportadora,
+      guia:             this.form.guia,
+      vehiculo:         this.form.vehiculo,
+      pesoKilos:        this.form.pesoKilos,
+      valorFlete:       this.form.valorFlete,
+      ajusteRecibido:   this.form.acuseRecibido,  
+      facturaEntregada: this.form.facturaEntregada,
+      novedad:          this.form.novedad,
+      estado:           this.form.estado
+    };
+
     const peticion = this.editando && this.editandoId
-      ? this.trazabilidadService.editar(this.editandoId, this.form)
-      : this.trazabilidadService.crear(this.form);
+      ? this.trazabilidadService.editar(this.editandoId, dto)
+      : this.trazabilidadService.crear(dto);
 
     peticion.subscribe({
       next: () => { this.cargarRegistros(); this.cerrarModal(); },
@@ -237,9 +257,11 @@ export class TrazabilidadComponent implements OnInit {
   editarNota(n: any) {
     this.editandoNota = true; this.editandoNotaId = n.id;
     this.formNota = {
-      numeroNota: n.numeroNota, cliente: n.cliente ?? '',
-      conductor: n.conductor, facturaEntregada: n.facturaEntregada,
-      observacion: n.observacion ?? ''
+      numeroNota:       n.numeroNota,
+      cliente:          n.cliente      ?? '',
+      conductor:        n.conductor,
+      facturaEntregada: n.facturaEntregada,
+      observacion:      n.observacion  ?? ''
     };
     this.mostrarNota = true;
   }
@@ -266,9 +288,9 @@ export class TrazabilidadComponent implements OnInit {
     });
   }
 
-  cerrarModal()   { this.mostrarModal = false; this.facturasDisponibles = []; }
+  cerrarModal()   { this.mostrarModal   = false; this.facturasDisponibles = []; }
   cerrarDetalle() { this.mostrarDetalle = false; this.registroSeleccionado = null; this.notas = []; }
-  cerrarNota()    { this.mostrarNota = false; }
+  cerrarNota()    { this.mostrarNota    = false; }
 
   getBadgeEstado(estado: string): string {
     switch (estado) {
@@ -303,7 +325,7 @@ export class TrazabilidadComponent implements OnInit {
       'Peso (kg)':         r.pesoKilos        ?? '-',
       'Valor flete':       r.valorFlete       ?? '-',
       'Factura entregada': r.facturaEntregada ? 'Sí' : 'No',
-      'Acuse':            r.acuseRecibido   ? 'Sí' : 'No',
+      'Acuse':             r.ajusteRecibido   ? 'Sí' : 'No',  
       'Fecha entrega':     r.fechaEntrega ? new Date(r.fechaEntrega).toLocaleString() : '-',
       'Estado':            r.estado,
       'Novedad':           r.novedad || '-',

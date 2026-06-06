@@ -40,7 +40,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     pesoKilos: 0, tipoVuelta: '', descripcionCarga: '', numeroGuia: ''
   };
 
-  // ✅ Facturas con peso individual
   facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
 
   guiaGenerada     = '';
@@ -56,12 +55,24 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   mostrarModalLlegada    = false;
   mostrarModalConfirmar  = false;
+  mostrarModalEditar     = false;
   autorizacionLlegada:   any = null;
+  autorizacionEditando:  any = null;
 
   formLlegada = {
     kilometrajeFinal: null as number | null,
     novedadesViaje:   '',
     estadoVehiculo:   'Bueno'
+  };
+
+  // ✅ Form de edición rápida
+  formEditar = {
+    destinoCompleto:  '',
+    tipoVuelta:       '',
+    descripcionCarga: '',
+    cantidadClientes: 0,
+    pesoKilos:        0,
+    numeroGuia:       ''
   };
 
   readonly estadosVehiculo = ['Bueno', 'Novedad', 'Requiere taller'];
@@ -111,6 +122,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       case 'Facturacion': base = [...this.autorizaciones]; break;
       case 'Bodega':      base = this.autorizaciones.filter(a => a.estado === 'Bodega'); break;
       case 'Porteria':    base = this.autorizaciones.filter(a => a.estado === 'Porteria' || (a.estado === 'Autorizado' && a.estadoLlegada === 'ReportadaLlegada')); break;
+      case 'Vendedor':    base = this.autorizaciones.filter(a => a.estado === 'Autorizado'); break;
       default:            base = [...this.autorizaciones];
     }
     this.autorizacionesFiltradas = base.filter(a => {
@@ -138,6 +150,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   private actualizarFiltradas(): void { this.aplicarFiltros(); }
 
   get puedeCrear(): boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
+  get puedeEditar(): boolean { return ['Admin', 'Jefe', 'Facturacion', 'Bodega'].includes(this.rolUsuario); }
 
   get tituloPorRol(): string {
     switch (this.rolUsuario) {
@@ -152,7 +165,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   trackById(_i: number, item: any): number { return item.id; }
   trackByIdx(i: number, _item: any): number { return i; }
 
-  // ✅ Peso total sumando correctamente valores decimales
   get pesoTotalFacturas(): number {
     return this.facturasClientes.reduce((sum, f) => {
       const val = parseFloat(String(f.pesoKilos ?? '').replace(',', '.'));
@@ -160,7 +172,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }, 0);
   }
 
-  // ✅ Recalcular peso en kilos al cambiar facturas
   recalcularPeso(): void {
     const total = this.pesoTotalFacturas;
     if (total > 0) this.form.pesoKilos = total;
@@ -186,6 +197,48 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       next: (data) => { this.autorizaciones = data; this.actualizarFiltradas(); },
       error: (err) => console.error(err)
     });
+  }
+
+  // ✅ Abrir modal editar
+  abrirEditar(autorizacion: any) {
+    this.autorizacionEditando = autorizacion;
+    this.formEditar = {
+      destinoCompleto:  autorizacion.destinoCompleto  ?? '',
+      tipoVuelta:       autorizacion.tipoVuelta       ?? '',
+      descripcionCarga: autorizacion.descripcionCarga ?? '',
+      cantidadClientes: autorizacion.cantidadClientes ?? 0,
+      pesoKilos:        autorizacion.pesoKilos        ?? 0,
+      numeroGuia:       autorizacion.numeroGuia       ?? ''
+    };
+    this.mostrarModalEditar = true;
+    this.cdr.markForCheck();
+  }
+
+  // ✅ Guardar edición
+  guardarEdicion() {
+    if (!this.autorizacionEditando) return;
+    const datos = {
+      conductorId:      this.autorizacionEditando.conductorId,
+      vehiculoId:       this.autorizacionEditando.vehiculoId,
+      destinoCompleto:  this.formEditar.destinoCompleto,
+      cantidadClientes: this.formEditar.cantidadClientes,
+      pesoKilos:        this.formEditar.pesoKilos,
+      tipoVuelta:       this.formEditar.tipoVuelta,
+      descripcionCarga: this.formEditar.descripcionCarga,
+      numeroGuia:       this.formEditar.numeroGuia,
+      facturasClientes: this.autorizacionEditando.facturasClientes
+    };
+    this.autorizacionesService.editar(this.autorizacionEditando.id, datos)
+      .pipe(timeout(15000), takeUntil(this.destroy$),
+        catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
+      ).subscribe({
+        next: () => {
+          this.mostrarModalEditar = false;
+          this.mostrarNotificacion('✅ Autorización actualizada');
+          this.obtenerAutorizaciones();
+          this.cdr.markForCheck();
+        }, error: () => {}
+      });
   }
 
   abrirReporteLlegada(autorizacion: any) {
@@ -354,18 +407,18 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
   confirmarSalida(autorizacion: any) {
-  if (!confirm(`¿Confirmar salida en ruta de ${autorizacion.conductor?.nombre}?`)) return;
-  this.autorizacionesService.confirmarSalida(autorizacion.id).pipe(
-    timeout(15000), takeUntil(this.destroy$),
-    catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
-  ).subscribe({
-    next: () => {
-      this.mostrarNotificacion(`🚛 Salida en ruta confirmada — WhatsApp enviado`);
-      this.obtenerAutorizaciones();
-      this.cdr.markForCheck();
-    }, error: () => {}
-  });
-}
+    if (!confirm(`¿Confirmar salida en ruta de ${autorizacion.conductor?.nombre}?`)) return;
+    this.autorizacionesService.confirmarSalida(autorizacion.id).pipe(
+      timeout(15000), takeUntil(this.destroy$),
+      catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
+    ).subscribe({
+      next: () => {
+        this.mostrarNotificacion(`🚛 Salida en ruta confirmada — WhatsApp enviado`);
+        this.obtenerAutorizaciones();
+        this.cdr.markForCheck();
+      }, error: () => {}
+    });
+  }
 
   resetear() {
     this.pasoActual = 1; this.conductorSeleccionado = null; this.autorizacionActual = null; this.vistaLista = true;

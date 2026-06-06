@@ -83,19 +83,29 @@
           </td>
           <td data-label="Acción">
             <div class="btn-acciones-tabla">
+
               <button class="btn-continuar"
                 *ngIf="a.estado !== 'Autorizado' && a.estado !== 'Rechazado'"
                 (click)="continuarAutorizacion(a)">
                 <i class="fa-solid fa-arrow-right"></i> Continuar
               </button>
 
-              <!-- Confirmar salida en ruta: solo Conductor cuando está Autorizado y no ha confirmado salida -->
-<button class="btn-salida-ruta"
-  *ngIf="a.estado === 'Autorizado' && !a.fechaSalidaReal &&
-    (rolUsuario === 'Conductor')"
-  (click)="confirmarSalida(a)">
-  <i class="fa-solid fa-truck-fast"></i> Salir en ruta
-</button>
+              <!-- ✅ Editar -->
+              <button class="btn-editar-aut"
+                *ngIf="puedeEditar && a.estado !== 'Autorizado' && a.estado !== 'Rechazado'"
+                (click)="abrirEditar(a)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <!-- ✅ Salir en ruta -->
+              <button class="btn-salida-ruta"
+                *ngIf="a.estado === 'Autorizado' && !a.fechaSalidaReal &&
+                  (rolUsuario === 'Conductor' || rolUsuario === 'Vendedor' ||
+                   rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
+                (click)="confirmarSalida(a)">
+                <i class="fa-solid fa-truck-fast"></i> Salir en ruta
+              </button>
+
               <button class="btn-reportar-llegada"
                 *ngIf="a.estado === 'Autorizado' && !a.estadoLlegada &&
                   (rolUsuario === 'Conductor' || rolUsuario === 'Admin' ||
@@ -103,21 +113,25 @@
                 (click)="abrirReporteLlegada(a)">
                 <i class="fa-solid fa-flag-checkered"></i> Reportar llegada
               </button>
+
               <button class="btn-confirmar-llegada"
                 *ngIf="a.estadoLlegada === 'ReportadaLlegada' &&
                   (rolUsuario === 'Porteria' || rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
                 (click)="abrirConfirmarLlegada(a)">
                 <i class="fa-solid fa-door-open"></i> Confirmar entrada
               </button>
+
               <span *ngIf="a.estadoLlegada === 'Completada'" class="texto-ok">
                 <i class="fa-solid fa-circle-check"></i> Turno completo
               </span>
               <span *ngIf="a.estado === 'Rechazado'" class="texto-error">
                 <i class="fa-solid fa-circle-xmark"></i> Rechazado
               </span>
+
               <button class="btn-pdf-individual" (click)="descargarPDF(a)">
                 <i class="fa-solid fa-file-pdf"></i>
               </button>
+
             </div>
           </td>
         </tr>
@@ -214,6 +228,56 @@
       <button class="btn-cancelar-modal" (click)="mostrarModalConfirmar = false">Cancelar</button>
       <button class="btn-guardar-llegada" (click)="guardarConfirmarLlegada()">
         <i class="fa-solid fa-circle-check"></i> Confirmar entrada
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL EDITAR AUTORIZACIÓN ═══════════════ -->
+<div class="modal-overlay" *ngIf="mostrarModalEditar">
+  <div class="modal-llegada">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-pen"></i> Editar Autorización #{{ autorizacionEditando?.id }}</h2>
+      <button class="btn-cerrar-modal" (click)="mostrarModalEditar = false">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="llegada-info">
+      <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionEditando?.conductor?.nombre }}</strong></p>
+      <p><i class="fa-solid fa-truck"></i> {{ autorizacionEditando?.vehiculo?.placa }}</p>
+      <p><i class="fa-solid fa-circle-half-stroke"></i> Estado: <strong>{{ autorizacionEditando?.estado }}</strong></p>
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-rotate"></i> Tipo de Vuelta *</label>
+      <select [(ngModel)]="formEditar.tipoVuelta">
+        <option value="">Seleccione...</option>
+        <option *ngFor="let t of tiposVuelta" [value]="t.value">{{ t.label }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-location-dot"></i> Destino Completo</label>
+      <input type="text" [(ngModel)]="formEditar.destinoCompleto" placeholder="Ej: Bogotá - Calle 45 #12-34">
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-users"></i> Cantidad de Clientes</label>
+      <input type="number" [(ngModel)]="formEditar.cantidadClientes" placeholder="Ej: 5">
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-weight-hanging"></i> Peso en Kilos</label>
+      <input type="number" step="0.01" [(ngModel)]="formEditar.pesoKilos" placeholder="Ej: 150.5">
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-hashtag"></i> Número de Guía</label>
+      <input type="text" [(ngModel)]="formEditar.numeroGuia" placeholder="Ej: GI-20260525-0001">
+    </div>
+    <div class="form-group">
+      <label><i class="fa-solid fa-boxes-stacked"></i> Descripción de la Carga</label>
+      <textarea [(ngModel)]="formEditar.descripcionCarga" placeholder="Describa el tipo de mercancía..."></textarea>
+    </div>
+    <div class="modal-botones">
+      <button class="btn-cancelar-modal" (click)="mostrarModalEditar = false">Cancelar</button>
+      <button class="btn-guardar-llegada" (click)="guardarEdicion()">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
       </button>
     </div>
   </div>
@@ -338,9 +402,9 @@
             <input type="text"   [(ngModel)]="f.facturaRemision" placeholder="F-001">
             <input type="text"   [(ngModel)]="f.cliente"         placeholder="Nombre del cliente">
             <input type="number" step="0.01" min="0"
-             [(ngModel)]="f.pesoKilos"
-             placeholder="Ej: 12.5"
-            (ngModelChange)="recalcularPeso()">
+              [(ngModel)]="f.pesoKilos"
+              placeholder="Ej: 12.5"
+              (ngModelChange)="recalcularPeso()">
             <button class="btn-eliminar-fila" (click)="eliminarFactura(i)">
               <i class="fa-solid fa-trash"></i>
             </button>

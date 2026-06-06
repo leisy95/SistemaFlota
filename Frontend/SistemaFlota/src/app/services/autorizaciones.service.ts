@@ -18,6 +18,11 @@ export class AutorizacionesService {
     return this.http.post<any>(this.api, datos);
   }
 
+  // ✅ Editar autorización
+  editar(id: number, datos: any): Observable<any> {
+    return this.http.put<any>(`${this.api}/${id}`, datos);
+  }
+
   generarGuia(): Observable<any> {
     return this.http.get<any>(`${this.api}/generar-guia`);
   }
