@@ -105,7 +105,6 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        db.Database.EnsureCreated();
 
         var existeAdmin = await db.Usuarios.AnyAsync(u => u.Rol == "Admin" && u.Username == "admin");
         if (!existeAdmin)
