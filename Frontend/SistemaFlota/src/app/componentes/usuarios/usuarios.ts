@@ -61,13 +61,14 @@ export class UsuariosComponent implements OnInit {
     { key: 'usuarios',               label: 'Usuarios' },
     { key: 'checklist',              label: 'Checklist' },
     { key: 'pedidos',                label: 'Pedidos' },
+    { key: 'rrhh-seguimientos',      label: 'Seguimientos RRHH' },
+    { key: 'calidad-cyreles',        label: 'Cyreles' },
   ];
 
-  // ── Roles válidos — deben coincidir con el backend ─────────────────────────
   readonly roles = [
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
     'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
-    'PESV', 'Vendedor' // ← Plan Estratégico de Seguridad Vial
+    'PESV', 'Vendedor', 'Calidad', 'Impresion'
   ];
 
   constructor(private usuariosService: UsuariosService) {}
@@ -221,8 +222,9 @@ export class UsuariosComponent implements OnInit {
       case 'Porteria':        return 'badge-porteria';
       case 'RecursosHumanos': return 'badge-rrhh';
       case 'PESV':            return 'badge-pesv';
-      case 'PESV':            return 'badge-pesv';
       case 'Vendedor':        return 'badge-vendedor';
+      case 'Calidad':         return 'badge-calidad';
+      case 'Impresion':       return 'badge-impresion';
       default:                return 'badge-auxiliar';
     }
   }

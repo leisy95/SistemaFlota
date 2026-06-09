@@ -40,5 +40,8 @@ namespace SistemaFlota
 
         public DbSet<SeguimientoRrhh> SeguimientosRrhh { get; set; }
         public DbSet<SeguimientoRrhhFoto> SeguimientosRrhhFotos { get; set; }
+
+        public DbSet<Cajon> Cajones { get; set; }
+        public DbSet<CyreleRegistro> CyreleRegistros { get; set; }
     }
 }

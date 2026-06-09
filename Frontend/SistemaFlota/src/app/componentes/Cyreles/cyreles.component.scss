@@ -1,0 +1,258 @@
+.cy-container { padding: 1.5rem; color: var(--text, #f1f5f9); }
+
+// ── Alertas ───────────────────────────────────────────────────────────────────
+.cy-alerta {
+  padding: 10px 16px; border-radius: 10px; margin-bottom: 12px;
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+}
+.cy-exito { background: rgba(21,128,61,0.2);  color: #4ade80; border: 1px solid rgba(21,128,61,0.4); }
+.cy-error { background: rgba(239,68,68,0.2);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.cy-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.2rem; flex-wrap: wrap; gap: 12px;
+  h4 { font-size: 1.2rem; font-weight: 700; color: white; margin: 0;
+    display: flex; align-items: center; gap: 8px;
+    i { color: var(--color-primario, #15803d); } }
+  small { color: #64748b; font-size: 12px; }
+}
+.cy-header-acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────────
+.cy-breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 1rem; font-size: 13px;
+}
+.cy-breadcrumb-sep  { color: #64748b; }
+.cy-breadcrumb-actual { color: white; font-weight: 600; }
+.cy-btn-volver {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+  &:hover { background: rgba(255,255,255,0.12); color: white; }
+}
+.cy-btn-volver-link {
+  background: none; border: none; color: #94a3b8; cursor: pointer;
+  font-size: 13px; padding: 0; transition: 0.2s;
+  &:hover { color: white; }
+}
+
+// ── Grid cajones ──────────────────────────────────────────────────────────────
+.cy-grid-cajones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.cy-card-cajon {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 20px 16px;
+  cursor: pointer; transition: 0.2s; position: relative;
+  &:hover { background: rgba(255,255,255,0.09); border-color: var(--color-primario, #15803d); transform: translateY(-3px); }
+}
+.cy-card-numero {
+  font-size: 18px; font-weight: 700; color: white; margin-bottom: 4px;
+}
+.cy-card-desc { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+.cy-card-count {
+  font-size: 12px; color: #64748b;
+  display: flex; align-items: center; gap: 5px;
+  i { color: var(--color-primario, #15803d); }
+}
+.cy-card-acciones {
+  position: absolute; top: 10px; right: 10px;
+  display: flex; gap: 4px; opacity: 0; transition: 0.2s;
+  .cy-card-cajon:hover & { opacity: 1; }
+}
+
+// ── Filtros ───────────────────────────────────────────────────────────────────
+.cy-filtros {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.cy-input-busqueda {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: white; border-radius: 8px; padding: 8px 12px; font-size: 13px;
+  min-width: 250px; flex: 1;
+  &::placeholder { color: #64748b; }
+  &:focus { outline: none; border-color: var(--color-primario, #15803d); }
+}
+.cy-btn-limpiar {
+  background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5; border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  transition: 0.2s;
+  &:hover { background: rgba(239,68,68,0.3); }
+}
+.cy-contador { font-size: 12px; color: #64748b; font-style: italic; }
+
+// ── Grid registros ────────────────────────────────────────────────────────────
+.cy-grid-registros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.cy-card-registro {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; overflow: hidden;
+  cursor: pointer; transition: 0.2s; position: relative;
+  &:hover { background: rgba(255,255,255,0.09); border-color: var(--color-primario, #15803d); transform: translateY(-3px); }
+}
+.cy-registro-foto img {
+  width: 100%; height: 160px; object-fit: cover; display: block;
+}
+.cy-registro-sin-foto {
+  width: 100%; height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.03);
+  i { font-size: 36px; color: rgba(255,255,255,0.15); }
+}
+.cy-registro-info {
+  padding: 10px 12px;
+  strong { display: block; font-size: 13px; color: white; margin-bottom: 2px; }
+  small  { font-size: 11px; color: #64748b; }
+}
+.cy-card-registro .cy-card-acciones {
+  position: absolute; top: 8px; right: 8px; opacity: 0;
+  .cy-card-registro:hover & { opacity: 1; }
+}
+
+// ── Detalle ───────────────────────────────────────────────────────────────────
+.cy-detalle {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; overflow: hidden;
+  max-width: 600px; margin: 0 auto;
+}
+.cy-detalle-foto img {
+  width: 100%; max-height: 400px; object-fit: contain;
+  background: rgba(0,0,0,0.2);
+}
+.cy-detalle-sin-foto {
+  height: 200px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  background: rgba(255,255,255,0.03);
+  i { font-size: 48px; color: rgba(255,255,255,0.1); }
+  p { color: #64748b; font-size: 13px; }
+}
+.cy-detalle-info {
+  padding: 16px 20px;
+  h3 { font-size: 1.3rem; color: white; margin: 0 0 8px; }
+}
+.cy-detalle-meta {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  span { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 5px;
+    i { color: var(--color-primario, #15803d); } }
+}
+.cy-detalle-acciones {
+  padding: 12px 20px; display: flex; gap: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cy-btn-editar-detalle {
+  background: rgba(245,158,11,0.2); color: #fcd34d;
+  border: 1px solid rgba(245,158,11,0.3); padding: 9px 18px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; transition: 0.2s;
+  &:hover { background: rgba(245,158,11,0.35); }
+}
+.cy-btn-eliminar-detalle {
+  background: rgba(239,68,68,0.15); color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.3); padding: 9px 18px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; transition: 0.2s;
+  &:hover { background: rgba(239,68,68,0.3); }
+}
+
+// ── Botones ───────────────────────────────────────────────────────────────────
+.cy-btn-primary {
+  background: var(--color-primario, #15803d); color: white; border: none;
+  padding: 9px 16px; border-radius: 10px; cursor: pointer;
+  font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+  transition: 0.2s; &:hover { filter: brightness(1.15); } &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.cy-btn-secondary {
+  background: rgba(255,255,255,0.06); color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.1); padding: 9px 16px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: 0.2s; &:hover { background: rgba(255,255,255,0.12); color: white; }
+}
+.cy-btn-excel {
+  background: #15803d; color: white; border: none; padding: 9px 14px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; transition: 0.2s;
+  &:hover { filter: brightness(1.15); } &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+.cy-btn-pdf {
+  background: #dc2626; color: white; border: none; padding: 9px 14px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; transition: 0.2s;
+  &:hover { background: #b91c1c; } &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+.cy-btn-icono {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; transition: 0.2s;
+  &.cy-editar   { background: rgba(245,158,11,0.2); color: #fcd34d; border-color: rgba(245,158,11,0.3); &:hover { background: rgba(245,158,11,0.4); } }
+  &.cy-eliminar { background: rgba(239,68,68,0.2);  color: #fca5a5; border-color: rgba(239,68,68,0.3);  &:hover { background: rgba(239,68,68,0.4); } }
+}
+
+// ── Loading / vacío ───────────────────────────────────────────────────────────
+.cy-loading, .cy-vacio {
+  text-align: center; padding: 3rem; color: #64748b;
+  i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+.cy-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px); z-index: 2000;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.cy-modal {
+  background: rgba(15,12,41,0.97); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; width: 100%; max-width: 480px;
+  display: flex; flex-direction: column;
+}
+.cy-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  h5 { font-size: 15px; font-weight: 700; color: white; margin: 0;
+    display: flex; align-items: center; gap: 8px; }
+}
+.cy-btn-cerrar {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8; border-radius: 8px; width: 30px; height: 30px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: 0.2s; &:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+}
+.cy-modal-body { padding: 20px; }
+.cy-modal-footer {
+  padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+// ── Formulario ────────────────────────────────────────────────────────────────
+.cy-form-group {
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px;
+  label { font-size: 12px; font-weight: 600; color: #94a3b8; }
+  input[type="text"], input[type="number"] {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: white; border-radius: 8px; padding: 8px 12px; font-size: 13px; width: 100%;
+    &:focus { outline: none; border-color: var(--color-primario, #15803d); }
+    &::placeholder { color: #475569; }
+  }
+  input[type="file"] {
+    background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);
+    color: #94a3b8; border-radius: 8px; padding: 8px; font-size: 13px; width: 100%; cursor: pointer;
+  }
+}
+.cy-req      { color: #f87171; }
+.cy-opcional { font-size: 11px; color: #64748b; font-weight: 400; margin-left: 4px; }
+
+.cy-foto-preview {
+  margin-top: 8px;
+  img { max-height: 180px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); object-fit: contain; }
+}
+.cy-desc-badge {
+  font-size: 12px; color: #64748b; font-weight: 400; margin-left: 8px;
+}

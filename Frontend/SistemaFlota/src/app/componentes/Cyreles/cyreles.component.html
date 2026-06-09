@@ -1,0 +1,213 @@
+<!-- Alertas -->
+<div *ngIf="mensajeExito" class="cy-alerta cy-exito"><i class="fa-solid fa-check-circle"></i> {{ mensajeExito }}</div>
+<div *ngIf="mensajeError && !modal" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+
+<!-- ═══════════════════════ VISTA: CAJONES ═══════════════════════ -->
+<div class="cy-container" *ngIf="vista === 'cajones'">
+
+  <div class="cy-header">
+    <div>
+      <h4><i class="fa-solid fa-box-open"></i> Cyreles</h4>
+      <small>Gestión de cajones y registros de impresión</small>
+    </div>
+    <button class="cy-btn-primary" (click)="abrirCrearCajon()">
+      <i class="fa-solid fa-plus"></i> Nuevo Cajón
+    </button>
+  </div>
+
+  <div *ngIf="cargando" class="cy-loading"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+
+  <div class="cy-grid-cajones" *ngIf="!cargando">
+    <div *ngIf="cajones.length === 0" class="cy-vacio">
+      <i class="fa-solid fa-box-open"></i>
+      <p>No hay cajones creados</p>
+    </div>
+    <div class="cy-card-cajon" *ngFor="let c of cajones" (click)="abrirCajon(c)">
+      <div class="cy-card-numero">Cajón {{ c.numero }}</div>
+      <div class="cy-card-desc" *ngIf="c.descripcion">{{ c.descripcion }}</div>
+      <div class="cy-card-count">
+        <i class="fa-solid fa-list"></i> {{ c.totalRegistros }} registros
+      </div>
+      <div class="cy-card-acciones" (click)="$event.stopPropagation()">
+        <button class="cy-btn-icono cy-editar" (click)="abrirEditarCajon(c, $event)" title="Editar">
+          <i class="fa-solid fa-pencil"></i>
+        </button>
+        <button class="cy-btn-icono cy-eliminar" (click)="eliminarCajon(c, $event)" title="Eliminar">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ VISTA: REGISTROS ═══════════════════════ -->
+<div class="cy-container" *ngIf="vista === 'registros'">
+
+  <div class="cy-breadcrumb">
+    <button class="cy-btn-volver" (click)="volverACajones()">
+      <i class="fa-solid fa-arrow-left"></i> Cajones
+    </button>
+    <span class="cy-breadcrumb-sep">/</span>
+    <span class="cy-breadcrumb-actual">Cajón {{ cajonActual?.numero }}</span>
+  </div>
+
+  <div class="cy-header">
+    <div>
+      <h4><i class="fa-solid fa-list"></i> Cajón {{ cajonActual?.numero }}
+        <span *ngIf="cajonActual?.descripcion" class="cy-desc-badge">{{ cajonActual?.descripcion }}</span>
+      </h4>
+      <small>{{ registros.length }} registros en total</small>
+    </div>
+    <div class="cy-header-acciones">
+      <button class="cy-btn-excel" (click)="exportarExcel()" [disabled]="registrosFiltrados.length === 0">
+        <i class="fa-solid fa-table"></i> Excel
+      </button>
+      <button class="cy-btn-pdf" (click)="exportarPDF()" [disabled]="registrosFiltrados.length === 0">
+        <i class="fa-solid fa-file-pdf"></i> PDF
+      </button>
+      <button class="cy-btn-primary" (click)="abrirCrearRegistro()">
+        <i class="fa-solid fa-plus"></i> Nuevo Registro
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtro -->
+  <div class="cy-filtros">
+    <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="filtroNombre" (ngModelChange)="aplicarFiltro()" class="cy-input-busqueda">
+    <button class="cy-btn-limpiar" (click)="filtroNombre = ''; aplicarFiltro()" *ngIf="filtroNombre">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <span class="cy-contador" *ngIf="filtroNombre">
+      {{ registrosFiltrados.length }} de {{ registros.length }}
+    </span>
+  </div>
+
+  <div *ngIf="cargando" class="cy-loading"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+
+  <div class="cy-grid-registros" *ngIf="!cargando">
+    <div *ngIf="registrosFiltrados.length === 0" class="cy-vacio">
+      <i class="fa-solid fa-inbox"></i>
+      <p>No hay registros{{ filtroNombre ? ' con ese filtro' : '' }}</p>
+    </div>
+    <div class="cy-card-registro" *ngFor="let r of registrosFiltrados" (click)="abrirDetalle(r)">
+      <div class="cy-registro-foto" *ngIf="r.foto">
+        <img [src]="getFotoUrl(r.foto)" [alt]="r.nombre">
+      </div>
+      <div class="cy-registro-sin-foto" *ngIf="!r.foto">
+        <i class="fa-solid fa-image"></i>
+      </div>
+      <div class="cy-registro-info">
+        <strong>{{ r.nombre }}</strong>
+        <small>{{ r.fechaCreacion | date:'dd/MM/yyyy' }}</small>
+      </div>
+      <div class="cy-card-acciones" (click)="$event.stopPropagation()">
+        <button class="cy-btn-icono cy-editar" (click)="abrirEditarRegistro(r)" title="Editar">
+          <i class="fa-solid fa-pencil"></i>
+        </button>
+        <button class="cy-btn-icono cy-eliminar" (click)="eliminarRegistro(r)" title="Eliminar">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ VISTA: DETALLE ═══════════════════════ -->
+<div class="cy-container" *ngIf="vista === 'detalle' && registroActual">
+
+  <div class="cy-breadcrumb">
+    <button class="cy-btn-volver" (click)="volverACajones()">
+      <i class="fa-solid fa-arrow-left"></i> Cajones
+    </button>
+    <span class="cy-breadcrumb-sep">/</span>
+    <button class="cy-btn-volver-link" (click)="volverARegistros()">Cajón {{ cajonActual?.numero }}</button>
+    <span class="cy-breadcrumb-sep">/</span>
+    <span class="cy-breadcrumb-actual">{{ registroActual.nombre }}</span>
+  </div>
+
+  <div class="cy-detalle">
+    <div class="cy-detalle-foto" *ngIf="registroActual.foto">
+      <img [src]="getFotoUrl(registroActual.foto)" [alt]="registroActual.nombre">
+    </div>
+    <div class="cy-detalle-sin-foto" *ngIf="!registroActual.foto">
+      <i class="fa-solid fa-image"></i>
+      <p>Sin imagen</p>
+    </div>
+    <div class="cy-detalle-info">
+      <h3>{{ registroActual.nombre }}</h3>
+      <div class="cy-detalle-meta">
+        <span><i class="fa-solid fa-box"></i> Cajón {{ registroActual.cajonNumero }}</span>
+        <span><i class="fa-solid fa-calendar"></i> {{ registroActual.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+    <div class="cy-detalle-acciones">
+      <button class="cy-btn-editar-detalle" (click)="abrirEditarRegistro(registroActual)">
+        <i class="fa-solid fa-pencil"></i> Editar
+      </button>
+      <button class="cy-btn-eliminar-detalle" (click)="eliminarRegistro(registroActual)">
+        <i class="fa-solid fa-trash"></i> Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL CAJÓN ═══════════════ -->
+<div class="cy-modal-overlay" *ngIf="modal === 'crear-cajon' || modal === 'editar-cajon'">
+  <div class="cy-modal">
+    <div class="cy-modal-header">
+      <h5><i class="fa-solid fa-box"></i> {{ modal === 'crear-cajon' ? 'Nuevo Cajón' : 'Editar Cajón' }}</h5>
+      <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cy-modal-body">
+      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+      <div class="cy-form-group">
+        <label>Número de Cajón <span class="cy-req">*</span></label>
+        <input type="number" [(ngModel)]="formCajon.numero" placeholder="Ej: 1, 2, 3...">
+      </div>
+      <div class="cy-form-group">
+        <label>Descripción <span class="cy-opcional">(opcional)</span></label>
+        <input type="text" [(ngModel)]="formCajon.descripcion" placeholder="Descripción del cajón...">
+      </div>
+    </div>
+    <div class="cy-modal-footer">
+      <button class="cy-btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="cy-btn-primary" (click)="guardarCajon()" [disabled]="guardando">
+        <i class="fa-solid fa-spinner fa-spin" *ngIf="guardando"></i>
+        <i class="fa-solid fa-save" *ngIf="!guardando"></i>
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL REGISTRO ═══════════════ -->
+<div class="cy-modal-overlay" *ngIf="modal === 'crear-registro' || modal === 'editar-registro'">
+  <div class="cy-modal">
+    <div class="cy-modal-header">
+      <h5><i class="fa-solid fa-file-image"></i> {{ modal === 'crear-registro' ? 'Nuevo Registro' : 'Editar Registro' }}</h5>
+      <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cy-modal-body">
+      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+      <div class="cy-form-group">
+        <label>Nombre de Impresión <span class="cy-req">*</span></label>
+        <input type="text" [(ngModel)]="formRegistro.nombre" placeholder="Nombre del cliente o negocio...">
+      </div>
+      <div class="cy-form-group">
+        <label>Foto / Imagen</label>
+        <input type="file" accept="image/*" (change)="onFoto($event)">
+        <div class="cy-foto-preview" *ngIf="fotoPreview">
+          <img [src]="fotoPreview" alt="Preview">
+        </div>
+      </div>
+    </div>
+    <div class="cy-modal-footer">
+      <button class="cy-btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="cy-btn-primary" (click)="guardarRegistro()" [disabled]="guardando">
+        <i class="fa-solid fa-spinner fa-spin" *ngIf="guardando"></i>
+        <i class="fa-solid fa-save" *ngIf="!guardando"></i>
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -9,6 +9,7 @@ namespace SistemaFlota
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
     {
+        private const string V = "Impresion";
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
 
@@ -18,7 +19,7 @@ namespace SistemaFlota
         public static readonly string[] RolesValidos = {
         "Admin", "Auxiliar", "Conductor", "Jefe",
         "Facturacion", "Bodega", "Porteria",
-        "RecursosHumanos", "PESV", "Vendedor"
+        "RecursosHumanos", "PESV", "Vendedor", "Impresion"
 };
 
         public UsuariosController(AppDbContext context, AuditoriaService auditoria)

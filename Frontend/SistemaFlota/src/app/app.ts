@@ -1,42 +1,43 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LoginComponent }           from './componentes/login/login';
-import { DashboardComponent }       from './componentes/dashboard/dashboard';
-import { ConductorForm }            from './componentes/conductor-form/conductor-form';
-import { VehiculosComponent }       from './componentes/vehiculos/vehiculos';
-import { AutorizacionesComponent }  from './componentes/autorizaciones/autorizaciones';
+import { LoginComponent } from './componentes/login/login';
+import { DashboardComponent } from './componentes/dashboard/dashboard';
+import { ConductorForm } from './componentes/conductor-form/conductor-form';
+import { VehiculosComponent } from './componentes/vehiculos/vehiculos';
+import { AutorizacionesComponent } from './componentes/autorizaciones/autorizaciones';
 import { ChecklistEditorComponent } from './componentes/checklist-editor/checklist-editor';
-import { InspeccionesComponent }    from './componentes/inspecciones/inspecciones';
-import { ConductoresComponent }     from './componentes/conductores/conductores.component';
-import { UsuariosComponent }        from './componentes/usuarios/usuarios';
+import { InspeccionesComponent } from './componentes/inspecciones/inspecciones';
+import { ConductoresComponent } from './componentes/conductores/conductores.component';
+import { UsuariosComponent } from './componentes/usuarios/usuarios';
 import { InspeccionesHistorialComponent as VerInspeccionesComponent }
   from './componentes/inspecciones-historial/inspecciones-historial';
-import { ReporteRutaComponent }     from './componentes/reportes-ruta/reportes-ruta';
-import { IncidentesComponent }      from './componentes/incidentes/incidentes';
+import { ReporteRutaComponent } from './componentes/reportes-ruta/reportes-ruta';
+import { IncidentesComponent } from './componentes/incidentes/incidentes';
 import { ContactosNotificacionComponent }
   from './componentes/contactos-notificacion/contactos-notificacion';
 import { ConfiguracionEmpresaComponent }
   from './componentes/configuracion-empresa/configuracion-empresa';
-import { MantenimientoComponent }   from './componentes/mantenimiento/mantenimiento';
-import { DocumentosComponent }      from './componentes/documentos/documentos';
-import { AuditoriaComponent }       from './componentes/auditoria/auditoria';
-import { EncuestaFatigaComponent }  from './componentes/encuesta-fatiga/encuesta-fatiga';
-import { TrazabilidadComponent }    from './componentes/trazabilidad/trazabilidad';
-import { CambioRutaComponent }      from './componentes/cambio-ruta/cambio-ruta';
+import { MantenimientoComponent } from './componentes/mantenimiento/mantenimiento';
+import { DocumentosComponent } from './componentes/documentos/documentos';
+import { AuditoriaComponent } from './componentes/auditoria/auditoria';
+import { EncuestaFatigaComponent } from './componentes/encuesta-fatiga/encuesta-fatiga';
+import { TrazabilidadComponent } from './componentes/trazabilidad/trazabilidad';
+import { CambioRutaComponent } from './componentes/cambio-ruta/cambio-ruta';
 import { SolicitudTallerComponent } from './componentes/solicitud-taller/solicitud-taller';
-import { PedidosComponent }         from './componentes/pedidos/pedidos';
+import { PedidosComponent } from './componentes/pedidos/pedidos';
 import { SeguimientosRrhhComponent } from './componentes/seguimientos-rrhh/seguimientos-rrhh.component';
-import { ConfiguracionService }     from './services/configuracion.service';
-import { AuthService }              from './services/auth.service';
-import { PermisosService }          from './services/permisos.service';
-import { environment }              from '../environments/environment';
+import { CyrelesComponent } from './componentes/Cyreles/cyreles.component';
+import { ConfiguracionService } from './services/configuracion.service';
+import { AuthService } from './services/auth.service';
+import { PermisosService } from './services/permisos.service';
+import { environment } from '../environments/environment';
 
 type ModuloPrincipal = 'flota' | 'rrhh' | 'calidad';
 
 interface ModuloItem {
-  key:    string;
-  label:  string;
-  icon:   string;
+  key: string;
+  label: string;
+  icon: string;
 }
 
 @Component({
@@ -51,54 +52,54 @@ interface ModuloItem {
     MantenimientoComponent, DocumentosComponent, AuditoriaComponent,
     EncuestaFatigaComponent, TrazabilidadComponent, CambioRutaComponent,
     SolicitudTallerComponent, PedidosComponent,
-    SeguimientosRrhhComponent
+    SeguimientosRrhhComponent, CyrelesComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class AppComponent implements OnInit {
 
-  title          = 'Sistema de Gestión de Flota';
-  isLoggedIn     = false;
-  usuarioActivo  = '';
-  rol            = '';
+  title = 'Sistema de Gestión de Flota';
+  isLoggedIn = false;
+  usuarioActivo = '';
+  rol = '';
   permisosGranulares: any[] = [];
-  moduloActual   = 'dashboard';
+  moduloActual = 'dashboard';
   sidebarVisible = false;
-  empresaNombre  = 'Flota';
-  empresaLogo:   string | null = null;
-  colorPrimario  = '#15803d';
+  empresaNombre = 'Flota';
+  empresaLogo: string | null = null;
+  colorPrimario = '#15803d';
   moduloPrincipal: ModuloPrincipal = 'flota';
 
   private readonly baseUrl = environment.apiUrl.replace('/api', '');
 
   readonly tabsPrincipales: { key: ModuloPrincipal; label: string; icon: string }[] = [
-    { key: 'flota',   label: 'Flota',   icon: 'fa-solid fa-truck' },
-    { key: 'rrhh',    label: 'RRHH',    icon: 'fa-solid fa-users' },
+    { key: 'flota', label: 'Flota', icon: 'fa-solid fa-truck' },
+    { key: 'rrhh', label: 'RRHH', icon: 'fa-solid fa-users' },
     { key: 'calidad', label: 'Calidad', icon: 'fa-solid fa-circle-check' },
   ];
 
   readonly modulosFlota: ModuloItem[] = [
-    { key: 'dashboard',              label: 'Panel de control',   icon: 'fa-solid fa-gauge-high' },
-    { key: 'conductores',            label: 'Conductores',        icon: 'fa-solid fa-id-card' },
-    { key: 'vehiculos',              label: 'Vehículos',          icon: 'fa-solid fa-truck' },
-    { key: 'inspecciones',           label: 'Inspecciones',       icon: 'fa-solid fa-clipboard-check' },
-    { key: 'ver-inspecciones',       label: 'Historial',          icon: 'fa-solid fa-clock-rotate-left' },
-    { key: 'autorizaciones',         label: 'Autorizaciones',     icon: 'fa-solid fa-file-circle-check' },
-    { key: 'reporte-ruta',           label: 'Reporte en Ruta',    icon: 'fa-solid fa-triangle-exclamation' },
-    { key: 'cambio-ruta',            label: 'Cambio de Ruta',     icon: 'fa-solid fa-route' },
-    { key: 'incidentes',             label: 'Incidentes',         icon: 'fa-solid fa-car-burst' },
-    { key: 'mantenimiento',          label: 'Mantenimiento',      icon: 'fa-solid fa-wrench' },
-    { key: 'solicitud-taller',       label: 'Solicitud Taller',   icon: 'fa-solid fa-screwdriver-wrench' },
-    { key: 'documentos',             label: 'Documentos',         icon: 'fa-solid fa-folder-open' },
-    { key: 'encuesta-fatiga',        label: 'Encuesta Fatiga',    icon: 'fa-solid fa-face-tired' },
-    { key: 'trazabilidad',           label: 'Trazabilidad',       icon: 'fa-solid fa-boxes-stacked' },
-    { key: 'pedidos',                label: 'Pedidos',            icon: 'fa-solid fa-box' },
+    { key: 'dashboard', label: 'Panel de control', icon: 'fa-solid fa-gauge-high' },
+    { key: 'conductores', label: 'Conductores', icon: 'fa-solid fa-id-card' },
+    { key: 'vehiculos', label: 'Vehículos', icon: 'fa-solid fa-truck' },
+    { key: 'inspecciones', label: 'Inspecciones', icon: 'fa-solid fa-clipboard-check' },
+    { key: 'ver-inspecciones', label: 'Historial', icon: 'fa-solid fa-clock-rotate-left' },
+    { key: 'autorizaciones', label: 'Autorizaciones', icon: 'fa-solid fa-file-circle-check' },
+    { key: 'reporte-ruta', label: 'Reporte en Ruta', icon: 'fa-solid fa-triangle-exclamation' },
+    { key: 'cambio-ruta', label: 'Cambio de Ruta', icon: 'fa-solid fa-route' },
+    { key: 'incidentes', label: 'Incidentes', icon: 'fa-solid fa-car-burst' },
+    { key: 'mantenimiento', label: 'Mantenimiento', icon: 'fa-solid fa-wrench' },
+    { key: 'solicitud-taller', label: 'Solicitud Taller', icon: 'fa-solid fa-screwdriver-wrench' },
+    { key: 'documentos', label: 'Documentos', icon: 'fa-solid fa-folder-open' },
+    { key: 'encuesta-fatiga', label: 'Encuesta Fatiga', icon: 'fa-solid fa-face-tired' },
+    { key: 'trazabilidad', label: 'Trazabilidad', icon: 'fa-solid fa-boxes-stacked' },
+    { key: 'pedidos', label: 'Pedidos', icon: 'fa-solid fa-box' },
     { key: 'contactos-notificacion', label: 'Contactos WhatsApp', icon: 'fa-brands fa-whatsapp' },
-    { key: 'auditoria',              label: 'Auditoría',          icon: 'fa-solid fa-shield-halved' },
-    { key: 'usuarios',               label: 'Usuarios',           icon: 'fa-solid fa-users-gear' },
-    { key: 'configuracion',          label: 'Configuración',      icon: 'fa-solid fa-sliders' },
-    { key: 'checklist',              label: 'Checklist',          icon: 'fa-solid fa-list-check' },
+    { key: 'auditoria', label: 'Auditoría', icon: 'fa-solid fa-shield-halved' },
+    { key: 'usuarios', label: 'Usuarios', icon: 'fa-solid fa-users-gear' },
+    { key: 'configuracion', label: 'Configuración', icon: 'fa-solid fa-sliders' },
+    { key: 'checklist', label: 'Checklist', icon: 'fa-solid fa-list-check' },
   ];
 
   readonly modulosRrhh: ModuloItem[] = [
@@ -106,23 +107,24 @@ export class AppComponent implements OnInit {
   ];
 
   readonly modulosCalidad: ModuloItem[] = [
-    { key: 'calidad-dashboard', label: 'Dashboard Calidad', icon: 'fa-solid fa-gauge-high' },
+    { key: 'calidad-cyreles', label: 'Cyreles', icon: 'fa-solid fa-box-open' },
   ];
 
+  // ── Impresion y Calidad solo ven Calidad; Jefe ve Calidad además de Flota
   private readonly accesoModuloPrincipal: Record<ModuloPrincipal, string[]> = {
-    flota:   [],
-    rrhh:    ['Admin', 'RecursosHumanos'],
-    calidad: ['Admin', 'PESV', 'Calidad'],
+    flota: [],
+    rrhh: ['Admin', 'RecursosHumanos'],
+    calidad: ['Admin', 'PESV', 'Calidad', 'Impresion', 'Jefe'],
   };
 
   constructor(
     private configuracionService: ConfiguracionService,
-    private authService:          AuthService,
-    private permisosService:      PermisosService
-  ) {}
+    private authService: AuthService,
+    private permisosService: PermisosService
+  ) { }
 
   toggleSidebar() { this.sidebarVisible = !this.sidebarVisible; }
-  cerrarSidebar()  { this.sidebarVisible = false; }
+  cerrarSidebar() { this.sidebarVisible = false; }
 
   cambiarModuloPrincipal(mp: ModuloPrincipal) {
     if (!this.puedeVerModuloPrincipal(mp)) return;
@@ -144,9 +146,9 @@ export class AppComponent implements OnInit {
 
   getModulosPorPrincipal(mp: ModuloPrincipal): ModuloItem[] {
     switch (mp) {
-      case 'rrhh':    return this.modulosRrhh;
+      case 'rrhh': return this.modulosRrhh;
       case 'calidad': return this.modulosCalidad;
-      default:        return this.modulosFlota;
+      default: return this.modulosFlota;
     }
   }
 
@@ -160,7 +162,7 @@ export class AppComponent implements OnInit {
   }
 
   private guardarSesion(datos: any) {
-    sessionStorage.setItem('user',  JSON.stringify(datos));
+    sessionStorage.setItem('user', JSON.stringify(datos));
     sessionStorage.setItem('token', datos.token ?? '');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -177,7 +179,7 @@ export class AppComponent implements OnInit {
 
   private limpiarSesion() {
     sessionStorage.removeItem('user'); sessionStorage.removeItem('token');
-    localStorage.removeItem('user');  localStorage.removeItem('token');
+    localStorage.removeItem('user'); localStorage.removeItem('token');
     localStorage.removeItem('rol');
   }
 
@@ -191,19 +193,24 @@ export class AppComponent implements OnInit {
           document.documentElement.style.setProperty('--color-primario', data.colorCorporativo);
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
   onLoginSuccess(datos: any) {
-    this.isLoggedIn    = true;
+    this.isLoggedIn = true;
     this.usuarioActivo = datos.username;
-    this.rol           = datos.rol;
+    this.rol = datos.rol;
     this.permisosGranulares = Array.isArray(datos.permisos)
       ? datos.permisos.filter((p: any) => typeof p === 'object' && p.modulo)
       : [];
-    this.moduloActual    = 'dashboard';
+    this.moduloActual = 'dashboard';
     this.moduloPrincipal = 'flota';
+    // Si el rol solo ve Calidad, arrancar en calidad
+    if (this.rol === 'Impresion') {
+      this.moduloPrincipal = 'calidad';
+      this.moduloActual = 'calidad-cyreles';
+    }
     this.permisosService.cargar(datos);
     this.guardarSesion(datos);
     this.cargarConfiguracion();
@@ -211,31 +218,34 @@ export class AppComponent implements OnInit {
 
   tieneAcceso(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
-    if (this.rol === 'PESV')  return true;
+    if (this.rol === 'PESV') return true;
     if (this.permisosGranulares.length > 0) {
       const p = this.permisosGranulares.find((p: any) => p.modulo === modulo);
       return !!p && (p.puedeVer !== false);
     }
     switch (this.rol) {
       case 'Auxiliar':
-        return ['dashboard','conductores','vehiculos','inspecciones','ver-inspecciones'].includes(modulo);
+        return ['dashboard', 'conductores', 'vehiculos', 'inspecciones', 'ver-inspecciones'].includes(modulo);
       case 'Conductor':
-        return ['dashboard','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
+        return ['dashboard', 'inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
       case 'Jefe':
-        return ['dashboard','ver-inspecciones','incidentes','mantenimiento','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
+        return ['dashboard', 'ver-inspecciones', 'incidentes', 'mantenimiento', 'documentos', 'encuesta-fatiga', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'pedidos', 'calidad-cyreles'].includes(modulo);
       case 'RecursosHumanos':
-        return ['dashboard','conductores','usuarios','autorizaciones','incidentes','documentos','encuesta-fatiga','trazabilidad','cambio-ruta','solicitud-taller','rrhh-seguimientos'].includes(modulo);
+        return ['dashboard', 'conductores', 'usuarios', 'autorizaciones', 'incidentes', 'documentos', 'encuesta-fatiga', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'rrhh-seguimientos'].includes(modulo);
       case 'Facturacion':
-        return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
+        return ['dashboard', 'autorizaciones', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
       case 'Bodega':
-        return ['dashboard','autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'].includes(modulo);
+        return ['dashboard', 'autorizaciones', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
       case 'Porteria':
-        return ['dashboard','autorizaciones','encuesta-fatiga'].includes(modulo);
+        return ['dashboard', 'autorizaciones', 'encuesta-fatiga'].includes(modulo);
       case 'Vendedor':
-        return ['dashboard','pedidos','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','autorizaciones'].includes(modulo);
+        return ['dashboard', 'pedidos', 'inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'autorizaciones'].includes(modulo);
       case 'Calidad':
-        return ['calidad-dashboard'].includes(modulo);
-      default: return false;
+        return ['calidad-cyreles'].includes(modulo);
+      case 'Impresion':
+        return ['calidad-cyreles'].includes(modulo);
+      default:
+        return false;
     }
   }
 
