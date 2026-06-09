@@ -41,6 +41,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   };
 
   facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
+  facturasEditar:   { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
 
   guiaGenerada     = '';
   usuarioFirma     = '';
@@ -54,13 +55,35 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   nombreEmpresa = 'la empresa';
 
   // ── Modales ───────────────────────────────────────────────────────────────
-  mostrarModalLlegada    = false;
-  mostrarModalConfirmar  = false;
-  mostrarModalEditar     = false;
-  mostrarModalDetalle    = false;
+  mostrarModalLlegada         = false;
+  mostrarModalConfirmar       = false;
+  mostrarModalEditar          = false;
+  mostrarModalDetalle         = false;
+  mostrarModalSalidaRapida    = false;
+  mostrarModalLlegadaRapida   = false;
   autorizacionLlegada:   any = null;
   autorizacionEditando:  any = null;
   autorizacionDetalle:   any = null;
+
+  // ── Formularios acceso rápido ─────────────────────────────────────────────
+  formSalidaRapida = {
+    conductorId:    0,
+    vehiculoId:     0,
+    tipoVuelta:     'Mensajería',
+    destinoCompleto: ''
+  };
+
+  formLlegadaRapida = {
+    conductorId:     0,
+    vehiculoId:      0,
+    tipoVuelta:      'Mensajería',
+    destinoCompleto: '',
+    kilometrajeFinal: null as number | null,
+    novedadesViaje:  '',
+    estadoVehiculo:  'Bueno'
+  };
+
+  guardandoRapido = false;
 
   formLlegada = {
     kilometrajeFinal: null as number | null,
@@ -117,6 +140,78 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   ngAfterViewInit(): void {}
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
+  // ── Roles que pueden usar acceso rápido ───────────────────────────────────
+  get puedeAccesoRapido(): boolean {
+    return ['Admin', 'Jefe', 'Conductor', 'Vendedor'].includes(this.rolUsuario);
+  }
+
+  // ── Abrir modales de acceso rápido ────────────────────────────────────────
+  abrirSalidaRapida() {
+    this.formSalidaRapida = { conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: '' };
+    this.guardandoRapido = false;
+    this.mostrarModalSalidaRapida = true;
+    this.cdr.markForCheck();
+  }
+
+  abrirLlegadaRapida() {
+    this.formLlegadaRapida = {
+      conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: '',
+      kilometrajeFinal: null, novedadesViaje: '', estadoVehiculo: 'Bueno'
+    };
+    this.guardandoRapido = false;
+    this.mostrarModalLlegadaRapida = true;
+    this.cdr.markForCheck();
+  }
+
+  // ── Guardar acceso rápido ─────────────────────────────────────────────────
+  guardarSalidaRapida() {
+    if (!this.formSalidaRapida.conductorId) { alert('Seleccione un conductor'); return; }
+    if (!this.formSalidaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+    this.guardandoRapido = true;
+    this.autorizacionesService.salidaRapida({
+      conductorId:     this.formSalidaRapida.conductorId,
+      vehiculoId:      this.formSalidaRapida.vehiculoId,
+      tipoVuelta:      this.formSalidaRapida.tipoVuelta,
+      destinoCompleto: this.formSalidaRapida.destinoCompleto || undefined
+    }).pipe(timeout(15000), takeUntil(this.destroy$),
+      catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); this.guardandoRapido = false; this.cdr.markForCheck(); return throwError(() => err); })
+    ).subscribe({
+      next: () => {
+        this.guardandoRapido = false;
+        this.mostrarModalSalidaRapida = false;
+        this.mostrarNotificacion('🚛 Salida registrada correctamente — WhatsApp enviado');
+        this.obtenerAutorizaciones();
+        this.cdr.markForCheck();
+      }, error: () => {}
+    });
+  }
+
+  guardarLlegadaRapida() {
+    if (!this.formLlegadaRapida.conductorId) { alert('Seleccione un conductor'); return; }
+    if (!this.formLlegadaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+    this.guardandoRapido = true;
+    this.autorizacionesService.llegadaRapida({
+      conductorId:      this.formLlegadaRapida.conductorId,
+      vehiculoId:       this.formLlegadaRapida.vehiculoId,
+      tipoVuelta:       this.formLlegadaRapida.tipoVuelta,
+      destinoCompleto:  this.formLlegadaRapida.destinoCompleto || undefined,
+      kilometrajeFinal: this.formLlegadaRapida.kilometrajeFinal,
+      novedadesViaje:   this.formLlegadaRapida.novedadesViaje,
+      estadoVehiculo:   this.formLlegadaRapida.estadoVehiculo
+    }).pipe(timeout(15000), takeUntil(this.destroy$),
+      catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); this.guardandoRapido = false; this.cdr.markForCheck(); return throwError(() => err); })
+    ).subscribe({
+      next: () => {
+        this.guardandoRapido = false;
+        this.mostrarModalLlegadaRapida = false;
+        this.mostrarNotificacion('🏁 Llegada registrada correctamente — WhatsApp enviado');
+        this.obtenerAutorizaciones();
+        this.cdr.markForCheck();
+      }, error: () => {}
+    });
+  }
+
+  // ── Filtros ───────────────────────────────────────────────────────────────
   aplicarFiltros(): void {
     const q = this.filtroBusqueda.toLowerCase();
     let base: any[];
@@ -201,14 +296,12 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // ── Ver Detalle ───────────────────────────────────────────────────────────
   verDetalle(autorizacion: any) {
     this.autorizacionDetalle = autorizacion;
     this.mostrarModalDetalle = true;
     this.cdr.markForCheck();
   }
 
-  // ── Editar ────────────────────────────────────────────────────────────────
   abrirEditar(autorizacion: any) {
     this.autorizacionEditando = autorizacion;
     this.formEditar = {
@@ -219,6 +312,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       pesoKilos:        autorizacion.pesoKilos        ?? 0,
       numeroGuia:       autorizacion.numeroGuia       ?? ''
     };
+    this.facturasEditar = this.obtenerFacturas(autorizacion.facturasClientes);
     this.mostrarModalEditar = true;
     this.cdr.markForCheck();
   }
@@ -234,7 +328,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       tipoVuelta:       this.formEditar.tipoVuelta,
       descripcionCarga: this.formEditar.descripcionCarga,
       numeroGuia:       this.formEditar.numeroGuia,
-      facturasClientes: this.autorizacionEditando.facturasClientes
+      facturasClientes: this.facturasEditar.length > 0 ? JSON.stringify(this.facturasEditar) : null
     };
     this.autorizacionesService.editar(this.autorizacionEditando.id, datos)
       .pipe(timeout(15000), takeUntil(this.destroy$),
@@ -249,7 +343,16 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       });
   }
 
-  // ── Llegada ───────────────────────────────────────────────────────────────
+  agregarFacturaEditar() {
+    this.facturasEditar = [...this.facturasEditar, { facturaRemision: '', cliente: '', pesoKilos: null }];
+    this.cdr.markForCheck();
+  }
+
+  eliminarFacturaEditar(i: number) {
+    this.facturasEditar = this.facturasEditar.filter((_, idx) => idx !== i);
+    this.cdr.markForCheck();
+  }
+
   abrirReporteLlegada(autorizacion: any) {
     this.autorizacionLlegada = autorizacion;
     this.formLlegada = { kilometrajeFinal: null, novedadesViaje: '', estadoVehiculo: 'Bueno' };
@@ -298,7 +401,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // ── Flujo pasos ───────────────────────────────────────────────────────────
   seleccionarConductor(conductor: any) {
     this.conductorSeleccionado = conductor; this.pasoActual = 2; this.vistaLista = false; this.cdr.markForCheck();
   }
@@ -432,7 +534,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   resetear() {
     this.pasoActual = 1; this.conductorSeleccionado = null; this.autorizacionActual = null; this.vistaLista = true;
-    this.facturasClientes = []; this.guiaGenerada = '';
+    this.facturasClientes = []; this.facturasEditar = []; this.guiaGenerada = '';
     this.form = { vehiculoId: 0, destinoCompleto: '', cantidadClientes: 0, pesoKilos: 0, tipoVuelta: '', descripcionCarga: '', numeroGuia: '' };
     this.usuarioFirma = ''; this.observacionFirma = '';
     this.obtenerAutorizaciones(); this.cdr.markForCheck();
@@ -452,13 +554,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       case 'Rechazado':  return 'badge-rechazado';
       default:           return 'badge-pendiente';
     }
-  }
-
-  getLlegadaBadge(a: any): string {
-    if (!a.estadoLlegada) return '';
-    if (a.estadoLlegada === 'ReportadaLlegada') return 'badge-llegada-reportada';
-    if (a.estadoLlegada === 'Completada')       return 'badge-llegada-completa';
-    return '';
   }
 
   async descargarPDF(autorizacion: any) { await this.pdfService.generarPDFAutorizacion(autorizacion); }

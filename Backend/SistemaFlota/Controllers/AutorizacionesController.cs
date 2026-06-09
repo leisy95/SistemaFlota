@@ -128,6 +128,159 @@ namespace SistemaFlota
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // POST api/Autorizaciones/salida-rapida
+        // Crea autorización directa en estado Autorizado con FechaSalidaReal
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost("salida-rapida")]
+        public async Task<IActionResult> SalidaRapida([FromBody] SalidaRapidaDto dto)
+        {
+            try
+            {
+                var ahora = FechaHelper.Ahora();
+
+                var autorizacion = new Autorizacion
+                {
+                    ConductorId = dto.ConductorId,
+                    VehiculoId = dto.VehiculoId,
+                    TipoVuelta = dto.TipoVuelta ?? "Mensajería",
+                    DestinoCompleto = dto.DestinoCompleto ?? string.Empty,
+                    DescripcionCarga = string.Empty,
+                    Estado = "Autorizado",
+                    FechaCreacion = ahora,
+                    FechaSalidaReal = ahora,
+                    UsuarioPorteria = GetUsuario(),
+                    FechaPorteria = ahora,
+                };
+
+                _context.Autorizaciones.Add(autorizacion);
+                await _context.SaveChangesAsync();
+
+                var resultado = await CargarConRelaciones(autorizacion.Id);
+
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "SalidaRapida", modulo: "Autorizaciones",
+                    detalle: $"Salida rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Vehículo: {resultado?.Vehiculo?.Placa ?? "-"}",
+                    registroId: autorizacion.Id
+                );
+
+                if (resultado != null)
+                {
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var destino = resultado.DestinoCompleto ?? "-";
+
+                    var mensaje =
+                        $"🚛 *SALIDA EN RUTA*\n" +
+                        $"━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n" +
+                        $"🚗 Vehículo: {placa}\n" +
+                        $"📍 Destino: {destino}\n" +
+                        $"🕐 Hora salida: {hora} — {fecha}\n" +
+                        $"━━━━━━━━━━━━━━━━━━";
+
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (numerosGrupo.Any())
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                }
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR SalidaRapida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // POST api/Autorizaciones/llegada-rapida
+        // Crea autorización directa con llegada registrada
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost("llegada-rapida")]
+        public async Task<IActionResult> LlegadaRapida([FromBody] LlegadaRapidaDto dto)
+        {
+            try
+            {
+                var ahora = FechaHelper.Ahora();
+
+                var autorizacion = new Autorizacion
+                {
+                    ConductorId = dto.ConductorId,
+                    VehiculoId = dto.VehiculoId,
+                    TipoVuelta = dto.TipoVuelta ?? "Mensajería",
+                    DestinoCompleto = dto.DestinoCompleto ?? string.Empty,
+                    DescripcionCarga = string.Empty,
+                    Estado = "Autorizado",
+                    FechaCreacion = ahora,
+                    FechaSalidaReal = ahora,
+                    FechaReporteLlegada = ahora,
+                    KilometrajeFinal = dto.KilometrajeFinal,
+                    NovedadesViaje = dto.NovedadesViaje,
+                    EstadoVehiculoLlegada = dto.EstadoVehiculo ?? "Bueno",
+                    EstadoLlegada = "ReportadaLlegada",
+                    UsuarioPorteria = GetUsuario(),
+                    FechaPorteria = ahora,
+                };
+
+                _context.Autorizaciones.Add(autorizacion);
+                await _context.SaveChangesAsync();
+
+                var resultado = await CargarConRelaciones(autorizacion.Id);
+
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "LlegadaRapida", modulo: "Autorizaciones",
+                    detalle: $"Llegada rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Km: {dto.KilometrajeFinal}",
+                    registroId: autorizacion.Id
+                );
+
+                if (resultado != null)
+                {
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var km = dto.KilometrajeFinal?.ToString() ?? "-";
+                    var estado = dto.EstadoVehiculo ?? "Bueno";
+                    var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
+
+                    var mensaje =
+                        $"🏁 *LLEGADA REGISTRADA*\n" +
+                        $"━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n" +
+                        $"🚗 Vehículo: {placa}\n" +
+                        $"🛣 Km final: {km}\n" +
+                        $"🔧 Estado vehículo: {estado}\n" +
+                        $"📋 Novedades: {novedades}\n" +
+                        $"🕐 Hora: {hora} — {fecha}\n" +
+                        $"━━━━━━━━━━━━━━━━━━";
+
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (numerosGrupo.Any())
+                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                }
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR LlegadaRapida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
         // =====================================
         // FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO
         // =====================================
@@ -146,7 +299,6 @@ namespace SistemaFlota
                 a.Estado = "Bodega";
                 await _context.SaveChangesAsync();
 
-                // ✅ Crear registros automáticos en Trazabilidad
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
                 {
@@ -202,8 +354,7 @@ namespace SistemaFlota
                     else
                     {
                         Console.WriteLine($"📋 Sin facturas — creando registro general para autorización #{id}");
-                        var existe = await _context.TrazabilidadFacturas
-                            .AnyAsync(t => t.AutorizacionId == id);
+                        var existe = await _context.TrazabilidadFacturas.AnyAsync(t => t.AutorizacionId == id);
                         Console.WriteLine($"📋 ¿Ya existe registro general? {existe}");
                         if (!existe)
                         {
@@ -515,6 +666,7 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearAutorizacionDto dto)
         {
@@ -528,6 +680,7 @@ namespace SistemaFlota
                 a.TipoVuelta = dto.TipoVuelta;
                 a.DescripcionCarga = dto.DescripcionCarga;
                 a.NumeroGuia = dto.NumeroGuia;
+                a.FacturasClientes = dto.FacturasClientes;
                 await _context.SaveChangesAsync();
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
@@ -600,5 +753,25 @@ namespace SistemaFlota
         public string? FacturaRemision { get; set; }
         public string? Cliente { get; set; }
         public decimal? PesoKilos { get; set; }
+    }
+
+    // ── DTOs Acceso Rápido ────────────────────────────────────────────────────
+    public class SalidaRapidaDto
+    {
+        public int ConductorId { get; set; }
+        public int VehiculoId { get; set; }
+        public string? TipoVuelta { get; set; }
+        public string? DestinoCompleto { get; set; }
+    }
+
+    public class LlegadaRapidaDto
+    {
+        public int ConductorId { get; set; }
+        public int VehiculoId { get; set; }
+        public string? TipoVuelta { get; set; }
+        public string? DestinoCompleto { get; set; }
+        public int? KilometrajeFinal { get; set; }
+        public string? NovedadesViaje { get; set; }
+        public string? EstadoVehiculo { get; set; }
     }
 }

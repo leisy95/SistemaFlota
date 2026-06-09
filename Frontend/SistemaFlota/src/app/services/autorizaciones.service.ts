@@ -18,7 +18,6 @@ export class AutorizacionesService {
     return this.http.post<any>(this.api, datos);
   }
 
-  // ✅ Editar autorización
   editar(id: number, datos: any): Observable<any> {
     return this.http.put<any>(`${this.api}/${id}`, datos);
   }
@@ -39,7 +38,6 @@ export class AutorizacionesService {
     return this.http.put<any>(`${this.api}/${id}/porteria`, datos);
   }
 
-  // ── Llegada ───────────────────────────────────────────────────────────────
   reportarLlegada(id: number, datos: { kilometrajeFinal: number | null; novedadesViaje: string; estadoVehiculo: string }): Observable<any> {
     return this.http.put<any>(`${this.api}/${id}/reportar-llegada`, datos);
   }
@@ -48,8 +46,29 @@ export class AutorizacionesService {
     return this.http.put<any>(`${this.api}/${id}/confirmar-llegada`, datos);
   }
 
-  // ── Salida en Ruta ────────────────────────────────────────────────────────
   confirmarSalida(id: number): Observable<any> {
     return this.http.put<any>(`${this.api}/${id}/confirmar-salida`, {});
+  }
+
+  // ── Accesos rápidos (sin autorización previa) ─────────────────────────────
+  salidaRapida(datos: {
+    conductorId: number;
+    vehiculoId: number;
+    tipoVuelta?: string;
+    destinoCompleto?: string;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.api}/salida-rapida`, datos);
+  }
+
+  llegadaRapida(datos: {
+    conductorId: number;
+    vehiculoId: number;
+    tipoVuelta?: string;
+    destinoCompleto?: string;
+    kilometrajeFinal?: number | null;
+    novedadesViaje?: string;
+    estadoVehiculo?: string;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.api}/llegada-rapida`, datos);
   }
 }

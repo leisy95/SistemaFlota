@@ -23,6 +23,21 @@
       </button>
     </div>
 
+    <!-- ── TABS DE MÓDULOS PRINCIPALES ──────────────────────────────────── -->
+    <!-- Solo se muestran las tabs que el rol puede ver                      -->
+    <!-- Si el rol solo ve Flota, no se muestran las tabs (queda limpio)     -->
+    <div class="modulos-tabs" *ngIf="tabsVisibles.length > 1">
+      <button
+        *ngFor="let tab of tabsVisibles"
+        class="modulo-tab"
+        [class.activo]="moduloPrincipal === tab.key"
+        (click)="cambiarModuloPrincipal(tab.key)">
+        <i [class]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+      </button>
+    </div>
+
+    <!-- ── MÓDULOS DEL PRINCIPAL ACTIVO ─────────────────────────────────── -->
     <nav>
       <button
         *ngFor="let modulo of modulosVisibles"
@@ -67,28 +82,50 @@
 
     <section class="content">
 
-      <app-dashboard          *ngIf="moduloActual === 'dashboard'"
+      <!-- ── MÓDULOS FLOTA ────────────────────────────────────────────── -->
+      <app-dashboard              *ngIf="moduloActual === 'dashboard'"
         (navegar)="cambiarModulo($event)" (logout)="cerrarSesion()">
       </app-dashboard>
-      <app-conductores        *ngIf="moduloActual === 'conductores'"></app-conductores>
-      <app-inspecciones       *ngIf="moduloActual === 'inspecciones'"></app-inspecciones>
+      <app-conductores            *ngIf="moduloActual === 'conductores'"></app-conductores>
+      <app-inspecciones           *ngIf="moduloActual === 'inspecciones'"></app-inspecciones>
       <app-inspecciones-historial *ngIf="moduloActual === 'ver-inspecciones'"></app-inspecciones-historial>
-      <app-autorizaciones     *ngIf="moduloActual === 'autorizaciones'"></app-autorizaciones>
-      <app-reportes-ruta      *ngIf="moduloActual === 'reporte-ruta'"></app-reportes-ruta>
-      <app-vehiculos          *ngIf="moduloActual === 'vehiculos'"></app-vehiculos>
-      <app-usuarios           *ngIf="moduloActual === 'usuarios'"></app-usuarios>
-      <app-checklist-editor   *ngIf="moduloActual === 'checklist'"></app-checklist-editor>
-      <app-incidentes         *ngIf="moduloActual === 'incidentes'"></app-incidentes>
+      <app-autorizaciones         *ngIf="moduloActual === 'autorizaciones'"></app-autorizaciones>
+      <app-reportes-ruta          *ngIf="moduloActual === 'reporte-ruta'"></app-reportes-ruta>
+      <app-vehiculos              *ngIf="moduloActual === 'vehiculos'"></app-vehiculos>
+      <app-usuarios               *ngIf="moduloActual === 'usuarios'"></app-usuarios>
+      <app-checklist-editor       *ngIf="moduloActual === 'checklist'"></app-checklist-editor>
+      <app-incidentes             *ngIf="moduloActual === 'incidentes'"></app-incidentes>
       <app-contactos-notificacion *ngIf="moduloActual === 'contactos-notificacion'"></app-contactos-notificacion>
       <app-configuracion-empresa  *ngIf="moduloActual === 'configuracion'"></app-configuracion-empresa>
-      <app-mantenimiento      *ngIf="moduloActual === 'mantenimiento'"></app-mantenimiento>
-      <app-documentos         *ngIf="moduloActual === 'documentos'"></app-documentos>
-      <app-auditoria          *ngIf="moduloActual === 'auditoria'"></app-auditoria>
-      <app-encuesta-fatiga    *ngIf="moduloActual === 'encuesta-fatiga'"></app-encuesta-fatiga>
-      <app-trazabilidad       *ngIf="moduloActual === 'trazabilidad'"></app-trazabilidad>
-      <app-cambio-ruta        *ngIf="moduloActual === 'cambio-ruta'"></app-cambio-ruta>
-      <app-solicitud-taller   *ngIf="moduloActual === 'solicitud-taller'"></app-solicitud-taller>
-      <app-pedidos            *ngIf="moduloActual === 'pedidos'"></app-pedidos>
+      <app-mantenimiento          *ngIf="moduloActual === 'mantenimiento'"></app-mantenimiento>
+      <app-documentos             *ngIf="moduloActual === 'documentos'"></app-documentos>
+      <app-auditoria              *ngIf="moduloActual === 'auditoria'"></app-auditoria>
+      <app-encuesta-fatiga        *ngIf="moduloActual === 'encuesta-fatiga'"></app-encuesta-fatiga>
+      <app-trazabilidad           *ngIf="moduloActual === 'trazabilidad'"></app-trazabilidad>
+      <app-cambio-ruta            *ngIf="moduloActual === 'cambio-ruta'"></app-cambio-ruta>
+      <app-solicitud-taller       *ngIf="moduloActual === 'solicitud-taller'"></app-solicitud-taller>
+      <app-pedidos                *ngIf="moduloActual === 'pedidos'"></app-pedidos>
+      <app-seguimientos-rrhh      *ngIf="moduloActual === 'rrhh-seguimientos'"></app-seguimientos-rrhh>
+
+      <!-- ── MÓDULOS RRHH ─────────────────────────────────────────────── -->
+      <!-- Cuando crees el componente, descomenta la línea correspondiente  -->
+      <div *ngIf="moduloActual === 'rrhh-dashboard'" class="placeholder-modulo">
+        <i class="fa-solid fa-users fa-3x"></i>
+        <h3>Módulo RRHH</h3>
+        <p>En construcción — aquí irán los submódulos de Recursos Humanos.</p>
+      </div>
+      <!-- <app-rrhh-empleados    *ngIf="moduloActual === 'rrhh-empleados'"></app-rrhh-empleados> -->
+      <!-- <app-rrhh-contratos    *ngIf="moduloActual === 'rrhh-contratos'"></app-rrhh-contratos> -->
+
+      <!-- ── MÓDULOS CALIDAD ───────────────────────────────────────────── -->
+      <!-- Cuando crees el componente, descomenta la línea correspondiente  -->
+      <div *ngIf="moduloActual === 'calidad-dashboard'" class="placeholder-modulo">
+        <i class="fa-solid fa-circle-check fa-3x"></i>
+        <h3>Módulo Calidad</h3>
+        <p>En construcción — aquí irán los submódulos de Calidad.</p>
+      </div>
+      <!-- <app-calidad-seguimientos  *ngIf="moduloActual === 'calidad-seguimientos'"></app-calidad-seguimientos> -->
+      <!-- <app-calidad-indicadores   *ngIf="moduloActual === 'calidad-indicadores'"></app-calidad-indicadores> -->
 
     </section>
   </div>

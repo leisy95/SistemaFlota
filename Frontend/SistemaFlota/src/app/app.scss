@@ -81,6 +81,50 @@
   &:hover { background: rgba(255,255,255,0.12); color: white; }
 }
 
+// ── TABS DE MÓDULOS PRINCIPALES (Flota / RRHH / Calidad) ─────────────────────
+// Solo aparecen cuando el rol tiene acceso a más de un módulo principal
+.modulos-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.2);
+}
+
+.modulo-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.35);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+
+  i { font-size: 13px; }
+
+  &:hover {
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.05);
+  }
+
+  &.activo {
+    color: white;
+    border-bottom: 2px solid var(--color-primario, #15803d);
+    background: rgba(255,255,255,0.06);
+  }
+}
+
+// ── NAV DE MÓDULOS ────────────────────────────────────────────────────────────
 .sidebar nav {
   display: flex;
   flex-direction: column;
@@ -105,6 +149,12 @@
   font-weight: 500;
   width: 100%;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  i { font-size: 14px; width: 16px; flex-shrink: 0; }
+  span { flex: 1; }
 
   &:hover {
     background: rgba(255,255,255,0.07);
@@ -126,11 +176,16 @@
       margin-right: 8px;
       vertical-align: middle;
       box-shadow: 0 0 8px rgba(74,222,128,0.6);
+      flex-shrink: 0;
     }
   }
 }
 
+// ── SIDEBAR FOOTER ────────────────────────────────────────────────────────────
 .sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 14px 16px;
   border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
@@ -144,6 +199,7 @@
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
   padding: 2px 8px; border-radius: 20px; width: fit-content;
+  i { font-size: 10px; margin-right: 2px; }
 }
 
 .sidebar-overlay {
@@ -152,6 +208,12 @@
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(6px);
   z-index: 999;
+}
+
+.usuario-avatar {
+  font-size: 28px;
+  color: rgba(255,255,255,0.3);
+  flex-shrink: 0;
 }
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
@@ -190,6 +252,17 @@
   letter-spacing: 0.3px;
 }
 
+.topbar-modulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.5);
+  font-size: 15px;
+  font-weight: 500;
+
+  i { font-size: 14px; }
+}
+
 .btn-hamburguesa {
   display: none;
   background: rgba(255,255,255,0.06);
@@ -200,10 +273,16 @@
   padding: 6px 10px;
   border-radius: 8px;
   transition: 0.2s; width: auto;
+
+  i { font-size: 18px; }
+
   &:hover { background: rgba(255,255,255,0.12); color: white; }
 }
 
 .btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(21,128,61,0.15);
   color: #4ade80;
   border: 1px solid rgba(21,128,61,0.25);
@@ -216,6 +295,8 @@
   width: auto;
   backdrop-filter: blur(10px);
 
+  i { font-size: 13px; }
+
   &:hover {
     background: rgba(21,128,61,0.3);
     border-color: rgba(21,128,61,0.5);
@@ -224,8 +305,39 @@
   }
 }
 
+.btn-cerrar-sidebar i { font-size: 14px; }
+
 // ── CONTENT ───────────────────────────────────────────────────────────────────
 .content { flex: 1; background: transparent; }
+
+// ── PLACEHOLDER módulos en construcción ───────────────────────────────────────
+.placeholder-modulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 60vh;
+  color: rgba(255,255,255,0.2);
+  text-align: center;
+  padding: 2rem;
+
+  i { font-size: 48px; color: rgba(255,255,255,0.1); }
+
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.2);
+    margin: 0;
+    max-width: 320px;
+  }
+}
 
 // ── RESPONSIVE ────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
@@ -237,50 +349,3 @@
   .main { margin-left: 0; }
   .topbar { padding: 12px 16px; }
 }
-
-// ── NAV CON ICONOS FA ─────────────────────────────────────────────────────────
-.sidebar nav button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  i { font-size: 14px; width: 16px; flex-shrink: 0; }
-  span { flex: 1; }
-}
-
-// ── FOOTER SIDEBAR ────────────────────────────────────────────────────────────
-.sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.usuario-avatar {
-  font-size: 28px;
-  color: rgba(255,255,255,0.3);
-  flex-shrink: 0;
-}
-
-// ── TOPBAR MODULO ─────────────────────────────────────────────────────────────
-.topbar-modulo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255,255,255,0.5);
-  font-size: 15px;
-  font-weight: 500;
-
-  i { font-size: 14px; }
-}
-
-.btn-logout {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  i { font-size: 13px; }
-}
-
-.btn-hamburguesa i { font-size: 18px; }
-.btn-cerrar-sidebar i { font-size: 14px; }
-
-.usuario-rol i { font-size: 10px; margin-right: 2px; }

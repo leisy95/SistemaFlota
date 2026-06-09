@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SistemaFlota.Models;
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
@@ -36,5 +37,8 @@ namespace SistemaFlota
         public DbSet<Pedido> Pedidos { get; set; }
 
         public DbSet<PedidoReferencia> PedidoReferencias { get; set; }
+
+        public DbSet<SeguimientoRrhh> SeguimientosRrhh { get; set; }
+        public DbSet<SeguimientoRrhhFoto> SeguimientosRrhhFotos { get; set; }
     }
 }

@@ -57,6 +57,8 @@ builder.Services
     });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($">>> ENV: {builder.Environment.EnvironmentName}");
+Console.WriteLine($">>> CONN: {connectionString}");
 
 // ── MySQL con versión fija — evita AutoDetect en Railway ──────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -99,7 +101,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+   db.Database.Migrate();
 
     try
     {
