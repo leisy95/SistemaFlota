@@ -1,7 +1,3 @@
-<!-- ============================================================
-     seguimientos-rrhh.component.html
-     ============================================================ -->
-
 <!-- Alertas globales -->
 <div *ngIf="mensajeExito" class="alerta alerta-exito">
   <i class="fa-solid fa-check-circle"></i> {{ mensajeExito }}
@@ -12,13 +8,13 @@
 
 <div class="srrhh-container">
 
-  <!-- ── Encabezado ──────────────────────────────────────────────────────── -->
+  <!-- ── Encabezado ── -->
   <div class="srrhh-header">
-    <div>
+    <div class="srrhh-header-titulo">
       <h4><i class="fa-solid fa-clipboard-list"></i> Seguimientos SST</h4>
       <small>Gestión de hallazgos y planes de acción</small>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+    <div class="srrhh-header-acciones">
       <button class="btn-excel-srrhh" (click)="exportarExcel()">
         <i class="fa-solid fa-table"></i> Excel
       </button>
@@ -31,7 +27,7 @@
     </div>
   </div>
 
-  <!-- ── Filtros ─────────────────────────────────────────────────────────── -->
+  <!-- ── Filtros ── -->
   <div class="srrhh-filtros">
     <input type="text" placeholder="Buscar área..." [(ngModel)]="filtros.area" (ngModelChange)="aplicarFiltros()">
     <select [(ngModel)]="filtros.estado" (ngModelChange)="aplicarFiltros()">
@@ -55,32 +51,21 @@
     </button>
   </div>
 
-  <!-- ── Tabla ───────────────────────────────────────────────────────────── -->
+  <!-- ── Tabla ── -->
   <div class="srrhh-tabla-wrap">
-
     <div *ngIf="cargando" class="srrhh-loading">
       <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
     </div>
-
     <div *ngIf="!cargando && registrosFiltrados.length === 0" class="srrhh-vacio">
       <i class="fa-solid fa-inbox"></i>
       <p>No hay seguimientos registrados</p>
     </div>
-
     <table *ngIf="!cargando && registrosFiltrados.length > 0" class="srrhh-tabla">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Área</th>
-          <th>Mes / Año</th>
-          <th>Fuente</th>
-          <th>Factor Riesgo</th>
-          <th>Prioridad</th>
-          <th>Estado</th>
-          <th>Responsable</th>
-          <th>Evidencias</th>
-          <th>Seguimiento</th>
-          <th>Acciones</th>
+          <th>#</th><th>Área</th><th>Mes / Año</th><th>Fuente</th>
+          <th>Factor Riesgo</th><th>Prioridad</th><th>Estado</th>
+          <th>Responsable</th><th>Evidencias</th><th>Seguimiento</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -93,71 +78,56 @@
           <td><span class="badge" [class]="getBadgePrioridad(r.prioridad)">{{ r.prioridad }}</span></td>
           <td><span class="badge" [class]="getBadgeEstado(r.estado)">{{ r.estado }}</span></td>
           <td>{{ r.responsable || '—' }}</td>
-
-          <!-- Miniaturas evidencia -->
           <td>
             <div class="miniaturas" *ngIf="getFotosEvidencia(r).length > 0; else sinFoto">
               <img *ngFor="let f of getFotosEvidencia(r).slice(0,3); let i = index"
                 [src]="getFotoUrl(f.nombreArchivo)" class="miniatura"
-                (click)="abrirGaleria(getFotosEvidencia(r), i)" title="Ver galería">
+                (click)="abrirGaleria(getFotosEvidencia(r), i)">
               <span *ngIf="getFotosEvidencia(r).length > 3" class="mas-fotos"
-                (click)="abrirGaleria(getFotosEvidencia(r), 0)">
-                +{{ getFotosEvidencia(r).length - 3 }}
-              </span>
+                (click)="abrirGaleria(getFotosEvidencia(r), 0)">+{{ getFotosEvidencia(r).length - 3 }}</span>
             </div>
             <ng-template #sinFoto><span class="sin-foto">—</span></ng-template>
           </td>
-
-          <!-- Miniaturas seguimiento -->
           <td>
             <div class="miniaturas" *ngIf="getFotosSeguimiento(r).length > 0; else sinFotoSeg">
               <img *ngFor="let f of getFotosSeguimiento(r).slice(0,3); let i = index"
                 [src]="getFotoUrl(f.nombreArchivo)" class="miniatura"
-                (click)="abrirGaleria(getFotosSeguimiento(r), i)" title="Ver galería">
+                (click)="abrirGaleria(getFotosSeguimiento(r), i)">
               <span *ngIf="getFotosSeguimiento(r).length > 3" class="mas-fotos"
-                (click)="abrirGaleria(getFotosSeguimiento(r), 0)">
-                +{{ getFotosSeguimiento(r).length - 3 }}
-              </span>
+                (click)="abrirGaleria(getFotosSeguimiento(r), 0)">+{{ getFotosSeguimiento(r).length - 3 }}</span>
             </div>
             <ng-template #sinFotoSeg><span class="sin-foto">—</span></ng-template>
           </td>
-
           <td>
             <div class="acciones">
-              <button class="btn-icono btn-ver"     (click)="abrirVer(r)"    title="Ver detalle"><i class="fa-solid fa-eye"></i></button>
-              <button class="btn-icono btn-editar"  (click)="abrirEditar(r)" title="Editar"><i class="fa-solid fa-pencil"></i></button>
-              <button class="btn-icono btn-eliminar" (click)="eliminar(r)"   title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn-icono btn-ver"      (click)="abrirVer(r)"    title="Ver"><i class="fa-solid fa-eye"></i></button>
+              <button class="btn-icono btn-editar"   (click)="abrirEditar(r)" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+              <button class="btn-icono btn-eliminar" (click)="eliminar(r)"    title="Eliminar"><i class="fa-solid fa-trash"></i></button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
-
     <div *ngIf="!cargando && registrosFiltrados.length > 0" class="srrhh-contador">
       Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MODAL CREAR / EDITAR
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════ MODAL CREAR / EDITAR ═══════════ -->
 <div class="modal-overlay" *ngIf="vistaModal === 'crear' || vistaModal === 'editar'">
   <div class="modal-box modal-xl">
-
     <div class="modal-header">
       <h5><i class="fa-solid fa-clipboard-plus"></i>
         {{ vistaModal === 'crear' ? 'Nuevo Seguimiento' : 'Editar Seguimiento #' + registroSeleccionado?.id }}
       </h5>
       <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-
     <div class="modal-body">
       <div *ngIf="mensajeError" class="alerta alerta-error mb-2">
         <i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}
       </div>
 
-      <!-- ── Información general ── -->
       <div class="seccion-titulo"><i class="fa-solid fa-info-circle"></i> Información General</div>
       <div class="form-grid">
         <div class="form-group col-4">
@@ -193,11 +163,11 @@
         </div>
       </div>
 
-      <!-- ── Evidencia fotográfica inicial ── -->
       <div class="seccion-titulo"><i class="fa-solid fa-camera"></i> Evidencia Fotográfica</div>
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Agregar fotos de evidencia</label>
+          <!-- ✅ Sin capture — muestra cámara Y galería en móvil -->
           <input type="file" accept="image/*" multiple (change)="onFotosEvidencia($event)">
           <div class="galeria-preview" *ngIf="previewsEvidencia.length > 0">
             <div class="preview-item" *ngFor="let p of previewsEvidencia; let i = index">
@@ -205,7 +175,6 @@
               <button class="btn-quitar" (click)="quitarPreviewEvidencia(i)"><i class="fa-solid fa-xmark"></i></button>
             </div>
           </div>
-          <!-- Fotos ya guardadas (editar) -->
           <div class="galeria-preview"
             *ngIf="vistaModal === 'editar' && registroSeleccionado && getFotosEvidencia(registroSeleccionado).length > 0">
             <div class="preview-item guardada" *ngFor="let f of getFotosEvidencia(registroSeleccionado)">
@@ -216,7 +185,6 @@
         </div>
       </div>
 
-      <!-- ── Clasificación ── -->
       <div class="seccion-titulo"><i class="fa-solid fa-tags"></i> Clasificación</div>
       <div class="form-grid">
         <div class="form-group col-4">
@@ -237,13 +205,11 @@
         </div>
       </div>
 
-      <!-- ── Plan de acción ── -->
       <div class="seccion-titulo"><i class="fa-solid fa-list-check"></i> Plan de Acción</div>
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Plan de Acción Sugerido</label>
-          <textarea rows="3" [(ngModel)]="form.planAccionSugerido"
-            placeholder="Describe las acciones a tomar..."></textarea>
+          <textarea rows="3" [(ngModel)]="form.planAccionSugerido" placeholder="Describe las acciones a tomar..."></textarea>
         </div>
         <div class="form-group col-4">
           <label>Responsable</label>
@@ -259,12 +225,12 @@
         </div>
       </div>
 
-      <!-- ── Registro fotográfico posterior (solo editar) ── -->
       <ng-container *ngIf="vistaModal === 'editar'">
         <div class="seccion-titulo"><i class="fa-solid fa-camera-rotate"></i> Registro Fotográfico Posterior</div>
         <div class="form-grid">
           <div class="form-group col-12">
             <label>Agregar fotos de seguimiento</label>
+            <!-- ✅ Sin capture — muestra cámara Y galería en móvil -->
             <input type="file" accept="image/*" multiple (change)="onFotosSeguimiento($event)">
             <div class="galeria-preview" *ngIf="previewsSeguimiento.length > 0">
               <div class="preview-item" *ngFor="let p of previewsSeguimiento; let i = index">
@@ -283,7 +249,6 @@
         </div>
       </ng-container>
 
-      <!-- ── Observaciones ── -->
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Observaciones</label>
@@ -291,7 +256,6 @@
         </div>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
       <button class="btn-primary" (click)="guardar()" [disabled]="guardando">
@@ -303,25 +267,18 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MODAL VER DETALLE
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════ MODAL VER DETALLE ═══════════ -->
 <div class="modal-overlay" *ngIf="vistaModal === 'ver' && registroSeleccionado">
   <div class="modal-box modal-lg" *ngIf="registroSeleccionado as r">
-
     <div class="modal-header">
-      <h5><i class="fa-solid fa-clipboard-check"></i>
-        Seguimiento #{{ r.id }} — {{ r.area }}
-      </h5>
+      <h5><i class="fa-solid fa-clipboard-check"></i> Seguimiento #{{ r.id }} — {{ r.area }}</h5>
       <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-
     <div class="modal-body">
       <div class="badges-row">
         <span class="badge" [class]="getBadgeEstado(r.estado)">{{ r.estado }}</span>
         <span class="badge" [class]="getBadgePrioridad(r.prioridad)">{{ r.prioridad }}</span>
       </div>
-
       <div class="detalle-grid">
         <div class="detalle-item"><span class="detalle-label">Área</span><strong>{{ r.area }}</strong></div>
         <div class="detalle-item"><span class="detalle-label">Período</span><strong>{{ getNombreMes(r.mes) }} {{ r.anio }}</strong></div>
@@ -331,49 +288,38 @@
           <span class="detalle-label">Descripción</span>
           <p class="detalle-texto">{{ r.descripcion }}</p>
         </div>
-
-        <!-- Fotos evidencia -->
         <div class="detalle-item col-12" *ngIf="getFotosEvidencia(r).length > 0">
           <span class="detalle-label">Evidencia Fotográfica ({{ getFotosEvidencia(r).length }} fotos)</span>
           <div class="galeria-thumb">
             <img *ngFor="let f of getFotosEvidencia(r); let i = index"
-              [src]="getFotoUrl(f.nombreArchivo)" class="thumb"
-              (click)="abrirGaleria(getFotosEvidencia(r), i)">
+              [src]="getFotoUrl(f.nombreArchivo)" class="thumb" (click)="abrirGaleria(getFotosEvidencia(r), i)">
           </div>
         </div>
-
         <div class="detalle-item"><span class="detalle-label">Factor de Riesgo</span><strong>{{ r.factorRiesgo || '—' }}</strong></div>
         <div class="detalle-item"><span class="detalle-label">Responsable</span><strong>{{ r.responsable || '—' }}</strong></div>
         <div class="detalle-item"><span class="detalle-label">Fecha Ejecución</span><strong>{{ r.fechaEjecucion ? (r.fechaEjecucion | date:'dd/MM/yyyy') : '—' }}</strong></div>
         <div class="detalle-item"><span class="detalle-label">Fecha Seguimiento</span><strong>{{ r.fechaSeguimiento ? (r.fechaSeguimiento | date:'dd/MM/yyyy') : '—' }}</strong></div>
-
         <div class="detalle-item col-12" *ngIf="r.planAccionSugerido">
           <span class="detalle-label">Plan de Acción</span>
           <p class="detalle-texto">{{ r.planAccionSugerido }}</p>
         </div>
-
-        <!-- Fotos seguimiento -->
         <div class="detalle-item col-12" *ngIf="getFotosSeguimiento(r).length > 0">
           <span class="detalle-label">Registro Fotográfico Posterior ({{ getFotosSeguimiento(r).length }} fotos)</span>
           <div class="galeria-thumb">
             <img *ngFor="let f of getFotosSeguimiento(r); let i = index"
-              [src]="getFotoUrl(f.nombreArchivo)" class="thumb"
-              (click)="abrirGaleria(getFotosSeguimiento(r), i)">
+              [src]="getFotoUrl(f.nombreArchivo)" class="thumb" (click)="abrirGaleria(getFotosSeguimiento(r), i)">
           </div>
         </div>
-
         <div class="detalle-item col-12" *ngIf="r.observaciones">
           <span class="detalle-label">Observaciones</span>
           <p class="detalle-texto">{{ r.observaciones }}</p>
         </div>
-
         <div class="detalle-item col-12">
           <span class="detalle-label">Creado por</span>
           <small>{{ r.nombreCreadoPor || r.creadoPor }} — {{ r.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small>
         </div>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-secondary" (click)="cerrarModal()">Cerrar</button>
       <button class="btn-warning" (click)="abrirEditar(r)"><i class="fa-solid fa-pencil"></i> Editar</button>
@@ -381,23 +327,17 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MODAL GALERÍA DE FOTOS
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════ MODAL GALERÍA ═══════════ -->
 <div class="modal-overlay galeria-overlay" *ngIf="vistaModal === 'galeria'" (click)="cerrarModal()">
   <div class="galeria-modal" (click)="$event.stopPropagation()">
     <button class="btn-cerrar galeria-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
-
     <button class="galeria-nav galeria-prev" (click)="anteriorFoto()" *ngIf="fotosGaleria.length > 1">
       <i class="fa-solid fa-chevron-left"></i>
     </button>
-
     <img [src]="getFotoUrl(fotosGaleria[fotoGaleriaActual]?.nombreArchivo ?? '')" class="galeria-img">
-
     <button class="galeria-nav galeria-next" (click)="siguienteFoto()" *ngIf="fotosGaleria.length > 1">
       <i class="fa-solid fa-chevron-right"></i>
     </button>
-
     <div class="galeria-contador">{{ fotoGaleriaActual + 1 }} / {{ fotosGaleria.length }}</div>
   </div>
 </div>
