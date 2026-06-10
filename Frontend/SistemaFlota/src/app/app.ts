@@ -75,7 +75,7 @@ export class AppComponent implements OnInit {
 
   readonly tabsPrincipales: { key: ModuloPrincipal; label: string; icon: string }[] = [
     { key: 'flota', label: 'Flota', icon: 'fa-solid fa-truck' },
-    { key: 'rrhh', label: 'RRHH', icon: 'fa-solid fa-users' },
+    { key: 'rrhh', label: 'SST', icon: 'fa-solid fa-shield-halved' },
     { key: 'calidad', label: 'Calidad', icon: 'fa-solid fa-circle-check' },
   ];
 
@@ -103,18 +103,17 @@ export class AppComponent implements OnInit {
   ];
 
   readonly modulosRrhh: ModuloItem[] = [
-    { key: 'rrhh-seguimientos', label: 'Seguimientos', icon: 'fa-solid fa-clipboard-list' },
+    { key: 'rrhh-seguimientos', label: 'Seguimientos SST', icon: 'fa-solid fa-clipboard-list' },
   ];
 
   readonly modulosCalidad: ModuloItem[] = [
     { key: 'calidad-cyreles', label: 'Cyreles', icon: 'fa-solid fa-box-open' },
   ];
 
-  // ── Impresion y Calidad solo ven Calidad; Jefe ve Calidad además de Flota
   private readonly accesoModuloPrincipal: Record<ModuloPrincipal, string[]> = {
-    flota: [],
-    rrhh: ['Admin', 'RecursosHumanos'],
-    calidad: ['Admin', 'PESV', 'Calidad', 'Impresion', 'Jefe'],
+    flota: ['Admin', 'Auxiliar', 'Jefe', 'Facturacion', 'Bodega', 'RecursosHumanos', 'PESV', 'Conductor', 'Vendedor', 'Porteria'],
+    rrhh: ['Admin', 'RecursosHumanos', 'Jefe', 'PESV', 'SST'],
+    calidad: ['Admin', 'Calidad', 'Impresion', 'Jefe'],
   };
 
   constructor(
@@ -200,17 +199,29 @@ export class AppComponent implements OnInit {
   onLoginSuccess(datos: any) {
     this.isLoggedIn = true;
     this.usuarioActivo = datos.username;
-    this.rol = datos.rol;
+    this.rol = datos.rol;  // ← primero asignar el rol
     this.permisosGranulares = Array.isArray(datos.permisos)
       ? datos.permisos.filter((p: any) => typeof p === 'object' && p.modulo)
       : [];
-    this.moduloActual = 'dashboard';
+
+    // Módulo por defecto
     this.moduloPrincipal = 'flota';
-    // Si el rol solo ve Calidad, arrancar en calidad
-    if (this.rol === 'Impresion') {
+    this.moduloActual = 'dashboard';
+
+    // Roles que no ven dashboard — arrancan en su primer módulo
+    if (this.rol === 'Conductor') { this.moduloActual = 'inspecciones'; }
+    if (this.rol === 'Vendedor') { this.moduloActual = 'pedidos'; }
+    if (this.rol === 'Porteria') { this.moduloActual = 'autorizaciones'; }
+    if (this.rol === 'SST') {
+      this.moduloPrincipal = 'rrhh'; this.moduloActual = 'rrhh-seguimientos';
+    }
+
+    // Calidad e Impresion arrancan en Calidad → Cyreles
+    if (this.rol === 'Impresion' || this.rol === 'Calidad') {
       this.moduloPrincipal = 'calidad';
       this.moduloActual = 'calidad-cyreles';
     }
+
     this.permisosService.cargar(datos);
     this.guardarSesion(datos);
     this.cargarConfiguracion();
@@ -227,7 +238,7 @@ export class AppComponent implements OnInit {
       case 'Auxiliar':
         return ['dashboard', 'conductores', 'vehiculos', 'inspecciones', 'ver-inspecciones'].includes(modulo);
       case 'Conductor':
-        return ['dashboard', 'inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
+        return ['inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
       case 'Jefe':
         return ['dashboard', 'ver-inspecciones', 'incidentes', 'mantenimiento', 'documentos', 'encuesta-fatiga', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'pedidos', 'calidad-cyreles'].includes(modulo);
       case 'RecursosHumanos':
@@ -237,13 +248,15 @@ export class AppComponent implements OnInit {
       case 'Bodega':
         return ['dashboard', 'autorizaciones', 'trazabilidad', 'cambio-ruta', 'solicitud-taller', 'pedidos'].includes(modulo);
       case 'Porteria':
-        return ['dashboard', 'autorizaciones', 'encuesta-fatiga'].includes(modulo);
+        return ['autorizaciones', 'encuesta-fatiga'].includes(modulo);
       case 'Vendedor':
-        return ['dashboard', 'pedidos', 'inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'autorizaciones'].includes(modulo);
+        return ['pedidos', 'inspecciones', 'reporte-ruta', 'encuesta-fatiga', 'cambio-ruta', 'solicitud-taller', 'autorizaciones'].includes(modulo);
       case 'Calidad':
         return ['calidad-cyreles'].includes(modulo);
       case 'Impresion':
         return ['calidad-cyreles'].includes(modulo);
+      case 'SST':
+        return ['rrhh-seguimientos'].includes(modulo);
       default:
         return false;
     }

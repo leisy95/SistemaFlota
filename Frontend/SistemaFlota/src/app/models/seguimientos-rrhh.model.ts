@@ -23,7 +23,7 @@ export interface SeguimientoRrhh {
   responsable?: string;
   fechaEjecucion?: string;
   fechaSeguimiento?: string;
-  estado: 'Ejecutado' | 'En proceso' | 'Pendiente';
+  estado: 'Ejecutada' | 'En proceso' | 'Abierta';
   observaciones?: string;
   creadoPor: number;
   nombreCreadoPor?: string;
@@ -51,13 +51,34 @@ export interface CrearSeguimientoRrhhDto {
 }
 
 export const MESES_RRHH = [
-  { valor: 1,  nombre: 'Enero' },   { valor: 2,  nombre: 'Febrero' },
-  { valor: 3,  nombre: 'Marzo' },   { valor: 4,  nombre: 'Abril' },
-  { valor: 5,  nombre: 'Mayo' },    { valor: 6,  nombre: 'Junio' },
-  { valor: 7,  nombre: 'Julio' },   { valor: 8,  nombre: 'Agosto' },
+  { valor: 1,  nombre: 'Enero' },      { valor: 2,  nombre: 'Febrero' },
+  { valor: 3,  nombre: 'Marzo' },      { valor: 4,  nombre: 'Abril' },
+  { valor: 5,  nombre: 'Mayo' },       { valor: 6,  nombre: 'Junio' },
+  { valor: 7,  nombre: 'Julio' },      { valor: 8,  nombre: 'Agosto' },
   { valor: 9,  nombre: 'Septiembre' }, { valor: 10, nombre: 'Octubre' },
-  { valor: 11, nombre: 'Noviembre' }, { valor: 12, nombre: 'Diciembre' },
+  { valor: 11, nombre: 'Noviembre' },  { valor: 12, nombre: 'Diciembre' },
 ];
 
-export const PRIORIDADES_RRHH  = ['Alta', 'Media', 'Baja'];
-export const ESTADOS_RRHH      = ['Ejecutado', 'En proceso', 'Pendiente'];
+export const PRIORIDADES_RRHH = ['Alta', 'Media', 'Baja'];
+
+export const ESTADOS_RRHH = ['Ejecutada', 'En proceso', 'Abierta'];
+
+export const FUENTES_RRHH = [
+  'Investigación AT',
+  'Investigación Incidente',
+  'Reporte de un empleado',
+  'COPASST',
+  'Inspección de seguridad',
+  'Auditoría interna',
+  'Auditoría externa',
+  'Diagnóstico Riesgo Mecánico',
+  'Diagnóstico Riesgo Eléctrico',
+  'Diagnóstico Riesgo TAR',
+  'Diagnóstico Riesgo Biológico',
+  'Diagnóstico Riesgo Tránsito',
+  'Diagnóstico Riesgo Público',
+  'Desórdenes de Trauma Acumulativo',
+  'Diagnóstico Orden y Aseo',
+  'Diagnóstico Caídas a Nivel',
+  'Diagnóstico Químico',
+];

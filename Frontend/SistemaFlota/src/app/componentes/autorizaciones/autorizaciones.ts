@@ -65,33 +65,25 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   autorizacionEditando:  any = null;
   autorizacionDetalle:   any = null;
 
-  // ── Formularios acceso rápido ─────────────────────────────────────────────
   formSalidaRapida = {
-    conductorId:    0,
-    vehiculoId:     0,
-    tipoVuelta:     'Mensajería',
-    destinoCompleto: ''
+    conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: ''
   };
 
   formLlegadaRapida = {
-    conductorId:     0,
-    vehiculoId:      0,
-    tipoVuelta:      'Mensajería',
-    destinoCompleto: '',
-    kilometrajeFinal: null as number | null,
-    novedadesViaje:  '',
-    estadoVehiculo:  'Bueno'
+    conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: '',
+    kilometrajeFinal: null as number | null, novedadesViaje: '', estadoVehiculo: 'Bueno'
   };
 
   guardandoRapido = false;
 
   formLlegada = {
-    kilometrajeFinal: null as number | null,
-    novedadesViaje:   '',
-    estadoVehiculo:   'Bueno'
+    kilometrajeFinal: null as number | null, novedadesViaje: '', estadoVehiculo: 'Bueno'
   };
 
+  // ── formEditar con conductorId y vehiculoId editables ─────────────────────
   formEditar = {
+    conductorId:      0,
+    vehiculoId:       0,
     destinoCompleto:  '',
     tipoVuelta:       '',
     descripcionCarga: '',
@@ -140,12 +132,10 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   ngAfterViewInit(): void {}
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-  // ── Roles que pueden usar acceso rápido ───────────────────────────────────
   get puedeAccesoRapido(): boolean {
     return ['Admin', 'Jefe', 'Conductor', 'Vendedor'].includes(this.rolUsuario);
   }
 
-  // ── Abrir modales de acceso rápido ────────────────────────────────────────
   abrirSalidaRapida() {
     this.formSalidaRapida = { conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: '' };
     this.guardandoRapido = false;
@@ -163,26 +153,18 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     this.cdr.markForCheck();
   }
 
-  // ── Guardar acceso rápido ─────────────────────────────────────────────────
   guardarSalidaRapida() {
     if (!this.formSalidaRapida.conductorId) { alert('Seleccione un conductor'); return; }
     if (!this.formSalidaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
     this.guardandoRapido = true;
     this.autorizacionesService.salidaRapida({
-      conductorId:     this.formSalidaRapida.conductorId,
-      vehiculoId:      this.formSalidaRapida.vehiculoId,
-      tipoVuelta:      this.formSalidaRapida.tipoVuelta,
-      destinoCompleto: this.formSalidaRapida.destinoCompleto || undefined
+      conductorId: this.formSalidaRapida.conductorId, vehiculoId: this.formSalidaRapida.vehiculoId,
+      tipoVuelta: this.formSalidaRapida.tipoVuelta, destinoCompleto: this.formSalidaRapida.destinoCompleto || undefined
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); this.guardandoRapido = false; this.cdr.markForCheck(); return throwError(() => err); })
     ).subscribe({
-      next: () => {
-        this.guardandoRapido = false;
-        this.mostrarModalSalidaRapida = false;
-        this.mostrarNotificacion('🚛 Salida registrada correctamente — WhatsApp enviado');
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
-      }, error: () => {}
+      next: () => { this.guardandoRapido = false; this.mostrarModalSalidaRapida = false; this.mostrarNotificacion('🚛 Salida registrada — WhatsApp enviado'); this.obtenerAutorizaciones(); this.cdr.markForCheck(); },
+      error: () => {}
     });
   }
 
@@ -191,27 +173,18 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     if (!this.formLlegadaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
     this.guardandoRapido = true;
     this.autorizacionesService.llegadaRapida({
-      conductorId:      this.formLlegadaRapida.conductorId,
-      vehiculoId:       this.formLlegadaRapida.vehiculoId,
-      tipoVuelta:       this.formLlegadaRapida.tipoVuelta,
-      destinoCompleto:  this.formLlegadaRapida.destinoCompleto || undefined,
-      kilometrajeFinal: this.formLlegadaRapida.kilometrajeFinal,
-      novedadesViaje:   this.formLlegadaRapida.novedadesViaje,
-      estadoVehiculo:   this.formLlegadaRapida.estadoVehiculo
+      conductorId: this.formLlegadaRapida.conductorId, vehiculoId: this.formLlegadaRapida.vehiculoId,
+      tipoVuelta: this.formLlegadaRapida.tipoVuelta, destinoCompleto: this.formLlegadaRapida.destinoCompleto || undefined,
+      kilometrajeFinal: this.formLlegadaRapida.kilometrajeFinal, novedadesViaje: this.formLlegadaRapida.novedadesViaje,
+      estadoVehiculo: this.formLlegadaRapida.estadoVehiculo
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); this.guardandoRapido = false; this.cdr.markForCheck(); return throwError(() => err); })
     ).subscribe({
-      next: () => {
-        this.guardandoRapido = false;
-        this.mostrarModalLlegadaRapida = false;
-        this.mostrarNotificacion('🏁 Llegada registrada correctamente — WhatsApp enviado');
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
-      }, error: () => {}
+      next: () => { this.guardandoRapido = false; this.mostrarModalLlegadaRapida = false; this.mostrarNotificacion('🏁 Llegada registrada — WhatsApp enviado'); this.obtenerAutorizaciones(); this.cdr.markForCheck(); },
+      error: () => {}
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────────────────
   aplicarFiltros(): void {
     const q = this.filtroBusqueda.toLowerCase();
     let base: any[];
@@ -262,6 +235,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   trackById(_i: number, item: any): number { return item.id; }
   trackByIdx(i: number, _item: any): number { return i; }
 
+  // ── Peso facturas crear ───────────────────────────────────────────────────
   get pesoTotalFacturas(): number {
     return this.facturasClientes.reduce((sum, f) => {
       const val = parseFloat(String(f.pesoKilos ?? '').replace(',', '.'));
@@ -272,6 +246,20 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   recalcularPeso(): void {
     const total = this.pesoTotalFacturas;
     if (total > 0) this.form.pesoKilos = total;
+    this.cdr.markForCheck();
+  }
+
+  // ── Peso facturas editar ──────────────────────────────────────────────────
+  get pesoTotalFacturasEditar(): number {
+    return this.facturasEditar.reduce((sum, f) => {
+      const val = parseFloat(String(f.pesoKilos ?? '').replace(',', '.'));
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
+  }
+
+  recalcularPesoEditar(): void {
+    const total = this.pesoTotalFacturasEditar;
+    if (total > 0) this.formEditar.pesoKilos = parseFloat(total.toFixed(2));
     this.cdr.markForCheck();
   }
 
@@ -305,6 +293,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   abrirEditar(autorizacion: any) {
     this.autorizacionEditando = autorizacion;
     this.formEditar = {
+      conductorId:      autorizacion.conductorId      ?? 0,
+      vehiculoId:       autorizacion.vehiculoId       ?? 0,
       destinoCompleto:  autorizacion.destinoCompleto  ?? '',
       tipoVuelta:       autorizacion.tipoVuelta       ?? '',
       descripcionCarga: autorizacion.descripcionCarga ?? '',
@@ -313,18 +303,29 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       numeroGuia:       autorizacion.numeroGuia       ?? ''
     };
     this.facturasEditar = this.obtenerFacturas(autorizacion.facturasClientes);
+    if (this.facturasEditar.length > 0) {
+      const total = this.pesoTotalFacturasEditar;
+      if (total > 0) this.formEditar.pesoKilos = parseFloat(total.toFixed(2));
+    }
     this.mostrarModalEditar = true;
     this.cdr.markForCheck();
   }
 
   guardarEdicion() {
     if (!this.autorizacionEditando) return;
+    if (!this.formEditar.conductorId) { alert('Seleccione un conductor'); return; }
+    if (!this.formEditar.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+
+    const pesoFinal = this.pesoTotalFacturasEditar > 0
+      ? parseFloat(this.pesoTotalFacturasEditar.toFixed(2))
+      : this.formEditar.pesoKilos;
+
     const datos = {
-      conductorId:      this.autorizacionEditando.conductorId,
-      vehiculoId:       this.autorizacionEditando.vehiculoId,
+      conductorId:      this.formEditar.conductorId,
+      vehiculoId:       this.formEditar.vehiculoId,
       destinoCompleto:  this.formEditar.destinoCompleto,
       cantidadClientes: this.formEditar.cantidadClientes,
-      pesoKilos:        this.formEditar.pesoKilos,
+      pesoKilos:        pesoFinal,
       tipoVuelta:       this.formEditar.tipoVuelta,
       descripcionCarga: this.formEditar.descripcionCarga,
       numeroGuia:       this.formEditar.numeroGuia,
@@ -350,6 +351,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   eliminarFacturaEditar(i: number) {
     this.facturasEditar = this.facturasEditar.filter((_, idx) => idx !== i);
+    this.recalcularPesoEditar();
     this.cdr.markForCheck();
   }
 
@@ -369,12 +371,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
     ).subscribe({
-      next: () => {
-        this.mostrarModalLlegada = false;
-        this.mostrarNotificacion(`✅ Llegada reportada — WhatsApp enviado automáticamente`);
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
-      }, error: () => {}
+      next: () => { this.mostrarModalLlegada = false; this.mostrarNotificacion(`✅ Llegada reportada — WhatsApp enviado`); this.obtenerAutorizaciones(); this.cdr.markForCheck(); },
+      error: () => {}
     });
   }
 
@@ -392,12 +390,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
     ).subscribe({
-      next: () => {
-        this.mostrarModalConfirmar = false;
-        this.mostrarNotificacion(`✅ Llegada confirmada por portería`);
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
-      }, error: () => {}
+      next: () => { this.mostrarModalConfirmar = false; this.mostrarNotificacion(`✅ Llegada confirmada por portería`); this.obtenerAutorizaciones(); this.cdr.markForCheck(); },
+      error: () => {}
     });
   }
 
@@ -489,9 +483,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe({
       next: (data) => {
         this.autorizacionActual = data;
-        this.mostrarNotificacion(`✅ ${this.conductorSeleccionado.nombre} — ¡Buen viaje! WhatsApp enviado automáticamente`);
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
+        this.mostrarNotificacion(`✅ ${this.conductorSeleccionado.nombre} — ¡Buen viaje! WhatsApp enviado`);
+        this.obtenerAutorizaciones(); this.cdr.markForCheck();
         setTimeout(() => this.resetear(), 3000);
       }, error: () => {}
     });
@@ -524,11 +517,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       timeout(15000), takeUntil(this.destroy$),
       catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
     ).subscribe({
-      next: () => {
-        this.mostrarNotificacion(`🚛 Salida en ruta confirmada — WhatsApp enviado`);
-        this.obtenerAutorizaciones();
-        this.cdr.markForCheck();
-      }, error: () => {}
+      next: () => { this.mostrarNotificacion(`🚛 Salida en ruta confirmada — WhatsApp enviado`); this.obtenerAutorizaciones(); this.cdr.markForCheck(); },
+      error: () => {}
     });
   }
 

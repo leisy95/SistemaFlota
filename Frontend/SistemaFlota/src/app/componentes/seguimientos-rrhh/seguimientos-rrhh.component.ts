@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SeguimientosRrhhService } from '../../services/seguimientos-rrhh.service';
 import {
   SeguimientoRrhh, SeguimientoRrhhFoto,
-  MESES_RRHH, PRIORIDADES_RRHH, ESTADOS_RRHH
+  MESES_RRHH, PRIORIDADES_RRHH, ESTADOS_RRHH, FUENTES_RRHH
 } from '../../models/seguimientos-rrhh.model';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -26,11 +26,12 @@ export class SeguimientosRrhhComponent implements OnInit {
   registrosFiltrados: SeguimientoRrhh[] = [];
   registroSeleccionado: SeguimientoRrhh | null = null;
 
-  readonly meses      = MESES_RRHH;
+  readonly meses       = MESES_RRHH;
   readonly prioridades = PRIORIDADES_RRHH;
-  readonly estados    = ESTADOS_RRHH;
-  readonly anioActual = new Date().getFullYear();
-  readonly anios      = Array.from({ length: 6 }, (_, i) => this.anioActual - 2 + i);
+  readonly estados     = ESTADOS_RRHH;
+  readonly fuentes     = FUENTES_RRHH;
+  readonly anioActual  = new Date().getFullYear();
+  readonly anios       = Array.from({ length: 6 }, (_, i) => this.anioActual - 2 + i);
 
   cargando  = false;
   guardando = false;
@@ -38,23 +39,22 @@ export class SeguimientosRrhhComponent implements OnInit {
   mensajeError = '';
   mensajeExito = '';
 
-  // Galería
   fotosGaleria: SeguimientoRrhhFoto[] = [];
   fotoGaleriaActual = 0;
 
   filtros = { area: '', estado: '', prioridad: '', mes: 0, anio: 0 };
 
   form = {
-    area: '', mes: new Date().getMonth() + 1, anio: this.anioActual,
+    area: '', mes: new Date().getMonth() + 1, anio: new Date().getFullYear(),
     fuente: '', areas: '', descripcion: '', planAccionSugerido: '',
     factorRiesgo: '', prioridad: 'Media', responsable: '',
-    fechaEjecucion: '', fechaSeguimiento: '', estado: 'Pendiente', observaciones: '',
+    fechaEjecucion: '', fechaSeguimiento: '', estado: 'Abierta', observaciones: '',
   };
 
-  fotosEvidenciaFiles: File[]    = [];
-  fotosSeguimientoFiles: File[]  = [];
-  previewsEvidencia: string[]    = [];
-  previewsSeguimiento: string[]  = [];
+  fotosEvidenciaFiles: File[]   = [];
+  fotosSeguimientoFiles: File[] = [];
+  previewsEvidencia: string[]   = [];
+  previewsSeguimiento: string[] = [];
 
   constructor(
     private svc: SeguimientosRrhhService,
@@ -99,49 +99,47 @@ export class SeguimientosRrhhComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // ── Exportar Excel ────────────────────────────────────────────────────────
+  // ── Exportar Excel ─────────────────────────────────────────────────────────
   exportarExcel() {
     const datos = this.registrosFiltrados.map(r => ({
-      'ID':                r.id,
-      'Área':              r.area,
-      'Mes':               this.getNombreMes(r.mes),
-      'Año':               r.anio,
-      'Fuente':            r.fuente,
+      'ID':                 r.id,
+      'Área':               r.area,
+      'Mes':                this.getNombreMes(r.mes),
+      'Año':                r.anio,
+      'Fuente':             r.fuente,
       'Áreas relacionadas': r.areas ?? '-',
-      'Descripción':       r.descripcion,
-      'Plan de Acción':    r.planAccionSugerido ?? '-',
-      'Factor de Riesgo':  r.factorRiesgo ?? '-',
-      'Prioridad':         r.prioridad,
-      'Responsable':       r.responsable ?? '-',
-      'Fecha Ejecución':   r.fechaEjecucion ? new Date(r.fechaEjecucion).toLocaleDateString('es-CO') : '-',
-      'Fecha Seguimiento': r.fechaSeguimiento ? new Date(r.fechaSeguimiento).toLocaleDateString('es-CO') : '-',
-      'Estado':            r.estado,
-      'Observaciones':     r.observaciones ?? '-',
-      'Creado por':        r.nombreCreadoPor ?? r.creadoPor,
-      'Fecha creación':    new Date(r.fechaCreacion).toLocaleDateString('es-CO'),
+      'Descripción':        r.descripcion,
+      'Plan de Acción':     r.planAccionSugerido ?? '-',
+      'Factor de Riesgo':   r.factorRiesgo ?? '-',
+      'Prioridad':          r.prioridad,
+      'Responsable':        r.responsable ?? '-',
+      'Fecha Ejecución':    r.fechaEjecucion   ? new Date(r.fechaEjecucion).toLocaleDateString('es-CO')   : '-',
+      'Fecha Seguimiento':  r.fechaSeguimiento ? new Date(r.fechaSeguimiento).toLocaleDateString('es-CO') : '-',
+      'Estado':             r.estado,
+      'Observaciones':      r.observaciones ?? '-',
+      'Creado por':         r.nombreCreadoPor ?? r.creadoPor,
+      'Fecha creación':     new Date(r.fechaCreacion).toLocaleDateString('es-CO'),
     }));
 
     const hoja  = XLSX.utils.json_to_sheet(datos);
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Seguimientos RRHH');
 
-    // Ancho de columnas
     hoja['!cols'] = [
-      { wch: 5 }, { wch: 18 }, { wch: 12 }, { wch: 6 }, { wch: 20 },
+      { wch: 5 }, { wch: 18 }, { wch: 12 }, { wch: 6 }, { wch: 28 },
       { wch: 20 }, { wch: 40 }, { wch: 35 }, { wch: 20 }, { wch: 10 },
       { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 30 },
       { wch: 18 }, { wch: 14 },
     ];
 
-    XLSX.writeFile(libro, `seguimientos_rrhh_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(libro, `seguimientos_rrhh_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
-  // ── Exportar PDF ──────────────────────────────────────────────────────────
+  // ── Exportar PDF ───────────────────────────────────────────────────────────
   exportarPDF() {
     const doc   = new jsPDF('landscape');
     const VERDE = [21, 128, 61] as [number, number, number];
 
-    // Header
     doc.setFillColor(...VERDE);
     doc.rect(0, 0, 297, 20, 'F');
     doc.setFontSize(14);
@@ -149,7 +147,6 @@ export class SeguimientosRrhhComponent implements OnInit {
     doc.setFont('helvetica', 'bold');
     doc.text('SEGUIMIENTOS RRHH', 148, 13, { align: 'center' });
 
-    // Subtítulo con filtros activos
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     doc.setFont('helvetica', 'normal');
@@ -158,11 +155,7 @@ export class SeguimientosRrhhComponent implements OnInit {
 
     autoTable(doc, {
       startY: 30,
-      head: [[
-        '#', 'Área', 'Mes/Año', 'Fuente', 'Descripción',
-        'Factor Riesgo', 'Prioridad', 'Responsable',
-        'F. Ejecución', 'Estado'
-      ]],
+      head: [['#', 'Área', 'Mes/Año', 'Fuente', 'Descripción', 'Factor Riesgo', 'Prioridad', 'Responsable', 'F. Ejecución', 'Estado']],
       body: this.registrosFiltrados.map(r => [
         r.id,
         r.area,
@@ -175,45 +168,32 @@ export class SeguimientosRrhhComponent implements OnInit {
         r.fechaEjecucion ? new Date(r.fechaEjecucion).toLocaleDateString('es-CO') : '-',
         r.estado,
       ]),
-      headStyles: {
-        fillColor: VERDE,
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 7,
-      },
+      headStyles: { fillColor: VERDE, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       alternateRowStyles: { fillColor: [245, 250, 245] },
       columnStyles: {
-        0: { cellWidth: 8 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: 55 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 18 },
-        7: { cellWidth: 25 },
-        8: { cellWidth: 20 },
+        0: { cellWidth: 8 },  1: { cellWidth: 25 }, 2: { cellWidth: 20 },
+        3: { cellWidth: 28 }, 4: { cellWidth: 52 }, 5: { cellWidth: 22 },
+        6: { cellWidth: 18 }, 7: { cellWidth: 25 }, 8: { cellWidth: 20 },
         9: { cellWidth: 20 },
       },
       didDrawCell: (data: any) => {
-        // Color en columna Estado
         if (data.column.index === 9 && data.section === 'body') {
           const estado = data.cell.raw as string;
-          if (estado === 'Ejecutado')  { data.cell.styles.textColor = [21, 128, 61]; }
+          if (estado === 'Ejecutada')  { data.cell.styles.textColor = [21, 128, 61];  }
           if (estado === 'En proceso') { data.cell.styles.textColor = [59, 130, 246]; }
-          if (estado === 'Pendiente')  { data.cell.styles.textColor = [245, 158, 11]; }
+          if (estado === 'Abierta')    { data.cell.styles.textColor = [245, 158, 11]; }
         }
-        // Color en columna Prioridad
         if (data.column.index === 6 && data.section === 'body') {
           const prioridad = data.cell.raw as string;
-          if (prioridad === 'Alta')  { data.cell.styles.textColor = [239, 68, 68]; }
-          if (prioridad === 'Media') { data.cell.styles.textColor = [245, 158, 11]; }
+          if (prioridad === 'Alta')  { data.cell.styles.textColor = [239, 68, 68];   }
+          if (prioridad === 'Media') { data.cell.styles.textColor = [245, 158, 11];  }
           if (prioridad === 'Baja')  { data.cell.styles.textColor = [100, 116, 139]; }
         }
       }
     });
 
-    doc.save(`seguimientos_rrhh_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`seguimientos_rrhh_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
   // ── Modales ────────────────────────────────────────────────────────────────
@@ -365,16 +345,16 @@ export class SeguimientosRrhhComponent implements OnInit {
   }
 
   // ── Helpers UI ─────────────────────────────────────────────────────────────
-  getFotoUrl(nombre: string)   { return this.svc.getFotoUrl(nombre); }
-  getNombreMes(num: number)    { return this.meses.find(m => m.valor === num)?.nombre ?? String(num); }
+  getFotoUrl(nombre: string)              { return this.svc.getFotoUrl(nombre); }
+  getNombreMes(num: number)               { return this.meses.find(m => m.valor === num)?.nombre ?? String(num); }
   getFotosEvidencia(r: SeguimientoRrhh)   { return r.fotos.filter(f => f.tipoFoto === 'evidencia'); }
   getFotosSeguimiento(r: SeguimientoRrhh) { return r.fotos.filter(f => f.tipoFoto === 'seguimiento'); }
 
   getBadgeEstado(estado: string): string {
     const map: Record<string, string> = {
-      'Ejecutado':  'badge-ejecutado',
+      'Ejecutada':  'badge-ejecutado',
       'En proceso': 'badge-proceso',
-      'Pendiente':  'badge-pendiente',
+      'Abierta':    'badge-pendiente',
     };
     return map[estado] ?? 'badge-secundario';
   }
@@ -391,7 +371,7 @@ export class SeguimientosRrhhComponent implements OnInit {
   // ── Privados ───────────────────────────────────────────────────────────────
   private validarForm(): boolean {
     if (!this.form.area.trim())        { this.mostrarError('El área es obligatoria');        return false; }
-    if (!this.form.fuente.trim())      { this.mostrarError('La fuente es obligatoria');      return false; }
+    if (!this.form.fuente)             { this.mostrarError('La fuente es obligatoria');      return false; }
     if (!this.form.descripcion.trim()) { this.mostrarError('La descripción es obligatoria'); return false; }
     return true;
   }
@@ -423,10 +403,10 @@ export class SeguimientosRrhhComponent implements OnInit {
 
   private resetForm() {
     this.form = {
-      area: '', mes: new Date().getMonth() + 1, anio: this.anioActual,
+      area: '', mes: new Date().getMonth() + 1, anio: new Date().getFullYear(),
       fuente: '', areas: '', descripcion: '', planAccionSugerido: '',
       factorRiesgo: '', prioridad: 'Media', responsable: '',
-      fechaEjecucion: '', fechaSeguimiento: '', estado: 'Pendiente', observaciones: '',
+      fechaEjecucion: '', fechaSeguimiento: '', estado: 'Abierta', observaciones: '',
     };
     this.fotosEvidenciaFiles   = [];
     this.fotosSeguimientoFiles = [];

@@ -68,7 +68,7 @@ export class UsuariosComponent implements OnInit {
   readonly roles = [
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
     'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
-    'PESV', 'Vendedor', 'Calidad', 'Impresion'
+    'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST'
   ];
 
   constructor(private usuariosService: UsuariosService) {}

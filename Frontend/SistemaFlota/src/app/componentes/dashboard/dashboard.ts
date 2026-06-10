@@ -28,6 +28,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   horaActual  = '';
   fechaActual = '';
+  rolUsuario  = '';
   private intervalo: any;
 
   totalConductores   = 0;
@@ -46,22 +47,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
   autorizacionesAutorizadas = 0;
   autorizacionesRechazadas  = 0;
 
-  // Iconos FA — sin emojis
-  readonly modulosRapidos = [
-    { key: 'inspecciones',   label: 'Inspecciones',   icon: 'fa-solid fa-clipboard-check', color: 'blue'   },
-    { key: 'autorizaciones', label: 'Autorizaciones',  icon: 'fa-solid fa-file-circle-check', color: 'green' },
-    { key: 'reporte-ruta',   label: 'Reporte Ruta',   icon: 'fa-solid fa-triangle-exclamation', color: 'red'  },
-    { key: 'mantenimiento',  label: 'Mantenimiento',  icon: 'fa-solid fa-wrench',             color: 'yellow' },
-    { key: 'documentos',     label: 'Documentos',     icon: 'fa-solid fa-folder-open',      color: 'purple' },
-    { key: 'conductores',    label: 'Conductores',    icon: 'fa-solid fa-id-card',          color: 'cyan'   },
+  private readonly todosModos = [
+    { key: 'inspecciones',   label: 'Inspecciones',  icon: 'fa-solid fa-clipboard-check',      color: 'blue'   },
+    { key: 'autorizaciones', label: 'Autorizaciones', icon: 'fa-solid fa-file-circle-check',    color: 'green'  },
+    { key: 'reporte-ruta',   label: 'Reporte Ruta',  icon: 'fa-solid fa-triangle-exclamation', color: 'red'    },
+    { key: 'mantenimiento',  label: 'Mantenimiento', icon: 'fa-solid fa-wrench',               color: 'yellow' },
+    { key: 'documentos',     label: 'Documentos',    icon: 'fa-solid fa-folder-open',          color: 'purple' },
+    { key: 'conductores',    label: 'Conductores',   icon: 'fa-solid fa-id-card',              color: 'cyan'   },
+    { key: 'pedidos',        label: 'Pedidos',       icon: 'fa-solid fa-box',                  color: 'blue'   },
+    { key: 'cambio-ruta',    label: 'Cambio Ruta',   icon: 'fa-solid fa-route',                color: 'green'  },
+    { key: 'solicitud-taller', label: 'Sol. Taller', icon: 'fa-solid fa-screwdriver-wrench',   color: 'yellow' },
+    { key: 'encuesta-fatiga',  label: 'Enc. Fatiga', icon: 'fa-solid fa-face-tired',           color: 'red'    },
+    { key: 'trazabilidad',   label: 'Trazabilidad',  icon: 'fa-solid fa-boxes-stacked',        color: 'purple' },
+    { key: 'incidentes',     label: 'Incidentes',    icon: 'fa-solid fa-car-burst',            color: 'red'    },
+    { key: 'ver-inspecciones', label: 'Historial',   icon: 'fa-solid fa-clock-rotate-left',    color: 'cyan'   },
   ];
 
-  // KPI icons FA
-  readonly kpiIconos = {
-    conductores:   'fa-solid fa-id-card',
-    vehiculos:     'fa-solid fa-truck',
-    inspecciones:  'fa-solid fa-clipboard-check',
-    autorizaciones:'fa-solid fa-file-circle-check',
+  // Accesos rápidos filtrados por rol
+  modulosRapidos: any[] = [];
+
+  private readonly accesosPorRol: Record<string, string[]> = {
+    Admin:           ['inspecciones','autorizaciones','reporte-ruta','mantenimiento','documentos','conductores'],
+    Jefe:            ['autorizaciones','incidentes','mantenimiento','documentos','trazabilidad'],
+    Conductor:       ['inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','pedidos'],
+    Facturacion:     ['autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'],
+    Bodega:          ['autorizaciones','trazabilidad','cambio-ruta','solicitud-taller','pedidos'],
+    Porteria:        ['autorizaciones','encuesta-fatiga'],
+    Vendedor:        ['pedidos','inspecciones','reporte-ruta','encuesta-fatiga','cambio-ruta','solicitud-taller','autorizaciones'],
+    RecursosHumanos: ['conductores','autorizaciones','incidentes','documentos','encuesta-fatiga','trazabilidad'],
+    Auxiliar:        ['inspecciones','ver-inspecciones','conductores'],
+    PESV:            ['inspecciones','autorizaciones','reporte-ruta','mantenimiento','documentos','conductores'],
   };
 
   constructor(
@@ -75,6 +90,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
+    if (raw) this.rolUsuario = JSON.parse(raw).rol;
+    this.cargarModulosRapidos();
     this.actualizarHora();
     this.intervalo = setInterval(() => this.actualizarHora(), 1000);
     this.cargarDatos();
@@ -82,6 +100,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() { if (this.intervalo) clearInterval(this.intervalo); }
+
+  cargarModulosRapidos() {
+    const keys = this.rolUsuario === 'Admin' || this.rolUsuario === 'PESV'
+      ? this.accesosPorRol['Admin']
+      : (this.accesosPorRol[this.rolUsuario] ?? []);
+    this.modulosRapidos = keys
+      .map(k => this.todosModos.find(m => m.key === k))
+      .filter(Boolean) as any[];
+  }
 
   actualizarHora() {
     const ahora = new Date();

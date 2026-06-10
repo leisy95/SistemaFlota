@@ -9,14 +9,8 @@
   <div class="header-lista">
     <h1><i class="fa-solid fa-file-circle-check"></i> {{ tituloPorRol }}</h1>
     <div class="header-acciones">
-      <button class="btn-excel" (click)="exportarExcel()">
-        <i class="fa-solid fa-table"></i> Excel
-      </button>
-      <button class="btn-pdf-reporte" (click)="exportarPDF()">
-        <i class="fa-solid fa-file-pdf"></i> PDF
-      </button>
-
-      <!-- Botones acceso rápido — solo roles permitidos -->
+      <button class="btn-excel" (click)="exportarExcel()"><i class="fa-solid fa-table"></i> Excel</button>
+      <button class="btn-pdf-reporte" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
       <ng-container *ngIf="puedeAccesoRapido">
         <button class="btn-salida-rapida" (click)="abrirSalidaRapida()">
           <i class="fa-solid fa-truck-fast"></i> Salir en ruta
@@ -25,7 +19,6 @@
           <i class="fa-solid fa-flag-checkered"></i> Registrar llegada
         </button>
       </ng-container>
-
       <button class="btn-nueva" *ngIf="puedeCrear" (click)="vistaLista = false; setPaso(1)">
         <i class="fa-solid fa-plus"></i> Nueva Autorización
       </button>
@@ -74,8 +67,15 @@
     <table>
       <thead>
         <tr>
-          <th>#</th><th>Conductor</th><th>Vehículo</th><th>Tipo</th>
-          <th>Destino</th><th>Fecha</th><th>Estado</th><th>Llegada</th><th>Acción</th>
+          <th>#</th>
+          <th>Conductor</th>
+          <th>Vehículo</th>
+          <th>Tipo</th>
+          <th>Destino</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Llegada</th>
+          <th>Acción</th>
         </tr>
       </thead>
       <tbody>
@@ -101,28 +101,23 @@
           </td>
           <td data-label="Acción">
             <div class="btn-acciones-tabla">
-              <button class="btn-continuar"
-                *ngIf="a.estado !== 'Autorizado' && a.estado !== 'Rechazado'"
+              <button class="btn-continuar" *ngIf="a.estado !== 'Autorizado' && a.estado !== 'Rechazado'"
                 (click)="continuarAutorizacion(a)">
                 <i class="fa-solid fa-arrow-right"></i> Continuar
               </button>
               <button class="btn-editar-aut"
-                *ngIf="puedeEditar && a.estado !== 'Autorizado' && a.estado !== 'Rechazado'"
-                (click)="abrirEditar(a)">
+                *ngIf="puedeEditar && a.estado !== 'Autorizado' && a.estado !== 'Rechazado'" (click)="abrirEditar(a)">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button class="btn-salida-ruta"
-                *ngIf="a.estado === 'Autorizado' && !a.fechaSalidaReal"
+              <button class="btn-salida-ruta" *ngIf="a.estado === 'Autorizado' && !a.fechaSalidaReal"
                 (click)="confirmarSalida(a)">
                 <i class="fa-solid fa-truck-fast"></i> Salir en ruta
               </button>
-              <button class="btn-reportar-llegada"
-                *ngIf="a.estado === 'Autorizado' && !a.estadoLlegada"
+              <button class="btn-reportar-llegada" *ngIf="a.estado === 'Autorizado' && !a.estadoLlegada"
                 (click)="abrirReporteLlegada(a)">
                 <i class="fa-solid fa-flag-checkered"></i> Reportar llegada
               </button>
-              <button class="btn-confirmar-llegada"
-                *ngIf="a.estadoLlegada === 'ReportadaLlegada' &&
+              <button class="btn-confirmar-llegada" *ngIf="a.estadoLlegada === 'ReportadaLlegada' &&
                   (rolUsuario === 'Porteria' || rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
                 (click)="abrirConfirmarLlegada(a)">
                 <i class="fa-solid fa-door-open"></i> Confirmar entrada
@@ -167,13 +162,11 @@
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-truck-fast"></i> Registrar Salida en Ruta</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalSalidaRapida = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalSalidaRapida = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
-    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
-      Registra la salida directamente sin necesidad de una autorización previa.
-    </p>
+    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la salida directamente sin necesidad de una
+      autorización previa.</p>
     <div class="form-group">
       <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
       <select [(ngModel)]="formSalidaRapida.conductorId">
@@ -195,7 +188,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-location-dot"></i> Destino <span style="color:#94a3b8; font-size:11px">(opcional)</span></label>
+      <label><i class="fa-solid fa-location-dot"></i> Destino <span
+          style="color:#94a3b8; font-size:11px">(opcional)</span></label>
       <input type="text" [(ngModel)]="formSalidaRapida.destinoCompleto" placeholder="Ej: Pereira, Bogotá...">
     </div>
     <div class="modal-botones">
@@ -215,13 +209,11 @@
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-flag-checkered"></i> Registrar Llegada</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalLlegadaRapida = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalLlegadaRapida = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
-    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
-      Registra la llegada directamente sin necesidad de una autorización previa.
-    </p>
+    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la llegada directamente sin necesidad de una
+      autorización previa.</p>
     <div class="form-group">
       <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
       <select [(ngModel)]="formLlegadaRapida.conductorId">
@@ -243,7 +235,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-location-dot"></i> Destino <span style="color:#94a3b8; font-size:11px">(opcional)</span></label>
+      <label><i class="fa-solid fa-location-dot"></i> Destino <span
+          style="color:#94a3b8; font-size:11px">(opcional)</span></label>
       <input type="text" [(ngModel)]="formLlegadaRapida.destinoCompleto" placeholder="Ej: Pereira, Bogotá...">
     </div>
     <div class="form-group">
@@ -256,7 +249,8 @@
         <button *ngFor="let e of estadosVehiculo"
           [class]="'btn-estado-veh ' + (formLlegadaRapida.estadoVehiculo === e ? 'activo-' + e.toLowerCase().replace(' ','-') : '')"
           (click)="formLlegadaRapida.estadoVehiculo = e">
-          <i class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
+          <i
+            class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
           {{ e }}
         </button>
       </div>
@@ -281,13 +275,12 @@
   <div class="modal-llegada">
     <div class="modal-header">
       <h2><i class="fa-solid fa-flag-checkered"></i> Reporte de Llegada</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalLlegada = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalLlegada = false"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="llegada-info">
       <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionLlegada?.conductor?.nombre }}</strong></p>
-      <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }} — {{ autorizacionLlegada?.destinoCompleto || 'Mensajería' }}</p>
+      <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }} — {{
+        autorizacionLlegada?.destinoCompleto || 'Mensajería' }}</p>
       <p><i class="fa-solid fa-calendar"></i> Salió: {{ autorizacionLlegada?.fechaPorteria | date:'short' }}</p>
     </div>
     <div class="form-group">
@@ -300,14 +293,16 @@
         <button *ngFor="let e of estadosVehiculo"
           [class]="'btn-estado-veh ' + (formLlegada.estadoVehiculo === e ? 'activo-' + e.toLowerCase().replace(' ','-') : '')"
           (click)="formLlegada.estadoVehiculo = e">
-          <i class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
+          <i
+            class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
           {{ e }}
         </button>
       </div>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-clipboard"></i> Novedades del viaje</label>
-      <textarea [(ngModel)]="formLlegada.novedadesViaje" placeholder="Ej: Sin novedad / Describir si hubo incidentes..."></textarea>
+      <textarea [(ngModel)]="formLlegada.novedadesViaje"
+        placeholder="Ej: Sin novedad / Describir si hubo incidentes..."></textarea>
     </div>
     <div class="modal-botones">
       <button class="btn-cancelar-modal" (click)="mostrarModalLlegada = false">Cancelar</button>
@@ -323,18 +318,16 @@
   <div class="modal-llegada">
     <div class="modal-header">
       <h2><i class="fa-solid fa-door-open"></i> Confirmar Entrada</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalConfirmar = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalConfirmar = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="llegada-info">
       <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionLlegada?.conductor?.nombre }}</strong></p>
       <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }}</p>
       <p><i class="fa-solid fa-road"></i> Km final: <strong>{{ autorizacionLlegada?.kilometrajeFinal }}</strong></p>
       <p><i class="fa-solid fa-car"></i> Estado: <strong>{{ autorizacionLlegada?.estadoVehiculoLlegada }}</strong></p>
-      <p *ngIf="autorizacionLlegada?.novedadesViaje">
-        <i class="fa-solid fa-clipboard"></i> {{ autorizacionLlegada?.novedadesViaje }}
-      </p>
+      <p *ngIf="autorizacionLlegada?.novedadesViaje"><i class="fa-solid fa-clipboard"></i> {{
+        autorizacionLlegada?.novedadesViaje }}</p>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-user"></i> Nombre de quien confirma *</label>
@@ -358,15 +351,30 @@
   <div class="modal-llegada" style="max-width:580px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-pen"></i> Editar Autorización #{{ autorizacionEditando?.id }}</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalEditar = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalEditar = false"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="llegada-info">
-      <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionEditando?.conductor?.nombre }}</strong></p>
-      <p><i class="fa-solid fa-truck"></i> {{ autorizacionEditando?.vehiculo?.placa }}</p>
       <p><i class="fa-solid fa-circle-half-stroke"></i> Estado: <strong>{{ autorizacionEditando?.estado }}</strong></p>
     </div>
+
+    <!-- ✅ Conductor editable -->
+    <div class="form-group">
+      <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
+      <select [(ngModel)]="formEditar.conductorId">
+        <option [value]="0">Seleccione un conductor...</option>
+        <option *ngFor="let c of conductores; trackBy: trackById" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+
+    <!-- ✅ Vehículo editable -->
+    <div class="form-group">
+      <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
+      <select [(ngModel)]="formEditar.vehiculoId">
+        <option [value]="0">Seleccione un vehículo...</option>
+        <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }}</option>
+      </select>
+    </div>
+
     <div class="form-group">
       <label><i class="fa-solid fa-rotate"></i> Tipo de Vuelta *</label>
       <select [(ngModel)]="formEditar.tipoVuelta">
@@ -383,7 +391,12 @@
       <input type="number" [(ngModel)]="formEditar.cantidadClientes" placeholder="Ej: 5">
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-weight-hanging"></i> Peso en Kilos</label>
+      <label><i class="fa-solid fa-weight-hanging"></i> Peso en Kilos
+        <span *ngIf="pesoTotalFacturasEditar > 0"
+          style="color:#15803d; font-size:11px; font-weight:600; margin-left:8px">
+          <i class="fa-solid fa-calculator"></i> Auto: {{ pesoTotalFacturasEditar | number:'1.2-2' }} kg
+        </span>
+      </label>
       <input type="number" step="0.01" [(ngModel)]="formEditar.pesoKilos" placeholder="Ej: 150.5">
     </div>
     <div class="form-group">
@@ -403,7 +416,8 @@
         <div class="factura-fila" *ngFor="let f of facturasEditar; let i = index; trackBy: trackByIdx">
           <input type="text" [(ngModel)]="f.facturaRemision" placeholder="F-001">
           <input type="text" [(ngModel)]="f.cliente" placeholder="Nombre del cliente">
-          <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5">
+          <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
+            (ngModelChange)="recalcularPesoEditar()">
           <button class="btn-eliminar-fila" (click)="eliminarFacturaEditar(i)">
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -411,6 +425,10 @@
         <button class="btn-agregar-fila" (click)="agregarFacturaEditar()">
           <i class="fa-solid fa-plus"></i> Agregar factura
         </button>
+        <p class="peso-total" *ngIf="facturasEditar.length > 0 && pesoTotalFacturasEditar > 0">
+          <i class="fa-solid fa-weight-hanging"></i>
+          Peso total facturas: <strong>{{ pesoTotalFacturasEditar | number:'1.2-2' }} kg</strong>
+        </p>
       </div>
     </div>
     <div class="modal-botones">
@@ -427,19 +445,21 @@
   <div class="modal-llegada" style="max-width:620px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-file-circle-check"></i> Autorización #{{ autorizacionDetalle?.id }}</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalDetalle = false">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalDetalle = false"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="llegada-info">
       <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionDetalle?.conductor?.nombre }}</strong></p>
       <p><i class="fa-solid fa-truck"></i> {{ autorizacionDetalle?.vehiculo?.placa }}</p>
       <p><i class="fa-solid fa-rotate"></i> {{ autorizacionDetalle?.tipoVuelta }}</p>
       <p><i class="fa-solid fa-location-dot"></i> {{ autorizacionDetalle?.destinoCompleto || 'Mensajería' }}</p>
-      <p *ngIf="autorizacionDetalle?.numeroGuia"><i class="fa-solid fa-hashtag"></i> Guía: {{ autorizacionDetalle?.numeroGuia }}</p>
-      <p *ngIf="autorizacionDetalle?.pesoKilos"><i class="fa-solid fa-weight-hanging"></i> Peso: {{ autorizacionDetalle?.pesoKilos }} kg</p>
-      <p *ngIf="autorizacionDetalle?.cantidadClientes"><i class="fa-solid fa-users"></i> Clientes: {{ autorizacionDetalle?.cantidadClientes }}</p>
-      <p *ngIf="autorizacionDetalle?.descripcionCarga"><i class="fa-solid fa-boxes-stacked"></i> {{ autorizacionDetalle?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionDetalle?.numeroGuia"><i class="fa-solid fa-hashtag"></i> Guía: {{
+        autorizacionDetalle?.numeroGuia }}</p>
+      <p *ngIf="autorizacionDetalle?.pesoKilos"><i class="fa-solid fa-weight-hanging"></i> Peso: {{
+        autorizacionDetalle?.pesoKilos }} kg</p>
+      <p *ngIf="autorizacionDetalle?.cantidadClientes"><i class="fa-solid fa-users"></i> Clientes: {{
+        autorizacionDetalle?.cantidadClientes }}</p>
+      <p *ngIf="autorizacionDetalle?.descripcionCarga"><i class="fa-solid fa-boxes-stacked"></i> {{
+        autorizacionDetalle?.descripcionCarga }}</p>
     </div>
     <div *ngIf="autorizacionDetalle?.facturasClientes" style="margin-bottom:16px">
       <strong style="font-size:13px; color:#374151"><i class="fa-solid fa-receipt"></i> Facturas:</strong>
@@ -455,26 +475,30 @@
       <p>
         <i class="fa-solid fa-circle-half-stroke"></i>
         <strong>Estado:</strong>
-        <span [class]="getBadgeClass(autorizacionDetalle?.estado)" style="margin-left:6px">{{ autorizacionDetalle?.estado }}</span>
+        <span [class]="getBadgeClass(autorizacionDetalle?.estado)" style="margin-left:6px">{{
+          autorizacionDetalle?.estado }}</span>
       </p>
       <p *ngIf="autorizacionDetalle?.usuarioFacturacion">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Facturación:</strong> {{ autorizacionDetalle?.usuarioFacturacion }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaFacturacion | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionFacturacion" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionFacturacion }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionFacturacion" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionFacturacion }}</p>
       <p *ngIf="autorizacionDetalle?.usuarioBodega">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Bodega:</strong> {{ autorizacionDetalle?.usuarioBodega }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaBodega | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionBodega" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionBodega }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionBodega" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionBodega }}</p>
       <p *ngIf="autorizacionDetalle?.usuarioPorteria">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Portería:</strong> {{ autorizacionDetalle?.usuarioPorteria }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaPorteria | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionPorteria" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionPorteria }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionPorteria" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionPorteria }}</p>
       <p *ngIf="autorizacionDetalle?.fechaSalidaReal">
         <i class="fa-solid fa-truck-fast" style="color:#854d0e"></i>
         <strong>Salida real:</strong> {{ autorizacionDetalle?.fechaSalidaReal | date:'short' }}
@@ -487,10 +511,11 @@
         <i class="fa-solid fa-road"></i> <strong>Km final:</strong> {{ autorizacionDetalle?.kilometrajeFinal }}
       </p>
       <p *ngIf="autorizacionDetalle?.estadoVehiculoLlegada">
-        <i class="fa-solid fa-car"></i> <strong>Estado vehículo:</strong> {{ autorizacionDetalle?.estadoVehiculoLlegada }}
+        <i class="fa-solid fa-car"></i> <strong>Estado vehículo:</strong> {{ autorizacionDetalle?.estadoVehiculoLlegada
+        }}
       </p>
       <p *ngIf="autorizacionDetalle?.novedadesViaje">
-        <i class="fa-solid fa-clipboard"></i> <strong>Novedades:</strong> {{ autorizacionDetalle?.novedadesViaje }}
+        <i class="fa-solid fa-clipboard"></i> <strong>Novedades:</strong> {{ autorizacionDetalle?.novedajesViaje }}
       </p>
     </div>
     <div class="modal-botones">
@@ -504,9 +529,7 @@
 
 <!-- ═══════════════════════ FLUJO DE PASOS ═══════════════════════ -->
 <div class="contenedor" *ngIf="!vistaLista">
-  <button class="btn-volver" (click)="resetear()">
-    <i class="fa-solid fa-arrow-left"></i> Volver a lista
-  </button>
+  <button class="btn-volver" (click)="resetear()"><i class="fa-solid fa-arrow-left"></i> Volver a lista</button>
   <div class="progreso">
     <div class="paso" [class.activo]="pasoActual >= 1" [class.completado]="pasoActual > 1">
       <div class="paso-numero">1</div><span>Conductor</span>
@@ -593,7 +616,8 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i> Generar
           </button>
         </div>
-        <small *ngIf="guiaGenerada"><i class="fa-solid fa-circle-check"></i> Guía: <strong>{{ guiaGenerada }}</strong></small>
+        <small *ngIf="guiaGenerada"><i class="fa-solid fa-circle-check"></i> Guía: <strong>{{ guiaGenerada
+            }}</strong></small>
       </div>
       <div class="form-group full">
         <label><i class="fa-solid fa-boxes-stacked"></i> Descripción de la Carga
@@ -604,7 +628,8 @@
           [placeholder]="esMensajeria ? 'Descripción opcional...' : 'Describa el tipo de mercancía...'"></textarea>
       </div>
       <div class="form-group full">
-        <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span class="opcional">(opcional)</span></label>
+        <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span
+            class="opcional">(opcional)</span></label>
         <div class="facturas-lista">
           <div class="factura-header" *ngIf="facturasClientes.length > 0">
             <span>Factura o Remisión</span><span>Cliente</span><span>Peso (kg)</span><span></span>
@@ -612,7 +637,8 @@
           <div class="factura-fila" *ngFor="let f of facturasClientes; let i = index; trackBy: trackByIdx">
             <input type="text" [(ngModel)]="f.facturaRemision" placeholder="F-001">
             <input type="text" [(ngModel)]="f.cliente" placeholder="Nombre del cliente">
-            <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5" (ngModelChange)="recalcularPeso()">
+            <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
+              (ngModelChange)="recalcularPeso()">
             <button class="btn-eliminar-fila" (click)="eliminarFactura(i)"><i class="fa-solid fa-trash"></i></button>
           </div>
           <button class="btn-agregar-fila" (click)="agregarFactura()">
@@ -629,7 +655,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(1)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="guardarDetalles()">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="guardarDetalles()">Continuar <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -640,10 +667,13 @@
     <div class="resumen-card">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
-      <p *ngIf="autorizacionActual?.cantidadClientes"><strong>Clientes:</strong> {{ autorizacionActual?.cantidadClientes }}</p>
+      <p *ngIf="autorizacionActual?.cantidadClientes"><strong>Clientes:</strong> {{ autorizacionActual?.cantidadClientes
+        }}</p>
       <p *ngIf="autorizacionActual?.numeroGuia"><strong>Guía:</strong> {{ autorizacionActual?.numeroGuia }}</p>
     </div>
     <div class="form-group">
@@ -660,7 +690,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(2)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="firmarFacturacion()">Autorizar <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="firmarFacturacion()">Autorizar <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -671,10 +702,13 @@
     <div class="resumen-card">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{ autorizacionActual?.usuarioFacturacion }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{
+        autorizacionActual?.usuarioFacturacion }}</p>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-user"></i> Nombre de quien verifica *</label>
@@ -690,7 +724,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(3)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="firmarBodega()">Verificado <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="firmarBodega()">Verificado <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -700,11 +735,15 @@
     <p class="subtitulo">Conductor: <strong>{{ conductorSeleccionado?.nombre }}</strong></p>
     <div class="resumen-card aprobado">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{ autorizacionActual?.usuarioFacturacion }}</p>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Bodega:</strong> {{ autorizacionActual?.usuarioBodega }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{
+        autorizacionActual?.usuarioFacturacion }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Bodega:</strong> {{
+        autorizacionActual?.usuarioBodega }}</p>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
     </div>
     <div class="form-group">

@@ -1,10 +1,10 @@
 <!-- Alertas -->
 <div *ngIf="mensajeExito" class="cy-alerta cy-exito"><i class="fa-solid fa-check-circle"></i> {{ mensajeExito }}</div>
-<div *ngIf="mensajeError && !modal" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+<div *ngIf="mensajeError && !modal" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{
+  mensajeError }}</div>
 
 <!-- ═══════════════════════ VISTA: CAJONES ═══════════════════════ -->
 <div class="cy-container" *ngIf="vista === 'cajones'">
-
   <div class="cy-header">
     <div>
       <h4><i class="fa-solid fa-box-open"></i> Cyreles</h4>
@@ -15,14 +15,31 @@
     </button>
   </div>
 
+  <!-- Filtros cajones -->
+  <div class="cy-filtros-panel">
+    <input type="text" class="cy-input-busqueda" placeholder="Buscar por número o descripción..."
+      [(ngModel)]="filtroCajonBusqueda" (ngModelChange)="aplicarFiltrosCajones()">
+    <select class="cy-select-filtro" [(ngModel)]="filtroCajonEstado" (change)="aplicarFiltrosCajones()">
+      <option value="">Todos los cajones</option>
+      <option value="con">Con registros</option>
+      <option value="sin">Sin registros</option>
+    </select>
+    <button class="cy-btn-limpiar" *ngIf="hayFiltrosCajones" (click)="limpiarFiltrosCajones()">
+      <i class="fa-solid fa-xmark"></i> Limpiar
+    </button>
+    <span class="cy-contador" *ngIf="hayFiltrosCajones">
+      {{ cajonesFiltrados.length }} de {{ cajones.length }}
+    </span>
+  </div>
+
   <div *ngIf="cargando" class="cy-loading"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
 
   <div class="cy-grid-cajones" *ngIf="!cargando">
-    <div *ngIf="cajones.length === 0" class="cy-vacio">
+    <div *ngIf="cajonesFiltrados.length === 0" class="cy-vacio">
       <i class="fa-solid fa-box-open"></i>
-      <p>No hay cajones creados</p>
+      <p>{{ cajones.length === 0 ? 'No hay cajones creados' : 'No hay cajones con ese filtro' }}</p>
     </div>
-    <div class="cy-card-cajon" *ngFor="let c of cajones" (click)="abrirCajon(c)">
+    <div class="cy-card-cajon" *ngFor="let c of cajonesFiltrados" (click)="abrirCajon(c)">
       <div class="cy-card-numero">Cajón {{ c.numero }}</div>
       <div class="cy-card-desc" *ngIf="c.descripcion">{{ c.descripcion }}</div>
       <div class="cy-card-count">
@@ -42,7 +59,6 @@
 
 <!-- ═══════════════════════ VISTA: REGISTROS ═══════════════════════ -->
 <div class="cy-container" *ngIf="vista === 'registros'">
-
   <div class="cy-breadcrumb">
     <button class="cy-btn-volver" (click)="volverACajones()">
       <i class="fa-solid fa-arrow-left"></i> Cajones
@@ -71,13 +87,28 @@
     </div>
   </div>
 
-  <!-- Filtro -->
-  <div class="cy-filtros">
-    <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="filtroNombre" (ngModelChange)="aplicarFiltro()" class="cy-input-busqueda">
-    <button class="cy-btn-limpiar" (click)="filtroNombre = ''; aplicarFiltro()" *ngIf="filtroNombre">
-      <i class="fa-solid fa-xmark"></i>
+  <!-- Filtros registros -->
+  <div class="cy-filtros-panel">
+    <input type="text" class="cy-input-busqueda" placeholder="Buscar por nombre..." [(ngModel)]="filtroNombre"
+      (ngModelChange)="aplicarFiltrosRegistros()">
+    <div class="cy-filtro-fecha">
+      <label>Desde</label>
+      <input type="date" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltrosRegistros()">
+    </div>
+    <div class="cy-filtro-fecha">
+      <label>Hasta</label>
+      <input type="date" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltrosRegistros()">
+    </div>
+    <select class="cy-select-filtro" [(ngModel)]="ordenRegistros" (change)="aplicarFiltrosRegistros()">
+      <option value="nombre-asc">Nombre A→Z</option>
+      <option value="nombre-desc">Nombre Z→A</option>
+      <option value="fecha-desc">Más reciente</option>
+      <option value="fecha-asc">Más antiguo</option>
+    </select>
+    <button class="cy-btn-limpiar" *ngIf="hayFiltrosRegistros" (click)="limpiarFiltrosRegistros()">
+      <i class="fa-solid fa-xmark"></i> Limpiar
     </button>
-    <span class="cy-contador" *ngIf="filtroNombre">
+    <span class="cy-contador" *ngIf="registrosFiltrados.length !== registros.length">
       {{ registrosFiltrados.length }} de {{ registros.length }}
     </span>
   </div>
@@ -87,7 +118,7 @@
   <div class="cy-grid-registros" *ngIf="!cargando">
     <div *ngIf="registrosFiltrados.length === 0" class="cy-vacio">
       <i class="fa-solid fa-inbox"></i>
-      <p>No hay registros{{ filtroNombre ? ' con ese filtro' : '' }}</p>
+      <p>{{ registros.length === 0 ? 'No hay registros' : 'No hay registros con ese filtro' }}</p>
     </div>
     <div class="cy-card-registro" *ngFor="let r of registrosFiltrados" (click)="abrirDetalle(r)">
       <div class="cy-registro-foto" *ngIf="r.foto">
@@ -114,17 +145,13 @@
 
 <!-- ═══════════════════════ VISTA: DETALLE ═══════════════════════ -->
 <div class="cy-container" *ngIf="vista === 'detalle' && registroActual">
-
   <div class="cy-breadcrumb">
-    <button class="cy-btn-volver" (click)="volverACajones()">
-      <i class="fa-solid fa-arrow-left"></i> Cajones
-    </button>
+    <button class="cy-btn-volver" (click)="volverACajones()"><i class="fa-solid fa-arrow-left"></i> Cajones</button>
     <span class="cy-breadcrumb-sep">/</span>
     <button class="cy-btn-volver-link" (click)="volverARegistros()">Cajón {{ cajonActual?.numero }}</button>
     <span class="cy-breadcrumb-sep">/</span>
     <span class="cy-breadcrumb-actual">{{ registroActual.nombre }}</span>
   </div>
-
   <div class="cy-detalle">
     <div class="cy-detalle-foto" *ngIf="registroActual.foto">
       <img [src]="getFotoUrl(registroActual.foto)" [alt]="registroActual.nombre">
@@ -159,7 +186,8 @@
       <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="cy-modal-body">
-      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{
+        mensajeError }}</div>
       <div class="cy-form-group">
         <label>Número de Cajón <span class="cy-req">*</span></label>
         <input type="number" [(ngModel)]="formCajon.numero" placeholder="Ej: 1, 2, 3...">
@@ -184,11 +212,13 @@
 <div class="cy-modal-overlay" *ngIf="modal === 'crear-registro' || modal === 'editar-registro'">
   <div class="cy-modal">
     <div class="cy-modal-header">
-      <h5><i class="fa-solid fa-file-image"></i> {{ modal === 'crear-registro' ? 'Nuevo Registro' : 'Editar Registro' }}</h5>
+      <h5><i class="fa-solid fa-file-image"></i> {{ modal === 'crear-registro' ? 'Nuevo Registro' : 'Editar Registro' }}
+      </h5>
       <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="cy-modal-body">
-      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}</div>
+      <div *ngIf="mensajeError" class="cy-alerta cy-error"><i class="fa-solid fa-triangle-exclamation"></i> {{
+        mensajeError }}</div>
       <div class="cy-form-group">
         <label>Nombre de Impresión <span class="cy-req">*</span></label>
         <input type="text" [(ngModel)]="formRegistro.nombre" placeholder="Nombre del cliente o negocio...">
