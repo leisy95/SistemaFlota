@@ -349,3 +349,25 @@
   .main { margin-left: 0; }
   .topbar { padding: 12px 16px; }
 }
+// Agregar al FINAL de app.scss
+@media (max-width: 768px) {
+  .content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .main {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+@media (max-width: 768px) {
+  .content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  .main {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}

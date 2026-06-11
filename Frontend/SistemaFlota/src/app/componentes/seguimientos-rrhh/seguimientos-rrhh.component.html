@@ -128,6 +128,7 @@
         <i class="fa-solid fa-triangle-exclamation"></i> {{ mensajeError }}
       </div>
 
+      <!-- Información General -->
       <div class="seccion-titulo"><i class="fa-solid fa-info-circle"></i> Información General</div>
       <div class="form-grid">
         <div class="form-group col-4">
@@ -163,18 +164,35 @@
         </div>
       </div>
 
+      <!-- Evidencia Fotográfica -->
       <div class="seccion-titulo"><i class="fa-solid fa-camera"></i> Evidencia Fotográfica</div>
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Agregar fotos de evidencia</label>
-          <!-- ✅ Sin capture — muestra cámara Y galería en móvil -->
-          <input type="file" accept="image/*" multiple (change)="onFotosEvidencia($event)">
+          <div class="btn-foto-grupo">
+            <!-- Botón cámara directo -->
+            <button type="button" class="btn-camara" (click)="inputCamaraEv.click()">
+              <i class="fa-solid fa-camera"></i> Cámara
+            </button>
+            <input #inputCamaraEv type="file" accept="image/*" capture="environment"
+              style="display:none" (change)="onFotosEvidencia($event)">
+
+            <!-- Botón galería -->
+            <button type="button" class="btn-galeria" (click)="inputGaleriaEv.click()">
+              <i class="fa-solid fa-images"></i> Galería
+            </button>
+            <input #inputGaleriaEv type="file" accept="image/*" multiple
+              style="display:none" (change)="onFotosEvidencia($event)">
+          </div>
+
+          <!-- Previews nuevas -->
           <div class="galeria-preview" *ngIf="previewsEvidencia.length > 0">
             <div class="preview-item" *ngFor="let p of previewsEvidencia; let i = index">
               <img [src]="p">
               <button class="btn-quitar" (click)="quitarPreviewEvidencia(i)"><i class="fa-solid fa-xmark"></i></button>
             </div>
           </div>
+          <!-- Fotos ya guardadas (editar) -->
           <div class="galeria-preview"
             *ngIf="vistaModal === 'editar' && registroSeleccionado && getFotosEvidencia(registroSeleccionado).length > 0">
             <div class="preview-item guardada" *ngFor="let f of getFotosEvidencia(registroSeleccionado)">
@@ -185,6 +203,7 @@
         </div>
       </div>
 
+      <!-- Clasificación -->
       <div class="seccion-titulo"><i class="fa-solid fa-tags"></i> Clasificación</div>
       <div class="form-grid">
         <div class="form-group col-4">
@@ -205,6 +224,7 @@
         </div>
       </div>
 
+      <!-- Plan de Acción -->
       <div class="seccion-titulo"><i class="fa-solid fa-list-check"></i> Plan de Acción</div>
       <div class="form-grid">
         <div class="form-group col-12">
@@ -225,19 +245,36 @@
         </div>
       </div>
 
+      <!-- Registro fotográfico posterior (solo editar) -->
       <ng-container *ngIf="vistaModal === 'editar'">
         <div class="seccion-titulo"><i class="fa-solid fa-camera-rotate"></i> Registro Fotográfico Posterior</div>
         <div class="form-grid">
           <div class="form-group col-12">
             <label>Agregar fotos de seguimiento</label>
-            <!-- ✅ Sin capture — muestra cámara Y galería en móvil -->
-            <input type="file" accept="image/*" multiple (change)="onFotosSeguimiento($event)">
+            <div class="btn-foto-grupo">
+              <!-- Botón cámara -->
+              <button type="button" class="btn-camara" (click)="inputCamaraSeg.click()">
+                <i class="fa-solid fa-camera"></i> Cámara
+              </button>
+              <input #inputCamaraSeg type="file" accept="image/*" capture="environment"
+                style="display:none" (change)="onFotosSeguimiento($event)">
+
+              <!-- Botón galería -->
+              <button type="button" class="btn-galeria" (click)="inputGaleriaSeg.click()">
+                <i class="fa-solid fa-images"></i> Galería
+              </button>
+              <input #inputGaleriaSeg type="file" accept="image/*" multiple
+                style="display:none" (change)="onFotosSeguimiento($event)">
+            </div>
+
+            <!-- Previews nuevas -->
             <div class="galeria-preview" *ngIf="previewsSeguimiento.length > 0">
               <div class="preview-item" *ngFor="let p of previewsSeguimiento; let i = index">
                 <img [src]="p">
                 <button class="btn-quitar" (click)="quitarPreviewSeguimiento(i)"><i class="fa-solid fa-xmark"></i></button>
               </div>
             </div>
+            <!-- Fotos ya guardadas -->
             <div class="galeria-preview"
               *ngIf="registroSeleccionado && getFotosSeguimiento(registroSeleccionado).length > 0">
               <div class="preview-item guardada" *ngFor="let f of getFotosSeguimiento(registroSeleccionado)">
@@ -249,6 +286,7 @@
         </div>
       </ng-container>
 
+      <!-- Observaciones -->
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Observaciones</label>
