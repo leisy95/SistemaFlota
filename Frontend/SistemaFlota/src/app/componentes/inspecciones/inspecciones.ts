@@ -18,7 +18,8 @@ import SignaturePad from 'signature_pad';
 })
 export class InspeccionesComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('firmaCanvas') firmaCanvas!: ElementRef<HTMLCanvasElement>;
+  // Canvas del modal (único canvas ahora)
+  @ViewChild('firmaModalCanvas') firmaModalCanvas!: ElementRef<HTMLCanvasElement>;
   signaturePad!: SignaturePad;
 
   kilometraje       = 0;
@@ -33,6 +34,10 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   fotoSeleccionada: File | null = null;
   guardando         = false;
   guardadoExito     = false;
+
+  // ── Modal firma ────────────────────────────────────────────────────────────
+  modalFirmaAbierto = false;
+  firmaCapturada:   string | null = null;  // base64 de la firma confirmada
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('inspecciones'); }
 
@@ -52,19 +57,72 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.signaturePad = new SignaturePad(
-      this.firmaCanvas.nativeElement,
-      { backgroundColor: 'rgb(255,255,255)', penColor: 'rgb(0,0,0)' }
-    );
+    // SignaturePad se inicializa cuando se abre el modal
   }
 
-  limpiarFirma() { this.signaturePad.clear(); }
+  // ── Modal firma ────────────────────────────────────────────────────────────
+  abrirModalFirma() {
+    this.modalFirmaAbierto = true;
+    document.body.style.overflow = 'hidden';
+
+    // Esperar a que el canvas esté en el DOM
+    setTimeout(() => {
+      this.inicializarSignaturePad();
+    }, 100);
+  }
+
+  private inicializarSignaturePad() {
+    const canvas = this.firmaModalCanvas?.nativeElement;
+    if (!canvas) return;
+
+    // Ajustar resolución del canvas al tamaño real
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    const ctx = canvas.getContext('2d')!;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    this.signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgb(255,255,255)',
+      penColor:        'rgb(10,10,10)',
+      minWidth:        1.5,
+      maxWidth:        3.5,
+    });
+
+    // Si ya había una firma previa, restaurarla
+    if (this.firmaCapturada) {
+      this.signaturePad.fromDataURL(this.firmaCapturada);
+    }
+  }
+
+  limpiarFirmaModal() {
+    this.signaturePad?.clear();
+  }
+
+  confirmarFirma() {
+    if (!this.signaturePad || this.signaturePad.isEmpty()) {
+      alert('Por favor firme antes de confirmar');
+      return;
+    }
+    this.firmaCapturada = this.signaturePad.toDataURL('image/png');
+    this.cerrarModalFirma();
+  }
+
+  cerrarModalFirma() {
+    this.modalFirmaAbierto = false;
+    document.body.style.overflow = '';
+  }
+
+  limpiarFirma() {
+    this.firmaCapturada = null;
+    this.signaturePad?.clear();
+  }
 
   obtenerFirmaBase64(): string | null {
-    if (this.signaturePad.isEmpty()) return null;
-    return this.signaturePad.toDataURL('image/png');
+    return this.firmaCapturada;
   }
 
+  // ── Servicios ──────────────────────────────────────────────────────────────
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
@@ -113,9 +171,9 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   }
 
   iniciarInspeccion() {
-    if (this.conductorId === 0)      { alert('Seleccione conductor'); return; }
-    if (this.vehiculoId === 0)       { alert('Seleccione vehículo'); return; }
-    if (this.signaturePad.isEmpty()) { alert('El conductor debe firmar antes de guardar'); return; }
+    if (this.conductorId === 0)   { alert('Seleccione conductor'); return; }
+    if (this.vehiculoId === 0)    { alert('Seleccione vehículo');  return; }
+    if (!this.firmaCapturada)     { alert('El conductor debe firmar antes de guardar'); return; }
 
     this.guardando = true;
     const formData = new FormData();
@@ -148,7 +206,7 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     this.inspeccionesService.guardarInspeccion(formData).subscribe({
       next: () => {
         this.guardando = false; this.guardadoExito = true;
-        this.limpiarFirma();
+        this.firmaCapturada = null;
         this.fotoOdometro = null; this.fotoSeleccionada = null;
         this.conductorId = 0; this.vehiculoId = 0;
         this.tipoVehiculoId = 0; this.kilometraje = 0;

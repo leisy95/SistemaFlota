@@ -79,22 +79,22 @@
             <h3>{{ item.descripcion }}</h3>
           </div>
           <div class="check-estados">
-            <label class="estado-btn" [class.cumple]="item.estado==='Cumple'"
-              (click)="item.estado='Cumple'">
-              <i class="fa-solid fa-circle-check"></i> Cumple
+            <label class="estado-btn" [class.cumple]="item.estado==='Conforme'"
+              (click)="item.estado='Conforme'">
+              <i class="fa-solid fa-circle-check"></i> Conforme
             </label>
-            <label class="estado-btn" [class.nocumple]="item.estado==='No cumple'"
-              (click)="item.estado='No cumple'">
-              <i class="fa-solid fa-circle-xmark"></i> No cumple
+            <label class="estado-btn" [class.nocumple]="item.estado==='No conforme'"
+              (click)="item.estado='No conforme'">
+              <i class="fa-solid fa-circle-xmark"></i> No conforme
             </label>
             <label class="estado-btn" [class.noaplica]="item.estado==='No aplica'"
               (click)="item.estado='No aplica'">
               <i class="fa-solid fa-minus-circle"></i> No aplica
             </label>
           </div>
-          <div *ngIf="item.estado==='No cumple'" class="check-novedad">
+          <div *ngIf="item.estado==='No conforme'" class="check-novedad">
             <textarea [(ngModel)]="item.observacion"
-              placeholder="Describa la novedad detalladamente..."></textarea>
+              placeholder="Describa la no conformidad detalladamente..."></textarea>
             <label class="btn-evidencia" [for]="'evidencia-' + i">
               <i class="fa-solid fa-camera"></i> Agregar foto de evidencia
             </label>
@@ -115,14 +115,27 @@
     </div>
 
     <!-- FIRMA -->
-    <div class="form-card">
+    <div class="form-card firma-card">
       <h2><i class="fa-solid fa-signature"></i> Firma del Conductor</h2>
-      <p class="firma-instruccion">Firme en el recuadro a continuación</p>
-      <canvas #firmaCanvas width="400" height="150"
-        style="touch-action:none; width:100%; max-width:100%;"></canvas>
-      <button type="button" class="btn-limpiar-firma" (click)="limpiarFirma()">
-        <i class="fa-solid fa-trash"></i> Limpiar firma
-      </button>
+
+      <!-- Preview si ya firmó -->
+      <div class="firma-preview" *ngIf="firmaCapturada">
+        <img [src]="firmaCapturada" alt="Firma del conductor">
+        <div class="firma-preview-actions">
+          <span class="firma-ok"><i class="fa-solid fa-circle-check"></i> Firma registrada</span>
+          <button type="button" class="btn-refirmar" (click)="abrirModalFirma()">
+            <i class="fa-solid fa-pen"></i> Volver a firmar
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón para abrir modal si no ha firmado -->
+      <div class="firma-placeholder" *ngIf="!firmaCapturada" (click)="abrirModalFirma()">
+        <i class="fa-solid fa-signature"></i>
+        <p>Toca aquí para firmar</p>
+        <small>Se abrirá en pantalla completa para mayor comodidad</small>
+      </div>
+
     </div>
 
     <!-- GUARDAR -->
@@ -134,4 +147,42 @@
     </div>
 
   </ng-container>
+</div>
+
+<!-- ── MODAL FIRMA PANTALLA COMPLETA ──────────────────────────────────────── -->
+<div class="modal-firma-overlay" *ngIf="modalFirmaAbierto" (click)="cerrarModalFirma()">
+  <div class="modal-firma" (click)="$event.stopPropagation()">
+
+    <div class="modal-firma-header">
+      <div class="modal-firma-titulo">
+        <i class="fa-solid fa-signature"></i>
+        <span>Firma del conductor</span>
+      </div>
+      <button type="button" class="modal-firma-cerrar" (click)="cerrarModalFirma()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal-firma-instruccion">
+      <i class="fa-solid fa-hand-pointer"></i>
+      Firme con su dedo en el área de abajo
+    </div>
+
+    <div class="modal-firma-canvas-wrap">
+      <canvas #firmaModalCanvas
+        style="touch-action:none; width:100%; height:100%; display:block;">
+      </canvas>
+      <div class="firma-linea-base"></div>
+    </div>
+
+    <div class="modal-firma-footer">
+      <button type="button" class="btn-modal-limpiar" (click)="limpiarFirmaModal()">
+        <i class="fa-solid fa-trash"></i> Limpiar
+      </button>
+      <button type="button" class="btn-modal-confirmar" (click)="confirmarFirma()">
+        <i class="fa-solid fa-check"></i> Confirmar firma
+      </button>
+    </div>
+
+  </div>
 </div>
