@@ -152,9 +152,9 @@ namespace SistemaFlota
                         _context.InspeccionDetalles.Add(new InspeccionDetalle
                         {
                             InspeccionId = inspeccion.Id,
-                            ChecklistItemId = checklistItemId,
+                            ChecklistItemId = (item.v.id.HasValue && item.v.id > 0) ? item.v.id : null,
                             DescripcionItem = item.v.descripcion,
-                            Estado = item.v.estado,
+                            Estado = item.v.estado ?? string.Empty,
                             Observacion = item.v.observacion,
                             FotoEvidencia = nombreEvidencia
                         });
@@ -227,10 +227,11 @@ namespace SistemaFlota
         }
     }
 
+ 
     public class ChecklistGuardar
     {
-        public int id { get; set; }
-        public string estado { get; set; } = string.Empty;
+        public int? id { get; set; }        
+        public string? estado { get; set; } 
         public string? observacion { get; set; }
         public string? descripcion { get; set; }
     }
