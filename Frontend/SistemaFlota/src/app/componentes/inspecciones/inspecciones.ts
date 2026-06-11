@@ -18,7 +18,6 @@ import SignaturePad from 'signature_pad';
 })
 export class InspeccionesComponent implements OnInit, AfterViewInit {
 
-  // Canvas del modal (único canvas ahora)
   @ViewChild('firmaModalCanvas') firmaModalCanvas!: ElementRef<HTMLCanvasElement>;
   signaturePad!: SignaturePad;
 
@@ -35,9 +34,8 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   guardando         = false;
   guardadoExito     = false;
 
-  // ── Modal firma ────────────────────────────────────────────────────────────
   modalFirmaAbierto = false;
-  firmaCapturada:   string | null = null;  // base64 de la firma confirmada
+  firmaCapturada:   string | null = null;
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('inspecciones'); }
 
@@ -56,48 +54,34 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     this.obtenerTipos();
   }
 
-  ngAfterViewInit(): void {
-    // SignaturePad se inicializa cuando se abre el modal
-  }
+  ngAfterViewInit(): void {}
 
-  // ── Modal firma ────────────────────────────────────────────────────────────
   abrirModalFirma() {
     this.modalFirmaAbierto = true;
     document.body.style.overflow = 'hidden';
-
-    // Esperar a que el canvas esté en el DOM
-    setTimeout(() => {
-      this.inicializarSignaturePad();
-    }, 100);
+    setTimeout(() => { this.inicializarSignaturePad(); }, 100);
   }
 
   private inicializarSignaturePad() {
     const canvas = this.firmaModalCanvas?.nativeElement;
     if (!canvas) return;
-
-    // Ajustar resolución del canvas al tamaño real
     const rect = canvas.getBoundingClientRect();
     canvas.width  = rect.width  * window.devicePixelRatio;
     canvas.height = rect.height * window.devicePixelRatio;
     const ctx = canvas.getContext('2d')!;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
     this.signaturePad = new SignaturePad(canvas, {
       backgroundColor: 'rgb(255,255,255)',
       penColor:        'rgb(10,10,10)',
       minWidth:        1.5,
       maxWidth:        3.5,
     });
-
-    // Si ya había una firma previa, restaurarla
     if (this.firmaCapturada) {
       this.signaturePad.fromDataURL(this.firmaCapturada);
     }
   }
 
-  limpiarFirmaModal() {
-    this.signaturePad?.clear();
-  }
+  limpiarFirmaModal() { this.signaturePad?.clear(); }
 
   confirmarFirma() {
     if (!this.signaturePad || this.signaturePad.isEmpty()) {
@@ -118,11 +102,8 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     this.signaturePad?.clear();
   }
 
-  obtenerFirmaBase64(): string | null {
-    return this.firmaCapturada;
-  }
+  obtenerFirmaBase64(): string | null { return this.firmaCapturada; }
 
-  // ── Servicios ──────────────────────────────────────────────────────────────
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
@@ -171,9 +152,16 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   }
 
   iniciarInspeccion() {
-    if (this.conductorId === 0)   { alert('Seleccione conductor'); return; }
-    if (this.vehiculoId === 0)    { alert('Seleccione vehículo');  return; }
-    if (!this.firmaCapturada)     { alert('El conductor debe firmar antes de guardar'); return; }
+    if (this.conductorId === 0)  { alert('Seleccione conductor'); return; }
+    if (this.vehiculoId === 0)   { alert('Seleccione vehículo');  return; }
+    if (!this.firmaCapturada)    { alert('El conductor debe firmar antes de guardar'); return; }
+
+    // ── Validar que todos los ítems tengan estado ─────────────────────────
+    const sinResponder = this.checklist.filter(item => !item.estado);
+    if (sinResponder.length > 0) {
+      alert(`Faltan ${sinResponder.length} pregunta(s) por responder en el checklist`);
+      return;
+    }
 
     this.guardando = true;
     const formData = new FormData();
@@ -216,7 +204,14 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error(err);
         this.guardando = false;
-        alert(err.error || 'Error guardando inspección');
+        // ── Fix [object Object] ───────────────────────────────────────────
+        const mensaje = typeof err.error === 'string'
+          ? err.error
+          : err.error?.message || err.error?.title
+            || err.error?.errors
+            || JSON.stringify(err.error)
+            || 'Error guardando inspección';
+        alert(mensaje);
       }
     });
   }

@@ -57,14 +57,16 @@ namespace SistemaFlota
                 {
                     d.Id,
                     d.ChecklistItemId,
-                    NombreItem = d.ChecklistItem != null ? d.ChecklistItem.Descripcion : d.ChecklistItemId.ToString(),
+                    NombreItem = d.ChecklistItem != null
+                        ? d.ChecklistItem.Descripcion
+                        : (d.DescripcionItem ?? d.ChecklistItemId.ToString()),
                     d.Estado,
                     d.Observacion,
                     d.FotoEvidencia
                 })
                 .ToListAsync();
 
-            bool tieneRechazado = detalles.Any(d => d.Estado == "No cumple");
+            bool tieneRechazado = detalles.Any(d => d.Estado == "No conforme");
             string estadoGeneral = tieneRechazado ? "RECHAZADO" : "APROBADO";
 
             return Ok(new
@@ -126,8 +128,9 @@ namespace SistemaFlota
                 _context.Inspecciones.Add(inspeccion);
                 await _context.SaveChangesAsync();
 
-                var items = JsonSerializer.Deserialize<List<ChecklistGuardar>>(Checklist);
-                var itemsNoCumplen = new List<string>();
+                var opciones = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var items = JsonSerializer.Deserialize<List<ChecklistGuardar>>(Checklist, opciones);
+                var itemsNoConformes = new List<string>();
 
                 if (items != null)
                 {
@@ -135,7 +138,7 @@ namespace SistemaFlota
                     {
                         string? nombreEvidencia = null;
                         var idx = EvidenciaIndices.FindIndex(x => x == item.i);
-                        if (idx >= 0)
+                        if (idx >= 0 && idx < Evidencias.Count)
                         {
                             var archivo = Evidencias[idx];
                             nombreEvidencia = Guid.NewGuid().ToString() + Path.GetExtension(archivo.FileName);
@@ -143,17 +146,25 @@ namespace SistemaFlota
                             await archivo.CopyToAsync(s3);
                         }
 
+                        // ChecklistItemId nullable — acepta id válido o null
+                        int? checklistItemId = item.v.id > 0 ? item.v.id : null;
+
                         _context.InspeccionDetalles.Add(new InspeccionDetalle
                         {
                             InspeccionId = inspeccion.Id,
-                            ChecklistItemId = item.v.id,
+                            ChecklistItemId = checklistItemId,
+                            DescripcionItem = item.v.descripcion,
                             Estado = item.v.estado,
                             Observacion = item.v.observacion,
                             FotoEvidencia = nombreEvidencia
                         });
 
-                        if (item.v.estado == "No cumple")
-                            itemsNoCumplen.Add(item.v.observacion ?? $"Ítem #{item.v.id}");
+                        if (item.v.estado == "No conforme")
+                            itemsNoConformes.Add(
+                                !string.IsNullOrWhiteSpace(item.v.observacion)
+                                    ? item.v.observacion
+                                    : item.v.descripcion ?? $"Ítem #{item.v.id}"
+                            );
                     }
                     await _context.SaveChangesAsync();
                 }
@@ -168,10 +179,10 @@ namespace SistemaFlota
                     registroId: inspeccion.Id
                 );
 
-                // ── TWILIO ──
+                // ── TWILIO ────────────────────────────────────────────────────────
                 var hora = DateTime.Now.ToString("hh:mm tt");
                 var fecha = DateTime.Now.ToString("dd/MM/yyyy");
-                var estadoGeneral = itemsNoCumplen.Any() ? "⚠️ RECHAZADA" : "✅ APROBADA";
+                var estadoGeneral = itemsNoConformes.Any() ? "⚠️ RECHAZADA" : "✅ APROBADA";
 
                 var mensajeGrupo =
                     $"📋 *INSPECCIÓN {estadoGeneral}*\n" +
@@ -180,25 +191,24 @@ namespace SistemaFlota
                     $"🛣 Km: {Kilometraje}\n" +
                     $"🕐 Hora: {hora} — {fecha}";
 
-                if (itemsNoCumplen.Any())
-                    mensajeGrupo += $"\n⚠️ No cumplen: {string.Join(", ", itemsNoCumplen)}";
+                if (itemsNoConformes.Any())
+                    mensajeGrupo += $"\n⚠️ No conformes: {string.Join(", ", itemsNoConformes)}";
 
                 var numerosGrupo = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibeIncidentes)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                Console.WriteLine($"📱 Contactos grupo: {numerosGrupo.Count}");
                 if (numerosGrupo.Any())
                     await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
 
-                if (itemsNoCumplen.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))
+                if (itemsNoConformes.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))
                 {
                     var mensajeConductor =
                         $"⚠️ *INSPECCIÓN CON OBSERVACIONES*\n" +
                         $"Hola {conductor.Nombre.Split(' ')[0]},\n" +
-                        $"Tu inspección del vehículo {vehiculo?.Placa ?? "-"} tiene items que no cumplen:\n" +
-                        $"• {string.Join("\n• ", itemsNoCumplen)}\n" +
+                        $"Tu inspección del vehículo {vehiculo?.Placa ?? "-"} tiene ítems no conformes:\n" +
+                        $"• {string.Join("\n• ", itemsNoConformes)}\n" +
                         $"Por favor repórtalo al área de mantenimiento.";
                     await _twilio.EnviarMensajeAsync(conductor.Telefono, mensajeConductor);
                 }
@@ -222,5 +232,6 @@ namespace SistemaFlota
         public int id { get; set; }
         public string estado { get; set; } = string.Empty;
         public string? observacion { get; set; }
+        public string? descripcion { get; set; }
     }
 }
