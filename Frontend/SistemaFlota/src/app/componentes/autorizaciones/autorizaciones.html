@@ -194,7 +194,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formSalidaRapida.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} ·
+          {{ v.color }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -241,7 +242,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formLlegadaRapida.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} ·
+          {{ v.color }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -388,7 +390,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formEditar.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }}</option>
+        <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo
+          }} · {{ v['año'] }}· {{ v.color }}</option>
       </select>
     </div>
 
@@ -594,7 +597,8 @@
         <label><i class="fa-solid fa-truck"></i> Placa del Vehículo *</label>
         <select [(ngModel)]="form.vehiculoId">
           <option [value]="0">Seleccione una placa</option>
-          <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }}</option>
+          <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{
+            v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
         </select>
       </div>
       <div class="form-group">

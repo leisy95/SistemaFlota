@@ -1,5 +1,9 @@
 export const environment = {
-  production: false,
-  apiUrl: 'https://localhost:7293/api',
-  fotosUrl: 'https://localhost:7293'
+
+  production: true,
+
+  apiUrl: 'https://sistemaflota-production.up.railway.app/api',
+
+  fotosUrl: 'https://sistemaflota-production.up.railway.app/fotos'
+
 };
