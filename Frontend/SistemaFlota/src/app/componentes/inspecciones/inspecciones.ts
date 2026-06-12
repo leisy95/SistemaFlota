@@ -56,6 +56,7 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {}
 
+  // ── Modal firma ────────────────────────────────────────────────────────────
   abrirModalFirma() {
     this.modalFirmaAbierto = true;
     document.body.style.overflow = 'hidden';
@@ -104,6 +105,7 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
   obtenerFirmaBase64(): string | null { return this.firmaCapturada; }
 
+  // ── Servicios ──────────────────────────────────────────────────────────────
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
@@ -130,7 +132,11 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     this.checklistService.obtenerChecklist(this.tipoVehiculoId).subscribe({
       next: (data) => {
         this.checklist = data.map((item: any) => ({
-          ...item, estado: '', observacion: '', foto: null, evidencia: null
+          ...item,
+          estado:      '',
+          observacion: '',
+          foto:        null,
+          evidencia:   null
         }));
       },
       error: (err) => console.error(err)
@@ -152,11 +158,11 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   }
 
   iniciarInspeccion() {
-    if (this.conductorId === 0)  { alert('Seleccione conductor'); return; }
-    if (this.vehiculoId === 0)   { alert('Seleccione vehículo');  return; }
-    if (!this.firmaCapturada)    { alert('El conductor debe firmar antes de guardar'); return; }
+    if (this.conductorId === 0) { alert('Seleccione conductor'); return; }
+    if (this.vehiculoId === 0)  { alert('Seleccione vehículo');  return; }
+    if (!this.firmaCapturada)   { alert('El conductor debe firmar antes de guardar'); return; }
 
-    // ── Validar que todos los ítems tengan estado ─────────────────────────
+    // ── Validar que todos los ítems tengan estado ──────────────────────────
     const sinResponder = this.checklist.filter(item => !item.estado);
     if (sinResponder.length > 0) {
       alert(`Faltan ${sinResponder.length} pregunta(s) por responder en el checklist`);
@@ -178,8 +184,12 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
       formData.append('FirmaCondutor', blob, 'firma.png');
     }
 
+    // ── Checklist con descripcion incluida ────────────────────────────────
     const checklistEnviar = this.checklist.map((item: any) => ({
-      id: item.id, estado: item.estado, observacion: item.observacion
+      id:          item.id          ?? null,
+      descripcion: item.descripcion ?? '',
+      estado:      item.estado      || 'No aplica',
+      observacion: item.observacion || ''
     }));
 
     this.checklist.forEach((item: any, index: number) => {
@@ -193,21 +203,25 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
     this.inspeccionesService.guardarInspeccion(formData).subscribe({
       next: () => {
-        this.guardando = false; this.guardadoExito = true;
+        this.guardando      = false;
+        this.guardadoExito  = true;
         this.firmaCapturada = null;
-        this.fotoOdometro = null; this.fotoSeleccionada = null;
-        this.conductorId = 0; this.vehiculoId = 0;
-        this.tipoVehiculoId = 0; this.kilometraje = 0;
-        this.checklist = [];
+        this.fotoOdometro   = null;
+        this.fotoSeleccionada = null;
+        this.conductorId    = 0;
+        this.vehiculoId     = 0;
+        this.tipoVehiculoId = 0;
+        this.kilometraje    = 0;
+        this.checklist      = [];
         setTimeout(() => this.guardadoExito = false, 4000);
       },
       error: (err) => {
         console.error(err);
         this.guardando = false;
-        // ── Fix [object Object] ───────────────────────────────────────────
         const mensaje = typeof err.error === 'string'
           ? err.error
-          : err.error?.message || err.error?.title
+          : err.error?.message
+            || err.error?.title
             || err.error?.errors
             || JSON.stringify(err.error)
             || 'Error guardando inspección';
