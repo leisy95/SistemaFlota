@@ -16,12 +16,10 @@
       <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
         (input)="aplicarFiltros()"
         placeholder="🔍 Buscar conductor o vehículo...">
-
       <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
         (change)="aplicarFiltros()">
       <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
         (change)="aplicarFiltros()">
-
       <button class="btn-refresh" (click)="obtenerHistorial()">🔄</button>
       <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
     </div>
@@ -87,29 +85,68 @@
       <button class="btn-cerrar" (click)="detalleSeleccionado = null">✕</button>
     </div>
 
-    <div class="info-grid">
-      <div class="info-card"><span>👤 Conductor</span><h3>{{ detalleSeleccionado.conductor.nombre }}</h3></div>
-      <div class="info-card"><span>🚚 Vehículo</span><h3>{{ detalleSeleccionado.vehiculo.placa }}</h3></div>
-      <div class="info-card"><span>📅 Fecha</span><h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3></div>
-      <div class="info-card"><span>⛽ Kilometraje</span><h3>{{ detalleSeleccionado.kilometraje }} km</h3></div>
+    <!-- ── ESTADO GENERAL ───────────────────────────────────────────────── -->
+    <div class="estado-general-card"
+      [class.estado-apto]="detalleSeleccionado.estadoGeneral === 'APTO'"
+      [class.estado-observaciones]="detalleSeleccionado.estadoGeneral === 'APTO CON OBSERVACIONES'"
+      [class.estado-no-apto]="detalleSeleccionado.estadoGeneral === 'NO APTO'">
+      <div class="estado-emoji">{{ detalleSeleccionado.emojiEstado }}</div>
+      <div class="estado-info">
+        <strong>{{ detalleSeleccionado.estadoGeneral }}</strong>
+        <span>
+          {{ detalleSeleccionado.totalNoConformes }} de {{ detalleSeleccionado.totalItems }}
+          ítems no conformes ({{ detalleSeleccionado.porcentajeNoConf }}%)
+        </span>
+      </div>
     </div>
 
+    <!-- ── INFO GENERAL ─────────────────────────────────────────────────── -->
+    <div class="info-grid">
+      <div class="info-card">
+        <span>👤 Conductor</span>
+        <h3>{{ detalleSeleccionado.conductor.nombre }}</h3>
+      </div>
+      <div class="info-card">
+        <span>🚚 Vehículo</span>
+        <h3>{{ detalleSeleccionado.vehiculo.placa }}</h3>
+      </div>
+      <div class="info-card">
+        <span>📅 Fecha</span>
+        <h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3>
+      </div>
+      <div class="info-card">
+        <span>⛽ Kilometraje</span>
+        <h3>{{ detalleSeleccionado.kilometraje }} km</h3>
+      </div>
+    </div>
+
+    <!-- ── FOTO ODÓMETRO ─────────────────────────────────────────────────── -->
     <div class="foto-odometro" *ngIf="detalleSeleccionado.fotoOdometro">
       <h3>Foto Odómetro</h3>
-      <img [src]="'http://localhost:5214/inspecciones/' + detalleSeleccionado.fotoOdometro">
+      <img [src]="urlBase + '/inspecciones/' + detalleSeleccionado.fotoOdometro">
     </div>
 
+    <!-- ── CHECKLIST ─────────────────────────────────────────────────────── -->
     <div class="checklist-section">
-      <h3>✅ Checklist</h3>
-      <div class="check-item" *ngFor="let item of detalleSeleccionado.detalles">
+      <h3>📋 Checklist ({{ detalleSeleccionado.detalles?.length }} ítems)</h3>
+      <div class="check-item" *ngFor="let item of detalleSeleccionado.detalles"
+        [class.check-conforme]="item.estado === 'Conforme'"
+        [class.check-no-conforme]="item.estado === 'No conforme'"
+        [class.check-no-aplica]="item.estado === 'No aplica'">
         <div class="estado">
-          <span [class.ok]="item.estado === 'Cumple'" [class.fail]="item.estado !== 'Cumple'">
+          <span
+            [class.ok]="item.estado === 'Conforme'"
+            [class.fail]="item.estado === 'No conforme'"
+            [class.na]="item.estado === 'No aplica'">
+            {{ item.estado === 'Conforme' ? '✅' : item.estado === 'No conforme' ? '❌' : '➖' }}
             {{ item.estado }}
           </span>
         </div>
         <div class="detalle-info">
-          <p><strong>Ítem:</strong> {{ item.nombreItem || item.checklistItemId }}</p>
-          <p><strong>Observación:</strong> {{ item.observacion || 'Sin observación' }}</p>
+          <p><strong>{{ item.nombreItem || item.checklistItemId }}</strong></p>
+          <p *ngIf="item.observacion" style="color:#dc2626; font-size:13px">
+            ⚠️ {{ item.observacion }}
+          </p>
         </div>
       </div>
     </div>

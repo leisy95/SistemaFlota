@@ -426,3 +426,37 @@ tbody {
   .filtros-panel { flex-direction: column; }
   .input-busqueda, .input-fecha, .btn-limpiar, .btn-refresh { width: 100%; flex: none; }
 }
+// ── ESTADO GENERAL ────────────────────────────────────────────────────────────
+.estado-general-card {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 20px; border-radius: 16px;
+  margin-bottom: 20px; border: 2px solid transparent;
+
+  &.estado-apto {
+    background: #f0fdf4; border-color: #16a34a;
+    .estado-info strong { color: #15803d; }
+  }
+  &.estado-observaciones {
+    background: #fffbeb; border-color: #d97706;
+    .estado-info strong { color: #b45309; }
+  }
+  &.estado-no-apto {
+    background: #fef2f2; border-color: #dc2626;
+    .estado-info strong { color: #b91c1c; }
+  }
+}
+
+.estado-emoji { font-size: 36px; flex-shrink: 0; }
+
+.estado-info {
+  display: flex; flex-direction: column; gap: 4px;
+  strong { font-size: 16px; font-weight: 700; }
+  span   { font-size: 13px; color: #64748b; }
+}
+
+// ── CHECKLIST ITEMS ───────────────────────────────────────────────────────────
+.check-conforme   { border-left: 4px solid #16a34a; }
+.check-no-conforme { border-left: 4px solid #dc2626; }
+.check-no-aplica  { border-left: 4px solid #94a3b8; }
+
+.na { background: #94a3b8; }

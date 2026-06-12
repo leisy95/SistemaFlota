@@ -1,12 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule }  from '@angular/forms';
-import { ConductoresService }    from '../../services/conductores.service';
-import { VehiculosService }      from '../../services/vehiculos.service';
-import { ChecklistService }      from '../../services/checklist.service';
-import { InspeccionesService }   from '../../services/inspecciones.service';
-import { TiposVehiculoService }  from '../../services/tipos-vehiculo.service';
-import { PermisosService }       from '../../services/permisos.service';
+import { FormsModule } from '@angular/forms';
+import { ConductoresService } from '../../services/conductores.service';
+import { VehiculosService } from '../../services/vehiculos.service';
+import { ChecklistService } from '../../services/checklist.service';
+import { InspeccionesService } from '../../services/inspecciones.service';
+import { TiposVehiculoService } from '../../services/tipos-vehiculo.service';
+import { PermisosService } from '../../services/permisos.service';
 import SignaturePad from 'signature_pad';
 
 @Component({
@@ -22,31 +22,32 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   signaturePad!: SignaturePad;
 
   kilometraje       = 0;
-  conductores:      any[] = [];
-  vehiculos:        any[] = [];
-  tiposVehiculo:    any[] = [];
-  checklist:        any[] = [];
-  conductorId       = 0;
-  vehiculoId        = 0;
-  tipoVehiculoId    = 0;
-  fotoOdometro:     File | null = null;
-  fotoSeleccionada: File | null = null;
-  guardando         = false;
-  guardadoExito     = false;
+conductores:      any[] = [];
+vehiculos:        any[] = [];
+tiposVehiculo:    any[] = [];
+checklist:        any[] = [];
+conductorId       = 0;
+vehiculoId        = 0;
+tipoVehiculoId    = 0;
+fotoOdometro:     File | null = null;
+fotoSeleccionada: File | null = null;
+guardando         = false;
+guardadoExito     = false;
+resultadoInspeccion: any = null;  // ← línea nueva
 
-  modalFirmaAbierto = false;
-  firmaCapturada:   string | null = null;
+modalFirmaAbierto = false;
+firmaCapturada:   string | null = null;
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('inspecciones'); }
 
   constructor(
-    private conductoresService:   ConductoresService,
-    private vehiculosService:     VehiculosService,
-    private checklistService:     ChecklistService,
-    private inspeccionesService:  InspeccionesService,
+    private conductoresService: ConductoresService,
+    private vehiculosService: VehiculosService,
+    private checklistService: ChecklistService,
+    private inspeccionesService: InspeccionesService,
     private tiposVehiculoService: TiposVehiculoService,
-    private permisosService:      PermisosService
-  ) {}
+    private permisosService: PermisosService
+  ) { }
 
   ngOnInit(): void {
     this.obtenerConductores();
@@ -54,7 +55,7 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     this.obtenerTipos();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   abrirModalFirma() {
     this.modalFirmaAbierto = true;
@@ -66,15 +67,15 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     const canvas = this.firmaModalCanvas?.nativeElement;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    canvas.width  = rect.width  * window.devicePixelRatio;
+    canvas.width = rect.width * window.devicePixelRatio;
     canvas.height = rect.height * window.devicePixelRatio;
     const ctx = canvas.getContext('2d')!;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     this.signaturePad = new SignaturePad(canvas, {
       backgroundColor: 'rgb(255,255,255)',
-      penColor:        'rgb(10,10,10)',
-      minWidth:        1.5,
-      maxWidth:        3.5,
+      penColor: 'rgb(10,10,10)',
+      minWidth: 1.5,
+      maxWidth: 3.5,
     });
     if (this.firmaCapturada) {
       this.signaturePad.fromDataURL(this.firmaCapturada);
@@ -107,21 +108,21 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
   obtenerVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
   obtenerTipos() {
     this.tiposVehiculoService.obtenerTipos().subscribe({
       next: (data) => this.tiposVehiculo = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -131,10 +132,10 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
       next: (data) => {
         this.checklist = data.map((item: any) => ({
           ...item,
-          estado:      '',
+          estado: '',
           observacion: '',
-          foto:        null,
-          evidencia:   null
+          foto: null,
+          evidencia: null
         }));
       },
       error: (err) => console.error(err)
@@ -143,22 +144,22 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
   seleccionarFoto(event: any) {
     if (event.target.files.length > 0) {
-      this.fotoOdometro     = event.target.files[0];
+      this.fotoOdometro = event.target.files[0];
       this.fotoSeleccionada = event.target.files[0];
     }
   }
 
   seleccionarEvidencia(event: any, item: any) {
     if (event.target.files.length > 0) {
-      item.foto      = event.target.files[0];
+      item.foto = event.target.files[0];
       item.evidencia = event.target.files[0];
     }
   }
 
   iniciarInspeccion() {
     if (this.conductorId === 0) { alert('Seleccione conductor'); return; }
-    if (this.vehiculoId === 0)  { alert('Seleccione vehículo');  return; }
-    if (!this.firmaCapturada)   { alert('El conductor debe firmar antes de guardar'); return; }
+    if (this.vehiculoId === 0) { alert('Seleccione vehículo'); return; }
+    if (!this.firmaCapturada) { alert('El conductor debe firmar antes de guardar'); return; }
 
     const sinResponder = this.checklist.filter(item => !item.estado);
     if (sinResponder.length > 0) {
@@ -168,7 +169,7 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
     this.guardando = true;
     const formData = new FormData();
-    formData.append('VehiculoId',  this.vehiculoId.toString());
+    formData.append('VehiculoId', this.vehiculoId.toString());
     formData.append('ConductorId', this.conductorId.toString());
     // ── Kilometraje siempre entero ─────────────────────────────────────────
     formData.append('Kilometraje', Math.round(this.kilometraje).toString());
@@ -183,15 +184,15 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     }
 
     const checklistEnviar = this.checklist.map((item: any) => ({
-      id:          item.id          ?? null,
+      id: item.id ?? null,
       descripcion: item.descripcion ?? '',
-      estado:      item.estado      || 'No aplica',
+      estado: item.estado || 'No aplica',
       observacion: item.observacion || ''
     }));
 
     this.checklist.forEach((item: any, index: number) => {
       if (item.foto) {
-        formData.append('Evidencias',       item.foto);
+        formData.append('Evidencias', item.foto);
         formData.append('EvidenciaIndices', index.toString());
       }
     });
@@ -199,18 +200,28 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     formData.append('Checklist', JSON.stringify(checklistEnviar));
 
     this.inspeccionesService.guardarInspeccion(formData).subscribe({
-      next: () => {
-        this.guardando      = false;
-        this.guardadoExito  = true;
+      next: (res: any) => {
+        this.guardando = false;
+        this.guardadoExito = true;
+        this.resultadoInspeccion = {
+          estado: res.estadoGeneral,
+          emoji: res.emojiEstado,
+          porcentaje: res.porcentajeNoConf,
+          noConformes: res.totalNoConformes,
+          total: res.totalItems
+        };
         this.firmaCapturada = null;
-        this.fotoOdometro   = null;
+        this.fotoOdometro = null;
         this.fotoSeleccionada = null;
-        this.conductorId    = 0;
-        this.vehiculoId     = 0;
+        this.conductorId = 0;
+        this.vehiculoId = 0;
         this.tipoVehiculoId = 0;
-        this.kilometraje    = 0;
-        this.checklist      = [];
-        setTimeout(() => this.guardadoExito = false, 4000);
+        this.kilometraje = 0;
+        this.checklist = [];
+        setTimeout(() => {
+          this.guardadoExito = false;
+          this.resultadoInspeccion = null;
+        }, 6000);
       },
       error: (err) => {
         console.error(err);
@@ -218,20 +229,20 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
         const mensaje = typeof err.error === 'string'
           ? err.error
           : err.error?.message
-            || err.error?.title
-            || err.error?.errors
-            || JSON.stringify(err.error)
-            || 'Error guardando inspección';
+          || err.error?.title
+          || err.error?.errors
+          || JSON.stringify(err.error)
+          || 'Error guardando inspección';
         alert(mensaje);
       }
     });
   }
 
   private base64ToBlob(base64: string, tipo: string): Blob {
-    const partes  = base64.split(',');
+    const partes = base64.split(',');
     const byteStr = atob(partes[1]);
-    const buffer  = new ArrayBuffer(byteStr.length);
-    const vista   = new Uint8Array(buffer);
+    const buffer = new ArrayBuffer(byteStr.length);
+    const vista = new Uint8Array(buffer);
     for (let i = 0; i < byteStr.length; i++) vista[i] = byteStr.charCodeAt(i);
     return new Blob([buffer], { type: tipo });
   }

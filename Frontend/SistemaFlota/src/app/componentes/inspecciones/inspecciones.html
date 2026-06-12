@@ -12,11 +12,16 @@
 
   <ng-container *ngIf="puedeCrear">
 
-    <div class="notificacion-exito" *ngIf="guardadoExito">
-      <div class="notif-icono"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="notificacion-exito" *ngIf="guardadoExito && resultadoInspeccion">
+      <div class="notif-icono">
+        <span style="font-size:24px">{{ resultadoInspeccion.emoji }}</span>
+      </div>
       <div class="notif-texto">
-        <strong>¡Inspección guardada con éxito!</strong>
-        <p>El registro fue almacenado correctamente en el sistema.</p>
+        <strong>{{ resultadoInspeccion.estado }}</strong>
+        <p>
+          {{ resultadoInspeccion.noConformes }} de {{ resultadoInspeccion.total }} ítems no conformes
+          ({{ resultadoInspeccion.porcentaje }}%)
+        </p>
       </div>
     </div>
 
@@ -79,16 +84,14 @@
             <h3>{{ item.descripcion }}</h3>
           </div>
           <div class="check-estados">
-            <label class="estado-btn" [class.cumple]="item.estado==='Conforme'"
-              (click)="item.estado='Conforme'">
+            <label class="estado-btn" [class.cumple]="item.estado==='Conforme'" (click)="item.estado='Conforme'">
               <i class="fa-solid fa-circle-check"></i> Conforme
             </label>
             <label class="estado-btn" [class.nocumple]="item.estado==='No conforme'"
               (click)="item.estado='No conforme'">
               <i class="fa-solid fa-circle-xmark"></i> No conforme
             </label>
-            <label class="estado-btn" [class.noaplica]="item.estado==='No aplica'"
-              (click)="item.estado='No aplica'">
+            <label class="estado-btn" [class.noaplica]="item.estado==='No aplica'" (click)="item.estado='No aplica'">
               <i class="fa-solid fa-minus-circle"></i> No aplica
             </label>
           </div>
@@ -108,8 +111,7 @@
       </div>
     </div>
 
-    <div class="form-card sin-checklist"
-      *ngIf="checklist.length === 0 && tipoVehiculoId > 0">
+    <div class="form-card sin-checklist" *ngIf="checklist.length === 0 && tipoVehiculoId > 0">
       <i class="fa-solid fa-triangle-exclamation"></i>
       <p>No hay ítems de checklist para este tipo de vehículo</p>
     </div>
@@ -169,8 +171,7 @@
     </div>
 
     <div class="modal-firma-canvas-wrap">
-      <canvas #firmaModalCanvas
-        style="touch-action:none; width:100%; height:100%; display:block;">
+      <canvas #firmaModalCanvas style="touch-action:none; width:100%; height:100%; display:block;">
       </canvas>
       <div class="firma-linea-base"></div>
     </div>
