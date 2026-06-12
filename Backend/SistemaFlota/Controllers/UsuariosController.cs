@@ -15,12 +15,11 @@ namespace SistemaFlota
 
         private static readonly string[] UsuariosOcultos = { "maestro_sf" };
 
-        // ── Roles válidos del sistema ─────────────────────────────────────────
         public static readonly string[] RolesValidos = {
-        "Admin", "Auxiliar", "Conductor", "Jefe",
-        "Facturacion", "Bodega", "Porteria",
-        "RecursosHumanos", "PESV", "Vendedor", "Impresion","Calidad", "SST"
-};
+            "Admin", "Auxiliar", "Conductor", "Jefe",
+            "Facturacion", "Bodega", "Porteria",
+            "RecursosHumanos", "PESV", "Vendedor", "Impresion", "Calidad", "SST"
+        };
 
         public UsuariosController(AppDbContext context, AuditoriaService auditoria)
         {
@@ -33,9 +32,6 @@ namespace SistemaFlota
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        // =====================================
-        // GET TODOS — con paginación
-        // =====================================
         [HttpGet]
         [Authorize(Roles = "Admin,RecursosHumanos,PESV")]
         public async Task<IActionResult> Get(
@@ -81,26 +77,17 @@ namespace SistemaFlota
             return Ok(new
             {
                 data = lista,
-                total = total,
-                pagina = pagina,
-                porPagina = porPagina,
+                total,
+                pagina,
+                porPagina,
                 totalPaginas = (int)Math.Ceiling((double)total / porPagina)
             });
         }
 
-        // =====================================
-        // GET ROLES VÁLIDOS — para el frontend
-        // =====================================
         [HttpGet("roles")]
         [Authorize(Roles = "Admin,RecursosHumanos,PESV")]
-        public IActionResult GetRoles()
-        {
-            return Ok(RolesValidos);
-        }
+        public IActionResult GetRoles() => Ok(RolesValidos);
 
-        // =====================================
-        // GET POR ID
-        // =====================================
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin,RecursosHumanos,PESV")]
         public async Task<IActionResult> GetById(int id)
@@ -131,9 +118,7 @@ namespace SistemaFlota
             return Ok(usuario);
         }
 
-        // =====================================
-        // POST — CREAR USUARIO
-        // =====================================
+        // ── CREAR USUARIO — contraseña hasheada con BCrypt ────────────────────
         [HttpPost]
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> Post([FromBody] CrearUsuarioDto dto)
@@ -148,20 +133,17 @@ namespace SistemaFlota
             if (dto.Password.Length < 6)
                 return BadRequest("La contraseña debe tener al menos 6 caracteres");
 
-            // Validar que el rol sea válido
             if (!RolesValidos.Contains(dto.Rol))
                 return BadRequest($"Rol inválido. Roles permitidos: {string.Join(", ", RolesValidos)}");
 
-            var existe = await _context.Usuarios
-                .AnyAsync(u => u.Username == dto.Username);
-
-            if (existe)
-                return BadRequest("El nombre de usuario ya existe");
+            var existe = await _context.Usuarios.AnyAsync(u => u.Username == dto.Username);
+            if (existe) return BadRequest("El nombre de usuario ya existe");
 
             var usuario = new Usuario
             {
                 Username = dto.Username,
-                Password = dto.Password,
+                Password = string.Empty,                                    // no guardar texto plano
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),   // ← BCrypt
                 Rol = dto.Rol,
                 Email = dto.Email,
                 Activo = true
@@ -205,9 +187,7 @@ namespace SistemaFlota
             });
         }
 
-        // =====================================
-        // PUT — EDITAR USUARIO
-        // =====================================
+        // ── EDITAR USUARIO — hashear si cambia contraseña ─────────────────────
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearUsuarioDto dto)
@@ -232,7 +212,10 @@ namespace SistemaFlota
             {
                 if (dto.Password.Length < 6)
                     return BadRequest("La contraseña debe tener al menos 6 caracteres");
-                usuario.Password = dto.Password;
+
+                // ── Hashear nueva contraseña ──────────────────────────────────
+                usuario.Password = string.Empty;
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             }
 
             _context.UsuarioPermisos.RemoveRange(usuario.Permisos);
@@ -273,9 +256,6 @@ namespace SistemaFlota
             });
         }
 
-        // =====================================
-        // DELETE
-        // =====================================
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
@@ -302,9 +282,6 @@ namespace SistemaFlota
             return Ok(new { mensaje = "Usuario eliminado correctamente" });
         }
 
-        // =====================================
-        // CAMBIAR ESTADO
-        // =====================================
         [HttpPut("{id}/estado")]
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> CambiarEstado(int id)
@@ -326,9 +303,6 @@ namespace SistemaFlota
             return Ok(new { usuario.Id, usuario.Username, usuario.Activo });
         }
 
-        // =====================================
-        // RECUPERAR CONTRASEÑA
-        // =====================================
         [HttpPost("recuperar")]
         [AllowAnonymous]
         public async Task<IActionResult> SolicitarRecuperacion([FromBody] RecuperarDto dto)
@@ -353,6 +327,7 @@ namespace SistemaFlota
             return Ok(new { mensaje = "Token generado correctamente", token, expira = usuario.TokenExpiracion });
         }
 
+        // ── CAMBIAR CONTRASEÑA — hashear con BCrypt ───────────────────────────
         [HttpPost("cambiar-password")]
         [AllowAnonymous]
         public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordDto dto)
@@ -368,7 +343,9 @@ namespace SistemaFlota
             if (usuario == null) return BadRequest("Token inválido");
             if (usuario.TokenExpiracion < DateTime.Now) return BadRequest("Token expirado");
 
-            usuario.Password = dto.NuevaPassword;
+            // ── Hashear nueva contraseña ──────────────────────────────────────
+            usuario.Password = string.Empty;
+            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaPassword);
             usuario.TokenRecuperacion = null;
             usuario.TokenExpiracion = null;
             await _context.SaveChangesAsync();
@@ -382,9 +359,6 @@ namespace SistemaFlota
             return Ok(new { mensaje = "Contraseña cambiada correctamente" });
         }
 
-        // =====================================
-        // MIS PERMISOS
-        // =====================================
         [HttpGet("mis-permisos")]
         [Authorize]
         public async Task<IActionResult> MisPermisos()
@@ -409,7 +383,6 @@ namespace SistemaFlota
         }
     }
 
-    // DTOs
     public class CrearUsuarioDto
     {
         public string Username { get; set; } = string.Empty;

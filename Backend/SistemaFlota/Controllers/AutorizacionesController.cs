@@ -154,15 +154,27 @@ namespace SistemaFlota
                 );
                 if (resultado != null)
                 {
-                    var hora = ahora.ToString("hh:mm tt"); var fecha = ahora.ToString("dd/MM/yyyy");
-                    var conductor = resultado.Conductor?.Nombre ?? "-"; var placa = resultado.Vehiculo?.Placa ?? "-";
-                    var mensaje = $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n📍 Destino: {resultado.DestinoCompleto ?? "-"}\n🕐 Hora salida: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
-                    var numerosGrupo = await _context.ContactosNotificacion.Where(c => c.Activo && c.RecibeIncidentes).Select(c => c.NumeroWhatsApp).ToListAsync();
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var mensaje =
+                        $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
+                        $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                        $"🕐 Hora salida: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp).ToListAsync();
                     if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
                 }
                 return Ok(resultado);
             }
-            catch (Exception ex) { Console.WriteLine($"❌ ERROR SalidaRapida: {ex.Message}"); return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR SalidaRapida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPost("llegada-rapida")]
@@ -192,20 +204,38 @@ namespace SistemaFlota
                 _context.Autorizaciones.Add(autorizacion);
                 await _context.SaveChangesAsync();
                 var resultado = await CargarConRelaciones(autorizacion.Id);
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "LlegadaRapida", modulo: "Autorizaciones", detalle: $"Llegada rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Km: {dto.KilometrajeFinal}", registroId: autorizacion.Id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "LlegadaRapida", modulo: "Autorizaciones",
+                    detalle: $"Llegada rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Km: {dto.KilometrajeFinal}",
+                    registroId: autorizacion.Id
+                );
                 if (resultado != null)
                 {
-                    var hora = ahora.ToString("hh:mm tt"); var fecha = ahora.ToString("dd/MM/yyyy");
-                    var conductor = resultado.Conductor?.Nombre ?? "-"; var placa = resultado.Vehiculo?.Placa ?? "-";
-                    var km = dto.KilometrajeFinal?.ToString() ?? "-"; var estado = dto.EstadoVehiculo ?? "Bueno";
+                    var hora = ahora.ToString("hh:mm tt");
+                    var fecha = ahora.ToString("dd/MM/yyyy");
+                    var conductor = resultado.Conductor?.Nombre ?? "-";
+                    var placa = resultado.Vehiculo?.Placa ?? "-";
+                    var km = dto.KilometrajeFinal?.ToString() ?? "-";
+                    var estado = dto.EstadoVehiculo ?? "Bueno";
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
-                    var mensaje = $"🏁 *LLEGADA REGISTRADA*\n━━━━━━━━━━━━━━━━━━\n👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
-                    var numerosGrupo = await _context.ContactosNotificacion.Where(c => c.Activo && c.RecibeIncidentes).Select(c => c.NumeroWhatsApp).ToListAsync();
+                    var mensaje =
+                        $"🏁 *LLEGADA REGISTRADA*\n━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
+                        $"🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n" +
+                        $"📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp).ToListAsync();
                     if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
                 }
                 return Ok(resultado);
             }
-            catch (Exception ex) { Console.WriteLine($"❌ ERROR LlegadaRapida: {ex.Message}"); return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR LlegadaRapida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         // ── EDITAR — con sincronización de trazabilidad ───────────────────────
@@ -228,7 +258,7 @@ namespace SistemaFlota
                 a.FacturasClientes = dto.FacturasClientes;
                 await _context.SaveChangesAsync();
 
-                // ── Sincronizar trazabilidad: agregar solo las facturas nuevas ──
+                // ── Sincronizar trazabilidad: solo facturas con número real ──
                 if (!string.IsNullOrWhiteSpace(dto.FacturasClientes))
                 {
                     try
@@ -247,8 +277,14 @@ namespace SistemaFlota
                         {
                             foreach (var f in facturas)
                             {
+                                // ── Solo facturas con número real ──────────
+                                if (string.IsNullOrWhiteSpace(f.FacturaRemision) ||
+                                    f.FacturaRemision.Trim() == "-")
+                                    continue;
+
                                 var existe = await _context.TrazabilidadFacturas
-                                    .AnyAsync(t => t.AutorizacionId == id && t.FacturaRemision == f.FacturaRemision);
+                                    .AnyAsync(t => t.AutorizacionId == id &&
+                                                   t.FacturaRemision == f.FacturaRemision);
 
                                 if (!existe)
                                 {
@@ -256,7 +292,7 @@ namespace SistemaFlota
                                     {
                                         AutorizacionId = id,
                                         FechaRegistro = FechaHelper.Ahora(),
-                                        FacturaRemision = f.FacturaRemision ?? "-",
+                                        FacturaRemision = f.FacturaRemision,
                                         Cliente = f.Cliente ?? "-",
                                         Conductor = conductor,
                                         Vehiculo = vehiculo,
@@ -291,9 +327,7 @@ namespace SistemaFlota
             }
         }
 
-        // =====================================
-        // FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO
-        // =====================================
+        // ── FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO ────────────────────────────
         [HttpPut("{id}/facturacion")]
         public async Task<IActionResult> FirmarFacturacion(int id, [FromBody] FirmaDto dto)
         {
@@ -325,19 +359,27 @@ namespace SistemaFlota
                                 resultado.FacturasClientes,
                                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                             );
+
                             if (facturas != null && facturas.Count > 0)
                             {
                                 foreach (var f in facturas)
                                 {
+                                    // ── Solo facturas con número real ──────
+                                    if (string.IsNullOrWhiteSpace(f.FacturaRemision) ||
+                                        f.FacturaRemision.Trim() == "-")
+                                        continue;
+
                                     var existe = await _context.TrazabilidadFacturas
-                                        .AnyAsync(t => t.AutorizacionId == id && t.FacturaRemision == f.FacturaRemision);
+                                        .AnyAsync(t => t.AutorizacionId == id &&
+                                                       t.FacturaRemision == f.FacturaRemision);
+
                                     if (!existe)
                                     {
                                         _context.TrazabilidadFacturas.Add(new TrazabilidadFactura
                                         {
                                             AutorizacionId = id,
                                             FechaRegistro = FechaHelper.Ahora(),
-                                            FacturaRemision = f.FacturaRemision ?? "-",
+                                            FacturaRemision = f.FacturaRemision,
                                             Cliente = f.Cliente ?? "-",
                                             Conductor = conductor,
                                             Vehiculo = vehiculo,
@@ -356,26 +398,8 @@ namespace SistemaFlota
                             Console.WriteLine($"⚠️ Error creando trazabilidad desde facturas: {exFact.Message}");
                         }
                     }
-                    else
-                    {
-                        var existe = await _context.TrazabilidadFacturas.AnyAsync(t => t.AutorizacionId == id);
-                        if (!existe)
-                        {
-                            _context.TrazabilidadFacturas.Add(new TrazabilidadFactura
-                            {
-                                AutorizacionId = id,
-                                FechaRegistro = FechaHelper.Ahora(),
-                                FacturaRemision = "-",
-                                Cliente = resultado.DestinoCompleto ?? "-",
-                                Conductor = conductor,
-                                Vehiculo = vehiculo,
-                                Guia = guia,
-                                PesoKilos = resultado.PesoKilos,
-                                Estado = "Pendiente"
-                            });
-                            await _context.SaveChangesAsync();
-                        }
-                    }
+                    // ── Si no hay facturas NO se crea registro en trazabilidad ──
+                    // (eliminado el bloque else que creaba registro con "-")
                 }
 
                 await _auditoria.RegistrarAsync(
@@ -406,10 +430,18 @@ namespace SistemaFlota
                 a.FechaBodega = FechaHelper.Ahora();
                 a.Estado = "Porteria";
                 await _context.SaveChangesAsync();
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "Firmar", modulo: "Autorizaciones", detalle: $"Firma Bodega — #{id}, por: {dto.Usuario}", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Firmar", modulo: "Autorizaciones",
+                    detalle: $"Firma Bodega — #{id}, por: {dto.Usuario}",
+                    registroId: id
+                );
                 return Ok(await CargarConRelaciones(id));
             }
-            catch (Exception ex) { return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}/porteria")]
@@ -426,7 +458,12 @@ namespace SistemaFlota
                 a.Estado = "Autorizado";
                 a.EstadoLlegada = null;
                 await _context.SaveChangesAsync();
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "Firmar", modulo: "Autorizaciones", detalle: $"Firma Portería Salida — #{id} AUTORIZADO, por: {dto.Usuario}", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Firmar", modulo: "Autorizaciones",
+                    detalle: $"Firma Portería Salida — #{id} AUTORIZADO, por: {dto.Usuario}",
+                    registroId: id
+                );
 
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
@@ -449,16 +486,20 @@ namespace SistemaFlota
                             $"━━━━━━━━━━━━━━━━━━\n" +
                             $"🚗 Vehículo: {placa}\n📍 Destino: {destino}\n🔄 Tipo: {tipo}\n" +
                             (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
-                            $"🕐 Hora: {hora} — {fecha}\n✍️ Autorizado por: {dto.Usuario}\n━━━━━━━━━━━━━━━━━━\n🛣️ ¡Buen viaje!";
+                            $"🕐 Hora: {hora} — {fecha}\n✍️ Autorizado por: {dto.Usuario}\n" +
+                            $"━━━━━━━━━━━━━━━━━━\n🛣️ ¡Buen viaje!";
                         await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConductor);
                     }
 
-                    var numerosGrupo = await _context.ContactosNotificacion.Where(c => c.Activo && c.RecibeIncidentes).Select(c => c.NumeroWhatsApp).ToListAsync();
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp).ToListAsync();
                     if (numerosGrupo.Any())
                     {
                         var mensajeGrupo =
                             $"🚚 *SALIDA AUTORIZADA*\n━━━━━━━━━━━━━━━━━━\n" +
-                            $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n📍 Destino: {destino}\n🔄 Tipo: {tipo}\n" +
+                            $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
+                            $"📍 Destino: {destino}\n🔄 Tipo: {tipo}\n" +
                             (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
                             $"🚪 Portería: {dto.Usuario}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
                         await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
@@ -466,7 +507,10 @@ namespace SistemaFlota
                 }
                 return Ok(resultado);
             }
-            catch (Exception ex) { return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}/reportar-llegada")]
@@ -476,8 +520,10 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-                if (a.Estado != "Autorizado") return BadRequest("Solo se puede reportar llegada de autorizaciones en estado Autorizado");
-                if (a.EstadoLlegada == "ReportadaLlegada" || a.EstadoLlegada == "Completada") return BadRequest("La llegada ya fue reportada");
+                if (a.Estado != "Autorizado")
+                    return BadRequest("Solo se puede reportar llegada de autorizaciones en estado Autorizado");
+                if (a.EstadoLlegada == "ReportadaLlegada" || a.EstadoLlegada == "Completada")
+                    return BadRequest("La llegada ya fue reportada");
 
                 a.FechaReporteLlegada = FechaHelper.Ahora();
                 a.KilometrajeFinal = dto.KilometrajeFinal;
@@ -486,7 +532,12 @@ namespace SistemaFlota
                 a.EstadoLlegada = "ReportadaLlegada";
                 await _context.SaveChangesAsync();
 
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "ReportarLlegada", modulo: "Autorizaciones", detalle: $"Llegada reportada — #{id}, Km: {dto.KilometrajeFinal}, Estado: {dto.EstadoVehiculo}", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "ReportarLlegada", modulo: "Autorizaciones",
+                    detalle: $"Llegada reportada — #{id}, Km: {dto.KilometrajeFinal}, Estado: {dto.EstadoVehiculo}",
+                    registroId: id
+                );
 
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
@@ -500,20 +551,33 @@ namespace SistemaFlota
                     var estado = dto.EstadoVehiculo ?? "Bueno";
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
 
-                    var mensajeGrupo = $"🏁 *LLEGADA REPORTADA*\n━━━━━━━━━━━━━━━━━━\n👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
-                    var numerosGrupo = await _context.ContactosNotificacion.Where(c => c.Activo && c.RecibeIncidentes).Select(c => c.NumeroWhatsApp).ToListAsync();
+                    var mensajeGrupo =
+                        $"🏁 *LLEGADA REPORTADA*\n━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
+                        $"🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n" +
+                        $"📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp).ToListAsync();
                     if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
 
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
-                        var mensajeConfirmacion = $"✅ *Llegada registrada*\nHola {conductor.Split(' ')[0]}, tu llegada fue registrada correctamente.\n🕐 Hora: {hora} — {fecha}\n¡Gracias por el reporte!";
+                        var mensajeConfirmacion =
+                            $"✅ *Llegada registrada*\n" +
+                            $"Hola {conductor.Split(' ')[0]}, tu llegada fue registrada correctamente.\n" +
+                            $"🕐 Hora: {hora} — {fecha}\n¡Gracias por el reporte!";
                         await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
                     }
                 }
                 return Ok(resultado);
             }
-            catch (Exception ex) { Console.WriteLine($"❌ ERROR ReportarLlegada: {ex.Message}"); return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR ReportarLlegada: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}/confirmar-llegada")]
@@ -523,17 +587,27 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-                if (a.EstadoLlegada != "ReportadaLlegada") return BadRequest("El conductor aún no ha reportado la llegada");
+                if (a.EstadoLlegada != "ReportadaLlegada")
+                    return BadRequest("El conductor aún no ha reportado la llegada");
                 a.FechaConfirmacionLlegada = FechaHelper.Ahora();
                 a.UsuarioPorteriaLlegada = dto.Usuario;
                 a.ObservacionPorteriaLlegada = dto.Observacion;
                 a.FirmaPorteriaLlegada = dto.Firma;
                 a.EstadoLlegada = "Completada";
                 await _context.SaveChangesAsync();
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "ConfirmarLlegada", modulo: "Autorizaciones", detalle: $"Llegada confirmada por portería — #{id}, por: {dto.Usuario}", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "ConfirmarLlegada", modulo: "Autorizaciones",
+                    detalle: $"Llegada confirmada por portería — #{id}, por: {dto.Usuario}",
+                    registroId: id
+                );
                 return Ok(await CargarConRelaciones(id));
             }
-            catch (Exception ex) { Console.WriteLine($"❌ ERROR ConfirmarLlegada: {ex.Message}"); return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR ConfirmarLlegada: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}/confirmar-salida")]
@@ -543,12 +617,19 @@ namespace SistemaFlota
             {
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
-                if (a.Estado != "Autorizado") return BadRequest("Solo se puede confirmar salida de autorizaciones en estado Autorizado");
-                if (a.FechaSalidaReal != null) return BadRequest("La salida ya fue confirmada");
+                if (a.Estado != "Autorizado")
+                    return BadRequest("Solo se puede confirmar salida de autorizaciones en estado Autorizado");
+                if (a.FechaSalidaReal != null)
+                    return BadRequest("La salida ya fue confirmada");
 
                 a.FechaSalidaReal = FechaHelper.Ahora();
                 await _context.SaveChangesAsync();
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "ConfirmarSalida", modulo: "Autorizaciones", detalle: $"Salida en ruta confirmada — #{id}, hora: {a.FechaSalidaReal:hh:mm tt dd/MM/yyyy}", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "ConfirmarSalida", modulo: "Autorizaciones",
+                    detalle: $"Salida en ruta confirmada — #{id}, hora: {a.FechaSalidaReal:hh:mm tt dd/MM/yyyy}",
+                    registroId: id
+                );
 
                 var resultado = await CargarConRelaciones(id);
                 if (resultado != null)
@@ -558,13 +639,23 @@ namespace SistemaFlota
                     var fecha = ahora.ToString("dd/MM/yyyy");
                     var conductor = resultado.Conductor?.Nombre ?? "-";
                     var placa = resultado.Vehiculo?.Placa ?? "-";
-                    var mensaje = $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n📍 Destino: {resultado.DestinoCompleto ?? "-"}\n🕐 Hora salida real: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
-                    var numerosGrupo = await _context.ContactosNotificacion.Where(c => c.Activo && c.RecibeIncidentes).Select(c => c.NumeroWhatsApp).ToListAsync();
+                    var mensaje =
+                        $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n" +
+                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
+                        $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                        $"🕐 Hora salida real: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                    var numerosGrupo = await _context.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp).ToListAsync();
                     if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
                 }
                 return Ok(resultado);
             }
-            catch (Exception ex) { Console.WriteLine($"❌ ERROR ConfirmarSalida: {ex.Message}"); return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR ConfirmarSalida: {ex.Message}");
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPut("{id}/rechazar")]
@@ -576,10 +667,18 @@ namespace SistemaFlota
                 if (a == null) return NotFound();
                 a.Estado = "Rechazado";
                 await _context.SaveChangesAsync();
-                await _auditoria.RegistrarAsync(usuario: GetUsuario(), rol: GetRol(), accion: "Rechazar", modulo: "Autorizaciones", detalle: $"Autorización #{id} RECHAZADA", registroId: id);
+                await _auditoria.RegistrarAsync(
+                    usuario: GetUsuario(), rol: GetRol(),
+                    accion: "Rechazar", modulo: "Autorizaciones",
+                    detalle: $"Autorización #{id} RECHAZADA",
+                    registroId: id
+                );
                 return Ok(await CargarConRelaciones(id));
             }
-            catch (Exception ex) { return StatusCode(500, ex.InnerException?.Message ?? ex.Message); }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 

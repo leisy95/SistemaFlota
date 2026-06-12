@@ -56,7 +56,6 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {}
 
-  // ── Modal firma ────────────────────────────────────────────────────────────
   abrirModalFirma() {
     this.modalFirmaAbierto = true;
     document.body.style.overflow = 'hidden';
@@ -105,7 +104,6 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
 
   obtenerFirmaBase64(): string | null { return this.firmaCapturada; }
 
-  // ── Servicios ──────────────────────────────────────────────────────────────
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
@@ -162,7 +160,6 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     if (this.vehiculoId === 0)  { alert('Seleccione vehículo');  return; }
     if (!this.firmaCapturada)   { alert('El conductor debe firmar antes de guardar'); return; }
 
-    // ── Validar que todos los ítems tengan estado ──────────────────────────
     const sinResponder = this.checklist.filter(item => !item.estado);
     if (sinResponder.length > 0) {
       alert(`Faltan ${sinResponder.length} pregunta(s) por responder en el checklist`);
@@ -173,7 +170,8 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
     const formData = new FormData();
     formData.append('VehiculoId',  this.vehiculoId.toString());
     formData.append('ConductorId', this.conductorId.toString());
-    formData.append('Kilometraje', this.kilometraje.toString());
+    // ── Kilometraje siempre entero ─────────────────────────────────────────
+    formData.append('Kilometraje', Math.round(this.kilometraje).toString());
 
     if (this.fotoOdometro)
       formData.append('FotoOdometro', this.fotoOdometro);
@@ -184,7 +182,6 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
       formData.append('FirmaCondutor', blob, 'firma.png');
     }
 
-    // ── Checklist con descripcion incluida ────────────────────────────────
     const checklistEnviar = this.checklist.map((item: any) => ({
       id:          item.id          ?? null,
       descripcion: item.descripcion ?? '',

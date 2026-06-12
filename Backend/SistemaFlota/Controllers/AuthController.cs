@@ -39,6 +39,7 @@ namespace SistemaFlota
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var ahora = DateTime.UtcNow;
 
+            // ── Control de intentos fallidos ──────────────────────────────────
             if (_intentosFallidos.TryGetValue(ip, out var registro))
             {
                 if (ahora - registro.desde > TimeSpan.FromMinutes(BloqueoMinutos))
@@ -54,14 +55,39 @@ namespace SistemaFlota
                 }
             }
 
+            // ── Buscar usuario activo ─────────────────────────────────────────
             var usuario = await _context.Usuarios
                 .Include(u => u.Permisos)
                 .FirstOrDefaultAsync(u =>
                     u.Username == request.Username &&
-                    u.Password == request.Password &&
                     u.Activo);
 
-            if (usuario == null)
+            // ── Verificar contraseña: BCrypt primero, texto plano como fallback ─
+            bool passwordValida = false;
+            if (usuario != null)
+            {
+                if (!string.IsNullOrWhiteSpace(usuario.PasswordHash))
+                {
+                    // Contraseña hasheada con BCrypt
+                    passwordValida = BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash);
+                }
+                else
+                {
+                    // Contraseña en texto plano (usuarios antiguos) — migrar automáticamente
+                    passwordValida = usuario.Password == request.Password;
+
+                    if (passwordValida)
+                    {
+                        // ── Migración automática al hacer login ───────────────
+                        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                        usuario.Password = string.Empty; // limpiar texto plano
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine($"✅ Contraseña migrada a BCrypt — Usuario: {usuario.Username}");
+                    }
+                }
+            }
+
+            if (usuario == null || !passwordValida)
             {
                 _intentosFallidos.AddOrUpdate(ip, (1, ahora),
                     (_, ant) => (ant.intentos + 1, ant.desde));
@@ -74,7 +100,7 @@ namespace SistemaFlota
                 return Unauthorized(new { error = "Usuario o contraseña incorrectos" });
             }
 
-            // ── Validar que el rol sea válido en el sistema ───────────────────
+            // ── Validar rol ───────────────────────────────────────────────────
             if (!UsuariosController.RolesValidos.Contains(usuario.Rol))
             {
                 await _auditoria.RegistrarAsync(
