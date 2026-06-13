@@ -1,10 +1,35 @@
 <div class="contenedor">
 
   <div class="header">
-    <div>
-      <h1>📦 Trazabilidad de Facturas</h1>
-      <p class="subtitulo">Seguimiento de entregas y validación de documentos</p>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+      <div>
+        <h1 style="display:flex; align-items:center; gap:10px; margin:0">
+          📦 Trazabilidad de Facturas
+          <span style="background:#dcfce7; color:#15803d; font-size:12px; font-weight:600;
+                     padding:3px 10px; border-radius:20px; cursor:pointer"
+            (click)="mostrarSelectorTipo = !mostrarSelectorTipo">
+            {{ filtroTipo || 'Todas' }}
+            <i class="fa-solid fa-chevron-down" style="font-size:10px; margin-left:2px"></i>
+          </span>
+        </h1>
+        <p class="subtitulo">Seguimiento de entregas y validación de documentos</p>
+      </div>
+
+      <!-- Selector tipo — aparece al tocar el badge -->
+      <div *ngIf="mostrarSelectorTipo" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+             background:white; border:1px solid #e2e8f0; border-radius:12px;
+             padding:8px 12px; box-shadow:0 4px 12px rgba(0,0,0,0.08)">
+        <button *ngFor="let t of tiposFiltro"
+          (click)="filtroTipo = t.value; aplicarFiltros(); mostrarSelectorTipo = false" style="padding:5px 12px; border-radius:20px; font-size:12px; font-weight:500;
+               border:1px solid; cursor:pointer; transition:all 0.15s"
+          [style.background]="filtroTipo === t.value ? '#15803d' : '#f8fafc'"
+          [style.color]="filtroTipo === t.value ? 'white' : '#64748b'"
+          [style.border-color]="filtroTipo === t.value ? '#15803d' : '#e2e8f0'">
+          {{ t.label }}
+        </button>
+      </div>
     </div>
+
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
       <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nuevo Registro</button>
@@ -33,8 +58,7 @@
 
   <!-- FILTROS -->
   <div class="filtros-panel">
-    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
-      (input)="aplicarFiltros()"
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
       placeholder="🔍 Buscar factura, cliente, conductor...">
 
     <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
@@ -54,9 +78,9 @@
     <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
   </div>
 
-  <p class="resultado-filtro" *ngIf="registrosFiltrados.length !== registros.length">
+  <!-- <p class="resultado-filtro" *ngIf="registrosFiltrados.length !== registros.length">
     Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
-  </p>
+  </p> -->
 
   <!-- TABLA -->
   <div class="tabla-container" *ngIf="registrosFiltrados.length > 0">
@@ -76,8 +100,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let r of registrosFiltrados"
-          [class.fila-entregada]="r.facturaEntregada"
+        <tr *ngFor="let r of registrosFiltrados" [class.fila-entregada]="r.facturaEntregada"
           [class.fila-pendiente]="!r.facturaEntregada">
 
           <td data-label="Fecha">{{ r.fechaRegistro | date:'short' }}</td>
@@ -90,7 +113,7 @@
             <span *ngIf="!r.valorFlete">-</span>
           </td>
           <td data-label="Entregada">
-            <span class="badge-entregada"    *ngIf="r.facturaEntregada">✅ Entregada</span>
+            <span class="badge-entregada" *ngIf="r.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">🔴 Pendiente</span>
           </td>
           <!-- ✅ Corregido ajusteRecibido -->
@@ -105,7 +128,7 @@
             <div class="btn-acciones">
               <!-- ✅ Ver para todos -->
               <button class="btn-ver" (click)="verDetalle(r)">👁️</button>
-              <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editar(r)">✏️</button>
+              <button class="btn-editar" *ngIf="puedeEditar" (click)="editar(r)">✏️</button>
               <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)">🗑️</button>
             </div>
           </td>
@@ -218,24 +241,23 @@
       <div class="form-group">
         <label>💱 Acuse</label>
         <div class="toggle-group">
-          <button class="btn-toggle" [class.activo-verde]="form.acuseRecibido"
-            (click)="form.acuseRecibido = true">✅ Sí</button>
-          <button class="btn-toggle" [class.activo-rojo]="!form.acuseRecibido"
-            (click)="form.acuseRecibido = false">❌ No</button>
+          <button class="btn-toggle" [class.activo-verde]="form.acuseRecibido" (click)="form.acuseRecibido = true">✅
+            Sí</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.acuseRecibido" (click)="form.acuseRecibido = false">❌
+            No</button>
         </div>
       </div>
 
       <div class="form-group full">
         <label>⚠️ Novedad</label>
-        <textarea [(ngModel)]="form.novedad"
-          placeholder="Describa cualquier novedad o incidencia..."></textarea>
+        <textarea [(ngModel)]="form.novedad" placeholder="Describa cualquier novedad o incidencia..."></textarea>
       </div>
 
     </div>
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardar()">
+      <button class="btn-guardar" (click)="guardar()">
         {{ editando ? '💾 Guardar cambios' : '📦 Crear registro' }}
       </button>
     </div>
@@ -253,22 +275,28 @@
     </div>
 
     <div class="detalle-grid">
-      <div class="detalle-item"><span>📄 Factura/Remisión</span><strong>{{ registroSeleccionado?.facturaRemision }}</strong></div>
+      <div class="detalle-item"><span>📄 Factura/Remisión</span><strong>{{ registroSeleccionado?.facturaRemision
+          }}</strong></div>
       <div class="detalle-item"><span>👤 Cliente</span><strong>{{ registroSeleccionado?.cliente }}</strong></div>
       <div class="detalle-item"><span>🚗 Conductor</span><strong>{{ registroSeleccionado?.conductor }}</strong></div>
-      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ registroSeleccionado?.vehiculo || '-' }}</strong></div>
-      <div class="detalle-item"><span>🏢 Transportadora</span><strong>{{ registroSeleccionado?.transportadora || '-' }}</strong></div>
+      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ registroSeleccionado?.vehiculo || '-' }}</strong>
+      </div>
+      <div class="detalle-item"><span>🏢 Transportadora</span><strong>{{ registroSeleccionado?.transportadora || '-'
+          }}</strong></div>
       <div class="detalle-item"><span>📋 Guía</span><strong>{{ registroSeleccionado?.guia || '-' }}</strong></div>
-      <div class="detalle-item"><span>⚖️ Peso</span><strong>{{ registroSeleccionado?.pesoKilos ? registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong></div>
-      <div class="detalle-item"><span>💰 Valor flete</span><strong>{{ registroSeleccionado?.valorFlete ? '$' + (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong></div>
+      <div class="detalle-item"><span>⚖️ Peso</span><strong>{{ registroSeleccionado?.pesoKilos ?
+          registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong></div>
+      <div class="detalle-item"><span>💰 Valor flete</span><strong>{{ registroSeleccionado?.valorFlete ? '$' +
+          (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong></div>
       <div class="detalle-item">
         <span>📊 Estado</span>
-        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{ getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
+        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{
+            getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
       </div>
       <div class="detalle-item">
         <span>📬 Factura entregada</span>
         <strong>
-          <span class="badge-entregada"    *ngIf="registroSeleccionado?.facturaEntregada">✅ Entregada</span>
+          <span class="badge-entregada" *ngIf="registroSeleccionado?.facturaEntregada">✅ Entregada</span>
           <span class="badge-no-entregada" *ngIf="!registroSeleccionado?.facturaEntregada">🔴 Pendiente</span>
         </strong>
       </div>
@@ -280,7 +308,8 @@
           <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">❌ No</span>
         </strong>
       </div>
-      <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ? (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ?
+          (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
       <div class="detalle-item full" *ngIf="registroSeleccionado?.novedad">
         <span>⚠️ Novedad</span>
         <strong>{{ registroSeleccionado?.novedad }}</strong>
@@ -296,8 +325,7 @@
 
       <div class="vacio-notas" *ngIf="notas.length === 0">Sin notas registradas</div>
 
-      <div class="nota-card" *ngFor="let n of notas"
-        [class.nota-entregada]="n.facturaEntregada"
+      <div class="nota-card" *ngFor="let n of notas" [class.nota-entregada]="n.facturaEntregada"
         [class.nota-pendiente]="!n.facturaEntregada">
 
         <div class="nota-header">
@@ -306,9 +334,9 @@
             <span class="nota-fecha">{{ n.fecha | date:'short' }}</span>
           </div>
           <div class="nota-acciones">
-            <span class="badge-entregada"    *ngIf="n.facturaEntregada">✅ Entregada</span>
+            <span class="badge-entregada" *ngIf="n.facturaEntregada">✅ Entregada</span>
             <span class="badge-no-entregada" *ngIf="!n.facturaEntregada">🔴 Pendiente</span>
-            <button class="btn-editar-nota"   *ngIf="puedeEditar"   (click)="editarNota(n)">✏️</button>
+            <button class="btn-editar-nota" *ngIf="puedeEditar" (click)="editarNota(n)">✏️</button>
             <button class="btn-eliminar-nota" *ngIf="puedeEliminar" (click)="eliminarNota(n.id)">🗑️</button>
           </div>
         </div>
@@ -324,8 +352,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
-      <button class="btn-editar-principal" *ngIf="puedeEditar"
-        (click)="editar(registroSeleccionado); cerrarDetalle()">
+      <button class="btn-editar-principal" *ngIf="puedeEditar" (click)="editar(registroSeleccionado); cerrarDetalle()">
         ✏️ Editar registro
       </button>
     </div>
@@ -372,7 +399,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarNota()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardarNota()">
+      <button class="btn-guardar" (click)="guardarNota()">
         {{ editandoNota ? '💾 Guardar cambios' : '📝 Agregar nota' }}
       </button>
     </div>

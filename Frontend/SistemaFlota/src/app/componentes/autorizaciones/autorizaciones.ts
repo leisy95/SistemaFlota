@@ -56,12 +56,13 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   rolUsuario    = '';
   nombreEmpresa = 'la empresa';
 
-  mostrarModalLlegada         = false;
-  mostrarModalConfirmar       = false;
-  mostrarModalEditar          = false;
-  mostrarModalDetalle         = false;
-  mostrarModalSalidaRapida    = false;
-  mostrarModalLlegadaRapida   = false;
+  mostrarModalLlegada           = false;
+  mostrarModalConfirmar         = false;
+  mostrarModalEditar            = false;
+  mostrarModalDetalle           = false;
+  mostrarModalSalidaRapida      = false;
+  mostrarModalLlegadaRapida     = false;
+  mostrarModalSelectorLlegada   = false;  // ← nuevo
   autorizacionLlegada:   any = null;
   autorizacionEditando:  any = null;
   autorizacionDetalle:   any = null;
@@ -139,11 +140,68 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     return ['Admin', 'Jefe', 'Conductor', 'Vendedor'].includes(this.rolUsuario);
   }
 
-  // ── Autorizaciones activas sin llegada reportada ──────────────────────────
+  // ── Autorizaciones activas sin llegada ────────────────────────────────────
   get autorizacionesActivasSinLlegada(): any[] {
     return this.autorizaciones.filter(a =>
       a.estado === 'Autorizado' && !a.estadoLlegada
     );
+  }
+
+  // ── Abre selector inteligente de llegada ──────────────────────────────────
+  abrirSelectorLlegada() {
+    const activas = this.autorizacionesActivasSinLlegada;
+    if (activas.length === 0) {
+      this.abrirLlegadaRapida();
+    } else if (activas.length === 1) {
+      this.abrirReporteLlegada(activas[0]);
+    } else {
+      this.mostrarModalSelectorLlegada = true;
+      this.cdr.markForCheck();
+    }
+  }
+  // ── Autorizaciones autorizadas sin salida confirmada ──────────────────────
+get autorizacionesActivasSinSalida(): any[] {
+  return this.autorizaciones.filter(a =>
+    a.estado === 'Autorizado' && !a.fechaSalidaReal
+  );
+}
+
+mostrarModalSelectorSalida = false;
+
+abrirSelectorSalida() {
+  const activas = this.autorizacionesActivasSinSalida;
+  if (activas.length === 0) {
+    this.abrirSalidaRapida();
+  } else if (activas.length === 1) {
+    this.confirmarSalida(activas[0]);
+  } else {
+    this.mostrarModalSelectorSalida = true;
+    this.cdr.markForCheck();
+  }
+}
+
+seleccionarSalidaConductor(autorizacion: any) {
+  this.mostrarModalSelectorSalida = false;
+  this.confirmarSalida(autorizacion);
+  this.cdr.markForCheck();
+}
+
+  seleccionarLlegadaConductor(autorizacion: any) {
+    this.mostrarModalSelectorLlegada = false;
+    this.abrirReporteLlegada(autorizacion);
+    this.cdr.markForCheck();
+  }
+
+  // ── Iniciales del conductor para el avatar ────────────────────────────────
+  getIniciales(nombre: string): string {
+    return (nombre ?? '??').split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase();
+  }
+
+  // ── Badge de estado de salida ─────────────────────────────────────────────
+  getBadgeSalida(a: any): string {
+    if (a.fechaSalidaReal) return 'ruta';
+    if (a.fechaPorteria)   return 'sinconfirmar';
+    return 'sinregistrar';
   }
 
   abrirSalidaRapida() {
@@ -402,7 +460,6 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   guardarReporteLlegada() {
-    // ── Kilometraje opcional ───────────────────────────────────────────────
     this.autorizacionesService.reportarLlegada(this.autorizacionLlegada.id, {
       kilometrajeFinal: this.formLlegada.kilometrajeFinal,
       novedadesViaje:   this.formLlegada.novedadesViaje,
