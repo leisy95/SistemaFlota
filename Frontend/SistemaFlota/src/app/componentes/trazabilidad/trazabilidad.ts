@@ -103,8 +103,8 @@ export class TrazabilidadComponent implements OnInit {
           const fb = (b.facturaRemision ?? '').toString().toUpperCase();
           const prefA = fa.replace(/[\d\s\-]/g, '').trim();
           const prefB = fb.replace(/[\d\s\-]/g, '').trim();
-          if (prefA !== prefB) return prefA.localeCompare(prefB);
-          return extraerNumero(fa) - extraerNumero(fb);
+          if (prefA !== prefB) return prefB.localeCompare(prefA);
+          return extraerNumero(fb) - extraerNumero(fa);
         });
         this.aplicarFiltros();
       },
