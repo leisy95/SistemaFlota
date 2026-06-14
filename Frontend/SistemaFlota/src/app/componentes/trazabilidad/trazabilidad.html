@@ -406,3 +406,9 @@
 
   </div>
 </div>
+<!-- PAGINACIÓN -->
+<div class="paginacion" *ngIf="totalPaginas > 1">
+  <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">← Anterior</button>
+  <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ totalRegistros }} registros</span>
+  <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">Siguiente →</button>
+</div>

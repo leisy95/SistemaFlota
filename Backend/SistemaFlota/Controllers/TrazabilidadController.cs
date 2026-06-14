@@ -27,27 +27,67 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         // =====================================
-        // GET TODAS
+        // GET TODAS — con paginación y filtros
         // =====================================
-
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 50,
+            [FromQuery] string? buscar = null,
+            [FromQuery] string? estado = null,
+            [FromQuery] string? entregada = null,
+            [FromQuery] string? tipo = null)
         {
-            var lista = await _context.TrazabilidadFacturas
+            var query = _context.TrazabilidadFacturas
                 .Include(t => t.Autorizacion)
                     .ThenInclude(a => a != null ? a.Conductor : null)
                 .Include(t => t.Autorizacion)
                     .ThenInclude(a => a != null ? a.Vehiculo : null)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var q = buscar.ToLower();
+                query = query.Where(t =>
+                    t.FacturaRemision.ToLower().Contains(q) ||
+                    t.Cliente.ToLower().Contains(q) ||
+                    t.Conductor.ToLower().Contains(q) ||
+                    (t.Vehiculo != null && t.Vehiculo.ToLower().Contains(q)) ||
+                    (t.Guia != null && t.Guia.ToLower().Contains(q)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(estado))
+                query = query.Where(t => t.Estado == estado);
+
+            if (entregada == "si")
+                query = query.Where(t => t.FacturaEntregada);
+            else if (entregada == "no")
+                query = query.Where(t => !t.FacturaEntregada);
+
+            if (!string.IsNullOrWhiteSpace(tipo))
+                query = query.Where(t => t.FacturaRemision.ToUpper().StartsWith(tipo.ToUpper()));
+
+            var total = await query.CountAsync();
+
+            var lista = await query
                 .OrderByDescending(t => t.FechaRegistro)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .ToListAsync();
 
-            return Ok(lista);
+            return Ok(new
+            {
+                data = lista,
+                total,
+                pagina,
+                porPagina,
+                totalPaginas = (int)Math.Ceiling((double)total / porPagina)
+            });
         }
 
         // =====================================
         // GET POR ID
         // =====================================
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -65,7 +105,6 @@ namespace SistemaFlota
         // =====================================
         // POST — CREAR
         // =====================================
-
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CrearTrazabilidadDto dto)
         {
@@ -92,10 +131,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Crear",
-                modulo: "Trazabilidad",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Crear", modulo: "Trazabilidad",
                 detalle: $"Trazabilidad creada — Factura: {dto.FacturaRemision}, Cliente: {dto.Cliente}",
                 registroId: trazabilidad.Id
             );
@@ -106,7 +143,6 @@ namespace SistemaFlota
         // =====================================
         // PUT — EDITAR
         // =====================================
-
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearTrazabilidadDto dto)
         {
@@ -133,10 +169,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Editar",
-                modulo: "Trazabilidad",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Editar", modulo: "Trazabilidad",
                 detalle: $"Trazabilidad #{id} editada — Factura: {dto.FacturaRemision}",
                 registroId: id
             );
@@ -147,7 +181,6 @@ namespace SistemaFlota
         // =====================================
         // DELETE
         // =====================================
-
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
@@ -155,7 +188,6 @@ namespace SistemaFlota
             var t = await _context.TrazabilidadFacturas.FindAsync(id);
             if (t == null) return NotFound();
 
-            // ELIMINAR NOTAS ASOCIADAS
             var notas = await _context.NotasTrazabilidad
                 .Where(n => n.TrazabilidadId == id)
                 .ToListAsync();
@@ -164,10 +196,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Eliminar",
-                modulo: "Trazabilidad",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Eliminar", modulo: "Trazabilidad",
                 detalle: $"Trazabilidad #{id} eliminada",
                 registroId: id
             );
@@ -176,9 +206,8 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // GET NOTAS POR TRAZABILIDAD
+        // GET NOTAS
         // =====================================
-
         [HttpGet("{id}/notas")]
         public async Task<IActionResult> GetNotas(int id)
         {
@@ -186,18 +215,14 @@ namespace SistemaFlota
                 .Where(n => n.TrazabilidadId == id)
                 .OrderByDescending(n => n.Fecha)
                 .ToListAsync();
-
             return Ok(notas);
         }
 
         // =====================================
         // POST NOTA
         // =====================================
-
         [HttpPost("{id}/notas")]
-        public async Task<IActionResult> AgregarNota(
-            int id,
-            [FromBody] CrearNotaDto dto)
+        public async Task<IActionResult> AgregarNota(int id, [FromBody] CrearNotaDto dto)
         {
             var trazabilidad = await _context.TrazabilidadFacturas.FindAsync(id);
             if (trazabilidad == null) return NotFound();
@@ -217,10 +242,8 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(),
-                rol: GetRol(),
-                accion: "Crear",
-                modulo: "Trazabilidad",
+                usuario: GetUsuario(), rol: GetRol(),
+                accion: "Crear", modulo: "Trazabilidad",
                 detalle: $"Nota #{dto.NumeroNota} agregada a trazabilidad #{id}",
                 registroId: id
             );
@@ -231,11 +254,8 @@ namespace SistemaFlota
         // =====================================
         // PUT NOTA
         // =====================================
-
         [HttpPut("notas/{notaId}")]
-        public async Task<IActionResult> EditarNota(
-            int notaId,
-            [FromBody] CrearNotaDto dto)
+        public async Task<IActionResult> EditarNota(int notaId, [FromBody] CrearNotaDto dto)
         {
             var nota = await _context.NotasTrazabilidad.FindAsync(notaId);
             if (nota == null) return NotFound();
@@ -253,7 +273,6 @@ namespace SistemaFlota
         // =====================================
         // DELETE NOTA
         // =====================================
-
         [HttpDelete("notas/{notaId}")]
         public async Task<IActionResult> EliminarNota(int notaId)
         {
@@ -268,7 +287,6 @@ namespace SistemaFlota
         // =====================================
         // GET AUTORIZACIONES PARA IMPORTAR
         // =====================================
-
         [HttpGet("autorizaciones-disponibles")]
         public async Task<IActionResult> GetAutorizacionesDisponibles()
         {
@@ -299,7 +317,6 @@ namespace SistemaFlota
     // =====================================
     // DTOs
     // =====================================
-
     public class CrearTrazabilidadDto
     {
         public int? AutorizacionId { get; set; }
