@@ -34,9 +34,7 @@
   <div class="filtros-bar">
     <div class="buscador-wrap">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" [(ngModel)]="buscar"
-        (keyup.enter)="buscarUsuarios()"
-        placeholder="Buscar usuario o correo...">
+      <input type="text" [(ngModel)]="buscar" (keyup.enter)="buscarUsuarios()" placeholder="Buscar usuario o correo...">
       <button class="btn-buscar" (click)="buscarUsuarios()">Buscar</button>
     </div>
     <div class="paginacion-info" *ngIf="totalPaginas > 1">
@@ -80,11 +78,10 @@
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-editar"   (click)="editarUsuario(u)" title="Editar">
+              <button class="btn-editar" (click)="editarUsuario(u)" title="Editar">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button class="btn-estado"   (click)="cambiarEstado(u)"
-                [title]="u.activo ? 'Desactivar' : 'Activar'">
+              <button class="btn-estado" (click)="cambiarEstado(u)" [title]="u.activo ? 'Desactivar' : 'Activar'">
                 <i class="fa-solid fa-{{u.activo ? 'toggle-on' : 'toggle-off'}}"></i>
               </button>
               <button class="btn-eliminar" (click)="eliminarUsuario(u.id)" title="Eliminar">
@@ -102,13 +99,17 @@
     </div>
   </div>
 
-  <!-- PAGINACIÓN -->
   <div class="paginacion" *ngIf="totalPaginas > 1">
-    <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+    <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">
       <i class="fa-solid fa-chevron-left"></i> Anterior
     </button>
-    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
-    <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">
+    <div class="pag-info">
+      <span class="pag-actual">{{ paginaActual }}</span>
+      <span class="pag-sep">de</span>
+      <span class="pag-total">{{ totalPaginas }}</span>
+      <span class="pag-registros">· {{ totalRegistros }} registros</span>
+    </div>
+    <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
       Siguiente <i class="fa-solid fa-chevron-right"></i>
     </button>
   </div>
@@ -160,10 +161,10 @@
           <button class="btn-rapido verde" (click)="seleccionarTodos()">
             <i class="fa-solid fa-circle-check"></i> Todo acceso
           </button>
-          <button class="btn-rapido azul"  (click)="soloLectura()">
+          <button class="btn-rapido azul" (click)="soloLectura()">
             <i class="fa-solid fa-eye"></i> Solo lectura
           </button>
-          <button class="btn-rapido gris"  (click)="deseleccionarTodos()">
+          <button class="btn-rapido gris" (click)="deseleccionarTodos()">
             <i class="fa-solid fa-circle-xmark"></i> Ninguno
           </button>
         </div>
@@ -188,56 +189,49 @@
           <div class="permiso-accion"><i class="fa-solid fa-trash"></i></div>
         </div>
 
-        <div class="permiso-fila" *ngFor="let m of modulos"
-          [class.activo]="tienePermiso(m.key)">
+        <div class="permiso-fila" *ngFor="let m of modulos" [class.activo]="tienePermiso(m.key)">
 
           <div class="permiso-modulo">
             <span class="modulo-nombre">{{ m.label }}</span>
           </div>
 
           <div class="permiso-acceso">
-            <button class="btn-acceso"
-              [class.con-acceso]="tienePermiso(m.key)"
-              [class.sin-acceso]="!tienePermiso(m.key)"
-              (click)="toggleModulo(m.key)">
+            <button class="btn-acceso" [class.con-acceso]="tienePermiso(m.key)"
+              [class.sin-acceso]="!tienePermiso(m.key)" (click)="toggleModulo(m.key)">
               <i class="fa-solid fa-{{ tienePermiso(m.key) ? 'circle-check' : 'circle' }}"></i>
               {{ tienePermiso(m.key) ? 'Sí' : 'No' }}
             </button>
           </div>
 
           <div class="permiso-accion">
-            <button class="btn-check"
-              [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeVer"
-              [disabled]="!tienePermiso(m.key)"
-              (click)="toggleAccion(m.key, 'puedeVer')">
-              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeVer ? 'square-check' : 'square' }}"></i>
+            <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeVer"
+              [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeVer')">
+              <i
+                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeVer ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
           <div class="permiso-accion">
-            <button class="btn-check"
-              [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeCrear"
-              [disabled]="!tienePermiso(m.key)"
-              (click)="toggleAccion(m.key, 'puedeCrear')">
-              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeCrear ? 'square-check' : 'square' }}"></i>
+            <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeCrear"
+              [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeCrear')">
+              <i
+                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeCrear ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
           <div class="permiso-accion">
-            <button class="btn-check"
-              [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEditar"
-              [disabled]="!tienePermiso(m.key)"
-              (click)="toggleAccion(m.key, 'puedeEditar')">
-              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEditar ? 'square-check' : 'square' }}"></i>
+            <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEditar"
+              [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeEditar')">
+              <i
+                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEditar ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
           <div class="permiso-accion">
-            <button class="btn-check"
-              [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEliminar"
-              [disabled]="!tienePermiso(m.key)"
-              (click)="toggleAccion(m.key, 'puedeEliminar')">
-              <i class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEliminar ? 'square-check' : 'square' }}"></i>
+            <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEliminar"
+              [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeEliminar')">
+              <i
+                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEliminar ? 'square-check' : 'square' }}"></i>
             </button>
           </div>
 
@@ -247,7 +241,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardarUsuario()">
+      <button class="btn-guardar" (click)="guardarUsuario()">
         <i class="fa-solid fa-{{ editando ? 'floppy-disk' : 'user-plus' }}"></i>
         {{ editando ? 'Guardar cambios' : 'Crear usuario' }}
       </button>
@@ -278,7 +272,7 @@
       </div>
       <div class="modal-botones">
         <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-        <button class="btn-guardar"  (click)="solicitarRecuperacion()">
+        <button class="btn-guardar" (click)="solicitarRecuperacion()">
           Generar token <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
@@ -301,7 +295,7 @@
       </div>
       <div class="modal-botones">
         <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-        <button class="btn-guardar"  (click)="cambiarPassword()">
+        <button class="btn-guardar" (click)="cambiarPassword()">
           <i class="fa-solid fa-floppy-disk"></i> Cambiar contraseña
         </button>
       </div>

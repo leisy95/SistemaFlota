@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule }  from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
@@ -13,56 +13,57 @@ import { UsuariosService } from '../../services/usuarios.service';
 export class UsuariosComponent implements OnInit {
 
   usuarios: any[] = [];
-  mostrarModal     = false;
+  mostrarModal = false;
   mostrarRecuperar = false;
-  mostrarCambiar   = false;
-  editando         = false;
+  mostrarCambiar = false;
+  editando = false;
   usuarioEditarId: number | null = null;
 
-  paginaActual  = 1;
-  porPagina     = 20;
+  paginaActual = 1;
+  porPagina = 10;
   totalUsuarios = 0;
-  totalPaginas  = 0;
-  buscar        = '';
+  totalRegistros = 0;
+  totalPaginas = 0;
+  buscar = '';
 
   nuevoUsuario = {
     username: '',
     password: '',
-    rol:      'Auxiliar',
-    email:    '',
-    activo:   true,
+    rol: 'Auxiliar',
+    email: '',
+    activo: true,
     permisos: [] as PermisoGranular[]
   };
 
-  emailRecuperar   = '';
-  tokenRecuperar   = '';
-  nuevaPassword    = '';
-  tokenGenerado    = '';
+  emailRecuperar = '';
+  tokenRecuperar = '';
+  nuevaPassword = '';
+  tokenGenerado = '';
   mensajeRecuperar = '';
 
   readonly modulos = [
-    { key: 'dashboard',              label: 'Dashboard' },
-    { key: 'inspecciones',           label: 'Inspecciones' },
-    { key: 'ver-inspecciones',       label: 'Historial Inspecciones' },
-    { key: 'autorizaciones',         label: 'Autorizaciones' },
-    { key: 'reporte-ruta',           label: 'Reporte en Ruta' },
-    { key: 'cambio-ruta',            label: 'Cambio de Ruta' },
-    { key: 'incidentes',             label: 'Incidentes' },
+    { key: 'dashboard', label: 'Dashboard' },
+    { key: 'inspecciones', label: 'Inspecciones' },
+    { key: 'ver-inspecciones', label: 'Historial Inspecciones' },
+    { key: 'autorizaciones', label: 'Autorizaciones' },
+    { key: 'reporte-ruta', label: 'Reporte en Ruta' },
+    { key: 'cambio-ruta', label: 'Cambio de Ruta' },
+    { key: 'incidentes', label: 'Incidentes' },
     { key: 'contactos-notificacion', label: 'Contactos WhatsApp' },
-    { key: 'mantenimiento',          label: 'Taller' },
-    { key: 'solicitud-taller',       label: 'Solicitud Taller' },
-    { key: 'documentos',             label: 'Documentos' },
-    { key: 'encuesta-fatiga',        label: 'Encuesta Fatiga' },
-    { key: 'trazabilidad',           label: 'Trazabilidad' },
-    { key: 'auditoria',              label: 'Auditoría' },
-    { key: 'configuracion',          label: 'Configuración' },
-    { key: 'conductores',            label: 'Conductores' },
-    { key: 'vehiculos',              label: 'Vehículos' },
-    { key: 'usuarios',               label: 'Usuarios' },
-    { key: 'checklist',              label: 'Checklist' },
-    { key: 'pedidos',                label: 'Pedidos' },
-    { key: 'rrhh-seguimientos',      label: 'Seguimientos RRHH' },
-    { key: 'calidad-cyreles',        label: 'Cyreles' },
+    { key: 'mantenimiento', label: 'Taller' },
+    { key: 'solicitud-taller', label: 'Solicitud Taller' },
+    { key: 'documentos', label: 'Documentos' },
+    { key: 'encuesta-fatiga', label: 'Encuesta Fatiga' },
+    { key: 'trazabilidad', label: 'Trazabilidad' },
+    { key: 'auditoria', label: 'Auditoría' },
+    { key: 'configuracion', label: 'Configuración' },
+    { key: 'conductores', label: 'Conductores' },
+    { key: 'vehiculos', label: 'Vehículos' },
+    { key: 'usuarios', label: 'Usuarios' },
+    { key: 'checklist', label: 'Checklist' },
+    { key: 'pedidos', label: 'Pedidos' },
+    { key: 'rrhh-seguimientos', label: 'Seguimientos RRHH' },
+    { key: 'calidad-cyreles', label: 'Cyreles' },
   ];
 
   readonly roles = [
@@ -71,7 +72,7 @@ export class UsuariosComponent implements OnInit {
     'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST'
   ];
 
-  constructor(private usuariosService: UsuariosService) {}
+  constructor(private usuariosService: UsuariosService) { }
 
   ngOnInit(): void { this.cargarUsuarios(); }
 
@@ -81,21 +82,23 @@ export class UsuariosComponent implements OnInit {
       .subscribe({
         next: (resp: any) => {
           if (Array.isArray(resp)) {
-            this.usuarios      = resp;
+            this.usuarios = resp;
             this.totalUsuarios = resp.length;
-            this.totalPaginas  = 1;
+            this.totalRegistros = resp.length;
+            this.totalPaginas = 1;
           } else {
-            this.usuarios      = resp.data         ?? [];
-            this.totalUsuarios = resp.total        ?? 0;
-            this.totalPaginas  = resp.totalPaginas ?? 1;
+            this.usuarios = resp.data ?? [];
+            this.totalRegistros = resp.total ?? 0;
+            this.totalUsuarios = resp.total ?? 0;
+            this.totalPaginas = resp.totalPaginas ?? 1;
           }
         },
         error: (err: any) => console.error(err)
       });
   }
 
-  buscarUsuarios()  { this.paginaActual = 1; this.cargarUsuarios(); }
-  paginaAnterior()  { if (this.paginaActual > 1) { this.paginaActual--; this.cargarUsuarios(); } }
+  buscarUsuarios() { this.paginaActual = 1; this.cargarUsuarios(); }
+  paginaAnterior() { if (this.paginaActual > 1) { this.paginaActual--; this.cargarUsuarios(); } }
   paginaSiguiente() { if (this.paginaActual < this.totalPaginas) { this.paginaActual++; this.cargarUsuarios(); } }
 
   get totalActivos(): number { return this.usuarios.filter(u => u.activo).length; }
@@ -148,9 +151,9 @@ export class UsuariosComponent implements OnInit {
   }
 
   guardarUsuario() {
-    if (!this.nuevoUsuario.username)                   { alert('Ingrese el nombre de usuario');  return; }
-    if (!this.editando && !this.nuevoUsuario.password) { alert('Ingrese la contraseña');          return; }
-    if (!this.nuevoUsuario.email)                      { alert('Ingrese el correo electrónico'); return; }
+    if (!this.nuevoUsuario.username) { alert('Ingrese el nombre de usuario'); return; }
+    if (!this.editando && !this.nuevoUsuario.password) { alert('Ingrese la contraseña'); return; }
+    if (!this.nuevoUsuario.email) { alert('Ingrese el correo electrónico'); return; }
 
     const peticion = this.editando
       ? this.usuariosService.actualizarUsuario(this.usuarioEditarId!, this.nuevoUsuario)
@@ -202,7 +205,7 @@ export class UsuariosComponent implements OnInit {
 
   cambiarPassword() {
     if (!this.tokenRecuperar) { alert('Ingrese el token'); return; }
-    if (!this.nuevaPassword)  { alert('Ingrese la nueva contraseña'); return; }
+    if (!this.nuevaPassword) { alert('Ingrese la nueva contraseña'); return; }
     this.usuariosService.cambiarPassword(this.emailRecuperar, this.tokenRecuperar, this.nuevaPassword).subscribe({
       next: () => { alert('Contraseña cambiada correctamente'); this.mostrarRecuperar = false; this.mostrarCambiar = false; },
       error: (err: any) => alert(err.error || 'Token inválido o expirado')
@@ -213,19 +216,19 @@ export class UsuariosComponent implements OnInit {
 
   getBadgeRol(rol: string): string {
     switch (rol) {
-      case 'Admin':           return 'badge-admin';
-      case 'Auxiliar':        return 'badge-auxiliar';
-      case 'Conductor':       return 'badge-conductor';
-      case 'Jefe':            return 'badge-jefe';
-      case 'Facturacion':     return 'badge-facturacion';
-      case 'Bodega':          return 'badge-bodega';
-      case 'Porteria':        return 'badge-porteria';
+      case 'Admin': return 'badge-admin';
+      case 'Auxiliar': return 'badge-auxiliar';
+      case 'Conductor': return 'badge-conductor';
+      case 'Jefe': return 'badge-jefe';
+      case 'Facturacion': return 'badge-facturacion';
+      case 'Bodega': return 'badge-bodega';
+      case 'Porteria': return 'badge-porteria';
       case 'RecursosHumanos': return 'badge-rrhh';
-      case 'PESV':            return 'badge-pesv';
-      case 'Vendedor':        return 'badge-vendedor';
-      case 'Calidad':         return 'badge-calidad';
-      case 'Impresion':       return 'badge-impresion';
-      default:                return 'badge-auxiliar';
+      case 'PESV': return 'badge-pesv';
+      case 'Vendedor': return 'badge-vendedor';
+      case 'Calidad': return 'badge-calidad';
+      case 'Impresion': return 'badge-impresion';
+      default: return 'badge-auxiliar';
     }
   }
 }

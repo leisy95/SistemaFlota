@@ -86,18 +86,34 @@
 
 .paginacion {
   display: flex; justify-content: center; align-items: center;
-  gap: 16px; margin-top: 20px; padding: 16px 0;
-  span { font-size: 13px; color: #64748b; }
+  gap: 16px; margin: 20px 0; padding: 16px 0; flex-wrap: wrap;
+
+  button {
+    background: white; border: 1px solid #e2e8f0; color: #374151;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 600; display: flex; align-items: center;
+    gap: 8px; transition: all 0.2s; width: auto;
+    &:hover:not(:disabled) {
+      background: #15803d; color: white;
+      border-color: #15803d; transform: translateY(-1px);
+    }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
 }
 
-.btn-pagina {
-  background: #0f172a; color: white; border: none;
-  padding: 9px 18px; border-radius: 10px; cursor: pointer;
-  font-size: 13px; font-weight: 600; transition: 0.2s; width: auto;
+.pag-info {
   display: flex; align-items: center; gap: 6px;
-  &:hover:not(:disabled) { background: #1e293b; transform: translateY(-2px); }
-  &:disabled { opacity: 0.3; cursor: not-allowed; }
+  font-size: 14px; color: #64748b;
 }
+
+.pag-actual {
+  background: #15803d; color: white; font-weight: 700;
+  padding: 4px 12px; border-radius: 8px; font-size: 15px;
+}
+
+.pag-sep    { color: #94a3b8; }
+.pag-total  { font-weight: 600; color: #374151; }
+.pag-registros { color: #94a3b8; font-size: 13px; }
 
 // TABLA
 .tabla-container {

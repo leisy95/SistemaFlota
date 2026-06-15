@@ -364,24 +364,55 @@ tbody {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  padding: 16px 0;
+  margin: 20px 0;
+  flex-wrap: wrap;
 
   button {
     background: white;
     border: 1px solid #e2e8f0;
-    padding: 8px 16px;
+    color: #374151;
+    padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 14px;
-    transition: 0.2s;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
     width: auto;
 
-    &:hover:not(:disabled) { background: #f1f5f9; }
+    &:hover:not(:disabled) {
+      background: #15803d;
+      color: white;
+      border-color: #15803d;
+      transform: translateY(-1px);
+    }
+
     &:disabled { opacity: 0.4; cursor: not-allowed; }
   }
-
-  span { font-size: 14px; color: #64748b; }
 }
+
+.pag-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pag-actual {
+  background: #15803d;
+  color: white;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.pag-sep   { color: #94a3b8; }
+.pag-total { font-weight: 600; color: #374151; }
+.pag-registros { color: #94a3b8; font-size: 13px; }
 
 // RESPONSIVE
 @media (max-width: 768px) {

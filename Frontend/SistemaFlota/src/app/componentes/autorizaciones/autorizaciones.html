@@ -81,7 +81,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let a of autorizacionesFiltradas; trackBy: trackById">
+        <tr *ngFor="let a of autorizacionesPaginadas; trackBy: trackById">
           <td data-label="#">{{ a.id }}</td>
           <td data-label="Conductor">{{ a.conductor?.nombre }}</td>
           <td data-label="Vehículo">{{ a.vehiculo?.placa }}</td>
@@ -822,4 +822,18 @@
     </div>
   </div>
 
+</div>
+<div class="paginacion" *ngIf="totalPaginas > 1">
+  <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+    <i class="fa-solid fa-chevron-left"></i> Anterior
+  </button>
+  <div class="pag-info">
+    <span class="pag-actual">{{ paginaActual }}</span>
+    <span class="pag-sep">de</span>
+    <span class="pag-total">{{ totalPaginas }}</span>
+    <span class="pag-registros">· {{ autorizacionesFiltradas.length }} registros</span>
+  </div>
+  <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+    Siguiente <i class="fa-solid fa-chevron-right"></i>
+  </button>
 </div>

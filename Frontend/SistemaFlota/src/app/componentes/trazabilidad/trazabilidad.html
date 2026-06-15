@@ -408,7 +408,16 @@
 </div>
 <!-- PAGINACIÓN -->
 <div class="paginacion" *ngIf="totalPaginas > 1">
-  <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">← Anterior</button>
-  <span>Página {{ paginaActual }} de {{ totalPaginas }} · {{ totalRegistros }} registros</span>
-  <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">Siguiente →</button>
+  <button class="btn-pag" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+    <i class="fa-solid fa-chevron-left"></i> Anterior
+  </button>
+  <div class="pag-info">
+    <span class="pag-actual">{{ paginaActual }}</span>
+    <span class="pag-sep">de</span>
+    <span class="pag-total">{{ totalPaginas }}</span>
+    <span class="pag-registros">· {{ totalRegistros }} registros</span>
+  </div>
+  <button class="btn-pag" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+    Siguiente <i class="fa-solid fa-chevron-right"></i>
+  </button>
 </div>

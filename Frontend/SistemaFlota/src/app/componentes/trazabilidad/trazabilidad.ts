@@ -22,7 +22,7 @@ export class TrazabilidadComponent implements OnInit {
 
   // ── Paginación ────────────────────────────────────────────────────────────
   paginaActual   = 1;
-  porPagina      = 50;
+  porPagina      = 10;
   totalRegistros = 0;
   totalPaginas   = 0;
   cargando       = false;

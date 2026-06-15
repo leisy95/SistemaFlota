@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -10,8 +10,20 @@ export class EncuestaFatigaService {
 
   constructor(private http: HttpClient) {}
 
-  obtenerEncuestas(): Observable<any> {
-    return this.http.get(this.apiUrl);
+  obtenerEncuestas(params?: {
+    pagina?: number;
+    porPagina?: number;
+    buscar?: string;
+    resultado?: string;
+    conductorId?: number;
+  }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.pagina)      httpParams = httpParams.set('pagina',      params.pagina.toString());
+    if (params?.porPagina)   httpParams = httpParams.set('porPagina',   params.porPagina.toString());
+    if (params?.buscar)      httpParams = httpParams.set('buscar',      params.buscar);
+    if (params?.resultado)   httpParams = httpParams.set('resultado',   params.resultado);
+    if (params?.conductorId) httpParams = httpParams.set('conductorId', params.conductorId.toString());
+    return this.http.get(this.apiUrl, { params: httpParams });
   }
 
   obtenerPorConductor(conductorId: number): Observable<any> {

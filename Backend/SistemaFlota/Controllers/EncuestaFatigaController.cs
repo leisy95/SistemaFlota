@@ -31,12 +31,38 @@ namespace SistemaFlota
         // =====================================
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(
+    [FromQuery] int pagina = 1,
+    [FromQuery] int porPagina = 20,
+    [FromQuery] string? buscar = null,
+    [FromQuery] string? resultado = null,
+    [FromQuery] int? conductorId = null)
         {
-            var lista = await _context.EncuestasFatiga
+            var query = _context.EncuestasFatiga
                 .Include(e => e.Conductor)
                 .Include(e => e.Vehiculo)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var q = buscar.ToLower();
+                query = query.Where(e =>
+                    e.Conductor!.Nombre.ToLower().Contains(q) ||
+                    e.Vehiculo!.Placa.ToLower().Contains(q));
+            }
+
+            if (!string.IsNullOrWhiteSpace(resultado))
+                query = query.Where(e => e.Resultado == resultado);
+
+            if (conductorId.HasValue)
+                query = query.Where(e => e.ConductorId == conductorId.Value);
+
+            var total = await query.CountAsync();
+
+            var lista = await query
                 .OrderByDescending(e => e.Fecha)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .Select(e => new
                 {
                     e.Id,
@@ -50,21 +76,19 @@ namespace SistemaFlota
                     e.Resultado,
                     e.RegistradoPor,
                     e.Observaciones,
-                    Conductor = new
-                    {
-                        e.Conductor!.Id,
-                        e.Conductor.Nombre,
-                        e.Conductor.Licencia
-                    },
-                    Vehiculo = new
-                    {
-                        e.Vehiculo!.Id,
-                        e.Vehiculo.Placa
-                    }
+                    Conductor = new { e.Conductor!.Id, e.Conductor.Nombre, e.Conductor.Licencia },
+                    Vehiculo = new { e.Vehiculo!.Id, e.Vehiculo.Placa }
                 })
                 .ToListAsync();
 
-            return Ok(lista);
+            return Ok(new
+            {
+                data = lista,
+                total,
+                pagina,
+                porPagina,
+                totalPaginas = (int)Math.Ceiling((double)total / porPagina)
+            });
         }
 
         // =====================================

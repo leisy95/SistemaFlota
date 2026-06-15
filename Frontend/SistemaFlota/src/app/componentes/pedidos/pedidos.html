@@ -42,8 +42,7 @@
 
   <!-- FILTROS -->
   <div class="filtros-panel">
-    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
-      (input)="aplicarFiltros()"
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
       placeholder="🔍 Buscar cliente, referencia, destino...">
 
     <select [(ngModel)]="filtroPrioridad" (change)="aplicarFiltros()">
@@ -87,10 +86,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of pedidosFiltrados"
-          [class.fila-sos]="p.prioridad === 'SOS'"
-          [class.fila-urgente]="p.prioridad === 'Urgente'"
-          [class.fila-normal]="p.prioridad === 'Normal'">
+        <tr *ngFor="let p of pedidosFiltrados" [class.fila-sos]="p.prioridad === 'SOS'"
+          [class.fila-urgente]="p.prioridad === 'Urgente'" [class.fila-normal]="p.prioridad === 'Normal'">
 
           <td data-label="Prioridad">
             <span [class]="getBadgePrioridad(p.prioridad)">
@@ -116,13 +113,10 @@
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-ver"       (click)="verDetalle(p)">👁️</button>
-              <button class="btn-estado-btn" *ngIf="puedeEditar"
-                (click)="abrirEstado(p)">🔄</button>
-              <button class="btn-editar"    *ngIf="puedeEditar && p.estado === 'Pendiente'"
-                (click)="editar(p)">✏️</button>
-              <button class="btn-eliminar"  *ngIf="puedeEliminar"
-                (click)="eliminar(p.id)">🗑️</button>
+              <button class="btn-ver" (click)="verDetalle(p)">👁️</button>
+              <button class="btn-estado-btn" *ngIf="puedeEditar" (click)="abrirEstado(p)">🔄</button>
+              <button class="btn-editar" *ngIf="puedeEditar && p.estado === 'Pendiente'" (click)="editar(p)">✏️</button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(p.id)">🗑️</button>
             </div>
           </td>
         </tr>
@@ -175,8 +169,8 @@
             <span></span>
           </div>
           <div class="ref-fila" *ngFor="let r of referencias; let i = index">
-            <input type="text"   [(ngModel)]="r.referencia"       placeholder="Ej: REF-001">
-            <input type="number" [(ngModel)]="r.cantidadKg"       placeholder="Kg"  step="0.01" min="0">
+            <input type="text" [(ngModel)]="r.referencia" placeholder="Ej: REF-001">
+            <input type="number" [(ngModel)]="r.cantidadKg" placeholder="Kg" step="0.01" min="0">
             <input type="number" [(ngModel)]="r.cantidadUnidades" placeholder="Uds" min="0">
             <button class="btn-eliminar-fila" (click)="eliminarReferencia(i)">
               <i class="fa-solid fa-trash"></i>
@@ -212,7 +206,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardar()">
+      <button class="btn-guardar" (click)="guardar()">
         {{ editando ? '💾 Guardar cambios' : '📦 Crear Pedido' }}
       </button>
     </div>
@@ -249,7 +243,7 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarEstado()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardarEstado()">✅ Confirmar</button>
+      <button class="btn-guardar" (click)="guardarEstado()">✅ Confirmar</button>
     </div>
   </div>
 </div>
@@ -266,20 +260,26 @@
       <div class="detalle-item">
         <span>🚨 Prioridad</span>
         <strong><span [class]="getBadgePrioridad(seleccionado?.prioridad)">
-          {{ seleccionado?.prioridad === 'SOS' ? '🔴 SOS' : seleccionado?.prioridad === 'Urgente' ? '🟡 Urgente' : '🟢 Normal' }}
-        </span></strong>
+            {{ seleccionado?.prioridad === 'SOS' ? '🔴 SOS' : seleccionado?.prioridad === 'Urgente' ? '🟡 Urgente' : '🟢
+            Normal' }}
+          </span></strong>
       </div>
       <div class="detalle-item">
         <span>📊 Estado</span>
-        <strong><span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado) }}</span></strong>
+        <strong><span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado)
+            }}</span></strong>
       </div>
       <div class="detalle-item"><span>👤 Vendedor</span><strong>{{ seleccionado?.vendedorNombre }}</strong></div>
       <div class="detalle-item"><span>🏪 Cliente</span><strong>{{ seleccionado?.cliente }}</strong></div>
       <div class="detalle-item"><span>📍 Destino</span><strong>{{ seleccionado?.destino }}</strong></div>
-      <div class="detalle-item"><span>📅 Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium' }}</strong></div>
-      <div class="detalle-item"><span>👷 Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong></div>
-      <div class="detalle-item"><span>🚚 Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ? (seleccionado.fechaDespacho | date:'medium') : '-' }}</strong></div>
-      <div class="detalle-item"><span>✅ Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ? (seleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium'
+          }}</strong></div>
+      <div class="detalle-item"><span>👷 Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong>
+      </div>
+      <div class="detalle-item"><span>🚚 Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ?
+          (seleccionado.fechaDespacho | date:'medium') : '-' }}</strong></div>
+      <div class="detalle-item"><span>✅ Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ?
+          (seleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
 
       <!-- ✅ Referencias -->
       <div class="detalle-item full">
@@ -302,10 +302,23 @@
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
-      <button class="btn-estado-btn" *ngIf="puedeEditar"
-        (click)="abrirEstado(seleccionado); cerrarDetalle()">
+      <button class="btn-estado-btn" *ngIf="puedeEditar" (click)="abrirEstado(seleccionado); cerrarDetalle()">
         🔄 Cambiar Estado
       </button>
     </div>
   </div>
+</div>
+<div class="paginacion" *ngIf="totalPaginas > 1">
+  <button (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+    <i class="fa-solid fa-chevron-left"></i> Anterior
+  </button>
+  <div class="pag-info">
+    <span class="pag-actual">{{ paginaActual }}</span>
+    <span class="pag-sep">de</span>
+    <span class="pag-total">{{ totalPaginas }}</span>
+    <span class="pag-registros">· {{ totalRegistros }} registros</span>
+  </div>
+  <button (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+    Siguiente <i class="fa-solid fa-chevron-right"></i>
+  </button>
 </div>

@@ -44,14 +44,48 @@ namespace SistemaFlota
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 20,
+            [FromQuery] string? buscar = null,
+            [FromQuery] int? conductorId = null,
+            [FromQuery] int? vehiculoId = null)
         {
-            var lista = await _context.Inspecciones
+            var query = _context.Inspecciones
                 .Include(i => i.Vehiculo)
                 .Include(i => i.Conductor)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var q = buscar.ToLower();
+                query = query.Where(i =>
+                    i.Conductor!.Nombre.ToLower().Contains(q) ||
+                    i.Vehiculo!.Placa.ToLower().Contains(q));
+            }
+
+            if (conductorId.HasValue)
+                query = query.Where(i => i.ConductorId == conductorId.Value);
+
+            if (vehiculoId.HasValue)
+                query = query.Where(i => i.VehiculoId == vehiculoId.Value);
+
+            var total = await query.CountAsync();
+
+            var lista = await query
                 .OrderByDescending(i => i.Fecha)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .ToListAsync();
-            return Ok(lista);
+
+            return Ok(new
+            {
+                data = lista,
+                total,
+                pagina,
+                porPagina,
+                totalPaginas = (int)Math.Ceiling((double)total / porPagina)
+            });
         }
 
         [HttpGet("{id}")]

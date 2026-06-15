@@ -36,16 +36,33 @@ namespace SistemaFlota
                 .FirstOrDefaultAsync(a => a.Id == id);
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(
+    [FromQuery] int pagina = 1,
+    [FromQuery] int porPagina = 20)
         {
             try
             {
-                var lista = await _context.Autorizaciones
+                var query = _context.Autorizaciones
                     .Include(a => a.Conductor)
                     .Include(a => a.Vehiculo)
                     .OrderByDescending(a => a.FechaCreacion)
+                    .AsQueryable();
+
+                var total = await query.CountAsync();
+
+                var lista = await query
+                    .Skip((pagina - 1) * porPagina)
+                    .Take(porPagina)
                     .ToListAsync();
-                return Ok(lista);
+
+                return Ok(new
+                {
+                    data = lista,
+                    total,
+                    pagina,
+                    porPagina,
+                    totalPaginas = (int)Math.Ceiling((double)total / porPagina)
+                });
             }
             catch (Exception ex)
             {

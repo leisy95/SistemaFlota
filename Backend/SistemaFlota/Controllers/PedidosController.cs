@@ -33,13 +33,48 @@ namespace SistemaFlota
         // GET — TODOS
         // =====================================
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(
+    [FromQuery] int pagina = 1,
+    [FromQuery] int porPagina = 20,
+    [FromQuery] string? buscar = null,
+    [FromQuery] string? estado = null,
+    [FromQuery] string? prioridad = null)
         {
-            var lista = await _context.Pedidos
+            var query = _context.Pedidos
                 .Include(p => p.Referencias)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var q = buscar.ToLower();
+                query = query.Where(p =>
+                    p.Cliente.ToLower().Contains(q) ||
+                    p.VendedorNombre.ToLower().Contains(q) ||
+                    p.Destino.ToLower().Contains(q));
+            }
+
+            if (!string.IsNullOrWhiteSpace(estado))
+                query = query.Where(p => p.Estado == estado);
+
+            if (!string.IsNullOrWhiteSpace(prioridad))
+                query = query.Where(p => p.Prioridad == prioridad);
+
+            var total = await query.CountAsync();
+
+            var lista = await query
                 .OrderByDescending(p => p.FechaRegistro)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .ToListAsync();
-            return Ok(lista);
+
+            return Ok(new
+            {
+                data = lista,
+                total,
+                pagina,
+                porPagina,
+                totalPaginas = (int)Math.Ceiling((double)total / porPagina)
+            });
         }
 
         // =====================================
