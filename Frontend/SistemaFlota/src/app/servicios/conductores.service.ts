@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -8,13 +8,13 @@ export interface Conductor {
   licencia: string;
   telefono: string;
   email: string;
-  foto?: string; // 🔥 NUEVO
+  foto?: string; // ðŸ”¥ NUEVO
 }
 
 @Injectable({ providedIn: 'root' })
 export class ConductoresService {
 
-  private apiUrl = 'https://localhost:7293/api/Conductores';
+  private apiUrl = 'https://api.gecobagsci.com/api/Conductores';
 
   constructor(private http: HttpClient) {}
 
@@ -22,7 +22,7 @@ export class ConductoresService {
     return this.http.get<Conductor[]>(this.apiUrl);
   }
 
-  // 🔥 AHORA RECIBE FORM DATA
+  // ðŸ”¥ AHORA RECIBE FORM DATA
   crearConductor(data: FormData) {
     return this.http.post(this.apiUrl, data);
   }

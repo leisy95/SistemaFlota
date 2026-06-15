@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { ConfiguracionService } from '../../services/configuracion.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-configuracion-empresa',
@@ -67,7 +68,7 @@ export class ConfiguracionEmpresaComponent implements OnInit {
           document.documentElement.style.setProperty('--color-primario', this.config.colorCorporativo);
 
         if (data.logo)
-          this.logoPreview = `http://localhost:5214/config/${data.logo}`;
+          this.logoPreview = `${environment.apiUrl.replace('/api', '')}/config/${data.logo}`;
       },
       error: (err) => console.error(err)
     });

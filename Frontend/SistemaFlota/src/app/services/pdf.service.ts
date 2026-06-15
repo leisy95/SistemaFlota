@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
@@ -62,14 +62,14 @@ export class PdfService {
 
     // LOGO EMPRESA
     const logoUrl = this.config?.logo
-      ? `https://localhost:7293/config/${this.config.logo}`
-      : 'http://localhost:4200/assets/logo.png';
+      ? `https://api.gecobagsci.com/config/${this.config.logo}`
+      : 'https://flota.gecobagsci.com/assets/logo.png';
 
     const logo = await this.cargarImagen(logoUrl);
     if (logo) doc.addImage(logo, 'PNG', 5, 4, 32, 32);
 
     // NOMBRE EMPRESA
-    const nombreEmpresa = this.config?.nombreEmpresa ?? 'Sistema de Gestión de Flota';
+    const nombreEmpresa = this.config?.nombreEmpresa ?? 'Sistema de GestiÃ³n de Flota';
     const nit           = this.config?.nit           ?? '';
 
     doc.setFontSize(18);
@@ -103,7 +103,7 @@ export class PdfService {
 
   agregarFooter(doc: jsPDF, margenDerecho = 196): void {
     const COLOR         = this.getColor();
-    const nombreEmpresa = this.config?.nombreEmpresa ?? 'Sistema de Gestión de Flota';
+    const nombreEmpresa = this.config?.nombreEmpresa ?? 'Sistema de GestiÃ³n de Flota';
     const numPaginas    = (doc as any).internal.getNumberOfPages();
 
     for (let i = 1; i <= numPaginas; i++) {
@@ -114,9 +114,9 @@ export class PdfService {
       doc.setFontSize(7);
       doc.setTextColor(120, 120, 120);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${nombreEmpresa} — Documento generado automáticamente`,
+      doc.text(`${nombreEmpresa} â€” Documento generado automÃ¡ticamente`,
         105, 289, { align: 'center' });
-      doc.text(`Página ${i} de ${numPaginas}`, margenDerecho, 289, { align: 'right' });
+      doc.text(`PÃ¡gina ${i} de ${numPaginas}`, margenDerecho, 289, { align: 'right' });
       doc.text(new Date().toLocaleString(), 14, 289);
     }
   }
@@ -151,7 +151,7 @@ export class PdfService {
   }
 
   // =========================
-  // PDF AUTORIZACIÓN
+  // PDF AUTORIZACIÃ“N
   // =========================
 
   async generarPDFAutorizacion(autorizacion: any): Promise<void> {
@@ -163,16 +163,16 @@ export class PdfService {
     const ROJO: [number, number, number]  = [185, 28, 28];
 
     const qrData = [
-      `Autorización: ${autorizacion.id}`,
+      `AutorizaciÃ³n: ${autorizacion.id}`,
       `Conductor: ${autorizacion.conductor?.nombre ?? '-'}`,
-      `Vehículo: ${autorizacion.vehiculo?.placa ?? '-'}`,
+      `VehÃ­culo: ${autorizacion.vehiculo?.placa ?? '-'}`,
       `Estado: ${autorizacion.estado}`,
       `Fecha: ${new Date(autorizacion.fechaCreacion).toLocaleString()}`
     ].join('\n');
 
     await this.agregarEncabezado(
       doc,
-      'AUTORIZACIÓN DE SALIDA',
+      'AUTORIZACIÃ“N DE SALIDA',
       `ID: ${autorizacion.id} | Estado: ${autorizacion.estado}`,
       qrData
     );
@@ -185,19 +185,19 @@ export class PdfService {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.text(
-      esAutorizado ? '✔ AUTORIZADO' : `● ${autorizacion.estado.toUpperCase()}`,
+      esAutorizado ? 'âœ” AUTORIZADO' : `â— ${autorizacion.estado.toUpperCase()}`,
       59, 54, { align: 'center' }
     );
 
     // DATOS PRINCIPALES
     const datos: [string, string][] = [
       ['Conductor',  autorizacion.conductor?.nombre    ?? '-'],
-      ['Vehículo',   autorizacion.vehiculo?.placa      ?? '-'],
+      ['VehÃ­culo',   autorizacion.vehiculo?.placa      ?? '-'],
       ['Tipo',       autorizacion.tipoVuelta            ?? '-'],
-      ['Destino',    autorizacion.destinoCompleto       || 'Mensajería'],
+      ['Destino',    autorizacion.destinoCompleto       || 'MensajerÃ­a'],
       ['Clientes',   `${autorizacion.cantidadClientes  ?? '-'}`],
       ['Peso',       autorizacion.pesoKilos ? `${autorizacion.pesoKilos} kg` : '-'],
-      ['Guía',       autorizacion.numeroGuia            || '-'],
+      ['GuÃ­a',       autorizacion.numeroGuia            || '-'],
       ['Fecha',      new Date(autorizacion.fechaCreacion).toLocaleString()],
     ];
 
@@ -214,34 +214,34 @@ export class PdfService {
       y += lineas.length * 6 + 4;
     }
 
-    // LÍNEA DIVISORA
+    // LÃNEA DIVISORA
     doc.setDrawColor(...COLOR);
     doc.setLineWidth(0.5);
     doc.line(14, y + 4, 196, y + 4);
     y += 12;
 
-    // TABLA FLUJO DE APROBACIÓN
+    // TABLA FLUJO DE APROBACIÃ“N
     autoTable(doc, {
       startY: y,
-      head: [['Etapa', 'Responsable', 'Observación', 'Estado']],
+      head: [['Etapa', 'Responsable', 'ObservaciÃ³n', 'Estado']],
       body: [
         [
-          'Facturación',
+          'FacturaciÃ³n',
           autorizacion.usuarioFacturacion   || '-',
           autorizacion.observacionFacturacion || '-',
-          autorizacion.firmaFacturacion ? '✔ Firmado' : '⏳ Pendiente'
+          autorizacion.firmaFacturacion ? 'âœ” Firmado' : 'â³ Pendiente'
         ],
         [
           'Bodega',
           autorizacion.usuarioBodega        || '-',
           autorizacion.observacionBodega    || '-',
-          autorizacion.firmaBodega ? '✔ Firmado' : '⏳ Pendiente'
+          autorizacion.firmaBodega ? 'âœ” Firmado' : 'â³ Pendiente'
         ],
         [
-          'Portería',
+          'PorterÃ­a',
           autorizacion.usuarioPorteria      || '-',
           autorizacion.observacionPorteria  || '-',
-          autorizacion.firmaPorteria ? '✔ Firmado' : '⏳ Pendiente'
+          autorizacion.firmaPorteria ? 'âœ” Firmado' : 'â³ Pendiente'
         ],
       ],
       headStyles: { fillColor: COLOR, textColor: [255,255,255], fontStyle: 'bold', fontSize: 9 },
@@ -273,7 +273,7 @@ export class PdfService {
     const qrData = [
       `Incidente: ${incidente.id}`,
       `Conductor: ${incidente.conductor?.nombre ?? '-'}`,
-      `Vehículo: ${incidente.vehiculo?.placa ?? '-'}`,
+      `VehÃ­culo: ${incidente.vehiculo?.placa ?? '-'}`,
       `Tipo: ${incidente.tipoIncidente}`,
       `Estado: ${incidente.estado}`,
       `Fecha: ${new Date(incidente.fechaReporte).toLocaleString()}`
@@ -293,7 +293,7 @@ export class PdfService {
     doc.setFontSize(9);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text(esRevisado ? '✔ REVISADO' : '⏳ PENDIENTE', 54, 54, { align: 'center' });
+    doc.text(esRevisado ? 'âœ” REVISADO' : 'â³ PENDIENTE', 54, 54, { align: 'center' });
 
     // DATOS
     const tiposLabel: any = {
@@ -304,19 +304,19 @@ export class PdfService {
 
     const datos: [string, string][] = [
       ['Conductor',  incidente.conductor?.nombre ?? '-'],
-      ['Vehículo',   incidente.vehiculo?.placa   ?? '-'],
+      ['VehÃ­culo',   incidente.vehiculo?.placa   ?? '-'],
       ['Tipo',       tiposLabel[incidente.tipoIncidente] ?? incidente.tipoIncidente],
       ['Fecha',      new Date(incidente.fechaReporte).toLocaleString()],
-      ['Ubicación',  incidente.ubicacionGPS || 'No capturada'],
+      ['UbicaciÃ³n',  incidente.ubicacionGPS || 'No capturada'],
     ];
 
     let y = this.agregarDatos(doc, datos, 63);
 
-    // DESCRIPCIÓN
+    // DESCRIPCIÃ“N
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLOR);
     doc.setFontSize(10);
-    doc.text('Descripción:', 14, y + 4);
+    doc.text('DescripciÃ³n:', 14, y + 4);
     y += 10;
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...GRIS);
@@ -324,7 +324,7 @@ export class PdfService {
     doc.text(lineas, 14, y);
     y += lineas.length * 6 + 8;
 
-    // REVISIÓN
+    // REVISIÃ“N
     if (incidente.estado === 'Revisado') {
       doc.setDrawColor(...COLOR);
       doc.setLineWidth(0.5);
@@ -333,14 +333,14 @@ export class PdfService {
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...COLOR);
-      doc.text('Información de revisión:', 14, y);
+      doc.text('InformaciÃ³n de revisiÃ³n:', 14, y);
       y += 8;
 
       const datosRevision: [string, string][] = [
         ['Revisado por',  incidente.revisadoPor ?? '-'],
-        ['Fecha revisión', incidente.fechaRevision
+        ['Fecha revisiÃ³n', incidente.fechaRevision
           ? new Date(incidente.fechaRevision).toLocaleString() : '-'],
-        ['Observación',   incidente.observacionRevision || '-'],
+        ['ObservaciÃ³n',   incidente.observacionRevision || '-'],
       ];
 
       this.agregarDatos(doc, datosRevision, y);
@@ -363,7 +363,7 @@ export class PdfService {
 
     const qrData = [
       `Mantenimiento: ${m.id}`,
-      `Vehículo: ${m.vehiculo?.placa ?? '-'}`,
+      `VehÃ­culo: ${m.vehiculo?.placa ?? '-'}`,
       `Tipo: ${m.tipoMantenimiento}`,
       `Taller: ${m.nombreTaller}`,
       `Estado: ${m.estado}`,
@@ -384,7 +384,7 @@ export class PdfService {
       Cancelado:  [185, 28, 28]
     };
     const labels: any = {
-      EnTaller: '🔧 EN TALLER', Finalizado: '✅ FINALIZADO', Cancelado: '❌ CANCELADO'
+      EnTaller: 'ðŸ”§ EN TALLER', Finalizado: 'âœ… FINALIZADO', Cancelado: 'âŒ CANCELADO'
     };
 
     const colorEstado = colores[m.estado] ?? COLOR;
@@ -397,11 +397,11 @@ doc.setFillColor(colorEstado[0], colorEstado[1], colorEstado[2]);
 
     // DATOS
     const datos: [string, string][] = [
-      ['Vehículo',       `${m.vehiculo?.placa ?? '-'} — ${m.vehiculo?.marca ?? ''} ${m.vehiculo?.modelo ?? ''}`],
+      ['VehÃ­culo',       `${m.vehiculo?.placa ?? '-'} â€” ${m.vehiculo?.marca ?? ''} ${m.vehiculo?.modelo ?? ''}`],
       ['Tipo',           m.tipoMantenimiento],
       ['Taller',         m.nombreTaller],
-      ['Técnico',        m.tecnicoResponsable || '-'],
-      ['Teléfono',       m.telefonoTaller     || '-'],
+      ['TÃ©cnico',        m.tecnicoResponsable || '-'],
+      ['TelÃ©fono',       m.telefonoTaller     || '-'],
       ['Fecha entrada',  new Date(m.fechaEntrada).toLocaleString()],
       ['Fecha salida',   m.fechaSalida ? new Date(m.fechaSalida).toLocaleString() : 'En taller'],
       ['Kilometraje',    `${m.kilometrajeEntrada} km`],
@@ -409,7 +409,7 @@ doc.setFillColor(colorEstado[0], colorEstado[1], colorEstado[2]);
 
     let y = this.agregarDatos(doc, datos, 63);
 
-    // LÍNEA
+    // LÃNEA
     doc.setDrawColor(...COLOR);
     doc.setLineWidth(0.5);
     doc.line(14, y + 2, 196, y + 2);
@@ -418,7 +418,7 @@ doc.setFillColor(colorEstado[0], colorEstado[1], colorEstado[2]);
     // TRABAJOS Y COSTOS
     autoTable(doc, {
       startY: y,
-      head: [['Detalle', 'Información']],
+      head: [['Detalle', 'InformaciÃ³n']],
       body: [
         ['Trabajos realizados',  m.trabajosRealizados  || '-'],
         ['Repuestos utilizados', m.repuestosUtilizados || '-'],
@@ -426,8 +426,8 @@ doc.setFillColor(colorEstado[0], colorEstado[1], colorEstado[2]);
         ['Costo mano de obra',   `$${(m.costoManoObra  || 0).toLocaleString()}`],
         ['Costo repuestos',      `$${(m.costoRepuestos || 0).toLocaleString()}`],
         ['COSTO TOTAL',          `$${(m.costoTotal     || 0).toLocaleString()}`],
-        ['Próximo mantenimiento km',   m.kilometrajeSiguiente ? `${m.kilometrajeSiguiente} km` : '-'],
-        ['Próxima fecha mantenimiento', m.fechaSiguiente
+        ['PrÃ³ximo mantenimiento km',   m.kilometrajeSiguiente ? `${m.kilometrajeSiguiente} km` : '-'],
+        ['PrÃ³xima fecha mantenimiento', m.fechaSiguiente
           ? new Date(m.fechaSiguiente).toLocaleDateString() : '-'],
       ],
       headStyles: { fillColor: COLOR, textColor: [255,255,255], fontStyle: 'bold', fontSize: 9 },
@@ -449,3 +449,4 @@ doc.setFillColor(colorEstado[0], colorEstado[1], colorEstado[2]);
   }
 
 }
+

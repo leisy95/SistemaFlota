@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentosService } from '../../services/documentos.service';
@@ -52,11 +52,11 @@ export class DocumentosComponent implements OnInit {
     'RRHH','Financiero','Operaciones','Otro'
   ];
 
-  // ── Permisos ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Permisos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('documentos'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('documentos'); }
 
-  // ── Stats rápidos ─────────────────────────────────────────────────────────────
+  // â”€â”€ Stats rÃ¡pidos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get totalVehiculo():  number { return this.documentosVehiculo.length; }
   get vencidosVeh():    number { return this.documentosVehiculo.filter(d => this.estaVencido(d.fechaVencimiento)).length; }
   get porVencerVeh():   number { return this.documentosVehiculo.filter(d => !this.estaVencido(d.fechaVencimiento) && this.diasParaVencer(d.fechaVencimiento) <= 30).length; }
@@ -113,7 +113,7 @@ export class DocumentosComponent implements OnInit {
     });
   }
 
-  // ── Filtros vehículo ──────────────────────────────────────────────────────────
+  // â”€â”€ Filtros vehÃ­culo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   aplicarFiltrosVehiculo() {
     const q = this.filtroBusqueda.toLowerCase();
     this.documentosVehiculoFiltrados = this.documentosVehiculo.filter(d => {
@@ -129,7 +129,7 @@ export class DocumentosComponent implements OnInit {
     this.aplicarFiltrosVehiculo();
   }
 
-  // ── Filtros generales ─────────────────────────────────────────────────────────
+  // â”€â”€ Filtros generales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   aplicarFiltrosGenerales() {
     const q = this.filtroBusqueda.toLowerCase();
     this.documentosGeneralesFiltrados = this.documentosGenerales.filter(d => {
@@ -145,11 +145,11 @@ export class DocumentosComponent implements OnInit {
     this.aplicarFiltrosGenerales();
   }
 
-  // ── Filtro por vencer ─────────────────────────────────────────────────────────
+  // â”€â”€ Filtro por vencer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   aplicarFiltroVencer() {
     const dias = Number(this.filtroDiasVencer);
     const todos = [
-      ...(this.porVencer.vehiculo  || []).map((d: any) => ({ ...d, _tipo: 'Vehículo' })),
+      ...(this.porVencer.vehiculo  || []).map((d: any) => ({ ...d, _tipo: 'VehÃ­culo' })),
       ...(this.porVencer.generales || []).map((d: any) => ({ ...d, _tipo: 'General' }))
     ];
     this.porVencerFiltrados = todos.filter(d =>
@@ -157,7 +157,7 @@ export class DocumentosComponent implements OnInit {
     );
   }
 
-  // ── Utilidad estado ───────────────────────────────────────────────────────────
+  // â”€â”€ Utilidad estado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   getEstadoDoc(d: any): string {
     if (!d.fechaVencimiento) return 'Vigente';
     if (this.estaVencido(d.fechaVencimiento)) return 'Vencido';
@@ -165,7 +165,7 @@ export class DocumentosComponent implements OnInit {
     return 'Vigente';
   }
 
-  // ── Modal subir ───────────────────────────────────────────────────────────────
+  // â”€â”€ Modal subir â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   abrirSubir(tipo: 'vehiculo' | 'general') {
     this.tipoSubida = tipo; this.archivoSeleccionado = null;
     this.formVehiculo = { vehiculoId: this.vehiculoSeleccionado, tipoDocumento: '', nombre: '', descripcion: '', fechaVencimiento: '' };
@@ -188,7 +188,7 @@ export class DocumentosComponent implements OnInit {
     const fd = new FormData();
 
     if (this.tipoSubida === 'vehiculo') {
-      if (!this.formVehiculo.vehiculoId)    { alert('Seleccione un vehículo'); this.subiendo = false; return; }
+      if (!this.formVehiculo.vehiculoId)    { alert('Seleccione un vehÃ­culo'); this.subiendo = false; return; }
       if (!this.formVehiculo.tipoDocumento) { alert('Seleccione el tipo'); this.subiendo = false; return; }
       if (!this.formVehiculo.nombre)        { alert('Ingrese un nombre'); this.subiendo = false; return; }
       fd.append('VehiculoId',    this.formVehiculo.vehiculoId.toString());
@@ -218,7 +218,7 @@ export class DocumentosComponent implements OnInit {
   }
 
   eliminarVehiculo(id: number) {
-    if (!confirm('¿Eliminar documento?')) return;
+    if (!confirm('Â¿Eliminar documento?')) return;
     this.documentosService.eliminarDocumentoVehiculo(id).subscribe({
       next: () => this.cargarDocumentosVehiculo(),
       error: (err) => console.error(err)
@@ -226,7 +226,7 @@ export class DocumentosComponent implements OnInit {
   }
 
   eliminarGeneral(id: number) {
-    if (!confirm('¿Eliminar documento?')) return;
+    if (!confirm('Â¿Eliminar documento?')) return;
     this.documentosService.eliminarDocumentoGeneral(id).subscribe({
       next: () => this.cargarDocumentosGenerales(),
       error: (err) => console.error(err)
@@ -234,13 +234,13 @@ export class DocumentosComponent implements OnInit {
   }
 
   getIconoExtension(ext: string): string {
-    if (!ext) return '📄';
+    if (!ext) return 'ðŸ“„';
     const e = ext.toLowerCase();
-    if (e === '.pdf')                        return '📕';
-    if (['.jpg','.jpeg','.png'].includes(e)) return '🖼️';
-    if (['.doc','.docx'].includes(e))        return '📝';
-    if (['.xls','.xlsx'].includes(e))        return '📊';
-    return '📄';
+    if (e === '.pdf')                        return 'ðŸ“•';
+    if (['.jpg','.jpeg','.png'].includes(e)) return 'ðŸ–¼ï¸';
+    if (['.doc','.docx'].includes(e))        return 'ðŸ“';
+    if (['.xls','.xlsx'].includes(e))        return 'ðŸ“Š';
+    return 'ðŸ“„';
   }
 
   getTamano(bytes: number): string {
@@ -261,7 +261,7 @@ export class DocumentosComponent implements OnInit {
   }
 
   getUrlDocumento(tipo: string, archivo: string): string {
-    const base = 'http://localhost:5214/documentos';
+    const base = 'https://api.gecobagsci.com/documentos';
     return tipo === 'vehiculo' ? `${base}/vehiculos/${archivo}` : `${base}/generales/${archivo}`;
   }
 }
