@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LoginComponent } from './componentes/login/login';
 import { DashboardComponent } from './componentes/dashboard/dashboard';
@@ -59,7 +59,7 @@ interface ModuloItem {
 })
 export class AppComponent implements OnInit {
 
-  title = 'Sistema de Gestión de Flota';
+  title = 'Sistema de GestiÃ³n de Flota';
   isLoggedIn = false;
   usuarioActivo = '';
   rol = '';
@@ -71,7 +71,7 @@ export class AppComponent implements OnInit {
   colorPrimario = '#15803d';
   moduloPrincipal: ModuloPrincipal = 'flota';
 
-  private readonly baseUrl = environment.apiUrl.replace('/api', '');
+  private readonly baseUrl = environment.fotosUrl;
 
   readonly tabsPrincipales: { key: ModuloPrincipal; label: string; icon: string }[] = [
     { key: 'flota', label: 'Flota', icon: 'fa-solid fa-truck' },
@@ -82,7 +82,7 @@ export class AppComponent implements OnInit {
   readonly modulosFlota: ModuloItem[] = [
     { key: 'dashboard', label: 'Panel de control', icon: 'fa-solid fa-gauge-high' },
     { key: 'conductores', label: 'Conductores', icon: 'fa-solid fa-id-card' },
-    { key: 'vehiculos', label: 'Vehículos', icon: 'fa-solid fa-truck' },
+    { key: 'vehiculos', label: 'VehÃ­culos', icon: 'fa-solid fa-truck' },
     { key: 'inspecciones', label: 'Inspecciones', icon: 'fa-solid fa-clipboard-check' },
     { key: 'ver-inspecciones', label: 'Historial', icon: 'fa-solid fa-clock-rotate-left' },
     { key: 'autorizaciones', label: 'Autorizaciones', icon: 'fa-solid fa-file-circle-check' },
@@ -96,9 +96,9 @@ export class AppComponent implements OnInit {
     { key: 'trazabilidad', label: 'Trazabilidad', icon: 'fa-solid fa-boxes-stacked' },
     { key: 'pedidos', label: 'Pedidos', icon: 'fa-solid fa-box' },
     { key: 'contactos-notificacion', label: 'Contactos WhatsApp', icon: 'fa-brands fa-whatsapp' },
-    { key: 'auditoria', label: 'Auditoría', icon: 'fa-solid fa-shield-halved' },
+    { key: 'auditoria', label: 'AuditorÃ­a', icon: 'fa-solid fa-shield-halved' },
     { key: 'usuarios', label: 'Usuarios', icon: 'fa-solid fa-users-gear' },
-    { key: 'configuracion', label: 'Configuración', icon: 'fa-solid fa-sliders' },
+    { key: 'configuracion', label: 'ConfiguraciÃ³n', icon: 'fa-solid fa-sliders' },
     { key: 'checklist', label: 'Checklist', icon: 'fa-solid fa-list-check' },
   ];
 
@@ -199,16 +199,16 @@ export class AppComponent implements OnInit {
   onLoginSuccess(datos: any) {
     this.isLoggedIn = true;
     this.usuarioActivo = datos.username;
-    this.rol = datos.rol;  // ← primero asignar el rol
+    this.rol = datos.rol;  // â† primero asignar el rol
     this.permisosGranulares = Array.isArray(datos.permisos)
       ? datos.permisos.filter((p: any) => typeof p === 'object' && p.modulo)
       : [];
 
-    // Módulo por defecto
+    // MÃ³dulo por defecto
     this.moduloPrincipal = 'flota';
     this.moduloActual = 'dashboard';
 
-    // Roles que no ven dashboard — arrancan en su primer módulo
+    // Roles que no ven dashboard â€” arrancan en su primer mÃ³dulo
     if (this.rol === 'Conductor') { this.moduloActual = 'inspecciones'; }
     if (this.rol === 'Vendedor') { this.moduloActual = 'pedidos'; }
     if (this.rol === 'Porteria') { this.moduloActual = 'autorizaciones'; }
@@ -216,7 +216,7 @@ export class AppComponent implements OnInit {
       this.moduloPrincipal = 'rrhh'; this.moduloActual = 'rrhh-seguimientos';
     }
 
-    // Calidad e Impresion arrancan en Calidad → Cyreles
+    // Calidad e Impresion arrancan en Calidad â†’ Cyreles
     if (this.rol === 'Impresion' || this.rol === 'Calidad') {
       this.moduloPrincipal = 'calidad';
       this.moduloActual = 'calidad-cyreles';
@@ -263,7 +263,7 @@ export class AppComponent implements OnInit {
   }
 
   cambiarModulo(nombreModulo: string) {
-    if (!this.tieneAcceso(nombreModulo)) { alert('No tienes permisos para entrar aquí'); return; }
+    if (!this.tieneAcceso(nombreModulo)) { alert('No tienes permisos para entrar aquÃ­'); return; }
     this.moduloActual = nombreModulo;
     this.cerrarSidebar();
   }

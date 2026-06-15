@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { HttpClientModule }  from '@angular/common/http';
@@ -31,14 +31,14 @@ export class ConductoresComponent implements OnInit {
   archivoSeleccionado:   File | null      = null;
   conductorSeleccionado: Conductor | null = null;
 
-  // ── Hoja de vida ──────────────────────────────────────────────────────────
+  // â”€â”€ Hoja de vida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   mostrarHojaVida    = false;
   conductorHojaVida: Conductor | null = null;
 
   nuevo: Conductor = { id: 0, nombre: '', licencia: '', telefono: '', email: '', foto: '' };
 
   apiUrl   = `${environment.apiUrl}/Conductores`;
-  fotosUrl = environment.fotosUrl;
+  fotosUrl = environment.fotosUrl + '/fotos';
 
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('conductores'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('conductores'); }
@@ -146,9 +146,9 @@ export class ConductoresComponent implements OnInit {
 
   eliminar(id: number) {
     Swal.fire({
-      title: '¿Eliminar conductor?', text: 'Esta acción no se puede deshacer',
+      title: 'Â¿Eliminar conductor?', text: 'Esta acciÃ³n no se puede deshacer',
       icon: 'warning', showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+      confirmButtonText: 'SÃ­, eliminar', cancelButtonText: 'Cancelar'
     }).then((r: any) => {
       if (r.isConfirmed) {
         this.conductoresService.eliminarConductor(id).subscribe({
@@ -167,7 +167,7 @@ export class ConductoresComponent implements OnInit {
     this.mostrarHojaVida = false; // resetear si estaba abierta
   }
 
-  // ── Hoja de vida ──────────────────────────────────────────────────────────
+  // â”€â”€ Hoja de vida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   abrirHojaVida(conductor: Conductor) {
     this.conductorHojaVida     = conductor;
     this.mostrarHojaVida       = true;

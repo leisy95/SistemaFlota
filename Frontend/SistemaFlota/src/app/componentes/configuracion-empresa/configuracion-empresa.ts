@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
 import { ConfiguracionService } from '../../services/configuracion.service';
@@ -30,7 +30,7 @@ export class ConfiguracionEmpresaComponent implements OnInit {
     descripcion:      ''
   };
 
-  // ── Colores con hex válidos ────────────────────────────────────────────────
+  // â”€â”€ Colores con hex vÃ¡lidos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   readonly coloresSugeridos = [
     { label: 'Verde',        value: '#15803d' },
     { label: 'Verde oscuro', value: '#166534' },
@@ -39,7 +39,7 @@ export class ConfiguracionEmpresaComponent implements OnInit {
     { label: 'Rojo',         value: '#dc2626' },
     { label: 'Naranja',      value: '#ea580c' },
     { label: 'Morado',       value: '#7c3aed' },
-    { label: 'Índigo',       value: '#4338ca' },
+    { label: 'Ãndigo',       value: '#4338ca' },
     { label: 'Rosa',         value: '#db2777' },
     { label: 'Cyan',         value: '#0891b2' },
     { label: 'Gris',         value: '#475569' },
@@ -68,7 +68,7 @@ export class ConfiguracionEmpresaComponent implements OnInit {
           document.documentElement.style.setProperty('--color-primario', this.config.colorCorporativo);
 
         if (data.logo)
-          this.logoPreview = `${environment.apiUrl.replace('/api', '')}/config/${data.logo}`;
+          this.logoPreview = `${environment.fotosUrl}/config/${data.logo}`;
       },
       error: (err) => console.error(err)
     });
@@ -116,7 +116,7 @@ export class ConfiguracionEmpresaComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.guardando = false;
-        this.errorMsg  = 'Error guardando configuración';
+        this.errorMsg  = 'Error guardando configuraciÃ³n';
       }
     });
   }

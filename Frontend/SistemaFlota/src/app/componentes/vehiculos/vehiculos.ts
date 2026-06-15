@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import Swal from 'sweetalert2';
@@ -29,7 +29,7 @@ export class VehiculosComponent implements OnInit {
   itemsPorPagina      = 5;
   archivoSeleccionado: File | null = null;
 
-  fotosUrl = environment.apiUrl.replace('/api', '') + '/vehiculos';
+  fotosUrl = environment.fotosUrl + '/vehiculos';
 
   nuevo: any = {
     id: 0, placa: '', marca: '', modelo: '',
@@ -118,7 +118,7 @@ export class VehiculosComponent implements OnInit {
     if (!this.nuevo.placa)  { Swal.fire({ icon: 'warning', title: 'Ingrese la placa' });  return; }
     if (!this.nuevo.marca)  { Swal.fire({ icon: 'warning', title: 'Ingrese la marca' });  return; }
     if (this.nuevo.tipoVehiculoId === 0) {
-      Swal.fire({ icon: 'warning', title: 'Seleccione el tipo de vehículo' }); return;
+      Swal.fire({ icon: 'warning', title: 'Seleccione el tipo de vehÃ­culo' }); return;
     }
     if (this.nuevo.conductorId === 0) {
       Swal.fire({ icon: 'warning', title: 'Seleccione un conductor' }); return;
@@ -128,7 +128,7 @@ export class VehiculosComponent implements OnInit {
     formData.append('Placa',          this.nuevo.placa);
     formData.append('Marca',          this.nuevo.marca);
     formData.append('Modelo',         this.nuevo.modelo);
-    formData.append('Año',            this.nuevo.modeloAnio.toString());
+    formData.append('año',            this.nuevo.modeloAnio.toString());
     formData.append('Color',          this.nuevo.color);
     formData.append('Estado',         this.nuevo.estado);
     formData.append('ConductorId',    this.nuevo.conductorId.toString());
@@ -146,7 +146,7 @@ export class VehiculosComponent implements OnInit {
         this.cerrar();
         Swal.fire({
           icon: 'success',
-          title: this.modoEdicion ? 'Vehículo actualizado' : 'Vehículo guardado',
+          title: this.modoEdicion ? 'VehÃ­culo actualizado' : 'VehÃ­culo guardado',
           timer: 1500, showConfirmButton: false
         });
       },
@@ -159,8 +159,8 @@ export class VehiculosComponent implements OnInit {
 
   eliminar(id: number) {
     Swal.fire({
-      title: '¿Eliminar vehículo?', icon: 'warning',
-      showCancelButton: true, confirmButtonText: 'Sí, eliminar'
+      title: 'Â¿Eliminar vehÃ­culo?', icon: 'warning',
+      showCancelButton: true, confirmButtonText: 'SÃ­, eliminar'
     }).then((r) => {
       if (r.isConfirmed) {
         this.vehiculosService.eliminarVehiculo(id).subscribe({
@@ -185,3 +185,4 @@ export class VehiculosComponent implements OnInit {
     );
   }
 }
+
