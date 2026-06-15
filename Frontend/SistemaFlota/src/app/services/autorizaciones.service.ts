@@ -10,8 +10,8 @@ export class AutorizacionesService {
 
   constructor(private http: HttpClient) {}
 
-  obtenerAutorizaciones(): Observable<any[]> {
-    return this.http.get<any[]>(this.api);
+  obtenerAutorizaciones(): Observable<any> {  // ← cambiado de any[] a any
+    return this.http.get<any>(this.api);
   }
 
   crear(datos: any): Observable<any> {
@@ -50,7 +50,6 @@ export class AutorizacionesService {
     return this.http.put<any>(`${this.api}/${id}/confirmar-salida`, {});
   }
 
-  // ── Accesos rápidos (sin autorización previa) ─────────────────────────────
   salidaRapida(datos: {
     conductorId: number;
     vehiculoId: number;

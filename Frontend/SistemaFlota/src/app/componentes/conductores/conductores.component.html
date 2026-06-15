@@ -22,7 +22,7 @@
   <div *ngFor="let c of conductoresPaginados" class="card">
 
     <div class="foto-container">
-      <img *ngIf="c.foto"  [src]="fotosUrl + '/fotos/' + c.foto" class="foto">
+      <img *ngIf="c.foto"  [src]="fotosUrl + '/' + c.foto" class="foto">
       <div *ngIf="!c.foto" class="foto-placeholder">
         <i class="fa-solid fa-user-tie"></i>
       </div>
@@ -85,7 +85,7 @@
 
     <div class="perfil-foto">
       <img *ngIf="conductorSeleccionado.foto"
-        [src]="fotosUrl + '/fotos/' + conductorSeleccionado.foto">
+        [src]="fotosUrl + '/' + conductorSeleccionado.foto">
       <div *ngIf="!conductorSeleccionado.foto" class="foto-placeholder grande">
         <i class="fa-solid fa-user-tie"></i>
       </div>

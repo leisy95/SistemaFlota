@@ -92,30 +92,30 @@ export class EncuestaFatigaComponent implements OnInit {
     });
   }
   aplicarFiltros() {
-  this.paginaActual = 1;
-  this.cargarEncuestas();
-}
-
-limpiarFiltros() {
-  this.filtroBusqueda  = '';
-  this.filtroResultado = '';
-  this.paginaActual    = 1;
-  this.cargarEncuestas();
-}
-
-paginaSiguiente() {
-  if (this.paginaActual < this.totalPaginas) {
-    this.paginaActual++;
+    this.paginaActual = 1;
     this.cargarEncuestas();
   }
-}
 
-paginaAnterior() {
-  if (this.paginaActual > 1) {
-    this.paginaActual--;
+  limpiarFiltros() {
+    this.filtroBusqueda = '';
+    this.filtroResultado = '';
+    this.paginaActual = 1;
     this.cargarEncuestas();
   }
-}
+
+  paginaSiguiente() {
+    if (this.paginaActual < this.totalPaginas) {
+      this.paginaActual++;
+      this.cargarEncuestas();
+    }
+  }
+
+  paginaAnterior() {
+    if (this.paginaActual > 1) {
+      this.paginaActual--;
+      this.cargarEncuestas();
+    }
+  }
 
   cargarConductores() {
     this.conductoresService.obtenerConductores().subscribe({

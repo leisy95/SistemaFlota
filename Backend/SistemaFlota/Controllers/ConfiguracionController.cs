@@ -21,6 +21,7 @@ namespace SistemaFlota
         // =====================================
 
         [HttpGet]
+        [AllowAnonymous]  // ← agrega esta línea
         public async Task<IActionResult> Get()
         {
             var config = await _context.ConfiguracionEmpresa
@@ -28,7 +29,6 @@ namespace SistemaFlota
 
             if (config == null)
             {
-                // RETORNAR CONFIGURACIÓN VACÍA POR DEFECTO
                 return Ok(new ConfiguracionEmpresa
                 {
                     Id = 0,

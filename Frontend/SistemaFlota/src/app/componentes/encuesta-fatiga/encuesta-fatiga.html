@@ -66,8 +66,7 @@
         el conductor será marcado como <strong class="texto-no-apto">NO APTO</strong>.
       </p>
 
-      <div class="pregunta-item" *ngFor="let p of preguntas"
-        [class.activa]="getPregunta(p.key)">
+      <div class="pregunta-item" *ngFor="let p of preguntas" [class.activa]="getPregunta(p.key)">
         <div class="pregunta-texto">
           <span class="pregunta-icono">{{ getPregunta(p.key) ? '⚠️' : '✅' }}</span>
           <p>{{ p.texto }}</p>
@@ -82,14 +81,11 @@
 
       <div class="preguntas-extra">
         <h4>➕ Preguntas adicionales <span class="opcional">(opcional)</span></h4>
-        <div class="pregunta-extra-fila"
-          *ngFor="let pe of preguntasExtra; let i = index">
+        <div class="pregunta-extra-fila" *ngFor="let pe of preguntasExtra; let i = index">
           <input type="text" [(ngModel)]="pe.pregunta" placeholder="Escriba la pregunta adicional...">
           <div class="pregunta-opciones">
-            <button class="btn-si" [class.seleccionado]="pe.respuesta"
-              (click)="pe.respuesta = true">SÍ</button>
-            <button class="btn-no" [class.seleccionado]="!pe.respuesta"
-              (click)="pe.respuesta = false">NO</button>
+            <button class="btn-si" [class.seleccionado]="pe.respuesta" (click)="pe.respuesta = true">SÍ</button>
+            <button class="btn-no" [class.seleccionado]="!pe.respuesta" (click)="pe.respuesta = false">NO</button>
           </div>
           <button class="btn-eliminar-fila" (click)="eliminarPreguntaExtra(i)">🗑️</button>
         </div>
@@ -110,8 +106,7 @@
       <textarea [(ngModel)]="form.observaciones" placeholder="Observaciones adicionales..."></textarea>
     </div>
 
-    <div class="resultado-preview"
-      [class.apto]="resultadoPreview === 'Apto'"
+    <div class="resultado-preview" [class.apto]="resultadoPreview === 'Apto'"
       [class.no-apto]="resultadoPreview === 'No Apto'">
       <div class="resultado-icono">{{ resultadoPreview === 'Apto' ? '✅' : '🚨' }}</div>
       <div class="resultado-info">
@@ -136,8 +131,7 @@
 
   <!-- RESULTADO FINAL -->
   <div class="resultado-final" *ngIf="resultadoActual">
-    <div class="resultado-card"
-      [class.apto]="resultadoActual.resultado === 'Apto'"
+    <div class="resultado-card" [class.apto]="resultadoActual.resultado === 'Apto'"
       [class.no-apto]="resultadoActual.resultado === 'No Apto'">
       <div class="resultado-grande">{{ resultadoActual.resultado === 'Apto' ? '✅' : '🚨' }}</div>
       <h2>{{ resultadoActual.resultado === 'Apto' ? 'CONDUCTOR APTO' : 'CONDUCTOR NO APTO' }}</h2>
@@ -167,13 +161,17 @@
       <table>
         <thead>
           <tr>
-            <th>Fecha</th><th>Conductor</th><th>Vehículo</th>
-            <th>Resp. Sí</th><th>Resultado</th><th>Registrado por</th><th>Acciones</th>
+            <th>Fecha</th>
+            <th>Conductor</th>
+            <th>Vehículo</th>
+            <th>Resp. Sí</th>
+            <th>Resultado</th>
+            <th>Registrado por</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let e of encuestas"
-            [class.fila-no-apto]="e.resultado === 'No Apto'">
+          <tr *ngFor="let e of encuestas" [class.fila-no-apto]="e.resultado === 'No Apto'">
             <td data-label="Fecha">{{ e.fecha | date:'short' }}</td>
             <td data-label="Conductor"><strong>{{ e.conductor?.nombre }}</strong></td>
             <td data-label="Vehículo">{{ e.vehiculo?.placa }}</td>
