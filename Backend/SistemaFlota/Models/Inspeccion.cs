@@ -16,6 +16,7 @@ namespace SistemaFlota
 
         // FIRMA CONDUCTOR
         public string? FirmaCondutor { get; set; }
+    public bool? WhatsAppEnviado { get; set; }
 
         // VEHÍCULO
         public int VehiculoId { get; set; }

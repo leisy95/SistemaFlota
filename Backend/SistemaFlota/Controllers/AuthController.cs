@@ -20,7 +20,7 @@ namespace SistemaFlota
             _intentosFallidos = new();
 
         private const int MaxIntentos = 5;
-        private const int BloqueoMinutos = 15;
+        private const int BloqueoMinutos = 3;
 
         public AuthController(AppDbContext context, IConfiguration config, AuditoriaService auditoria)
         {

@@ -36,6 +36,7 @@
             <th>Conductor</th>
             <th>Vehículo</th>
             <th>Kilometraje</th>
+            <th>WhatsApp</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -45,6 +46,11 @@
             <td data-label="Conductor">{{ item.conductor?.nombre }}</td>
             <td data-label="Vehículo">{{ item.vehiculo?.placa }}</td>
             <td data-label="Kilometraje">{{ item.kilometraje }} km</td>
+            <td data-label="WhatsApp">
+              <span *ngIf="item.whatsAppEnviado === true" title="Enviado">✅</span>
+              <span *ngIf="item.whatsAppEnviado === false" title="Falló">❌</span>
+              <span *ngIf="item.whatsAppEnviado === null || item.whatsAppEnviado === undefined" title="Sin registro">➖</span>
+            </td>
             <td data-label="Acción">
               <div class="btn-acciones">
                 <button class="btn-ver" (click)="verDetalle(item.id)">👁️ Ver</button>

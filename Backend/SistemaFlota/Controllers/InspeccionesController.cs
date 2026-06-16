@@ -262,8 +262,13 @@ namespace SistemaFlota
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                if (numerosGrupo.Any())
+                try {
                     await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    inspeccion.WhatsAppEnviado = true;
+                } catch {
+                    inspeccion.WhatsAppEnviado = false;
+                }
+                await _context.SaveChangesAsync();
 
                 // ── Mensaje al conductor si hay no conformes ──────────────────
                 if (itemsNoConformes.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))

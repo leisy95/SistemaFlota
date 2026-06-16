@@ -630,7 +630,7 @@
   <div class="paso-contenido" *ngIf="pasoActual === 1">
     <h2><i class="fa-solid fa-id-card"></i> Seleccionar Conductor</h2>
     <div class="grid-conductores">
-      <div class="card-conductor" *ngFor="let c de conductores; trackBy: trackById" (click)="seleccionarConductor(c)">
+      <div class="card-conductor" *ngFor="let c of conductores; trackBy: trackById" (click)="seleccionarConductor(c)">
         <div class="conductor-icon"><i class="fa-solid fa-user-tie"></i></div>
         <h3>{{ c.nombre }}</h3>
         <p>{{ c.licencia }}</p>
