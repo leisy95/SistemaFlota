@@ -3,7 +3,7 @@
   <!-- HEADER -->
   <div class="hv-header">
     <div class="hv-avatar">
-      <img *ngIf="conductor.foto" [src]="'http://localhost:5214/conductores/' + conductor.foto">
+      <img *ngIf="conductor.foto" [src]="'https://api.gecobagsci.com/fotos/' + conductor.foto">
       <i *ngIf="!conductor.foto" class="fa-solid fa-user-tie"></i>
     </div>
     <div class="hv-info">
@@ -146,7 +146,7 @@
           </span>
         </div>
         <div class="item-acciones">
-          <a *ngIf="e.documento" [href]="'http://localhost:5214/hojavida/examenes/'+e.documento"
+          <a *ngIf="e.documento" [href]="'https://api.gecobagsci.com/hojavida/examenes/'+e.documento"
             target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
           <button class="btn-del" (click)="eliminarExamen(e.id)"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -187,7 +187,7 @@
           </span>
         </div>
         <div class="item-acciones">
-          <a *ngIf="c.documento" [href]="'http://localhost:5214/hojavida/capacitaciones/'+c.documento"
+          <a *ngIf="c.documento" [href]="'https://api.gecobagsci.com/hojavida/capacitaciones/'+c.documento"
             target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
           <button class="btn-del" (click)="eliminarCapacitacion(c.id)"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -227,7 +227,7 @@
           </select>
         </div>
         <div class="item-acciones">
-          <a *ngIf="i.documento" [href]="'http://localhost:5214/hojavida/infracciones/'+i.documento"
+          <a *ngIf="i.documento" [href]="'https://api.gecobagsci.com/hojavida/infracciones/'+i.documento"
             target="_blank" class="btn-doc"><i class="fa-solid fa-file-pdf"></i></a>
           <button class="btn-del" (click)="eliminarInfraccion(i.id)"><i class="fa-solid fa-trash"></i></button>
         </div>
