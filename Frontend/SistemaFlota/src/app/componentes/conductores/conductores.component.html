@@ -171,3 +171,22 @@
     </div>
   </div>
 </div>
+<!-- MODAL VERIFICACION CONTRASENA -->
+<div class="modal-overlay" *ngIf="mostrarModalPassword">
+  <div class="modal-content" style="max-width:380px">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-lock"></i> Acceso restringido</h2>
+    </div>
+    <div class="modal-body" style="padding:1.5rem">
+      <p style="margin-bottom:1rem;color:#555">Este módulo requiere verificación. Ingrese su contraseña de acceso.</p>
+      <input type="password" [(ngModel)]="passwordAcceso" placeholder="Contraseña de acceso"
+        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px"
+        (keyup.enter)="verificarAcceso()">
+      <p *ngIf="errorPassword" style="color:red;margin-top:8px;font-size:13px">{{ errorPassword }}</p>
+    </div>
+    <div class="acciones-modal" style="padding:1rem;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-cancelar" (click)="cancelarAcceso()">Cancelar</button>
+      <button class="btn-guardar" (click)="verificarAcceso()">Verificar</button>
+    </div>
+  </div>
+</div>

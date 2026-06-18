@@ -65,4 +65,11 @@ export class UsuariosService {
   misPermisos(): Observable<any> {
     return this.http.get(`${this.apiUrl}/mis-permisos`);
   }
+  setPasswordModulo(id: number, password: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/password-modulo`, { password });
+  }
+
+  verificarModulo(username: string, password: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verificar-modulo`, { username, password });
+  }
 }

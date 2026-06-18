@@ -38,6 +38,7 @@ export class UsuariosComponent implements OnInit {
   emailRecuperar = '';
   tokenRecuperar = '';
   nuevaPassword = '';
+  passwordConductores = '';
   tokenGenerado = '';
   mensajeRecuperar = '';
 
@@ -147,6 +148,7 @@ export class UsuariosComponent implements OnInit {
   agregarUsuario() {
     this.editando = false; this.usuarioEditarId = null;
     this.nuevoUsuario = { username: '', password: '', rol: 'Auxiliar', email: '', activo: true, permisos: [] };
+    this.passwordConductores = '';
     this.mostrarModal = true;
   }
 

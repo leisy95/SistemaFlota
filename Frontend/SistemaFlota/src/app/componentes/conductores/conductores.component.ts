@@ -9,6 +9,7 @@ import { PermisosService }    from '../../services/permisos.service';
 import { HojaVidaComponent }  from '../hoja-vida/hoja-vida.component';
 import { environment }        from '../../../environments/environment';
 import { Conductor }          from '../../models/conductor.model';
+import { UsuariosService }    from '../../services/usuarios.service';
 
 @Component({
   selector: 'app-conductores',
@@ -39,6 +40,10 @@ export class ConductoresComponent implements OnInit {
 
   apiUrl   = `${environment.apiUrl}/Conductores`;
   fotosUrl = environment.fotosUrl + '/fotos';
+  mostrarModalPassword = true;
+  passwordAcceso = '';
+  errorPassword = '';
+  accesoVerificado = false;
 
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('conductores'); }
   get puedeEditar():   boolean { return this.permisosService.puedeEditar('conductores'); }
@@ -46,6 +51,7 @@ export class ConductoresComponent implements OnInit {
 
   constructor(
     private conductoresService: ConductoresService,
+    private usuariosService: UsuariosService,
     private permisosService:    PermisosService
   ) {}
 
@@ -177,5 +183,23 @@ export class ConductoresComponent implements OnInit {
   cerrarHojaVida() {
     this.mostrarHojaVida   = false;
     this.conductorHojaVida = null;
+  }
+
+  verificarAcceso() {
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    this.usuariosService.verificarModulo(user.username, this.passwordAcceso).subscribe({
+      next: () => {
+        this.accesoVerificado = true;
+        this.mostrarModalPassword = false;
+        this.errorPassword = '';
+      },
+      error: (err: any) => {
+        this.errorPassword = err.error?.error ?? 'Contrasena incorrecta';
+      }
+    });
+  }
+
+  cancelarAcceso() {
+    window.history.back();
   }
 }
