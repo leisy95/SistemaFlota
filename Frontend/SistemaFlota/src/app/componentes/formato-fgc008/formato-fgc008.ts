@@ -32,6 +32,7 @@ export class FormatoFGC008Component implements OnInit {
   firmaDataUrl: string | null = null;
   cargoFirma: string = 'Bodega';
   logoUrl: string = '';
+  opExistente: any = null;
 
   get puedeVer(): boolean { return this.permisosService.puedeVer('calidad-formatos'); }
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
@@ -78,6 +79,14 @@ export class FormatoFGC008Component implements OnInit {
     this.firmaDataUrl = null;
   }
 
+  buscarOP() {
+    if (!this.form.ordenProduccion) return;
+    this.service.buscarOP(this.form.ordenProduccion).subscribe({
+      next: (data) => { this.opExistente = data; this.form.cantidadOP = data.cantidadOP; },
+      error: () => { this.opExistente = null; }
+    });
+  }
+
   seleccionarFoto(event: any) { this.fotoEvidencia = event.target.files[0]; }
 
   guardar() {
@@ -97,7 +106,7 @@ export class FormatoFGC008Component implements OnInit {
       next: () => {
         this.vista = 'lista';
         this.form = { ordenProduccion:'', etiquetasSI:false, embalajeSI:false, defectosSI:false, cantidadOP:0, cantidadReal:0, listoBodega:false, despachado:'', accionesTomadas:'' };
-        this.fotoEvidencia = null;
+        this.fotoEvidencia = null; this.opExistente = null;
         this.cargar();
       },
       error: e => { console.error(e); alert('Error guardando registro'); }
@@ -142,172 +151,234 @@ export class FormatoFGC008Component implements OnInit {
     this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
   }
 
-  exportarPDF() {
-    const doc = new jsPDF('l', 'mm', 'a4');
+  urlToBase64(url: string): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        canvas.getContext('2d')!.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg'));
+      };
+      img.onerror = () => resolve('');
+      img.src = url + '?t=' + Date.now();
+    });
+  }
+
+  async exportarPDF() {
+    const doc = new jsPDF('p', 'mm', 'a4');
     const VERDE: [number,number,number] = [26,127,90];
     const VERDECLARO: [number,number,number] = [45,158,107];
     const NEGRO: [number,number,number] = [0,0,0];
     const GRIS: [number,number,number] = [232,245,233];
-    const W = 297; const M = 10;
+    const W = 210; const M = 8;
 
-    doc.setDrawColor(0,0,0); doc.setLineWidth(0.3);
-    doc.rect(M, M, W-M*2, 26);
-    doc.rect(M, M, 30, 26);
-    if (this.logoUrl) {
-      try { doc.addImage(this.logoUrl, 'PNG', M+1, M+1, 28, 24); } catch(e) {}
+    const fotosBase64: {[key: string]: string} = {};
+    for (const r of this.registros) {
+      if (r.fotoEvidencia) {
+        fotosBase64[r.fotoEvidencia] = await this.urlToBase64(this.baseUrl+'/formatos/'+r.fotoEvidencia);
+      }
     }
-    doc.setFontSize(11); doc.setTextColor(...NEGRO); doc.setFont('helvetica','bold');
-    doc.text('EMPAQUES PLASTICOS S.A.S', (W/2)+15, 17, { align: 'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('NIT 816000992-1', (W/2)+15, 21, { align: 'center' });
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('FORMATO: CONTROL BODEGA PRODUCTO TERMINADO', (W/2)+15, 25, { align: 'center' });
-    doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('REGISTRO VERIFICACION DE EMPAQUE', (W/2)+15, 29, { align: 'center' });
-    doc.rect(W-M-45, M, 45, 9); doc.rect(W-M-45, M+9, 45, 9); doc.rect(W-M-45, M+18, 45, 8);
-    doc.setFontSize(7);
-    doc.text('Codigo: F-GC-008', W-M-43, M+6);
-    doc.text('Version: 001', W-M-43, M+15);
-    doc.text('Fecha: 15/09/2024', W-M-43, M+23);
 
-    let y = M+30;
-    doc.setFontSize(7); doc.setFont('helvetica','italic');
-    doc.text('Nota: Las verificaciones consisten en comprobar la informacion del empaque del producto final con los criterios de calidad.', M, y+4, { maxWidth: W-M*2 });
-    y += 9;
+    const dibujarEncabezado = (yy: number): number => {
+      doc.setDrawColor(0); doc.setLineWidth(0.3);
+      doc.rect(M, yy, W-M*2, 22);
+      doc.rect(M, yy, 22, 22);
+      if (this.logoUrl) { try { doc.addImage(this.logoUrl, 'PNG', M+1, yy+1, 20, 20); } catch(e) {} }
+      doc.setFontSize(9); doc.setTextColor(...NEGRO); doc.setFont('helvetica','bold');
+      doc.text('EMPAQUES PLASTICOS S.A.S', W/2+5, yy+7, {align:'center'});
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.text('NIT:816000992-1', W/2+5, yy+11, {align:'center'});
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text('FORMATO: CONTROL BODEGA PRODUCTO TERMINADO', W/2+5, yy+16, {align:'center'});
+      doc.rect(W-M-38, yy, 38, 8); doc.rect(W-M-38, yy+8, 38, 7); doc.rect(W-M-38, yy+15, 38, 7);
+      doc.setFontSize(6); doc.setFont('helvetica','normal');
+      doc.text('Codigo: F-GC-008', W-M-36, yy+5);
+      doc.text('Version: 001', W-M-36, yy+12);
+      doc.text('Fecha: 15/09/2024', W-M-36, yy+19);
+      return yy+22;
+    };
+
+    let y = M;
+    y = dibujarEncabezado(y);
+    doc.setFillColor(240,240,240);
+    doc.rect(M, y, 20, 6, 'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...NEGRO);
+    doc.text('FECHA', M+10, y+4, {align:'center'});
+    doc.rect(M+20, y, W-M*2-20, 6);
     doc.setFont('helvetica','normal');
-    doc.text('Fecha reporte: ' + new Date().toLocaleDateString('es-CO'), M, y+4);
+    doc.text(new Date().toLocaleDateString('es-CO'), M+22, y+4);
     y += 6;
+    doc.setFillColor(250,250,250);
+    doc.rect(M, y, W-M*2, 5, 'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text('REGISTRO VERIFICACION DE EMPAQUE', W/2, y+3.5, {align:'center'});
+    y += 5;
+    doc.setFontSize(6); doc.setFont('helvetica','italic');
+    doc.rect(M, y, W-M*2, 7);
+    doc.text('Nota: Las verificaciones consisten en comprobar la informacion del empaque del producto final con los criterios de calidad y la informacion especificada en la orden de produccion.', M+1, y+3, {maxWidth: W-M*2-2});
+    y += 8;
 
     const grupos: any = {};
-    this.registros.forEach(r => {
+    this.registros.forEach((r:any) => {
       if (!grupos[r.ordenProduccion]) grupos[r.ordenProduccion] = [];
       grupos[r.ordenProduccion].push(r);
     });
 
-    const colWidths = [28, 20, 8, 8, 8, 8, 8, 8, 20, 20, 15, 8, 8, 25, 18, 20];
-    const totalW = colWidths.reduce((a,b) => a+b, 0);
-    const scale = (W-M*2) / totalW;
-    const cw = colWidths.map(w => w*scale);
+    const cw = [22, 16, 7, 7, 7, 7, 7, 7, 16, 14, 12, 7, 7, 22];
+    const rowH = 6;
 
-    doc.setFillColor(...VERDE); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(6);
+    doc.setFillColor(...VERDE); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(5.5);
     let x = M;
-    const drawCell = (text: string, w: number, h: number, fill?: [number,number,number]) => {
-      if (fill) doc.setFillColor(...fill);
-      doc.rect(x, y, w, h, fill ? 'FD' : 'D');
-      doc.text(text, x+w/2, y+h/2+1, { align: 'center', maxWidth: w-1 });
-      x += w;
-    };
-
-    drawCell('Orden\nProduccion', cw[0], 10, VERDE);
-    drawCell('Fecha', cw[1], 10, VERDE);
-    x -= cw[2]+cw[3]; drawCell('Etiquetas\ncompletas', cw[2]+cw[3], 5, VERDECLARO); x -= cw[2]+cw[3]; x += cw[2]+cw[3];
-    x -= cw[4]+cw[5]; drawCell('Embalaje\nuniforme', cw[4]+cw[5], 5, VERDECLARO); x -= cw[4]+cw[5]; x += cw[4]+cw[5];
-    x -= cw[6]+cw[7]; drawCell('Defectos\nvisibles', cw[6]+cw[7], 5, VERDECLARO); x -= cw[6]+cw[7]; x += cw[6]+cw[7];
-    drawCell('Cant.\nOP', cw[8], 10, VERDE);
-    drawCell('Cant.\nReal', cw[9], 10, VERDE);
-    drawCell('SI/NO', cw[10], 10, VERDE);
-    x -= cw[11]+cw[12]; drawCell('Listo\nBodega', cw[11]+cw[12], 5, VERDECLARO); x -= cw[11]+cw[12]; x += cw[11]+cw[12];
-    drawCell('Despachado', cw[13], 10, VERDE);
-    drawCell('Foto', cw[14], 10, VERDE);
-    drawCell('Revisado', cw[15], 10, VERDE);
-    y += 5;
-
-    x = M+cw[0]+cw[1];
+    doc.rect(x, y, cw[0], 10, 'FD'); doc.text('ORDEN PROD.', x+cw[0]/2, y+5, {align:'center', maxWidth:cw[0]-1}); x+=cw[0];
+    doc.rect(x, y, cw[1], 10, 'FD'); doc.text('Fecha entrada', x+cw[1]/2, y+5, {align:'center', maxWidth:cw[1]-1}); x+=cw[1];
+    doc.setFillColor(...VERDECLARO);
+    doc.rect(x, y, cw[2]+cw[3], 5, 'FD'); doc.text('Etiquetas completas', x+(cw[2]+cw[3])/2, y+3.5, {align:'center', maxWidth:cw[2]+cw[3]-1}); x+=cw[2]+cw[3];
+    doc.rect(x, y, cw[4]+cw[5], 5, 'FD'); doc.text('Embalaje uniforme', x+(cw[4]+cw[5])/2, y+3.5, {align:'center', maxWidth:cw[4]+cw[5]-1}); x+=cw[4]+cw[5];
+    doc.rect(x, y, cw[6]+cw[7], 5, 'FD'); doc.text('Defectos visibles', x+(cw[6]+cw[7])/2, y+3.5, {align:'center', maxWidth:cw[6]+cw[7]-1}); x+=cw[6]+cw[7];
     doc.setFillColor(...VERDE);
+    doc.rect(x, y, cw[8], 10, 'FD'); doc.text('Cant. OP', x+cw[8]/2, y+5, {align:'center'}); x+=cw[8];
+    doc.rect(x, y, cw[9], 10, 'FD'); doc.text('Cant. Real', x+cw[9]/2, y+5, {align:'center', maxWidth:cw[9]-1}); x+=cw[9];
+    doc.rect(x, y, cw[10], 10, 'FD'); doc.text('SI/NO', x+cw[10]/2, y+5, {align:'center'}); x+=cw[10];
+    doc.setFillColor(...VERDECLARO);
+    doc.rect(x, y, cw[11]+cw[12], 5, 'FD'); doc.text('Listo Bodega', x+(cw[11]+cw[12])/2, y+3.5, {align:'center', maxWidth:cw[11]+cw[12]-1}); x+=cw[11]+cw[12];
+    doc.setFillColor(...VERDE);
+    doc.rect(x, y, cw[13], 10, 'FD'); doc.text('Despachado', x+cw[13]/2, y+6, {align:'center', maxWidth:cw[13]-1});
+    x = M+cw[0]+cw[1];
+    doc.setFillColor(...VERDECLARO);
     ['SI','NO','SI','NO','SI','NO'].forEach((t,i) => {
-      doc.rect(x, y, cw[2+i], 5, 'FD');
-      doc.text(t, x+cw[2+i]/2, y+3.5, {align:'center'});
-      x += cw[2+i];
+      doc.rect(x, y+5, cw[2+i], 5, 'FD'); doc.text(t, x+cw[2+i]/2, y+8.5, {align:'center'}); x+=cw[2+i];
     });
     x += cw[8]+cw[9]+cw[10];
     ['SI','NO'].forEach((t,i) => {
-      doc.rect(x, y, cw[11+i], 5, 'FD');
-      doc.text(t, x+cw[11+i]/2, y+3.5, {align:'center'});
-      x += cw[11+i];
+      doc.rect(x, y+5, cw[11+i], 5, 'FD'); doc.text(t, x+cw[11+i]/2, y+8.5, {align:'center'}); x+=cw[11+i];
     });
-    y += 5;
+    y += 10;
 
-    const rowH = 7;
-    doc.setTextColor(...NEGRO); doc.setFont('helvetica','normal'); doc.setFontSize(6);
+    doc.setTextColor(...NEGRO); doc.setFont('helvetica','normal'); doc.setFontSize(5.5);
 
-    Object.keys(grupos).forEach(op => {
+    for (const op of Object.keys(grupos)) {
       const filas = grupos[op];
-      let totalOP = 0; let totalReal = 0;
+      let totalReal = 0;
+      const cantOP = filas[0].cantidadOP;
       const startY = y;
-
-      filas.forEach((r: any, idx: number) => {
-        if (y > 170) { doc.addPage(); y = 15; }
+      if (y > 230) { doc.addPage(); y = M; y = dibujarEncabezado(y); }
+      for (let idx = 0; idx < filas.length; idx++) {
+        const r = filas[idx];
+        if (y > 250) { doc.addPage(); y = M; y = dibujarEncabezado(y); }
         x = M;
-        totalOP += r.cantidadOP; totalReal += r.cantidadReal;
+        totalReal += r.cantidadReal;
         if (idx === 0) {
           doc.rect(x, startY, cw[0], rowH*filas.length);
-          doc.text(op, x+cw[0]/2, startY+(rowH*filas.length)/2+1, {align:'center', maxWidth: cw[0]-1});
+          doc.setFont('helvetica','bold');
+          doc.text(op, x+cw[0]/2, startY+(rowH*filas.length)/2+1, {align:'center', maxWidth:cw[0]-1});
+          doc.setFont('helvetica','normal');
         }
         x += cw[0];
-        doc.rect(x, y, cw[1], rowH); doc.text(new Date(r.fecha).toLocaleDateString('es-CO'), x+cw[1]/2, y+4, {align:'center'}); x+=cw[1];
-        doc.rect(x, y, cw[2], rowH); if(r.etiquetasSI) doc.text('X', x+cw[2]/2, y+4, {align:'center'}); x+=cw[2];
-        doc.rect(x, y, cw[3], rowH); if(!r.etiquetasSI) doc.text('X', x+cw[3]/2, y+4, {align:'center'}); x+=cw[3];
-        doc.rect(x, y, cw[4], rowH); if(r.embalajeSI) doc.text('X', x+cw[4]/2, y+4, {align:'center'}); x+=cw[4];
-        doc.rect(x, y, cw[5], rowH); if(!r.embalajeSI) doc.text('X', x+cw[5]/2, y+4, {align:'center'}); x+=cw[5];
-        doc.rect(x, y, cw[6], rowH); if(r.defectosSI) doc.text('X', x+cw[6]/2, y+4, {align:'center'}); x+=cw[6];
-        doc.rect(x, y, cw[7], rowH); if(!r.defectosSI) doc.text('X', x+cw[7]/2, y+4, {align:'center'}); x+=cw[7];
-        doc.rect(x, y, cw[8], rowH); doc.text(String(r.cantidadOP), x+cw[8]/2, y+4, {align:'center'}); x+=cw[8];
-        doc.rect(x, y, cw[9], rowH); doc.text(String(r.cantidadReal), x+cw[9]/2, y+4, {align:'center'}); x+=cw[9];
-        const sino = r.cantidadReal >= r.cantidadOP ? 'SI' : 'NO';
-        doc.rect(x, y, cw[10], rowH); doc.text(sino, x+cw[10]/2, y+4, {align:'center'}); x+=cw[10];
-        doc.rect(x, y, cw[11], rowH); if(r.listoBodega) doc.text('X', x+cw[11]/2, y+4, {align:'center'}); x+=cw[11];
-        doc.rect(x, y, cw[12], rowH); if(!r.listoBodega) doc.text('X', x+cw[12]/2, y+4, {align:'center'}); x+=cw[12];
-        doc.rect(x, y, cw[13], rowH); doc.text(r.despachado ?? '', x+2, y+4, {maxWidth: cw[13]-2}); x+=cw[13];
-        doc.rect(x, y, cw[14], rowH);
-        if (r.fotoEvidencia) {
-          try { doc.addImage(this.baseUrl+'/formatos/'+r.fotoEvidencia, 'JPEG', x+0.5, y+0.5, cw[14]-1, rowH-1); } catch(e) { doc.text('Foto', x+cw[14]/2, y+4, {align:'center'}); }
+        doc.rect(x, y, cw[1], rowH); doc.text(new Date(r.fecha).toLocaleDateString('es-CO'), x+cw[1]/2, y+3.5, {align:'center', maxWidth:cw[1]-1}); x+=cw[1];
+        doc.rect(x, y, cw[2], rowH); if(r.etiquetasSI) doc.text('X', x+cw[2]/2, y+3.5, {align:'center'}); x+=cw[2];
+        doc.rect(x, y, cw[3], rowH); if(!r.etiquetasSI) doc.text('X', x+cw[3]/2, y+3.5, {align:'center'}); x+=cw[3];
+        doc.rect(x, y, cw[4], rowH); if(r.embalajeSI) doc.text('X', x+cw[4]/2, y+3.5, {align:'center'}); x+=cw[4];
+        doc.rect(x, y, cw[5], rowH); if(!r.embalajeSI) doc.text('X', x+cw[5]/2, y+3.5, {align:'center'}); x+=cw[5];
+        doc.rect(x, y, cw[6], rowH); if(r.defectosSI) doc.text('X', x+cw[6]/2, y+3.5, {align:'center'}); x+=cw[6];
+        doc.rect(x, y, cw[7], rowH); if(!r.defectosSI) doc.text('X', x+cw[7]/2, y+3.5, {align:'center'}); x+=cw[7];
+        if (idx === 0) {
+          doc.setFillColor(...GRIS);
+          doc.rect(x, startY, cw[8], rowH*filas.length, 'FD');
+          doc.setFont('helvetica','bold');
+          doc.text(String(cantOP), x+cw[8]/2, startY+(rowH*filas.length)/2+1, {align:'center'});
+          doc.setFont('helvetica','normal'); doc.setFillColor(255,255,255);
         }
-        x+=cw[14];
-        doc.rect(x, y, cw[15], rowH); doc.text(r.revisadoPor ?? '', x+2, y+4, {maxWidth: cw[15]-2}); x+=cw[15];
+        x+=cw[8];
+        doc.rect(x, y, cw[9], rowH); doc.text(String(r.cantidadReal), x+cw[9]/2, y+3.5, {align:'center'}); x+=cw[9];
+        const sino = r.cantidadReal >= cantOP ? 'SI' : 'NO';
+        doc.rect(x, y, cw[10], rowH);
+        doc.setTextColor(sino==='SI' ? 26 : 180, sino==='SI' ? 127 : 28, sino==='SI' ? 90 : 28);
+        doc.text(sino, x+cw[10]/2, y+3.5, {align:'center'}); doc.setTextColor(...NEGRO); x+=cw[10];
+        doc.rect(x, y, cw[11], rowH); if(r.listoBodega) doc.text('X', x+cw[11]/2, y+3.5, {align:'center'}); x+=cw[11];
+        doc.rect(x, y, cw[12], rowH); if(!r.listoBodega) doc.text('X', x+cw[12]/2, y+3.5, {align:'center'}); x+=cw[12];
+        doc.rect(x, y, cw[13], rowH); doc.text(r.despachado ?? '', x+1, y+3.5, {maxWidth:cw[13]-2}); x+=cw[13];
         y += rowH;
-      });
-
-      const dif = totalReal - totalOP;
-      const pct = totalOP > 0 ? ((dif/totalOP)*100).toFixed(1) : '0';
-      doc.setFillColor(...GRIS); doc.setFont('helvetica','bold');
+      }
+      const dif = totalReal - cantOP;
+      const pct = cantOP > 0 ? ((dif/cantOP)*100).toFixed(1) : '0';
+      doc.setFillColor(...GRIS); doc.setFont('helvetica','bold'); doc.setTextColor(...NEGRO);
       x = M;
-      doc.rect(x, y, cw[0]+cw[1], 6, 'FD'); doc.text('TOTAL '+op, x+4, y+4); x+=cw[0]+cw[1];
-      for(let i=2; i<=7; i++) { doc.rect(x, y, cw[i], 6, 'FD'); x+=cw[i]; }
-      doc.rect(x, y, cw[8], 6, 'FD'); doc.text(String(totalOP), x+cw[8]/2, y+4, {align:'center'}); x+=cw[8];
-      doc.rect(x, y, cw[9], 6, 'FD'); doc.text(String(totalReal), x+cw[9]/2, y+4, {align:'center'}); x+=cw[9];
-      doc.rect(x, y, cw[10]+cw[11]+cw[12]+cw[13]+cw[14]+cw[15], 6, 'FD');
-      doc.setTextColor(dif < 0 ? 180 : 26, dif < 0 ? 28 : 127, dif < 0 ? 28 : 90);
-      doc.text('Dif: '+(dif >= 0 ? '+' : '')+dif+' uds ('+pct+'%)', x+4, y+4);
+      const tw = cw[0]+cw[1]+cw[2]+cw[3]+cw[4]+cw[5]+cw[6]+cw[7]+cw[8];
+      doc.rect(x, y, tw, 5, 'FD'); doc.text('TOTAL '+op+' — '+filas.length+' entradas', x+2, y+3.5); x+=tw;
+      doc.rect(x, y, cw[9], 5, 'FD'); doc.text(String(totalReal), x+cw[9]/2, y+3.5, {align:'center'}); x+=cw[9];
+      doc.rect(x, y, cw[10]+cw[11]+cw[12]+cw[13], 5, 'FD');
+      doc.setTextColor(dif<0 ? 180 : 26, dif<0 ? 28 : 127, dif<0 ? 28 : 90);
+      doc.text('Dif: '+(dif>=0?'+':'')+dif+' uds ('+pct+'%)', x+2, y+3.5);
       doc.setTextColor(...NEGRO); doc.setFont('helvetica','normal');
-      y += 8;
-    });
-
-    y += 4;
-    if (y > 175) { doc.addPage(); y = 15; }
-    const accionesTexto = this.registros.filter((r:any) => r.accionesTomadas).map((r:any) => r.ordenProduccion+': '+r.accionesTomadas).join(' | ');
-    doc.setFontSize(7);
-    doc.text('Mencione las acciones tomadas para cada OP que incumplio alguna verificacion:', M, y+4);
-    y += 6;
-    doc.rect(M, y, (W-M*2)*0.55, 22);
-    if (accionesTexto) doc.text(accionesTexto, M+2, y+5, { maxWidth: (W-M*2)*0.55-4 });
-
-    const fx = M+(W-M*2)*0.57;
-    doc.rect(fx, y, (W-M*2)*0.43, 22);
-    doc.text('Firma de quien hace la entrada a Bodega:', fx+2, y+5);
-    if (this.firmaDataUrl) {
-      try { doc.addImage(this.firmaDataUrl, 'PNG', fx+4, y+7, 60, 10); } catch(e) {}
+      y += 7;
     }
-    doc.line(fx+4, y+17, W-M-4, y+17);
-    doc.text('Nombre: '+this.usuario, fx+2, y+19);
-    doc.text('Cargo: '+this.cargoFirma, fx+2, y+22);
-    y += 26;
 
-    doc.setFontSize(6); doc.setFont('helvetica','italic');
-    doc.text('Nota: Los metodos de verificacion de las caracteristicas y los criterios de cumplimiento a tener en cuenta, estan definidos en el Procedimiento de Pruebas y Ensayos.', M, y+4, { maxWidth: W-M*2 });
+    if (y > 220) { doc.addPage(); y = M; }
+    y += 3;
+    const accionesTexto = this.registros.filter((r:any) => r.accionesTomadas).map((r:any) => r.ordenProduccion+': '+r.accionesTomadas).join(' | ');
+    const footerH = 30;
+    doc.rect(M, y, (W-M*2)*0.6, footerH);
+    doc.setFont('helvetica','bold'); doc.setFontSize(6);
+    doc.text('Mencione las acciones tomadas para cada OP que incumplio alguna verificacion:', M+1, y+4, {maxWidth:(W-M*2)*0.6-2});
+    doc.setFont('helvetica','normal');
+    if (accionesTexto) doc.text(accionesTexto, M+1, y+9, {maxWidth:(W-M*2)*0.6-2});
+    const fx = M+(W-M*2)*0.62;
+    const fw = (W-M*2)*0.38;
+    doc.rect(fx, y, fw, footerH);
+    doc.setFont('helvetica','bold'); doc.setFontSize(6);
+    doc.text('Firma de quien hace la entrada a Bodega', fx+1, y+4, {maxWidth:fw-2});
+    if (this.firmaDataUrl) { try { doc.addImage(this.firmaDataUrl, 'PNG', fx+2, y+6, 40, 10); } catch(e) {} }
+    doc.line(fx+2, y+22, fx+fw-2, y+22);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6);
+    doc.text(this.usuario, fx+2, y+25);
+    doc.rect(fx, y+footerH-8, fw, 8);
+    doc.setFont('helvetica','bold');
+    doc.text('Cargo:', fx+1, y+footerH-4);
+    doc.setFont('helvetica','normal');
+    doc.text(this.cargoFirma, fx+12, y+footerH-4);
+    y += footerH+3;
+    doc.setFontSize(5.5); doc.setFont('helvetica','italic');
+    doc.text('Nota: Los metodos de verificacion de las caracteristicas y los criterios de cumplimiento a tener en cuenta, estan definidos en el Procedimiento de Pruebas y Ensayos.', M, y+3, {maxWidth:W-M*2});
+    y += 7;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text('Continua en pagina siguiente — Fotos de evidencia', W/2, y+3, {align:'center'});
+
+    doc.addPage(); y = M; y = dibujarEncabezado(y);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...NEGRO);
+    doc.text('FOTOS DE EVIDENCIA — F-GC-008', W/2, y+5, {align:'center'});
+    y += 10;
+
+    for (const op of Object.keys(grupos)) {
+      const filas = grupos[op];
+      const conFoto = filas.filter((r:any) => r.fotoEvidencia);
+      if (!conFoto.length) continue;
+      if (y > 260) { doc.addPage(); y = M; }
+      doc.setFillColor(...GRIS); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      doc.rect(M, y, W-M*2, 6, 'FD'); doc.setTextColor(...NEGRO);
+      doc.text(op+' — '+filas.length+' entradas', M+2, y+4);
+      y += 7;
+      let fx2 = M;
+      for (const r of conFoto) {
+        if (fx2+30 > W-M) { fx2 = M; y += 32; }
+        if (y > 260) { doc.addPage(); y = M; fx2 = M; }
+        const b64 = fotosBase64[r.fotoEvidencia] || '';
+        if (b64) { try { doc.addImage(b64, 'JPEG', fx2, y, 28, 22); } catch(e) { doc.rect(fx2, y, 28, 22); } }
+        else { doc.rect(fx2, y, 28, 22); doc.setFontSize(5); doc.text('Sin foto', fx2+8, y+12); }
+        doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(...NEGRO);
+        doc.text(new Date(r.fecha).toLocaleDateString('es-CO'), fx2, y+24);
+        fx2 += 32;
+      }
+      y += 34;
+    }
+
+    if (y > 260) { doc.addPage(); y = M; }
+    doc.setFontSize(5.5); doc.setFont('helvetica','italic');
+    doc.text('Nota: Los metodos de verificacion de las caracteristicas y los criterios de cumplimiento a tener en cuenta, estan definidos en el Procedimiento de Pruebas y Ensayos.', M, y+3, {maxWidth:W-M*2});
     y += 8;
     doc.setFont('helvetica','bold'); doc.setFontSize(9);
-    doc.text('FIN DEL DOCUMENTO', W/2, y+4, { align: 'center' });
-
+    doc.text('FIN DEL DOCUMENTO', W/2, y+3, {align:'center'});
     doc.save('F-GC-008_'+new Date().toISOString().slice(0,10)+'.pdf');
   }
 }

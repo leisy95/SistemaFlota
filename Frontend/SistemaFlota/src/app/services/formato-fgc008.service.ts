@@ -19,4 +19,5 @@ export class FormatoFGC008Service {
   crearRegistro(fd: FormData): Observable<any> { return this.http.post(this.apiUrl, fd); }
   eliminarRegistro(id: number): Observable<any> { return this.http.delete(`${this.apiUrl}/${id}`); }
   editarRegistro(id: number, fd: FormData): Observable<any> { return this.http.put(`${this.apiUrl}/${id}`, fd); }
+  buscarOP(op: string): Observable<any> { return this.http.get(`${this.apiUrl}/op/${op}`); }
 }
