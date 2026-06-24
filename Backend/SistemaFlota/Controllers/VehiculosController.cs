@@ -183,7 +183,9 @@ namespace SistemaFlota
                             ConductorId,
 
                         Foto =
-                            nombreArchivo
+                            nombreArchivo,
+                        Tenencia =
+                            Request.Form["Tenencia"].FirstOrDefault()
                     };
 
                 _context
@@ -349,6 +351,7 @@ namespace SistemaFlota
                         nombreArchivo;
                 }
 
+                vehiculo.Tenencia = Request.Form["Tenencia"].FirstOrDefault();
                 await _context
                     .SaveChangesAsync();
 

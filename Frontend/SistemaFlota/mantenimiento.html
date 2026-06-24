@@ -1,0 +1,307 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div>
+      <h1>🔧 Taller y Mantenimiento</h1>
+      <p class="subtitulo">Registro de intervenciones por vehículo</p>
+    </div>
+    <div class="header-acciones">
+      <button class="btn-excel"       (click)="exportarExcel()">📊 Excel</button>
+      <button class="btn-pdf-reporte" (click)="exportarPDF()">📄 PDF</button>
+      <button class="btn-nuevo" *ngIf="puedeCrear" (click)="nuevoMantenimiento()">
+        + Nuevo Mantenimiento
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-numero">{{ mantenimientos.length }}</span>
+      <span class="stat-label">Total registros</span>
+    </div>
+    <div class="stat-card amarillo">
+      <span class="stat-numero">{{ enTaller }}</span>
+      <span class="stat-label">En taller</span>
+    </div>
+    <div class="stat-card rojo" *ngIf="proximos.length > 0">
+      <span class="stat-numero">{{ proximos.length }}</span>
+      <span class="stat-label">Próximos mantenimientos</span>
+    </div>
+    <div class="stat-card verde">
+      <span class="stat-numero">${{ costoTotal | number:'1.0-0' }}</span>
+      <span class="stat-label">Costo total</span>
+    </div>
+  </div>
+
+  <div class="alertas-proximos" *ngIf="proximos.length > 0">
+    <h3>⚠️ Mantenimientos próximos (30 días)</h3>
+    <div class="alerta-item" *ngFor="let p of proximos">
+      <span>🚚 {{ p.vehiculo?.placa }}</span>
+      <span>{{ p.tipoMantenimiento }}</span>
+      <span>📅 {{ p.fechaSiguiente | date:'shortDate' }}</span>
+      <span *ngIf="p.kilometrajeSiguiente">🛣️ {{ p.kilometrajeSiguiente }} km</span>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros">
+    <select [(ngModel)]="filtroVehiculo" (change)="aplicarFiltros()">
+      <option [value]="0">Todos los vehículos</option>
+      <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
+    </select>
+    <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+      <option value="">Todos los estados</option>
+      <option value="EnTaller">🔧 En taller</option>
+      <option value="Finalizado">✅ Finalizado</option>
+      <option value="Cancelado">❌ Cancelado</option>
+    </select>
+    <input type="date" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()"
+      placeholder="Desde">
+    <input type="date" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()"
+      placeholder="Hasta">
+    <button class="btn-refresh" (click)="cargarMantenimientos()">🔄 Actualizar</button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
+  </div>
+
+  <div class="tabla-container" *ngIf="mantenimientosFiltrados.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Vehículo</th><th>Tipo</th><th>Taller</th>
+          <th>Fecha entrada</th><th>Costo total</th><th>Estado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let m of mantenimientosFiltrados">
+          <td data-label="Vehículo">
+            <strong>{{ m.vehiculo?.placa }}</strong>
+            <small>{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</small>
+          </td>
+          <td data-label="Tipo">{{ m.tipoMantenimiento }}</td>
+          <td data-label="Taller">{{ m.nombreTaller }}</td>
+          <td data-label="Fecha entrada">{{ m.fechaEntrada | date:'short' }}</td>
+          <td data-label="Costo total">${{ m.costoTotal | number:'1.0-0' }}</td>
+          <td data-label="Estado">
+            <span [class]="getBadgeEstado(m.estado)">{{ getLabelEstado(m.estado) }}</span>
+          </td>
+          <td data-label="Acciones">
+            <div class="btn-acciones">
+              <button class="btn-ver"          (click)="verDetalle(m)">👁️ Ver</button>
+              <button class="btn-pdf-individual" (click)="descargarPDF(m)">📄</button>
+              <button class="btn-finalizar" *ngIf="m.estado === 'EnTaller' && puedeEditar"
+                (click)="abrirFinalizar(m)">✅ Finalizar</button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar"
+                (click)="eliminar(m.id)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="vacio" *ngIf="mantenimientosFiltrados.length === 0">
+    <p>🔧 No hay registros de mantenimiento</p>
+    <button class="btn-nuevo" *ngIf="puedeCrear" (click)="nuevoMantenimiento()">
+      + Registrar primer mantenimiento
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL NUEVO/EDITAR -->
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>🔧 {{ editando ? 'Editar' : 'Nuevo' }} Mantenimiento</h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>🚚 Vehículo *</label>
+        <select [(ngModel)]="form.vehiculoId">
+          <option [value]="0">Seleccione vehículo</option>
+          <option *ngFor="let v of vehiculos" [value]="v.id">
+            {{ v.placa }} — {{ v.marca }} {{ v.modelo }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🔧 Tipo de Mantenimiento *</label>
+        <select [(ngModel)]="form.tipoMantenimiento">
+          <option value="">Seleccione tipo</option>
+          <option *ngFor="let t of tiposMantenimiento" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📅 Fecha de Entrada *</label>
+        <input type="datetime-local" [(ngModel)]="form.fechaEntrada">
+      </div>
+
+      <div class="form-group">
+        <label>🛣️ Kilometraje Entrada *</label>
+        <input type="number" [(ngModel)]="form.kilometrajeEntrada" placeholder="Ej: 45000">
+      </div>
+
+      <div class="form-group">
+        <label>🏪 Nombre del Taller *</label>
+        <input type="text" [(ngModel)]="form.nombreTaller" placeholder="Ej: Taller Mecánico García">
+      </div>
+
+      <div class="form-group">
+        <label>👷 Técnico Responsable</label>
+        <input type="text" [(ngModel)]="form.tecnicoResponsable" placeholder="Nombre del mecánico">
+      </div>
+
+      <div class="form-group">
+        <label>📞 Teléfono Taller</label>
+        <input type="tel" [(ngModel)]="form.telefonoTaller" placeholder="Ej: 3001234567">
+      </div>
+
+      <div class="form-group">
+        <label>💰 Costo Mano de Obra</label>
+        <input type="number" [(ngModel)]="form.costoManoObra" placeholder="Ej: 150000">
+      </div>
+
+      <div class="form-group">
+        <label>🔩 Costo Repuestos</label>
+        <input type="number" [(ngModel)]="form.costoRepuestos" placeholder="Ej: 80000">
+      </div>
+
+      <div class="form-group costo-total">
+        <label>💵 Costo Total</label>
+        <div class="total-valor">
+          ${{ (form.costoManoObra + form.costoRepuestos) | number:'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>🔧 Trabajos Realizados *</label>
+        <textarea [(ngModel)]="form.trabajosRealizados"
+          placeholder="Describa detalladamente los trabajos realizados..."></textarea>
+      </div>
+
+      <div class="form-group full">
+        <label>🔩 Repuestos Utilizados</label>
+        <textarea [(ngModel)]="form.repuestosUtilizados"
+          placeholder="Liste los repuestos utilizados con referencias..."></textarea>
+      </div>
+
+      <div class="form-group full">
+        <label>💬 Observaciones</label>
+        <textarea [(ngModel)]="form.observaciones" placeholder="Observaciones adicionales..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>🛣️ Próximo mantenimiento (km)</label>
+        <input type="number" [(ngModel)]="form.kilometrajeSiguiente" placeholder="Ej: 50000">
+      </div>
+
+      <div class="form-group">
+        <label>📅 Próximo mantenimiento (fecha)</label>
+        <input type="date" [(ngModel)]="form.fechaSiguiente">
+      </div>
+
+      <div class="form-group full">
+        <label>📸 Fotos del trabajo (Máximo 5)</label>
+        <div class="fotos-preview" *ngIf="fotosPreview.length > 0">
+          <div class="foto-item" *ngFor="let foto of fotosPreview; let i = index">
+            <img [src]="foto" alt="Foto">
+            <button class="btn-eliminar-foto" (click)="eliminarFoto(i)">✕</button>
+          </div>
+        </div>
+        <label class="btn-foto" *ngIf="fotosPreview.length < 5" for="inputFotos">
+          <span>📷</span><p>Agregar fotos</p>
+        </label>
+        <input id="inputFotos" type="file" accept="image/*" multiple
+          (change)="seleccionarFotos($event)" style="display:none">
+      </div>
+
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar"  (click)="guardar()">
+        {{ editando ? 'Guardar cambios' : 'Registrar mantenimiento' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" *ngIf="mostrarDetalle">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>🔧 Detalle Mantenimiento #{{ seleccionado?.id }}</h2>
+      <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+    </div>
+
+    <div class="detalle-grid">
+      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ seleccionado?.vehiculo?.placa }}</strong></div>
+      <div class="detalle-item"><span>🔧 Tipo</span><strong>{{ seleccionado?.tipoMantenimiento }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha entrada</span><strong>{{ seleccionado?.fechaEntrada | date:'medium' }}</strong></div>
+      <div class="detalle-item"><span>📅 Fecha salida</span>
+        <strong>{{ seleccionado?.fechaSalida ? (seleccionado?.fechaSalida | date:'medium') : 'En taller' }}</strong>
+      </div>
+      <div class="detalle-item"><span>🛣️ Kilometraje</span><strong>{{ seleccionado?.kilometrajeEntrada }} km</strong></div>
+      <div class="detalle-item"><span>💵 Costo total</span><strong>${{ seleccionado?.costoTotal | number:'1.0-0' }}</strong></div>
+      <div class="detalle-item"><span>🏪 Taller</span><strong>{{ seleccionado?.nombreTaller }}</strong></div>
+      <div class="detalle-item"><span>👷 Técnico</span><strong>{{ seleccionado?.tecnicoResponsable || '-' }}</strong></div>
+      <div class="detalle-item full"><span>🔧 Trabajos realizados</span><strong>{{ seleccionado?.trabajosRealizados }}</strong></div>
+      <div class="detalle-item full" *ngIf="seleccionado?.repuestosUtilizados">
+        <span>🔩 Repuestos</span><strong>{{ seleccionado?.repuestosUtilizados }}</strong>
+      </div>
+      <div class="detalle-item full" *ngIf="seleccionado?.observaciones">
+        <span>💬 Observaciones</span><strong>{{ seleccionado?.observaciones }}</strong>
+      </div>
+      <div class="detalle-item" *ngIf="seleccionado?.fechaSiguiente">
+        <span>📅 Próximo mantenimiento</span><strong>{{ seleccionado?.fechaSiguiente | date:'shortDate' }}</strong>
+      </div>
+      <div class="detalle-item" *ngIf="seleccionado?.kilometrajeSiguiente">
+        <span>🛣️ Próximo km</span><strong>{{ seleccionado?.kilometrajeSiguiente }} km</strong>
+      </div>
+    </div>
+
+    <div class="fotos-detalle" *ngIf="obtenerFotos(seleccionado?.fotos).length > 0">
+      <h3>📸 Fotos del trabajo</h3>
+      <div class="fotos-grid">
+        <img *ngFor="let foto of obtenerFotos(seleccionado?.fotos)"
+          [src]="'http://localhost:5214/mantenimiento/' + foto"
+          alt="Foto mantenimiento">
+      </div>
+    </div>
+
+    <div class="finalizar-form" *ngIf="mostrarFinalizar && puedeEditar">
+      <h3>✅ Finalizar Mantenimiento</h3>
+      <div class="form-group">
+        <label>📅 Fecha de salida</label>
+        <input type="datetime-local" [(ngModel)]="fechaSalida">
+      </div>
+      <div class="form-group">
+        <label>💬 Observaciones finales</label>
+        <textarea [(ngModel)]="observacionFinal" placeholder="Estado final del vehículo..."></textarea>
+      </div>
+      <div class="modal-botones">
+        <button class="btn-cancelar" (click)="mostrarFinalizar = false">Cancelar</button>
+        <button class="btn-guardar"  (click)="confirmarFinalizar()">✅ Confirmar salida</button>
+      </div>
+    </div>
+
+    <div class="modal-botones" *ngIf="!mostrarFinalizar">
+      <button class="btn-cancelar"      (click)="cerrarDetalle()">Cerrar</button>
+      <button class="btn-pdf-individual" (click)="descargarPDF(seleccionado)">📄 Descargar PDF</button>
+      <button class="btn-finalizar-modal"
+        *ngIf="seleccionado?.estado === 'EnTaller' && puedeEditar"
+        (click)="mostrarFinalizar = true">
+        ✅ Finalizar mantenimiento
+      </button>
+    </div>
+
+  </div>
+</div>

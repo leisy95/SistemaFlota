@@ -62,9 +62,11 @@ export class UsuariosComponent implements OnInit {
     { key: 'vehiculos', label: 'Vehículos' },
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'checklist', label: 'Checklist' },
+    { key: 'centro-informacion', label: 'Centro de Información' },
     { key: 'pedidos', label: 'Pedidos' },
     { key: 'rrhh-seguimientos', label: 'Seguimientos RRHH' },
     { key: 'calidad-cyreles', label: 'Cyreles' },
+    { key: 'calidad-formatos', label: 'Formatos' },
   ];
 
   readonly roles = [

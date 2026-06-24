@@ -1,0 +1,177 @@
+<div class="contenedor">
+  <div class="header">
+    <div>
+      <h1>Control Bodega Producto Terminado</h1>
+      <p>Formato F-GC-008 — Verificacion de Empaque</p>
+    </div>
+    <button class="btn-nuevo" *ngIf="puedeCrear && vista === 'lista'" (click)="vista = 'nuevo'; iniciarCanvas()">+ Nuevo Registro</button>
+  </div>
+
+  <!-- LISTA -->
+  <ng-container *ngIf="vista === 'lista'">
+    <div class="filtros">
+      <div class="filtro-grupo"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
+      <div class="filtro-grupo"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+      <div class="filtro-grupo"><label>Orden de produccion</label><input type="text" [(ngModel)]="filtroOP" placeholder="OP-001"></div>
+      <button class="btn-filtrar" (click)="cargar()">Filtrar</button>
+      <button class="btn-pdf" (click)="exportarPDF()">📄 Exportar PDF</button>
+    </div>
+    <div class="lista" *ngIf="registros.length > 0">
+      <div class="card-registro" *ngFor="let r of registros">
+        <div class="reg-header">
+          <span class="op-badge">{{ r.ordenProduccion }}</span>
+          <span class="fecha">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="reg-grid">
+          <div class="reg-item"><span class="reg-label">Etiquetas</span><span [class.ok]="r.etiquetasSI" [class.no]="!r.etiquetasSI">{{ r.etiquetasSI ? 'SI' : 'NO' }}</span></div>
+          <div class="reg-item"><span class="reg-label">Embalaje</span><span [class.ok]="r.embalajeSI" [class.no]="!r.embalajeSI">{{ r.embalajeSI ? 'SI' : 'NO' }}</span></div>
+          <div class="reg-item"><span class="reg-label">Defectos</span><span [class.ok]="!r.defectosSI" [class.no]="r.defectosSI">{{ r.defectosSI ? 'SI' : 'NO' }}</span></div>
+          <div class="reg-item"><span class="reg-label">Cant. OP / Real</span><span>{{ r.cantidadOP }} / {{ r.cantidadReal }}</span></div>
+          <div class="reg-item"><span class="reg-label">Listo bodega</span><span [class.ok]="r.listoBodega" [class.no]="!r.listoBodega">{{ r.listoBodega ? 'SI' : 'NO' }}</span></div>
+          <div class="reg-item"><span class="reg-label">Despachado</span><span>{{ r.despachado || '-' }}</span></div>
+        </div>
+        <div class="reg-footer">
+          <span class="revisado">Revisado por: {{ r.revisadoPor }}</span>
+          <div class="reg-acciones">
+            <button class="btn-ver" (click)="ver(r)">👁️ Ver</button>
+            <button class="btn-editar" *ngIf="puedeCrear" (click)="editar(r)">✏️ Editar</button>
+            <img *ngIf="r.fotoEvidencia" [src]="baseUrl + '/formatos/' + r.fotoEvidencia" class="foto-mini">
+            <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)">🗑️</button>
+          </div>
+        </div>
+        <div class="acciones-text" *ngIf="r.accionesTomadas"><strong>Acciones:</strong> {{ r.accionesTomadas }}</div>
+      </div>
+    </div>
+    <div class="vacio" *ngIf="registros.length === 0"><p>No hay registros. Use los filtros o cree uno nuevo.</p></div>
+  </ng-container>
+
+  <!-- NUEVO -->
+  <ng-container *ngIf="vista === 'nuevo'">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>Informacion general</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Orden de produccion *</label><input type="text" [(ngModel)]="form.ordenProduccion" placeholder="OP-001"></div>
+          <div class="fg"><label>Despachado a</label><input type="text" [(ngModel)]="form.despachado" placeholder="Destino / Transportista"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Verificaciones</h3>
+        <div class="verificaciones-grid">
+          <div class="verif-item"><span class="verif-label">Etiquetas completas, legibles y correctas</span><div class="si-no-btn"><button [class.activo-si]="form.etiquetasSI" (click)="form.etiquetasSI = true">SI</button><button [class.activo-no]="!form.etiquetasSI" (click)="form.etiquetasSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Embalaje uniforme, sellado y adecuado</span><div class="si-no-btn"><button [class.activo-si]="form.embalajeSI" (click)="form.embalajeSI = true">SI</button><button [class.activo-no]="!form.embalajeSI" (click)="form.embalajeSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Defectos visibles en empaque o producto</span><div class="si-no-btn"><button [class.activo-no]="form.defectosSI" (click)="form.defectosSI = true">SI</button><button [class.activo-si]="!form.defectosSI" (click)="form.defectosSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Listo para entrada a Bodega</span><div class="si-no-btn"><button [class.activo-si]="form.listoBodega" (click)="form.listoBodega = true">SI</button><button [class.activo-no]="!form.listoBodega" (click)="form.listoBodega = false">NO</button></div></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Cantidades</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Cantidad OP</label><input type="number" [(ngModel)]="form.cantidadOP" min="0"></div>
+          <div class="fg"><label>Cantidad real</label><input type="number" [(ngModel)]="form.cantidadReal" min="0"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Evidencia y observaciones</h3>
+        <div class="form-grid">
+          <div class="fg full"><label>Foto de evidencia</label><input type="file" accept="image/*" capture="environment" (change)="seleccionarFoto($event)"></div>
+          <div class="fg full"><label>Acciones tomadas</label><textarea [(ngModel)]="form.accionesTomadas" rows="3" placeholder="Describa las acciones correctivas..."></textarea></div>
+        </div>
+      </div>
+      <div class="revisado-por">
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <span>Revisado por: <strong>{{ usuario }}</strong></span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;font-weight:500">Cargo:</label>
+            <input type="text" [(ngModel)]="cargoFirma" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:120px">
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label style="font-size:12px;font-weight:500">Firma digital (dibuje con el dedo o mouse):</label>
+          <canvas id="firmaCanvas" width="400" height="80" style="border:1px solid #ddd;border-radius:8px;display:block;margin-top:6px;cursor:crosshair;background:white;touch-action:none"></canvas>
+          <button type="button" (click)="limpiarFirma()" style="font-size:11px;margin-top:4px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;cursor:pointer">Limpiar firma</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" (click)="guardar()">Guardar registro</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VER -->
+  <ng-container *ngIf="vista === 'ver' && registroSeleccionado">
+    <div class="form-card">
+      <div class="form-section">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Detalle — {{ registroSeleccionado.ordenProduccion }}</h3>
+          <small style="color:#999">{{ registroSeleccionado.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+        <div class="detalle-grid">
+          <div class="detalle-item"><span class="det-label">Etiquetas correctas</span><span [class.ok]="registroSeleccionado.etiquetasSI" [class.no]="!registroSeleccionado.etiquetasSI">{{ registroSeleccionado.etiquetasSI ? 'SI' : 'NO' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Embalaje adecuado</span><span [class.ok]="registroSeleccionado.embalajeSI" [class.no]="!registroSeleccionado.embalajeSI">{{ registroSeleccionado.embalajeSI ? 'SI' : 'NO' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Defectos visibles</span><span [class.ok]="!registroSeleccionado.defectosSI" [class.no]="registroSeleccionado.defectosSI">{{ registroSeleccionado.defectosSI ? 'SI' : 'NO' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Listo para bodega</span><span [class.ok]="registroSeleccionado.listoBodega" [class.no]="!registroSeleccionado.listoBodega">{{ registroSeleccionado.listoBodega ? 'SI' : 'NO' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Cantidad OP</span><span>{{ registroSeleccionado.cantidadOP }}</span></div>
+          <div class="detalle-item"><span class="det-label">Cantidad real</span><span>{{ registroSeleccionado.cantidadReal }}</span></div>
+          <div class="detalle-item"><span class="det-label">Despachado a</span><span>{{ registroSeleccionado.despachado || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{ registroSeleccionado.revisadoPor }}</span></div>
+        </div>
+        <div *ngIf="registroSeleccionado.accionesTomadas" style="margin-top:12px;background:#fffbeb;padding:10px;border-radius:8px;border-left:3px solid #f59e0b">
+          <strong style="font-size:12px">Acciones tomadas:</strong>
+          <p style="font-size:13px;margin:4px 0 0">{{ registroSeleccionado.accionesTomadas }}</p>
+        </div>
+        <div *ngIf="registroSeleccionado.fotoEvidencia" style="margin-top:12px">
+          <strong style="font-size:12px">Foto de evidencia:</strong><br>
+          <img [src]="baseUrl + '/formatos/' + registroSeleccionado.fotoEvidencia" style="max-width:300px;border-radius:8px;margin-top:6px;border:1px solid #eee">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Volver</button>
+        <button class="btn-guardar" *ngIf="puedeCrear" (click)="editar(registroSeleccionado)">✏️ Editar</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- EDITAR -->
+  <ng-container *ngIf="vista === 'editar'">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>Editando registro</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Orden de produccion *</label><input type="text" [(ngModel)]="form.ordenProduccion" placeholder="OP-001"></div>
+          <div class="fg"><label>Despachado a</label><input type="text" [(ngModel)]="form.despachado" placeholder="Destino / Transportista"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Verificaciones</h3>
+        <div class="verificaciones-grid">
+          <div class="verif-item"><span class="verif-label">Etiquetas completas, legibles y correctas</span><div class="si-no-btn"><button [class.activo-si]="form.etiquetasSI" (click)="form.etiquetasSI = true">SI</button><button [class.activo-no]="!form.etiquetasSI" (click)="form.etiquetasSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Embalaje uniforme, sellado y adecuado</span><div class="si-no-btn"><button [class.activo-si]="form.embalajeSI" (click)="form.embalajeSI = true">SI</button><button [class.activo-no]="!form.embalajeSI" (click)="form.embalajeSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Defectos visibles en empaque o producto</span><div class="si-no-btn"><button [class.activo-no]="form.defectosSI" (click)="form.defectosSI = true">SI</button><button [class.activo-si]="!form.defectosSI" (click)="form.defectosSI = false">NO</button></div></div>
+          <div class="verif-item"><span class="verif-label">Listo para entrada a Bodega</span><div class="si-no-btn"><button [class.activo-si]="form.listoBodega" (click)="form.listoBodega = true">SI</button><button [class.activo-no]="!form.listoBodega" (click)="form.listoBodega = false">NO</button></div></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Cantidades</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Cantidad OP</label><input type="number" [(ngModel)]="form.cantidadOP" min="0"></div>
+          <div class="fg"><label>Cantidad real</label><input type="number" [(ngModel)]="form.cantidadReal" min="0"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Evidencia y observaciones</h3>
+        <div class="form-grid">
+          <div class="fg full"><label>Nueva foto (opcional)</label><input type="file" accept="image/*" (change)="seleccionarFoto($event)"></div>
+          <div class="fg full"><label>Acciones tomadas</label><textarea [(ngModel)]="form.accionesTomadas" rows="3"></textarea></div>
+        </div>
+      </div>
+      <div class="revisado-por"><span>Revisado por: <strong>{{ usuario }}</strong></span></div>
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" (click)="guardarEdicion()">Guardar cambios</button>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

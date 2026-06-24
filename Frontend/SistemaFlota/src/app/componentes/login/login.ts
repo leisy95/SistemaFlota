@@ -1,4 +1,4 @@
-﻿import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { AuthService }  from '../../services/auth.service';
@@ -23,11 +23,11 @@ export class LoginComponent implements OnInit {
   error             = '';
   mostrarPassword   = false;
 
-  // â”€â”€ Datos de la empresa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Datos de la empresa ───────────────────────────────────────────────────
   nombreEmpresa = 'Sistema de Flota';
   logoUrl: string | null = null;
 
-  // â”€â”€ Bienvenida post-login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Bienvenida post-login ─────────────────────────────────────────────────
   mostrarBienvenida = false;
   nombreUsuario     = '';
   readonly baseUrl  = environment.fotosUrl;
@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit {
 
   iniciarSesion() {
     if (!this.username || !this.password) {
-      this.error = 'Ingrese usuario y contraseÃ±a';
+      this.error = 'Ingrese usuario y contraseña';
       return;
     }
 
@@ -87,7 +87,7 @@ export class LoginComponent implements OnInit {
         if (err.status === 429) {
           this.error = err.error?.mensaje ?? 'Demasiados intentos. Espera unos minutos.';
         } else {
-          this.error = 'Usuario o contraseÃ±a incorrectos';
+          this.error = 'Usuario o contraseña incorrectos';
         }
       }
     });

@@ -34,7 +34,9 @@ namespace SistemaFlota
         // ========================
         // ESTADO
         // ========================
-        public string Estado { get; set; } = "Activo"; // Activo | Inactivo | Suspendido | Vacaciones
+        public string Estado { get; set; } = "Activo";
+        public string? ClasificacionVehiculo { get; set; }
+        public string? TipoVehiculo { get; set; } // Activo | Inactivo | Suspendido | Vacaciones
 
         // ========================
         // RELACIONES

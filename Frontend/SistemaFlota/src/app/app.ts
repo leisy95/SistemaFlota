@@ -27,6 +27,8 @@ import { SolicitudTallerComponent } from './componentes/solicitud-taller/solicit
 import { PedidosComponent } from './componentes/pedidos/pedidos';
 import { SeguimientosRrhhComponent } from './componentes/seguimientos-rrhh/seguimientos-rrhh.component';
 import { CyrelesComponent } from './componentes/Cyreles/cyreles.component';
+import { CentroInformacionComponent } from './componentes/centro-informacion/centro-informacion';
+import { FormatoFGC008Component } from './componentes/formato-fgc008/formato-fgc008';
 import { ConfiguracionService } from './services/configuracion.service';
 import { AuthService } from './services/auth.service';
 import { PermisosService } from './services/permisos.service';
@@ -52,7 +54,9 @@ interface ModuloItem {
     MantenimientoComponent, DocumentosComponent, AuditoriaComponent,
     EncuestaFatigaComponent, TrazabilidadComponent, CambioRutaComponent,
     SolicitudTallerComponent, PedidosComponent,
-    SeguimientosRrhhComponent, CyrelesComponent
+    SeguimientosRrhhComponent, CyrelesComponent,
+    CentroInformacionComponent,
+    FormatoFGC008Component,
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
@@ -71,7 +75,7 @@ export class AppComponent implements OnInit {
   colorPrimario = '#15803d';
   moduloPrincipal: ModuloPrincipal = 'flota';
 
-  private readonly baseUrl = environment.apiUrl.replace('/api', '');
+  private readonly baseUrl = environment.fotosUrl;
 
   readonly tabsPrincipales: { key: ModuloPrincipal; label: string; icon: string }[] = [
     { key: 'flota', label: 'Flota', icon: 'fa-solid fa-truck' },
@@ -100,6 +104,7 @@ export class AppComponent implements OnInit {
     { key: 'usuarios', label: 'Usuarios', icon: 'fa-solid fa-users-gear' },
     { key: 'configuracion', label: 'Configuración', icon: 'fa-solid fa-sliders' },
     { key: 'checklist', label: 'Checklist', icon: 'fa-solid fa-list-check' },
+    { key: 'centro-informacion', label: 'Centro de Información', icon: 'fa-solid fa-book-open' },
   ];
 
   readonly modulosRrhh: ModuloItem[] = [
@@ -108,6 +113,7 @@ export class AppComponent implements OnInit {
 
   readonly modulosCalidad: ModuloItem[] = [
     { key: 'calidad-cyreles', label: 'Cyreles', icon: 'fa-solid fa-box-open' },
+    { key: 'calidad-formatos', label: 'Formatos', icon: 'fa-solid fa-file-lines' },
   ];
 
   private readonly accesoModuloPrincipal: Record<ModuloPrincipal, string[]> = {

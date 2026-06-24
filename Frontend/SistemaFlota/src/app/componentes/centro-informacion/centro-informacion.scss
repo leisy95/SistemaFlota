@@ -1,0 +1,284 @@
+.contenedor {
+    padding: 1.5rem;
+}
+
+.header-ci {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.header-ci h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.btn-nuevo {
+    background: #1a7f5a;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tabs {
+    display: flex;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 3px solid transparent;
+}
+
+.tabs button.activo {
+    color: #1a7f5a;
+    border-bottom-color: #1a7f5a;
+    background: #f0faf5;
+}
+
+.acciones {
+    margin-bottom: 1.25rem;
+}
+
+.lista-rutas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-ruta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+.card-ruta .ruta-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.card-ruta .ruta-info p {
+    font-size: 13px;
+    color: #555;
+    margin: 0 0 4px;
+}
+
+.card-ruta .ruta-info small {
+    font-size: 12px;
+    color: #999;
+}
+
+.ruta-acciones {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-ver {
+    background: #2563eb;
+    color: white;
+    padding: 7px 14px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.btn-eliminar {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.ciudad-grupo {
+    margin-bottom: 2rem;
+}
+
+.ciudad-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a7f5a;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.grid-emergencia {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.card-emergencia {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.emergencia-tipo {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.emergencia-numero {
+    font-size: 22px;
+    font-weight: 700;
+    color: #dc2626;
+    margin-bottom: 4px;
+}
+
+.emergencia-obs {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.emergencia-acciones {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.emergencia-acciones button {
+    border: none;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 5px;
+}
+
+.vacio {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+    background: white;
+    border-radius: 12px;
+    border: 1px dashed #ddd;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 14px;
+    width: 480px;
+    max-width: 95vw;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.btn-cancelar {
+    padding: 9px 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-guardar {
+    padding: 9px 18px;
+    background: #1a7f5a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}

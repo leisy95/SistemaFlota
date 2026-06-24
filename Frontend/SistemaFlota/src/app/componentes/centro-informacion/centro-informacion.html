@@ -1,0 +1,116 @@
+<div class="contenedor">
+  <div class="header-ci">
+    <h1>📚 Centro de Información</h1>
+  </div>
+
+  <div class="tabs">
+    <button [class.activo]="tabActual === 'rutas'" (click)="tabActual = 'rutas'">🗺️ Inventario de Rutas</button>
+    <button [class.activo]="tabActual === 'emergencia'" (click)="tabActual = 'emergencia'">🚨 Números de Emergencia</button>
+  </div>
+
+  <!-- RUTAS -->
+  <div *ngIf="tabActual === 'rutas'">
+    <div class="acciones" *ngIf="puedeCrear">
+      <button class="btn-nuevo" (click)="mostrarModalRuta = true">+ Nueva Ruta</button>
+    </div>
+    <div class="lista-rutas" *ngIf="rutas.length > 0">
+      <div class="card-ruta" *ngFor="let r of rutas">
+        <div class="ruta-info">
+          <h3>{{ r.nombre }}</h3>
+          <p *ngIf="r.descripcion">{{ r.descripcion }}</p>
+          <small>Subido por {{ r.creadoPor }} — {{ r.fechaCreacion | date:'short' }}</small>
+        </div>
+        <div class="ruta-acciones">
+          <a *ngIf="r.archivo" [href]="baseUrl + '/rutas/' + r.archivo" target="_blank" class="btn-ver">📄 Ver PDF</a>
+          <button *ngIf="puedeEliminar" class="btn-eliminar" (click)="eliminarRuta(r.id)">🗑️</button>
+        </div>
+      </div>
+    </div>
+    <div class="vacio" *ngIf="rutas.length === 0"><p>No hay rutas registradas</p></div>
+  </div>
+
+  <!-- EMERGENCIA -->
+  <div *ngIf="tabActual === 'emergencia'">
+    <div class="acciones" *ngIf="puedeCrear">
+      <button class="btn-nuevo" (click)="abrirModalEmergencia()">+ Agregar Número</button>
+    </div>
+    <div *ngFor="let ciudad of ciudades" class="ciudad-grupo">
+      <h3 class="ciudad-titulo">📍 {{ ciudad }}</h3>
+      <div class="grid-emergencia">
+        <div class="card-emergencia" *ngFor="let e of emergenciasPorCiudad(ciudad)">
+          <div class="emergencia-tipo">{{ e.tipo }}</div>
+          <div class="emergencia-numero">📞 {{ e.numero }}</div>
+          <div class="emergencia-obs" *ngIf="e.observaciones">{{ e.observaciones }}</div>
+          <div class="emergencia-acciones" *ngIf="puedeCrear">
+            <button (click)="abrirModalEmergencia(e)">✏️</button>
+            <button *ngIf="puedeEliminar" (click)="eliminarEmergencia(e.id)">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vacio" *ngIf="emergencias.length === 0"><p>No hay números registrados</p></div>
+  </div>
+</div>
+
+<!-- MODAL RUTA -->
+<div class="modal-overlay" *ngIf="mostrarModalRuta">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📄 Nueva Ruta</h2>
+      <button (click)="mostrarModalRuta = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" [(ngModel)]="formRuta.nombre" placeholder="Nombre de la ruta">
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="formRuta.descripcion" placeholder="Descripción opcional"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Archivo PDF</label>
+        <input type="file" accept=".pdf" (change)="seleccionarArchivo($event)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" (click)="mostrarModalRuta = false">Cancelar</button>
+      <button class="btn-guardar" (click)="guardarRuta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EMERGENCIA -->
+<div class="modal-overlay" *ngIf="mostrarModalEmergencia">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🚨 {{ editandoEmergencia ? 'Editar' : 'Nuevo' }} Número</h2>
+      <button (click)="mostrarModalEmergencia = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Ciudad *</label>
+        <input type="text" [(ngModel)]="formEmergencia.ciudad" placeholder="Ej: Pereira">
+      </div>
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select [(ngModel)]="formEmergencia.tipo">
+          <option value="">Seleccione</option>
+          <option *ngFor="let t of tiposEmergencia" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Número *</label>
+        <input type="text" [(ngModel)]="formEmergencia.numero" placeholder="Ej: 123">
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea [(ngModel)]="formEmergencia.observaciones" placeholder="Opcional"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" (click)="mostrarModalEmergencia = false">Cancelar</button>
+      <button class="btn-guardar" (click)="guardarEmergencia()">Guardar</button>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import Swal from 'sweetalert2';
@@ -34,7 +34,7 @@ export class VehiculosComponent implements OnInit {
   nuevo: any = {
     id: 0, placa: '', marca: '', modelo: '',
     modeloAnio: 2024, color: '', estado: 'Activo',
-    conductorId: 0, tipoVehiculoId: 0
+    conductorId: 0, tipoVehiculoId: 0, tenencia: ''
   };
 
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('vehiculos'); }
@@ -84,7 +84,7 @@ export class VehiculosComponent implements OnInit {
     this.nuevo = {
       id: 0, placa: '', marca: '', modelo: '',
       modeloAnio: 2024, color: '', estado: 'Activo',
-      conductorId: 0, tipoVehiculoId: 0
+      conductorId: 0, tipoVehiculoId: 0, tenencia: ''
     };
     this.archivoSeleccionado  = null;
     this.vehiculoSeleccionado = null;
@@ -102,7 +102,8 @@ export class VehiculosComponent implements OnInit {
       color:          vehiculo.color,
       estado:         vehiculo.estado,
       conductorId:    vehiculo.conductorId    ?? 0,
-      tipoVehiculoId: vehiculo.tipoVehiculoId ?? 0
+      tipoVehiculoId: vehiculo.tipoVehiculoId ?? 0,
+      tenencia:       vehiculo.tenencia ?? ''
     };
     this.mostrarModal = true;
   }
@@ -118,7 +119,7 @@ export class VehiculosComponent implements OnInit {
     if (!this.nuevo.placa)  { Swal.fire({ icon: 'warning', title: 'Ingrese la placa' });  return; }
     if (!this.nuevo.marca)  { Swal.fire({ icon: 'warning', title: 'Ingrese la marca' });  return; }
     if (this.nuevo.tipoVehiculoId === 0) {
-      Swal.fire({ icon: 'warning', title: 'Seleccione el tipo de vehÃ­culo' }); return;
+      Swal.fire({ icon: 'warning', title: 'Seleccione el tipo de vehículo' }); return;
     }
     if (this.nuevo.conductorId === 0) {
       Swal.fire({ icon: 'warning', title: 'Seleccione un conductor' }); return;
@@ -128,11 +129,12 @@ export class VehiculosComponent implements OnInit {
     formData.append('Placa',          this.nuevo.placa);
     formData.append('Marca',          this.nuevo.marca);
     formData.append('Modelo',         this.nuevo.modelo);
-    formData.append('año',            this.nuevo.modeloAnio.toString());
+    formData.append('Año',            this.nuevo.modeloAnio.toString());
     formData.append('Color',          this.nuevo.color);
     formData.append('Estado',         this.nuevo.estado);
     formData.append('ConductorId',    this.nuevo.conductorId.toString());
     formData.append('TipoVehiculoId', this.nuevo.tipoVehiculoId.toString());
+    if (this.nuevo.tenencia) formData.append('Tenencia', this.nuevo.tenencia);
     if (this.archivoSeleccionado)
       formData.append('foto', this.archivoSeleccionado);
 
@@ -146,7 +148,7 @@ export class VehiculosComponent implements OnInit {
         this.cerrar();
         Swal.fire({
           icon: 'success',
-          title: this.modoEdicion ? 'VehÃ­culo actualizado' : 'VehÃ­culo guardado',
+          title: this.modoEdicion ? 'Vehículo actualizado' : 'Vehículo guardado',
           timer: 1500, showConfirmButton: false
         });
       },
@@ -159,8 +161,8 @@ export class VehiculosComponent implements OnInit {
 
   eliminar(id: number) {
     Swal.fire({
-      title: 'Â¿Eliminar vehÃ­culo?', icon: 'warning',
-      showCancelButton: true, confirmButtonText: 'SÃ­, eliminar'
+      title: '¿Eliminar vehículo?', icon: 'warning',
+      showCancelButton: true, confirmButtonText: 'Sí, eliminar'
     }).then((r) => {
       if (r.isConfirmed) {
         this.vehiculosService.eliminarVehiculo(id).subscribe({
@@ -185,4 +187,3 @@ export class VehiculosComponent implements OnInit {
     );
   }
 }
-

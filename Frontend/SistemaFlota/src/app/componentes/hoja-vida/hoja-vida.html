@@ -96,14 +96,41 @@
     </div>
 
     <div class="form-seccion">
+      <h3><i class="fa-solid fa-car"></i> Uso de vehiculo</h3>
+      <div class="form-grid">
+        <div class="fg"><label>Clasificacion vehiculo</label>
+          <select [(ngModel)]="formDatos.clasificacionVehiculo">
+            <option value="">Seleccione</option>
+            <option value="Continua">Continua</option>
+            <option value="Frecuente">Frecuente</option>
+            <option value="Ocasional">Ocasional</option>
+            <option value="No Aplica">No Aplica</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column: span 2">
+          <label>Tipo de vehiculo (puede seleccionar varios)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:8px">
+            <label *ngFor="let t of tiposVehiculo" style="display:flex; align-items:center; gap:6px; cursor:pointer">
+              <input type="checkbox" [checked]="tieneTipoVehiculo(t)" (change)="toggleTipoVehiculo(t)">
+              {{ t }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-seccion">
       <h3><i class="fa-solid fa-id-card"></i> Licencia de conducción</h3>
       <div class="form-grid">
         <div class="fg"><label>Número de licencia</label><input [(ngModel)]="formDatos.licencia" placeholder="Número"></div>
-        <div class="fg"><label>Categoría</label>
-          <select [(ngModel)]="formDatos.categoriaLicencia">
-            <option value="">Seleccione</option>
-            <option *ngFor="let c of categoriasLic" [value]="c">{{ c }}</option>
-          </select>
+        <div class="fg" style="grid-column: span 2">
+          <label>Categoría de licencia (puede seleccionar varias)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:8px">
+            <label *ngFor="let c of categoriasLic" style="display:flex; align-items:center; gap:6px; cursor:pointer">
+              <input type="checkbox" [checked]="tieneCategoria(c)" (change)="toggleCategoria(c)">
+              {{ c }}
+            </label>
+          </div>
         </div>
         <div class="fg"><label>Fecha expedición</label><input type="date" [(ngModel)]="formDatos.fechaExpedicionLicencia"></div>
         <div class="fg"><label>Fecha vencimiento</label><input type="date" [(ngModel)]="formDatos.fechaVencimientoLicencia"></div>

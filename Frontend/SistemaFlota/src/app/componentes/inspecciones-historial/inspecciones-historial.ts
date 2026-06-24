@@ -27,7 +27,7 @@ export class InspeccionesHistorialComponent implements OnInit {
   totalRegistros = 0;
   totalPaginas_ = 0;
 
-  urlBase = 'https://sistemaflota-production.up.railway.app';
+  urlBase = 'https://api.gecobagsci.com';
 
   filtroBusqueda = '';
   filtroFechaDesde = '';

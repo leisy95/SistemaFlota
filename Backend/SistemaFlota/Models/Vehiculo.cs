@@ -21,6 +21,7 @@ namespace SistemaFlota
         public string Estado { get; set; } = "Activo";
 
         public string? Foto { get; set; }
+        public string? Tenencia { get; set; }
 
         // CLAVE FORÁNEA
         public int ConductorId { get; set; }

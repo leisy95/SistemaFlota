@@ -14,5 +14,7 @@
 
         // 🔥 IMPORTANTE
         public string? Foto { get; set; }
+        public string? ClasificacionVehiculo { get; set; }
+        public string? TipoVehiculo { get; set; }
     }
 }

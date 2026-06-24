@@ -1,0 +1,64 @@
+.contenedor { padding: 1.5rem; }
+
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.header h1 { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; }
+.header p { font-size: 13px; color: #666; margin: 0; }
+
+.btn-nuevo { background: #1a7f5a; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }
+
+.filtros { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin-bottom: 1.25rem; }
+.filtro-grupo { display: flex; flex-direction: column; gap: 4px; }
+.filtro-grupo label { font-size: 11px; color: #666; font-weight: 500; }
+.filtro-grupo input { padding: 7px 10px; border: 1px solid #ddd; border-radius: 7px; font-size: 13px; }
+.btn-filtrar { padding: 8px 16px; background: #f3f4f6; border: 1px solid #ddd; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.btn-pdf { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 500; }
+
+.lista { display: flex; flex-direction: column; gap: 10px; }
+
+.card-registro { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem 1.25rem; }
+.reg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.op-badge { background: #f0faf5; color: #1a7f5a; font-weight: 600; font-size: 14px; padding: 4px 12px; border-radius: 20px; border: 1px solid #1a7f5a; }
+.fecha { font-size: 12px; color: #999; }
+.reg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.reg-item { display: flex; flex-direction: column; gap: 2px; }
+.reg-label { font-size: 11px; color: #999; }
+.ok { color: #1a7f5a; font-weight: 600; }
+.no { color: #dc2626; font-weight: 600; }
+.reg-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 8px; }
+.revisado { font-size: 12px; color: #666; }
+.reg-acciones { display: flex; gap: 8px; align-items: center; }
+.foto-mini { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
+.btn-eliminar { background: #fee2e2; color: #dc2626; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+.acciones-text { font-size: 12px; color: #666; margin-top: 8px; background: #fffbeb; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #f59e0b; }
+
+.vacio { text-align: center; padding: 3rem; color: #999; background: white; border-radius: 12px; border: 1px dashed #ddd; }
+
+.form-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.form-section { padding: 1.25rem; border-bottom: 1px solid #f3f4f6; }
+.form-section h3 { font-size: 13px; font-weight: 600; color: #1a7f5a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 4px; }
+.fg.full { grid-column: span 2; }
+.fg label { font-size: 12px; color: #555; font-weight: 500; }
+.fg input, .fg textarea { padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.fg textarea { resize: vertical; min-height: 80px; }
+
+.verificaciones-grid { display: flex; flex-direction: column; gap: 10px; }
+.verif-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f9fafb; border-radius: 8px; }
+.verif-label { font-size: 13px; color: #444; flex: 1; margin-right: 12px; }
+.si-no-btn { display: flex; gap: 6px; }
+.si-no-btn button { padding: 6px 14px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; }
+.si-no-btn button.activo-si { background: #1a7f5a; color: white; border-color: #1a7f5a; }
+.si-no-btn button.activo-no { background: #dc2626; color: white; border-color: #dc2626; }
+
+.revisado-por { padding: 12px 1.25rem; background: #f0faf5; font-size: 13px; color: #444; border-top: 1px solid #e5e7eb; }
+
+.btn-row { display: flex; justify-content: flex-end; gap: 10px; padding: 1rem 1.25rem; border-top: 1px solid #f3f4f6; }
+.btn-row button { padding: 9px 18px; border: 1px solid #ddd; border-radius: 8px; background: transparent; cursor: pointer; font-size: 14px; }
+.btn-guardar { background: #1a7f5a; color: white; border-color: #1a7f5a; font-weight: 500; }
+
+.btn-ver { background: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.btn-editar { background: #f59e0b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.detalle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.detalle-item { display: flex; flex-direction: column; gap: 3px; background: #f9fafb; padding: 8px 12px; border-radius: 8px; }
+.det-label { font-size: 11px; color: #999; }
