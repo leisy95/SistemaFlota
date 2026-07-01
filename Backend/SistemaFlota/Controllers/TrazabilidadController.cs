@@ -65,12 +65,16 @@ namespace SistemaFlota
                 query = query.Where(t => !t.FacturaEntregada);
 
             if (!string.IsNullOrWhiteSpace(tipo))
-                query = query.Where(t => t.FacturaRemision.ToUpper().StartsWith(tipo.ToUpper()));
+            {
+                var tipoUpper = tipo.ToUpper();
+                var alternativo = tipoUpper == "CT" ? "COT" : tipoUpper == "RM" ? "RE" : tipoUpper == "NCE" ? "NC" : tipoUpper == "COT" ? "CT" : tipoUpper == "RE" ? "RM" : tipoUpper == "NC" ? "NCE" : "";
+                query = query.Where(t => t.FacturaRemision.ToUpper().StartsWith(tipoUpper) || (alternativo != "" && t.FacturaRemision.ToUpper().StartsWith(alternativo)));
+            }
 
             var total = await query.CountAsync();
 
             var lista = await query
-                .OrderByDescending(t => t.FechaRegistro)
+                .OrderByDescending(t => t.FechaRegistro).ThenByDescending(t => t.Id)
                 .Skip((pagina - 1) * porPagina)
                 .Take(porPagina)
                 .ToListAsync();
