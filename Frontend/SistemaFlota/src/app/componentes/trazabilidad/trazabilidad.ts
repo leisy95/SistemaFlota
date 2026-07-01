@@ -46,9 +46,9 @@ export class TrazabilidadComponent implements OnInit {
 
   readonly tiposFiltro = [
     { value: 'FE', label: 'FE — Facturas' },
-    { value: 'COT', label: 'CT — Cotizaciones' },
-    { value: 'RE', label: 'RM — Remisiones' },
-    { value: 'NC', label: 'NCE — Notas crédito' },
+    { value: 'CT', label: 'CT — Cotizaciones' },
+    { value: 'RM', label: 'RM — Remisiones' },
+    { value: 'NCE', label: 'NCE — Notas crédito' },
     { value: '', label: 'Todas' },
   ];
 

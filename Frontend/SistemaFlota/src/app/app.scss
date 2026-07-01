@@ -371,3 +371,23 @@
     overflow-x: hidden;
   }
 }
+.flotachat-btn-container {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: auto;
+}
+.flotachat-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #e53e6e;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.flotachat-btn:hover { background: #c53060; }
+.flotachat-btn i { font-size: 16px; }

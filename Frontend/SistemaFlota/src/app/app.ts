@@ -56,7 +56,7 @@ interface ModuloItem {
     SolicitudTallerComponent, PedidosComponent,
     SeguimientosRrhhComponent, CyrelesComponent,
     CentroInformacionComponent,
-    FormatoFGC008Component,
+    FormatoFGC008Component
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
@@ -119,7 +119,7 @@ export class AppComponent implements OnInit {
   private readonly accesoModuloPrincipal: Record<ModuloPrincipal, string[]> = {
     flota: ['Admin', 'Auxiliar', 'Jefe', 'Facturacion', 'Bodega', 'RecursosHumanos', 'PESV', 'Conductor', 'Vendedor', 'Porteria'],
     rrhh: ['Admin', 'RecursosHumanos', 'Jefe', 'PESV', 'SST'],
-    calidad: ['Admin', 'Calidad', 'Impresion', 'Jefe'],
+    calidad: ['Admin', 'Calidad', 'Impresion', 'Jefe', 'PESV'],
   };
 
   constructor(
