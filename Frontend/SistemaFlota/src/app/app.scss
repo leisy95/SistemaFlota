@@ -20,7 +20,7 @@
 .sidebar {
   width: 240px;
   height: 100vh;
-  background: rgba(10,8,30,0.55);
+  background-color: var(--azul-oscuro);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid rgba(255,255,255,0.08);
