@@ -23,6 +23,23 @@
   --rojo-claro: #E57373;
   --rojo-oscuro: #D32F2F;
   --negro: #000;
+
+  /* Gradientes kpi */
+  --kpi-verde-1: #69c266;
+  --kpi-verde-2: var(--verde-principal);
+  --kpi-verde-3: var(--verde-oscuro);
+
+  --kpi-gris-1: #8ea1ad;
+  --kpi-gris-2: var(--gris-medio);
+  --kpi-gris-3: var(--gris-oscuro);
+
+  --kpi-azul-1: #47a6f3;
+  --kpi-azul-2: var(--azul-info);
+  --kpi-azul-3: var(--azul-cielo);
+
+  --kpi-dorado-1: #eccb66;
+  --kpi-dorado-2: #ddb84f;
+  --kpi-dorado-3: var(--amarillo);
 }
 
 * {
