@@ -33,6 +33,7 @@ import { ConfiguracionService } from './services/configuracion.service';
 import { AuthService } from './services/auth.service';
 import { PermisosService } from './services/permisos.service';
 import { environment } from '../environments/environment';
+import { CostosFleteComponent } from './componentes/costos-fletes/costos-fletes';
 
 type ModuloPrincipal = 'flota' | 'rrhh' | 'calidad';
 
@@ -56,7 +57,8 @@ interface ModuloItem {
     SolicitudTallerComponent, PedidosComponent,
     SeguimientosRrhhComponent, CyrelesComponent,
     CentroInformacionComponent,
-    FormatoFGC008Component
+    FormatoFGC008Component,
+    CostosFleteComponent,
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
@@ -105,6 +107,7 @@ export class AppComponent implements OnInit {
     { key: 'configuracion', label: 'Configuración', icon: 'fa-solid fa-sliders' },
     { key: 'checklist', label: 'Checklist', icon: 'fa-solid fa-list-check' },
     { key: 'centro-informacion', label: 'Centro de Información', icon: 'fa-solid fa-book-open' },
+    { key: 'costos-fletes', label: 'Costos de flete', icon: 'fa-solid fa-truck' },
   ];
 
   readonly modulosRrhh: ModuloItem[] = [
@@ -264,6 +267,8 @@ export class AppComponent implements OnInit {
         return ['rrhh-seguimientos'].includes(modulo);
       default:
         return false;
+      case 'Facturacion':
+        return ['costos-fletes',].includes(modulo);
     }
   }
 

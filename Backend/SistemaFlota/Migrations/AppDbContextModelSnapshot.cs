@@ -326,6 +326,9 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("Cedula")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("ClasificacionVehiculo")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("ContactoEmergencia")
                         .HasColumnType("longtext");
 
@@ -374,6 +377,9 @@ namespace SistemaFlota.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("TipoSangre")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TipoVehiculo")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -455,6 +461,68 @@ namespace SistemaFlota.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ContactosNotificacion");
+                });
+
+            modelBuilder.Entity("SistemaFlota.CosteFlete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Alimentacion")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("AutorizacionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CargueMateriales")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("Combustible")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("DescarguesMcia")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaVerificacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FirmaVerificacion")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("Hospedaje")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("Parqueos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("Peajes")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("Varios")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("VerificadoPor")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AutorizacionId");
+
+                    b.ToTable("CostosFletes");
                 });
 
             modelBuilder.Entity("SistemaFlota.DocumentoGeneral", b =>
@@ -638,6 +706,57 @@ namespace SistemaFlota.Migrations
                     b.ToTable("ExamenesMedicos");
                 });
 
+            modelBuilder.Entity("SistemaFlota.FormatoFGC008", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("AccionesTomadas")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("CantidadOP")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CantidadReal")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("DefectosSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Despachado")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("EmbalajeSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EtiquetasSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaRevision")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FotoEvidencia")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("ListoBodega")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("OrdenProduccion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RevisadoPor")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FormatoFGC008");
+                });
+
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
                 {
                     b.Property<int>("Id")
@@ -772,6 +891,9 @@ namespace SistemaFlota.Migrations
                     b.Property<int>("VehiculoId")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("WhatsAppEnviado")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ConductorId");
@@ -813,6 +935,33 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("InspeccionId");
 
                     b.ToTable("InspeccionDetalles");
+                });
+
+            modelBuilder.Entity("SistemaFlota.InventarioRuta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Archivo")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CreadoPor")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InventarioRutas");
                 });
 
             modelBuilder.Entity("SistemaFlota.Mantenimiento", b =>
@@ -1087,6 +1236,35 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("TrazabilidadId");
 
                     b.ToTable("NotasTrazabilidad");
+                });
+
+            modelBuilder.Entity("SistemaFlota.NumeroEmergencia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Ciudad")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NumerosEmergencia");
                 });
 
             modelBuilder.Entity("SistemaFlota.Pedido", b =>
@@ -1409,6 +1587,9 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Tenencia")
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ConductorId");
@@ -1480,6 +1661,17 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("TipoVehiculo");
+                });
+
+            modelBuilder.Entity("SistemaFlota.CosteFlete", b =>
+                {
+                    b.HasOne("SistemaFlota.Autorizacion", "Autorizacion")
+                        .WithMany()
+                        .HasForeignKey("AutorizacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Autorizacion");
                 });
 
             modelBuilder.Entity("SistemaFlota.DocumentoVehiculo", b =>
