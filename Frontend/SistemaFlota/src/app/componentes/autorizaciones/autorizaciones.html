@@ -3,7 +3,7 @@
   <i class="fa-solid fa-circle-check"></i> {{ notificacion }}
 </div>
 
-<!-- ═══════════════════════ VISTA LISTA ═══════════════════════ -->
+<!--  VISTA LISTA  -->
 <div class="contenedor" *ngIf="vistaLista">
 
   <div class="header-lista">
@@ -206,7 +206,7 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL SALIDA RÁPIDA ═══════════════ -->
+<!--  MODAL SALIDA RÁPIDA  -->
 <div class="modal-overlay" *ngIf="mostrarModalSalidaRapida">
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
@@ -249,7 +249,7 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL LLEGADA RÁPIDA ═══════════════ -->
+<!--  MODAL LLEGADA RÁPIDA  -->
 <div class="modal-overlay" *ngIf="mostrarModalLlegadaRapida">
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
@@ -601,7 +601,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ FLUJO DE PASOS ═══════════════════════ -->
+<!--  FLUJO DE PASOS  -->
 <div class="contenedor" *ngIf="!vistaLista">
   <button class="btn-volver" (click)="resetear()"><i class="fa-solid fa-arrow-left"></i> Volver a lista</button>
   <div class="progreso">

@@ -2,26 +2,40 @@
 
   <div class="header-historial">
     <h1>Historial Inspecciones</h1>
-    <button class="btn-excel" (click)="exportarExcel()">📊 Exportar Excel</button>
+    <button class="btn-excel" (click)="exportarExcel()">
+      <i class="fa-solid fa-file-excel"></i>
+      Exportar Excel
+    </button>
   </div>
 
   <div class="sin-permiso" *ngIf="!puedeVer">
-    <p>🔒 No tienes permiso para ver el historial de inspecciones.</p>
+    <p> No tienes permiso para ver el historial de inspecciones.</p>
   </div>
 
   <ng-container *ngIf="puedeVer">
 
     <!-- FILTROS -->
     <div class="filtros-panel">
-      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
-        (input)="aplicarFiltros()"
-        placeholder="🔍 Buscar conductor o vehículo...">
-      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
-        (change)="aplicarFiltros()">
-      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
-        (change)="aplicarFiltros()">
-      <button class="btn-refresh" (click)="obtenerHistorial()">🔄</button>
-      <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
+
+      <div class="input-icon">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
+          placeholder="Buscar conductor o vehículo...">
+      </div>
+
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
+
+      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
+
+      <button class="btn-refresh" (click)="obtenerHistorial()">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+
+      <button class="btn-limpiar" (click)="limpiarFiltros()">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+        Limpiar
+      </button>
+
     </div>
 
     <p class="resultado-filtro" *ngIf="historialFiltrado.length !== historial.length">
@@ -47,14 +61,28 @@
             <td data-label="Vehículo">{{ item.vehiculo?.placa }}</td>
             <td data-label="Kilometraje">{{ item.kilometraje }} km</td>
             <td data-label="WhatsApp">
-              <span *ngIf="item.whatsAppEnviado === true" title="Enviado">✅</span>
-              <span *ngIf="item.whatsAppEnviado === false" title="Falló">❌</span>
-              <span *ngIf="item.whatsAppEnviado === null || item.whatsAppEnviado === undefined" title="Sin registro">➖</span>
+              <span *ngIf="item.whatsAppEnviado === true" title="Enviado">
+                <i class="fa-solid fa-circle-check"></i>
+              </span>
+
+              <span *ngIf="item.whatsAppEnviado === false" title="Falló">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </span>
+
+              <span *ngIf="item.whatsAppEnviado === null || item.whatsAppEnviado === undefined" title="Sin registro">
+                <i class="fa-solid fa-minus"></i>
+              </span>
             </td>
             <td data-label="Acción">
               <div class="btn-acciones">
-                <button class="btn-ver" (click)="verDetalle(item.id)">👁️ Ver</button>
-                <button class="btn-pdf" (click)="descargarPDF(item)">📄 PDF</button>
+                <button class="btn-ver" (click)="verDetalle(item.id)">
+                  <i class="fa-solid fa-eye"></i>
+                  Ver
+                </button>
+                <button class="btn-pdf" (click)="descargarPDF(item)">
+                  <i class="fa-solid fa-file-pdf"></i>
+                  PDF
+                </button>
               </div>
             </td>
           </tr>
@@ -63,7 +91,7 @@
     </div>
 
     <div class="vacio" *ngIf="historialPaginado.length === 0 && historial.length > 0">
-      <p>🔍 No hay registros con ese filtro</p>
+      <p> No hay registros con ese filtro</p>
       <button class="btn-limpiar" (click)="limpiarFiltros()">Limpiar filtros</button>
     </div>
 
@@ -87,13 +115,12 @@
   <div class="modal-detalle">
 
     <div class="modal-header">
-      <h2>🚚 Detalle Inspección</h2>
+      <h2> Detalle Inspección</h2>
       <button class="btn-cerrar" (click)="detalleSeleccionado = null">✕</button>
     </div>
 
-    <!-- ── ESTADO GENERAL ───────────────────────────────────────────────── -->
-    <div class="estado-general-card"
-      [class.estado-apto]="detalleSeleccionado.estadoGeneral === 'APTO'"
+    <!--  ESTADO GENERAL  -->
+    <div class="estado-general-card" [class.estado-apto]="detalleSeleccionado.estadoGeneral === 'APTO'"
       [class.estado-observaciones]="detalleSeleccionado.estadoGeneral === 'APTO CON OBSERVACIONES'"
       [class.estado-no-apto]="detalleSeleccionado.estadoGeneral === 'NO APTO'">
       <div class="estado-emoji">{{ detalleSeleccionado.emojiEstado }}</div>
@@ -106,52 +133,70 @@
       </div>
     </div>
 
-    <!-- ── INFO GENERAL ─────────────────────────────────────────────────── -->
+    <!-- INFO GENERAL  -->
     <div class="info-grid">
       <div class="info-card">
-        <span>👤 Conductor</span>
+        <span>
+          <i class="fa-solid fa-user"></i>
+          Conductor
+        </span>
         <h3>{{ detalleSeleccionado.conductor.nombre }}</h3>
       </div>
       <div class="info-card">
-        <span>🚚 Vehículo</span>
+        <span>
+          <i class="fa-solid fa-truck"></i>
+          Vehículo
+        </span>
         <h3>{{ detalleSeleccionado.vehiculo.placa }}</h3>
       </div>
       <div class="info-card">
-        <span>📅 Fecha</span>
+        <span>
+          <i class="fa-solid fa-calendar-days"></i>
+          Fecha
+        </span>
         <h3>{{ detalleSeleccionado.fecha | date:'short' }}</h3>
       </div>
       <div class="info-card">
-        <span>⛽ Kilometraje</span>
+        <span>
+          <i class="fa-solid fa-gauge-high"></i>
+          Kilometraje
+        </span>
         <h3>{{ detalleSeleccionado.kilometraje }} km</h3>
       </div>
     </div>
 
-    <!-- ── FOTO ODÓMETRO ─────────────────────────────────────────────────── -->
+    <!-- FOTO ODÓMETRO  -->
     <div class="foto-odometro" *ngIf="detalleSeleccionado.fotoOdometro">
       <h3>Foto Odómetro</h3>
       <img [src]="urlBase + '/inspecciones/' + detalleSeleccionado.fotoOdometro">
     </div>
 
-    <!-- ── CHECKLIST ─────────────────────────────────────────────────────── -->
+    <!-- CHECKLIST  -->
     <div class="checklist-section">
-      <h3>📋 Checklist ({{ detalleSeleccionado.detalles?.length }} ítems)</h3>
+      <h3>
+        <i class="fa-solid fa-clipboard-check"></i>
+        Checklist ({{ detalleSeleccionado.detalles?.length }} ítems)
+      </h3>
       <div class="check-item" *ngFor="let item of detalleSeleccionado.detalles"
-        [class.check-conforme]="item.estado === 'Conforme'"
-        [class.check-no-conforme]="item.estado === 'No conforme'"
+        [class.check-conforme]="item.estado === 'Conforme'" [class.check-no-conforme]="item.estado === 'No conforme'"
         [class.check-no-aplica]="item.estado === 'No aplica'">
         <div class="estado">
-          <span
-            [class.ok]="item.estado === 'Conforme'"
-            [class.fail]="item.estado === 'No conforme'"
+          <span [class.ok]="item.estado === 'Conforme'" [class.fail]="item.estado === 'No conforme'"
             [class.na]="item.estado === 'No aplica'">
-            {{ item.estado === 'Conforme' ? '✅' : item.estado === 'No conforme' ? '❌' : '➖' }}
+
+            <i class="fa-solid" [class.fa-circle-check]="item.estado === 'Conforme'"
+              [class.fa-circle-xmark]="item.estado === 'No conforme'"
+              [class.fa-minus-circle]="item.estado === 'No aplica'">
+            </i>
+
             {{ item.estado }}
           </span>
         </div>
         <div class="detalle-info">
           <p><strong>{{ item.nombreItem || item.checklistItemId }}</strong></p>
           <p *ngIf="item.observacion" style="color:#dc2626; font-size:13px">
-            ⚠️ {{ item.observacion }}
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            {{ item.observacion }}
           </p>
         </div>
       </div>

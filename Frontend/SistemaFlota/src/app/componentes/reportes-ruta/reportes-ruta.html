@@ -2,14 +2,20 @@
 
   <!-- ENVIADO OK -->
   <div class="enviado-ok" *ngIf="enviado">
-  <div class="enviado-icon">✅</div>
-  <h2>¡Reporte enviado!</h2>
-  <p>El reporte fue registrado y la empresa fue notificada automáticamente.</p>
-  <button class="btn-nuevo" (click)="nuevoReporte()">+ Nuevo Reporte</button>
-</div>
+    <div class="enviado-icon">
+      <i class="fas fa-circle-check"></i>
+    </div>
+    <h2>¡Reporte enviado!</h2>
+    <p>El reporte fue registrado y la empresa fue notificada automáticamente.</p>
+    <button class="btn-nuevo" (click)="nuevoReporte()">
+      <i class="fas fa-plus"></i>
+      Nuevo Reporte</button>
+  </div>
   <!-- Sin permiso -->
   <div class="enviado-ok" *ngIf="!enviado && !puedeCrear">
-    <div class="enviado-icon">🔒</div>
+    <div class="enviado-icon">
+      <i class="fas fa-lock"></i>
+    </div>
     <h2>Sin permiso</h2>
     <p>No tienes permiso para enviar reportes de ruta.</p>
   </div>
@@ -18,7 +24,9 @@
   <div *ngIf="!enviado && puedeCrear">
 
     <div class="reporte-header">
-      <div class="header-icon">⚠️</div>
+      <div class="header-icon">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
       <div>
         <h1>Reporte de Incidente en Ruta</h1>
         <p>Notifique a la empresa de cualquier problema</p>
@@ -26,12 +34,15 @@
     </div>
 
     <div class="aviso-info">
-      ℹ️ Use este formulario para reportar: daños al vehículo, accidentes,
+      <i class="fas fa-circle-info"></i>
+      Use este formulario para reportar: daños al vehículo, accidentes,
       trancones, cierres de vía, o cualquier situación que afecte la entrega.
     </div>
 
     <div class="form-group">
-      <label>👤 Conductor *</label>
+      <label>
+        <i class="fas fa-user"></i>
+         Conductor *</label>
       <select [(ngModel)]="form.conductorId">
         <option [value]="0">Seleccione su nombre</option>
         <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
@@ -39,7 +50,9 @@
     </div>
 
     <div class="form-group">
-      <label>🚚 Placa del Vehículo *</label>
+      <label>
+         <i class="fas fa-truck"></i>
+         Placa del Vehículo *</label>
       <select [(ngModel)]="form.vehiculoId">
         <option [value]="0">Seleccione la placa</option>
         <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
@@ -47,7 +60,9 @@
     </div>
 
     <div class="form-group">
-      <label>⚠️ Tipo de Incidente *</label>
+      <label>
+        <i class="fas fa-triangle-exclamation"></i>
+         Tipo de Incidente *</label>
       <select [(ngModel)]="form.tipoIncidente">
         <option value="">Seleccione el tipo</option>
         <option *ngFor="let t of tiposIncidente" [value]="t.value">{{ t.label }}</option>
@@ -70,8 +85,7 @@
           <span *ngIf="ubicacionObtenida && !obteniendo">✅ {{ form.ubicacionGPS }}</span>
         </button>
       </div>
-      <a *ngIf="ubicacionObtenida"
-        [href]="'https://maps.google.com/?q=' + form.latitud + ',' + form.longitud"
+      <a *ngIf="ubicacionObtenida" [href]="'https://maps.google.com/?q=' + form.latitud + ',' + form.longitud"
         target="_blank" class="ver-mapa">
         🗺️ Ver en Google Maps
       </a>
@@ -96,10 +110,10 @@
     </div>
 
     <div class="error-msg" *ngIf="errorMsg">❌ {{ errorMsg }}</div>
-<div class="aviso-whatsapp">
-  📱 <strong>Su reporte se enviará inmediatamente</strong> al equipo de
-  operaciones. Un supervisor lo contactará a la brevedad.
-</div>
+    <div class="aviso-whatsapp">
+      📱 <strong>Su reporte se enviará inmediatamente</strong> al equipo de
+      operaciones. Un supervisor lo contactará a la brevedad.
+    </div>
     <div class="botones">
       <button class="btn-cancelar" (click)="nuevoReporte()">Cancelar</button>
       <button class="btn-enviar" (click)="enviarReporte()" [disabled]="enviando">
