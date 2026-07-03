@@ -14,5 +14,6 @@ namespace SistemaFlota
         public string? TokenRecuperacion { get; set; }
         public DateTime? TokenExpiracion { get; set; }
         public List<UsuarioPermiso> Permisos { get; set; } = new();
+        public string? PasswordConductores { get; set; }
     }
 }

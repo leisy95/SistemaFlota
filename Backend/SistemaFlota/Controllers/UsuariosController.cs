@@ -359,6 +359,31 @@ namespace SistemaFlota
             return Ok(new { mensaje = "Contraseña cambiada correctamente" });
         }
 
+
+        [HttpPut("{id}/password-modulo")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SetPasswordModulo(int id, [FromBody] PasswordModuloDto dto)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null) return NotFound();
+            usuario.PasswordConductores = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            await _context.SaveChangesAsync();
+            return Ok(new { mensaje = "Contrasena actualizada" });
+        }
+
+        [HttpPost("verificar-modulo")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerificarModulo([FromBody] VerificarModuloDto dto)
+        {
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == dto.Username && u.Activo);
+            if (usuario == null) return Unauthorized(new { error = "Usuario no encontrado" });
+            if (string.IsNullOrWhiteSpace(usuario.PasswordConductores))
+                return Unauthorized(new { error = "Sin contrasena de modulo" });
+            bool ok = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordConductores);
+            if (!ok) return Unauthorized(new { error = "Contrasena incorrecta" });
+            await _auditoria.RegistrarAsync(usuario.Username, usuario.Rol, "Acceso", "Conductores", "Acceso modulo Conductores", resultado: "Exitoso");
+            return Ok(new { mensaje = "Acceso permitido" });
+        }
         [HttpGet("mis-permisos")]
         [Authorize]
         public async Task<IActionResult> MisPermisos()
@@ -383,6 +408,8 @@ namespace SistemaFlota
         }
     }
 
+    public class PasswordModuloDto { public string Password { get; set; } = string.Empty; }
+    public class VerificarModuloDto { public string Username { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; }
     public class CrearUsuarioDto
     {
         public string Username { get; set; } = string.Empty;
