@@ -3,7 +3,7 @@
   <i class="fa-solid fa-circle-check"></i> {{ notificacion }}
 </div>
 
-<!-- ═══════════════════════ VISTA LISTA ═══════════════════════ -->
+<!--  VISTA LISTA  -->
 <div class="contenedor" *ngIf="vistaLista">
 
   <div class="header-lista">
@@ -14,11 +14,15 @@
       <ng-container *ngIf="puedeAccesoRapido">
         <button class="btn-salida-rapida" (click)="abrirSelectorSalida()">
           <i class="fa-solid fa-truck-fast"></i> Salir en ruta
-          <span *ngIf="autorizacionesActivasSinSalida.length > 0" style="background:rgba(255,255,255,0.25);border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px;font-weight:700">{{ autorizacionesActivasSinSalida.length }}</span>
+          <span *ngIf="autorizacionesActivasSinSalida.length > 0"
+            style="background:rgba(255,255,255,0.25);border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px;font-weight:700">{{
+            autorizacionesActivasSinSalida.length }}</span>
         </button>
         <button class="btn-llegada-rapida" (click)="abrirSelectorLlegada()">
           <i class="fa-solid fa-flag-checkered"></i> Registrar llegada
-          <span *ngIf="autorizacionesActivasSinLlegada.length > 0" style="background:rgba(255,255,255,0.25);border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px;font-weight:700">{{ autorizacionesActivasSinLlegada.length }}</span>
+          <span *ngIf="autorizacionesActivasSinLlegada.length > 0"
+            style="background:rgba(255,255,255,0.25);border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px;font-weight:700">{{
+            autorizacionesActivasSinLlegada.length }}</span>
         </button>
       </ng-container>
       <button class="btn-nueva" *ngIf="puedeCrear" (click)="vistaLista = false; setPaso(1)">
@@ -69,7 +73,6 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
           <th>Conductor</th>
           <th>Vehículo</th>
           <th>Tipo</th>
@@ -82,11 +85,10 @@
       </thead>
       <tbody>
         <tr *ngFor="let a of autorizacionesPaginadas; trackBy: trackById">
-          <td data-label="#">{{ a.id }}</td>
           <td data-label="Conductor">{{ a.conductor?.nombre }}</td>
-          <td data-label="Vehículo">{{ a.vehiculo?.placa }}</td>
+          <td data-label="Vehículo">{{ a.vehiculo?.placa | uppercase }}</td>
           <td data-label="Tipo"><span class="tipo-badge">{{ a.tipoVuelta }}</span></td>
-          <td data-label="Destino">{{ a.destinoCompleto || 'Mensajería' }}</td>
+          <td data-label="Destino">{{ a.destinoCompleto || 'Mensajería' | lowercase }}</td>
           <td data-label="Fecha">{{ a.fechaCreacion | date:'short' }}</td>
           <td data-label="Estado"><span [class]="getBadgeClass(a.estado)">{{ a.estado }}</span></td>
           <td data-label="Llegada">
@@ -174,21 +176,25 @@
     <div style="display:flex; flex-direction:column">
       <div *ngFor="let a of autorizacionesActivasSinSalida"
         style="display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid rgba(0,0,0,0.06)">
-        <div style="width:42px; height:42px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; background:#fef9c3; color:#854d0e">
+        <div
+          style="width:42px; height:42px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; background:#fef9c3; color:#854d0e">
           {{ getIniciales(a.conductor?.nombre) }}
         </div>
         <div style="flex:1; min-width:0">
-          <p style="margin:0 0 4px; font-size:14px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
+          <p
+            style="margin:0 0 4px; font-size:14px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
             {{ a.conductor?.nombre }}
           </p>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-            <span style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; font-family:monospace">
+            <span
+              style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; font-family:monospace">
               {{ a.vehiculo?.placa }}
             </span>
             <span style="font-size:12px; color:#64748b">
               {{ a.tipoVuelta }} · {{ a.destinoCompleto || 'Mensajería' }}
             </span>
-            <span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
+            <span
+              style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
               <i class="fa-solid fa-circle-check" style="font-size:10px"></i> Autorizado
             </span>
           </div>
@@ -206,14 +212,16 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL SALIDA RÁPIDA ═══════════════ -->
+<!--  MODAL SALIDA RÁPIDA  -->
 <div class="modal-overlay" *ngIf="mostrarModalSalidaRapida">
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-truck-fast"></i> Registrar Salida en Ruta</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalSalidaRapida = false"><i class="fa-solid fa-xmark"></i></button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalSalidaRapida = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
-    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la salida directamente sin necesidad de una autorización previa.</p>
+    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la salida directamente sin necesidad de una
+      autorización previa.</p>
     <div class="form-group">
       <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
       <select [(ngModel)]="formSalidaRapida.conductorId">
@@ -225,7 +233,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formSalidaRapida.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }}
+          · {{ v.color }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -235,12 +244,14 @@
       </select>
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-location-dot"></i> Destino <span style="color:#94a3b8; font-size:11px">(opcional)</span></label>
+      <label><i class="fa-solid fa-location-dot"></i> Destino <span
+          style="color:#94a3b8; font-size:11px">(opcional)</span></label>
       <input type="text" [(ngModel)]="formSalidaRapida.destinoCompleto" placeholder="Ej: Pereira, Bogotá...">
     </div>
     <div class="modal-botones">
       <button class="btn-cancelar-modal" (click)="mostrarModalSalidaRapida = false">Cancelar</button>
-      <button class="btn-guardar-llegada" (click)="guardarSalidaRapida()" [disabled]="guardandoRapido" style="background:#854d0e; border-color:#854d0e">
+      <button class="btn-guardar-llegada" (click)="guardarSalidaRapida()" [disabled]="guardandoRapido"
+        style="background:#854d0e; border-color:#854d0e">
         <i class="fa-solid fa-spinner fa-spin" *ngIf="guardandoRapido"></i>
         <i class="fa-solid fa-truck-fast" *ngIf="!guardandoRapido"></i>
         {{ guardandoRapido ? 'Registrando...' : 'Registrar Salida' }}
@@ -249,14 +260,16 @@
   </div>
 </div>
 
-<!-- ═══════════════ MODAL LLEGADA RÁPIDA ═══════════════ -->
+<!--  MODAL LLEGADA RÁPIDA  -->
 <div class="modal-overlay" *ngIf="mostrarModalLlegadaRapida">
   <div class="modal-llegada" style="max-width:480px">
     <div class="modal-header">
       <h2><i class="fa-solid fa-flag-checkered"></i> Registrar Llegada</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalLlegadaRapida = false"><i class="fa-solid fa-xmark"></i></button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalLlegadaRapida = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
-    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la llegada directamente sin necesidad de una autorización previa.</p>
+    <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Registra la llegada directamente sin necesidad de una
+      autorización previa.</p>
     <div class="form-group">
       <label><i class="fa-solid fa-id-card"></i> Conductor *</label>
       <select [(ngModel)]="formLlegadaRapida.conductorId">
@@ -268,7 +281,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formLlegadaRapida.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }}
+          · {{ v.color }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -278,7 +292,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-location-dot"></i> Destino <span style="color:#94a3b8; font-size:11px">(opcional)</span></label>
+      <label><i class="fa-solid fa-location-dot"></i> Destino <span
+          style="color:#94a3b8; font-size:11px">(opcional)</span></label>
       <input type="text" [(ngModel)]="formLlegadaRapida.destinoCompleto" placeholder="Ej: Pereira, Bogotá...">
     </div>
     <div class="form-group">
@@ -291,7 +306,8 @@
         <button *ngFor="let e of estadosVehiculo"
           [class]="'btn-estado-veh ' + (formLlegadaRapida.estadoVehiculo === e ? 'activo-' + e.toLowerCase().replace(' ','-') : '')"
           (click)="formLlegadaRapida.estadoVehiculo = e">
-          <i class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
+          <i
+            class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
           {{ e }}
         </button>
       </div>
@@ -326,32 +342,39 @@
     <div style="display:flex; flex-direction:column">
       <div *ngFor="let a of autorizacionesActivasSinLlegada"
         style="display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid rgba(0,0,0,0.06)">
-        <div style="width:42px; height:42px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; background:#dcfce7; color:#15803d">
+        <div
+          style="width:42px; height:42px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; background:#dcfce7; color:#15803d">
           {{ getIniciales(a.conductor?.nombre) }}
         </div>
         <div style="flex:1; min-width:0">
-          <p style="margin:0 0 4px; font-size:14px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
+          <p
+            style="margin:0 0 4px; font-size:14px; font-weight:600; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
             {{ a.conductor?.nombre }}
           </p>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-            <span style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; font-family:monospace">
+            <span
+              style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; font-family:monospace">
               {{ a.vehiculo?.placa }}
             </span>
             <span style="font-size:12px; color:#64748b">
               {{ a.tipoVuelta }} · {{ a.destinoCompleto || 'Mensajería' }}
             </span>
-            <span *ngIf="getBadgeSalida(a) === 'ruta'" style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
+            <span *ngIf="getBadgeSalida(a) === 'ruta'"
+              style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
               <i class="fa-solid fa-truck-fast" style="font-size:10px"></i> En ruta
             </span>
-            <span *ngIf="getBadgeSalida(a) === 'sinconfirmar'" style="background:#fef9c3; color:#854d0e; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
+            <span *ngIf="getBadgeSalida(a) === 'sinconfirmar'"
+              style="background:#fef9c3; color:#854d0e; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
               <i class="fa-solid fa-clock" style="font-size:10px"></i> Salida sin confirmar
             </span>
-            <span *ngIf="getBadgeSalida(a) === 'sinregistrar'" style="background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
+            <span *ngIf="getBadgeSalida(a) === 'sinregistrar'"
+              style="background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500">
               <i class="fa-solid fa-map-pin" style="font-size:10px"></i> Sin salida registrada
             </span>
           </div>
         </div>
-        <button class="btn-guardar-llegada" style="white-space:nowrap; padding:8px 14px; font-size:13px; flex-shrink:0" (click)="seleccionarLlegadaConductor(a)">
+        <button class="btn-guardar-llegada" style="white-space:nowrap; padding:8px 14px; font-size:13px; flex-shrink:0"
+          (click)="seleccionarLlegadaConductor(a)">
           <i class="fa-solid fa-flag-checkered"></i> Registrar
         </button>
       </div>
@@ -371,11 +394,13 @@
     </div>
     <div class="llegada-info">
       <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionLlegada?.conductor?.nombre }}</strong></p>
-      <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }} — {{ autorizacionLlegada?.destinoCompleto || 'Mensajería' }}</p>
+      <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }} — {{
+        autorizacionLlegada?.destinoCompleto || 'Mensajería' }}</p>
       <p><i class="fa-solid fa-calendar"></i> Salió: {{ autorizacionLlegada?.fechaPorteria | date:'short' }}</p>
     </div>
     <div class="form-group">
-      <label><i class="fa-solid fa-road"></i> Kilometraje final <span style="color:#94a3b8; font-size:11px">(opcional)</span></label>
+      <label><i class="fa-solid fa-road"></i> Kilometraje final <span
+          style="color:#94a3b8; font-size:11px">(opcional)</span></label>
       <input type="number" [(ngModel)]="formLlegada.kilometrajeFinal" placeholder="Ej: 45230">
     </div>
     <div class="form-group">
@@ -384,14 +409,16 @@
         <button *ngFor="let e of estadosVehiculo"
           [class]="'btn-estado-veh ' + (formLlegada.estadoVehiculo === e ? 'activo-' + e.toLowerCase().replace(' ','-') : '')"
           (click)="formLlegada.estadoVehiculo = e">
-          <i class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
+          <i
+            class="fa-solid fa-{{e === 'Bueno' ? 'circle-check' : e === 'Novedad' ? 'triangle-exclamation' : 'wrench'}}"></i>
           {{ e }}
         </button>
       </div>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-clipboard"></i> Novedades del viaje</label>
-      <textarea [(ngModel)]="formLlegada.novedadesViaje" placeholder="Ej: Sin novedad / Describir si hubo incidentes..."></textarea>
+      <textarea [(ngModel)]="formLlegada.novedadesViaje"
+        placeholder="Ej: Sin novedad / Describir si hubo incidentes..."></textarea>
     </div>
     <div class="modal-botones">
       <button class="btn-cancelar-modal" (click)="mostrarModalLlegada = false">Cancelar</button>
@@ -407,14 +434,16 @@
   <div class="modal-llegada">
     <div class="modal-header">
       <h2><i class="fa-solid fa-door-open"></i> Confirmar Entrada</h2>
-      <button class="btn-cerrar-modal" (click)="mostrarModalConfirmar = false"><i class="fa-solid fa-xmark"></i></button>
+      <button class="btn-cerrar-modal" (click)="mostrarModalConfirmar = false"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="llegada-info">
       <p><i class="fa-solid fa-id-card"></i> <strong>{{ autorizacionLlegada?.conductor?.nombre }}</strong></p>
       <p><i class="fa-solid fa-truck"></i> {{ autorizacionLlegada?.vehiculo?.placa }}</p>
       <p><i class="fa-solid fa-road"></i> Km final: <strong>{{ autorizacionLlegada?.kilometrajeFinal }}</strong></p>
       <p><i class="fa-solid fa-car"></i> Estado: <strong>{{ autorizacionLlegada?.estadoVehiculoLlegada }}</strong></p>
-      <p *ngIf="autorizacionLlegada?.novedadesViaje"><i class="fa-solid fa-clipboard"></i> {{ autorizacionLlegada?.novedadesViaje }}</p>
+      <p *ngIf="autorizacionLlegada?.novedadesViaje"><i class="fa-solid fa-clipboard"></i> {{
+        autorizacionLlegada?.novedadesViaje }}</p>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-user"></i> Nombre de quien confirma *</label>
@@ -454,7 +483,8 @@
       <label><i class="fa-solid fa-truck"></i> Vehículo *</label>
       <select [(ngModel)]="formEditar.vehiculoId">
         <option [value]="0">Seleccione un vehículo...</option>
-        <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
+        <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo
+          }} · {{ v['año'] }} · {{ v.color }}</option>
       </select>
     </div>
     <div class="form-group">
@@ -477,7 +507,8 @@
         <span *ngIf="pesoBaseClientes > 0" style="color:#854d0e; font-size:11px; font-weight:600; margin-left:8px">
           <i class="fa-solid fa-users"></i> Clientes: {{ pesoBaseClientes | number:'1.2-2' }} kg
         </span>
-        <span *ngIf="pesoTotalFacturasEditar > 0" style="color:#15803d; font-size:11px; font-weight:600; margin-left:8px">
+        <span *ngIf="pesoTotalFacturasEditar > 0"
+          style="color:#15803d; font-size:11px; font-weight:600; margin-left:8px">
           <i class="fa-solid fa-receipt"></i> Facturas: {{ pesoTotalFacturasEditar | number:'1.2-2' }} kg
         </span>
       </label>
@@ -500,7 +531,8 @@
         <div class="factura-fila" *ngFor="let f of facturasEditar; let i = index; trackBy: trackByIdx">
           <input type="text" [(ngModel)]="f.facturaRemision" placeholder="F-001">
           <input type="text" [(ngModel)]="f.cliente" placeholder="Nombre del cliente">
-          <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5" (ngModelChange)="recalcularPesoEditar()">
+          <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
+            (ngModelChange)="recalcularPesoEditar()">
           <button class="btn-eliminar-fila" (click)="eliminarFacturaEditar(i)">
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -535,45 +567,81 @@
       <p><i class="fa-solid fa-truck"></i> {{ autorizacionDetalle?.vehiculo?.placa }}</p>
       <p><i class="fa-solid fa-rotate"></i> {{ autorizacionDetalle?.tipoVuelta }}</p>
       <p><i class="fa-solid fa-location-dot"></i> {{ autorizacionDetalle?.destinoCompleto || 'Mensajería' }}</p>
-      <p *ngIf="autorizacionDetalle?.numeroGuia"><i class="fa-solid fa-hashtag"></i> Guía: {{ autorizacionDetalle?.numeroGuia }}</p>
-      <p *ngIf="autorizacionDetalle?.pesoKilos"><i class="fa-solid fa-weight-hanging"></i> Peso: {{ autorizacionDetalle?.pesoKilos }} kg</p>
-      <p *ngIf="autorizacionDetalle?.cantidadClientes"><i class="fa-solid fa-users"></i> Clientes: {{ autorizacionDetalle?.cantidadClientes }}</p>
-      <p *ngIf="autorizacionDetalle?.descripcionCarga"><i class="fa-solid fa-boxes-stacked"></i> {{ autorizacionDetalle?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionDetalle?.numeroGuia"><i class="fa-solid fa-hashtag"></i> Guía: {{
+        autorizacionDetalle?.numeroGuia }}</p>
+      <p *ngIf="autorizacionDetalle?.pesoKilos"><i class="fa-solid fa-weight-hanging"></i> Peso: {{
+        autorizacionDetalle?.pesoKilos }} kg</p>
+      <p *ngIf="autorizacionDetalle?.cantidadClientes"><i class="fa-solid fa-users"></i> Clientes: {{
+        autorizacionDetalle?.cantidadClientes }}</p>
+      <p *ngIf="autorizacionDetalle?.descripcionCarga"><i class="fa-solid fa-boxes-stacked"></i> {{
+        autorizacionDetalle?.descripcionCarga }}</p>
     </div>
-    <div *ngIf="autorizacionDetalle?.facturasClientes" style="margin-bottom:16px">
-      <strong style="font-size:13px; color:#374151"><i class="fa-solid fa-receipt"></i> Facturas:</strong>
-      <div class="facturas-resumen" style="margin-top:8px">
+    <div *ngIf="autorizacionDetalle?.facturasClientes" class="facturas-container">
+
+      <div class="facturas-titulo">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Facturas</span>
+      </div>
+
+      <div class="facturas-resumen">
         <div class="factura-resumen-item" *ngFor="let f of obtenerFacturas(autorizacionDetalle?.facturasClientes)">
-          <span><i class="fa-solid fa-file"></i> {{ f.facturaRemision }}</span>
-          <span><i class="fa-solid fa-user"></i> {{ f.cliente }}</span>
-          <span *ngIf="f.pesoKilos"><i class="fa-solid fa-weight-hanging"></i> {{ f.pesoKilos }} kg</span>
+
+          <div class="dato">
+            <i class="fa-solid fa-file-invoice"></i>
+            <div>
+              <small>Factura</small>
+              <strong>{{ f.facturaRemision }}</strong>
+            </div>
+          </div>
+
+          <div class="dato">
+            <i class="fa-solid fa-user"></i>
+            <div>
+              <small>Cliente</small>
+              <strong>{{ f.cliente }}</strong>
+            </div>
+          </div>
+
+          <div class="dato" *ngIf="f.pesoKilos">
+            <i class="fa-solid fa-weight-hanging"></i>
+            <div>
+              <small>Peso</small>
+              <strong>{{ f.pesoKilos }} kg</strong>
+            </div>
+          </div>
+
         </div>
       </div>
+
     </div>
     <div class="llegada-info">
       <p>
         <i class="fa-solid fa-circle-half-stroke"></i>
         <strong>Estado:</strong>
-        <span [class]="getBadgeClass(autorizacionDetalle?.estado)" style="margin-left:6px">{{ autorizacionDetalle?.estado }}</span>
+        <span [class]="getBadgeClass(autorizacionDetalle?.estado)" style="margin-left:6px">{{
+          autorizacionDetalle?.estado }}</span>
       </p>
       <p *ngIf="autorizacionDetalle?.usuarioFacturacion">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Facturación:</strong> {{ autorizacionDetalle?.usuarioFacturacion }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaFacturacion | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionFacturacion" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionFacturacion }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionFacturacion" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionFacturacion }}</p>
       <p *ngIf="autorizacionDetalle?.usuarioBodega">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Bodega:</strong> {{ autorizacionDetalle?.usuarioBodega }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaBodega | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionBodega" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionBodega }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionBodega" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionBodega }}</p>
       <p *ngIf="autorizacionDetalle?.usuarioPorteria">
         <i class="fa-solid fa-circle-check" style="color:#15803d"></i>
         <strong>Portería:</strong> {{ autorizacionDetalle?.usuarioPorteria }}
         <span style="color:#94a3b8; font-size:12px"> — {{ autorizacionDetalle?.fechaPorteria | date:'short' }}</span>
       </p>
-      <p *ngIf="autorizacionDetalle?.observacionPorteria" style="padding-left:20px; color:#64748b; font-size:13px">{{ autorizacionDetalle?.observacionPorteria }}</p>
+      <p *ngIf="autorizacionDetalle?.observacionPorteria" style="padding-left:20px; color:#64748b; font-size:13px">{{
+        autorizacionDetalle?.observacionPorteria }}</p>
       <p *ngIf="autorizacionDetalle?.fechaSalidaReal">
         <i class="fa-solid fa-truck-fast" style="color:#854d0e"></i>
         <strong>Salida real:</strong> {{ autorizacionDetalle?.fechaSalidaReal | date:'short' }}
@@ -586,7 +654,8 @@
         <i class="fa-solid fa-road"></i> <strong>Km final:</strong> {{ autorizacionDetalle?.kilometrajeFinal }}
       </p>
       <p *ngIf="autorizacionDetalle?.estadoVehiculoLlegada">
-        <i class="fa-solid fa-car"></i> <strong>Estado vehículo:</strong> {{ autorizacionDetalle?.estadoVehiculoLlegada }}
+        <i class="fa-solid fa-car"></i> <strong>Estado vehículo:</strong> {{ autorizacionDetalle?.estadoVehiculoLlegada
+        }}
       </p>
       <p *ngIf="autorizacionDetalle?.novedadesViaje">
         <i class="fa-solid fa-clipboard"></i> <strong>Novedades:</strong> {{ autorizacionDetalle?.novedadesViaje }}
@@ -601,7 +670,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ FLUJO DE PASOS ═══════════════════════ -->
+<!--  FLUJO DE PASOS  -->
 <div class="contenedor" *ngIf="!vistaLista">
   <button class="btn-volver" (click)="resetear()"><i class="fa-solid fa-arrow-left"></i> Volver a lista</button>
   <div class="progreso">
@@ -648,7 +717,8 @@
         <label><i class="fa-solid fa-truck"></i> Placa del Vehículo *</label>
         <select [(ngModel)]="form.vehiculoId">
           <option [value]="0">Seleccione una placa</option>
-          <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
+          <option *ngFor="let v of vehiculos; trackBy: trackById" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{
+            v.modelo }} · {{ v['año'] }} · {{ v.color }}</option>
         </select>
       </div>
       <div class="form-group">
@@ -690,17 +760,20 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i> Generar
           </button>
         </div>
-        <small *ngIf="guiaGenerada"><i class="fa-solid fa-circle-check"></i> Guía: <strong>{{ guiaGenerada }}</strong></small>
+        <small *ngIf="guiaGenerada"><i class="fa-solid fa-circle-check"></i> Guía: <strong>{{ guiaGenerada
+            }}</strong></small>
       </div>
       <div class="form-group full">
         <label><i class="fa-solid fa-boxes-stacked"></i> Descripción de la Carga
           <span *ngIf="!esMensajeria">*</span>
           <span *ngIf="esMensajeria" class="opcional">(opcional)</span>
         </label>
-        <textarea [(ngModel)]="form.descripcionCarga" [placeholder]="esMensajeria ? 'Descripción opcional...' : 'Describa el tipo de mercancía...'"></textarea>
+        <textarea [(ngModel)]="form.descripcionCarga"
+          [placeholder]="esMensajeria ? 'Descripción opcional...' : 'Describa el tipo de mercancía...'"></textarea>
       </div>
       <div class="form-group full">
-        <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span class="opcional">(opcional)</span></label>
+        <label><i class="fa-solid fa-receipt"></i> Facturas / Remisiones <span
+            class="opcional">(opcional)</span></label>
         <div class="facturas-lista">
           <div class="factura-header" *ngIf="facturasClientes.length > 0">
             <span>Factura o Remisión</span><span>Cliente</span><span>Peso (kg)</span><span></span>
@@ -708,7 +781,8 @@
           <div class="factura-fila" *ngFor="let f of facturasClientes; let i = index; trackBy: trackByIdx">
             <input type="text" [(ngModel)]="f.facturaRemision" placeholder="F-001">
             <input type="text" [(ngModel)]="f.cliente" placeholder="Nombre del cliente">
-            <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5" (ngModelChange)="recalcularPeso()">
+            <input type="number" step="0.01" min="0" [(ngModel)]="f.pesoKilos" placeholder="Ej: 12.5"
+              (ngModelChange)="recalcularPeso()">
             <button class="btn-eliminar-fila" (click)="eliminarFactura(i)"><i class="fa-solid fa-trash"></i></button>
           </div>
           <button class="btn-agregar-fila" (click)="agregarFactura()">
@@ -725,7 +799,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(1)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="guardarDetalles()">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="guardarDetalles()">Continuar <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -736,10 +811,13 @@
     <div class="resumen-card">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
-      <p *ngIf="autorizacionActual?.cantidadClientes"><strong>Clientes:</strong> {{ autorizacionActual?.cantidadClientes }}</p>
+      <p *ngIf="autorizacionActual?.cantidadClientes"><strong>Clientes:</strong> {{ autorizacionActual?.cantidadClientes
+        }}</p>
       <p *ngIf="autorizacionActual?.numeroGuia"><strong>Guía:</strong> {{ autorizacionActual?.numeroGuia }}</p>
     </div>
     <div class="form-group">
@@ -756,7 +834,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(2)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="firmarFacturacion()">Autorizar <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="firmarFacturacion()">Autorizar <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -767,10 +846,13 @@
     <div class="resumen-card">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{ autorizacionActual?.usuarioFacturacion }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{
+        autorizacionActual?.usuarioFacturacion }}</p>
     </div>
     <div class="form-group">
       <label><i class="fa-solid fa-user"></i> Nombre de quien verifica *</label>
@@ -786,7 +868,8 @@
     </div>
     <div class="botones">
       <button class="btn-atras" (click)="setPaso(3)"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
-      <button class="btn-continuar-form" (click)="firmarBodega()">Verificado <i class="fa-solid fa-arrow-right"></i></button>
+      <button class="btn-continuar-form" (click)="firmarBodega()">Verificado <i
+          class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -796,11 +879,15 @@
     <p class="subtitulo">Conductor: <strong>{{ conductorSeleccionado?.nombre }}</strong></p>
     <div class="resumen-card aprobado">
       <div class="resumen-tipo"><span class="tipo-badge grande">{{ autorizacionActual?.tipoVuelta }}</span></div>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{ autorizacionActual?.usuarioFacturacion }}</p>
-      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Bodega:</strong> {{ autorizacionActual?.usuarioBodega }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Facturación:</strong> {{
+        autorizacionActual?.usuarioFacturacion }}</p>
+      <p><i class="fa-solid fa-circle-check" style="color:#15803d"></i> <strong>Bodega:</strong> {{
+        autorizacionActual?.usuarioBodega }}</p>
       <p><strong>Vehículo:</strong> {{ autorizacionActual?.vehiculo?.placa }}</p>
-      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}</p>
-      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}</p>
+      <p *ngIf="autorizacionActual?.destinoCompleto"><strong>Destino:</strong> {{ autorizacionActual?.destinoCompleto }}
+      </p>
+      <p *ngIf="autorizacionActual?.descripcionCarga"><strong>Carga:</strong> {{ autorizacionActual?.descripcionCarga }}
+      </p>
       <p *ngIf="autorizacionActual?.pesoKilos"><strong>Peso:</strong> {{ autorizacionActual?.pesoKilos }} kg</p>
     </div>
     <div class="form-group">

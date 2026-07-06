@@ -11,17 +11,17 @@
   <!-- ── Encabezado ── -->
   <div class="srrhh-header">
     <div class="srrhh-header-titulo">
-      <h4><i class="fa-solid fa-clipboard-list"></i> Seguimientos SST</h4>
+      <h1 class="title"><i class="fa-solid fa-clipboard-list"></i> Seguimientos SST</h1>
       <small>Gestión de hallazgos y planes de acción</small>
     </div>
     <div class="srrhh-header-acciones">
-      <button class="btn-excel-srrhh" (click)="exportarExcel()">
+      <button class="btn-excel" (click)="exportarExcel()">
         <i class="fa-solid fa-table"></i> Excel
       </button>
       <button class="btn-pdf-srrhh" (click)="exportarPDF()">
         <i class="fa-solid fa-file-pdf"></i> PDF
       </button>
-      <button class="btn-primary" (click)="abrirCrear()">
+      <button class="btn-agregar" (click)="abrirCrear()">
         <i class="fa-solid fa-plus"></i> Nuevo Seguimiento
       </button>
     </div>
@@ -118,9 +118,9 @@
 <div class="modal-overlay" *ngIf="vistaModal === 'crear' || vistaModal === 'editar'">
   <div class="modal-box modal-xl">
     <div class="modal-header">
-      <h5><i class="fa-solid fa-clipboard-plus"></i>
+      <h1><i class="fa-solid fa-clipboard-plus"></i>
         {{ vistaModal === 'crear' ? 'Nuevo Seguimiento' : 'Editar Seguimiento #' + registroSeleccionado?.id }}
-      </h5>
+      </h1>
       <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
@@ -309,7 +309,7 @@
 <div class="modal-overlay" *ngIf="vistaModal === 'ver' && registroSeleccionado">
   <div class="modal-box modal-lg" *ngIf="registroSeleccionado as r">
     <div class="modal-header">
-      <h5><i class="fa-solid fa-clipboard-check"></i> Seguimiento #{{ r.id }} — {{ r.area }}</h5>
+      <h1><i class="fa-solid fa-clipboard-check"></i> Seguimiento #{{ r.id }} — {{ r.area }}</h1>
       <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
@@ -360,7 +360,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" (click)="cerrarModal()">Cerrar</button>
-      <button class="btn-warning" (click)="abrirEditar(r)"><i class="fa-solid fa-pencil"></i> Editar</button>
+      <button class="btn-editar" (click)="abrirEditar(r)"><i class="fa-solid fa-pencil"></i> Editar</button>
     </div>
   </div>
 </div>

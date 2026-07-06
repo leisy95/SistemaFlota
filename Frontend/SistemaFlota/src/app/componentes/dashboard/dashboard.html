@@ -3,7 +3,7 @@
   <!-- BIENVENIDA -->
   <div class="bienvenida">
     <div class="bienvenida-texto">
-      <h1>Panel de Control</h1>
+      <h1 class="title">Panel de Control</h1>
       <p class="fecha">{{ fechaActual }}</p>
     </div>
     <div class="reloj">
@@ -28,7 +28,7 @@
   <!-- KPIs -->
   <div class="kpis-grid">
 
-    <div class="kpi-card azul" (click)="irAConductores()">
+    <div class="kpi-card verde" (click)="irAConductores()">
       <div class="kpi-top">
         <div class="kpi-icono-box"><i class="fa-solid fa-id-card"></i></div>
         <span class="kpi-trend up">activos</span>
@@ -37,7 +37,7 @@
       <span class="kpi-label">Conductores activos</span>
     </div>
 
-    <div class="kpi-card verde" (click)="ir('vehiculos')">
+    <div class="kpi-card gris" (click)="ir('vehiculos')">
       <div class="kpi-top">
         <div class="kpi-icono-box"><i class="fa-solid fa-truck"></i></div>
         <span class="kpi-trend up">total</span>
@@ -46,7 +46,7 @@
       <span class="kpi-label">Vehículos registrados</span>
     </div>
 
-    <div class="kpi-card morado" (click)="verInspecciones()">
+    <div class="kpi-card azul" (click)="verInspecciones()">
       <div class="kpi-top">
         <div class="kpi-icono-box"><i class="fa-solid fa-clipboard-check"></i></div>
         <span class="kpi-trend up">total</span>
@@ -55,7 +55,7 @@
       <span class="kpi-label">Inspecciones totales</span>
     </div>
 
-    <div class="kpi-card naranja" (click)="irAAutorizaciones()">
+    <div class="kpi-card dorado" (click)="irAAutorizaciones()">
       <div class="kpi-top">
         <div class="kpi-icono-box"><i class="fa-solid fa-file-circle-check"></i></div>
         <span class="kpi-trend up">hoy</span>
