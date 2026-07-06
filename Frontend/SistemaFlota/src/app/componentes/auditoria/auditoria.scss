@@ -32,21 +32,6 @@
   flex-wrap: wrap;
 }
 
-.btn-excel {
-  background: #15803d;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: 0.2s;
-  width: auto;
-
-  &:hover { background: #166534; transform: translateY(-2px); }
-}
-
 .btn-limpiar {
   background: #dc2626;
   color: white;

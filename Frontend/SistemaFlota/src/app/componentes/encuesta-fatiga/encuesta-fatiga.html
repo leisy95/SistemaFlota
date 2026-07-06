@@ -2,12 +2,19 @@
 
   <div class="header">
     <div>
-      <h1>😴 Encuesta Preoperacional de Fatiga</h1>
+      <h1>
+        <i class="fa-solid fa-bed"></i>
+        Encuesta Preoperacional de Fatiga
+      </h1>
       <p class="subtitulo">Control de condiciones del conductor antes de salir a ruta</p>
     </div>
     <div class="header-acciones">
-      <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevaEncuesta()">+ Nueva Encuesta</button>
+      <button class="btn-excel" (click)="exportarExcel()">
+        <i class="fa-solid fa-file-excel"></i>
+        Excel</button>
+      <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevaEncuesta()">
+        <i class="fa-solid fa-plus"></i>
+        Nueva Encuesta</button>
     </div>
   </div>
 

@@ -7,7 +7,7 @@
     </div>
     <div class="header-acciones">
       <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nueva Solicitud</button>
+      <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevo()">+ Nueva Solicitud</button>
     </div>
   </div>
 
@@ -100,7 +100,9 @@
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-ver" (click)="verDetalle(s)">👁️</button>
+              <button class="btn-ver" (click)="verDetalle(s)">
+                <i class="fa-solid fa-eye"></i>
+              </button>
               <button class="btn-autorizar"
                 *ngIf="s.estado === 'Pendiente' && puedeEditar"
                 (click)="abrirAutorizar(s)">✅</button>
@@ -122,7 +124,9 @@
                 (click)="abrirFactura(s)">📄</button>
               <button class="btn-eliminar"
                 *ngIf="puedeEliminar"
-                (click)="eliminar(s.id)">🗑️</button>
+                (click)="eliminar(s.id)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </td>
         </tr>

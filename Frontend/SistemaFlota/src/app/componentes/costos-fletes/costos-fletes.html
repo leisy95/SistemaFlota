@@ -1,28 +1,30 @@
 <div class="contenedor">
   <div class="header">
     <div>
-      <h1>Costos de flete</h1>
+      <h1>
+        <i class="fa-solid fa-money-bill-trend-up"></i>
+        Costos de flete</h1>
       <p>Relación de gastos por viaje</p>
     </div>
-    <button class="btn-nuevo" *ngIf="vista === 'lista'" (click)="nuevo()">+ Nuevo registro</button>
+    <button class="btn-agregar" *ngIf="vista === 'lista'" (click)="nuevo()">+ Nuevo registro</button>
   </div>
 
   <!-- LISTA -->
   <ng-container *ngIf="vista === 'lista'">
     <div class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card azul">
         <span class="stat-label">Total gastos</span>
         <span class="stat-valor">${{ totalGastosFiltrados | number:'1.0-0':'es' }}</span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card amarillo">
         <span class="stat-label">Pendientes</span>
         <span class="stat-valor warning">{{ pendientes }}</span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card verde">
         <span class="stat-label">Verificados</span>
         <span class="stat-valor success">{{ verificados }}</span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card cyan">
         <span class="stat-label">Promedio por kilo</span>
         <span class="stat-valor">${{ promedioPorKilo | number:'1.0-2':'es' }}</span>
       </div>

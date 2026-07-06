@@ -30,9 +30,11 @@
 }
 
 .contenedor {
-  padding: 12px;
-  background: var(--gris-fondo);
-  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 14px;
 }
 
 .header-lista {
@@ -123,27 +125,20 @@
 }
 
 .tabla-container {
-  background: var(--blanco);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
   border-radius: 20px;
-  overflow-x: auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+  background: var(--blanco);
+  box-sizing: border-box;
+
 }
 
-table {
-  border-collapse: collapse;
-  table-layout: auto;
-  width: max-content;
-  min-width: 100%;
-}
-
-th:last-child,
-td:last-child {
-  width: 340px;
-  min-width: 340px;
-}
-
-td[data-label="Acción"] {
-  white-space: nowrap;
+.tabla-container table {
+  min-width: 1700px;
 }
 
 .btn-acciones-tabla {
@@ -1740,65 +1735,64 @@ td:last-child {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  gap: 18px;
+  margin: 24px auto;
+  padding: 16px 20px;
+  border-radius: 14px;
+  width: fit-content;
 }
 
-.btn-pag {
-  background: var(--blanco);
-  border: 1px solid var(--gris-claro);
-  color: #e5e7eb;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
+.paginacion button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--verde-oscuro);
+  color: var(--blanco);
+  font-weight: 600;
+  cursor: pointer;
+  transition: .25s;
+}
 
-  &:hover:not(:disabled) {
-    background: var(--verde-oscuro);
-    color: var(--blanco);
-    border-color: var(--verde-oscuro);
-    transform: translateY(-1px);
-  }
+.paginacion button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
 
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+.paginacion button:disabled {
+  background: var(--blanco);
+  cursor: not-allowed;
 }
 
 .pag-info {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 1.1rem;
-  color: var(--gris-medio);
+  gap: 8px;
+  padding: 0 12px;
 }
 
-.pag-actual {
+.pag-actual,
+.pag-total {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
   background: var(--verde-oscuro);
   color: var(--blanco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 1.5rem;
 }
 
 .pag-sep {
-  color: var(--gris-claro);
-}
-
-.pag-total {
+  color: var(--gris-oscuro);
   font-weight: 600;
-  color: #374151;
 }
 
 .pag-registros {
-  color: var(--gris-claro);
-  font-size: 1.1rem;
+  color: var(--gris-oscuro);
+  font-size: .9rem;
+  margin-left: 8px;
 }

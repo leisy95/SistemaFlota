@@ -79,7 +79,6 @@ h1 {
 
 // Tablas generales
 table {
-  width: 100%;
   border-collapse: collapse;
 }
 
@@ -135,7 +134,6 @@ tbody td {
 }
 
 /* Botón Editar */
-.btn-editar,
 .btn-eliminar {
   background: #fee2e2;
   color: #b91c1c;
@@ -143,7 +141,7 @@ tbody td {
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 13px;
   transition: 0.2s;
   width: auto;
 
@@ -254,13 +252,17 @@ tbody td {
 }
 
 .btn-ver {
-  background: var(--verde-fondo-botones);
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  color: var(--verde-oscuro);
+  background: #e0f2fe;
+  color: #0369a1;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  width: auto;
 
   &:hover {
-    background: var(--verde-oscuro);
-    color: var(--blanco);
+    background: #bae6fd;
   }
 }
 

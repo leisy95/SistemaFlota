@@ -6,10 +6,20 @@
 
 // TABLA DESKTOP
 .tabla-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  border-radius: 20px;
   background: var(--blanco);
-  border: 1px solid var(--gris-claro);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
-  overflow: hidden;
+  box-sizing: border-box;
+
+}
+
+.tabla-container table {
+  min-width: 1700px;
 }
 
 // BOTONES ACCIÓN

@@ -1,7 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { LoginComponent } from './componentes/login/login';
-import { DashboardComponent } from './componentes/dashboard/dashboard';
 import { ConductorForm } from './componentes/conductor-form/conductor-form';
 import { VehiculosComponent } from './componentes/vehiculos/vehiculos';
 import { AutorizacionesComponent } from './componentes/autorizaciones/autorizaciones';
@@ -34,6 +31,9 @@ import { AuthService } from './services/auth.service';
 import { PermisosService } from './services/permisos.service';
 import { environment } from '../environments/environment';
 import { CostosFleteComponent } from './componentes/costos-fletes/costos-fletes';
+import { CommonModule } from '@angular/common';
+import { LoginComponent } from './componentes/login/login';
+import { DashboardComponent } from './componentes/dashboard/dashboard';
 
 type ModuloPrincipal = 'flota' | 'rrhh' | 'calidad';
 
@@ -47,7 +47,9 @@ interface ModuloItem {
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, LoginComponent, DashboardComponent, ConductorForm,
+    CommonModule,
+    LoginComponent,
+    DashboardComponent,
     VehiculosComponent, VerInspeccionesComponent, AutorizacionesComponent,
     ReporteRutaComponent, ChecklistEditorComponent, InspeccionesComponent,
     ConductoresComponent, UsuariosComponent, IncidentesComponent,

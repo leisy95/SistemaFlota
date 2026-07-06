@@ -1,17 +1,23 @@
 <div class="contenedor">
   <div class="header-ci">
-    <h1>📚 Centro de Información</h1>
+    <h1>
+      <i class="fa-solid fa-circle-info"></i>
+      Centro de Información</h1>
   </div>
 
   <div class="tabs">
-    <button [class.activo]="tabActual === 'rutas'" (click)="tabActual = 'rutas'">🗺️ Inventario de Rutas</button>
-    <button [class.activo]="tabActual === 'emergencia'" (click)="tabActual = 'emergencia'">🚨 Números de Emergencia</button>
+    <button [class.activo]="tabActual === 'rutas'" (click)="tabActual = 'rutas'">
+       <i class="fa-solid fa-route"></i>
+      Inventario de Rutas</button>
+    <button [class.activo]="tabActual === 'emergencia'" (click)="tabActual = 'emergencia'">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      Números de Emergencia</button>
   </div>
 
   <!-- RUTAS -->
   <div *ngIf="tabActual === 'rutas'">
     <div class="acciones" *ngIf="puedeCrear">
-      <button class="btn-nuevo" (click)="mostrarModalRuta = true">+ Nueva Ruta</button>
+      <button class="btn-agregar" (click)="mostrarModalRuta = true">+ Nueva Ruta</button>
     </div>
     <div class="lista-rutas" *ngIf="rutas.length > 0">
       <div class="card-ruta" *ngFor="let r of rutas">
@@ -22,7 +28,9 @@
         </div>
         <div class="ruta-acciones">
           <a *ngIf="r.archivo" [href]="baseUrl + '/rutas/' + r.archivo" target="_blank" class="btn-ver">📄 Ver PDF</a>
-          <button *ngIf="puedeEliminar" class="btn-eliminar" (click)="eliminarRuta(r.id)">🗑️</button>
+          <button *ngIf="puedeEliminar" class="btn-eliminar" (click)="eliminarRuta(r.id)">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -32,7 +40,7 @@
   <!-- EMERGENCIA -->
   <div *ngIf="tabActual === 'emergencia'">
     <div class="acciones" *ngIf="puedeCrear">
-      <button class="btn-nuevo" (click)="abrirModalEmergencia()">+ Agregar Número</button>
+      <button class="btn-agregar" (click)="abrirModalEmergencia()">+ Agregar Número</button>
     </div>
     <div *ngFor="let ciudad of ciudades" class="ciudad-grupo">
       <h3 class="ciudad-titulo">📍 {{ ciudad }}</h3>
@@ -42,8 +50,8 @@
           <div class="emergencia-numero">📞 {{ e.numero }}</div>
           <div class="emergencia-obs" *ngIf="e.observaciones">{{ e.observaciones }}</div>
           <div class="emergencia-acciones" *ngIf="puedeCrear">
-            <button (click)="abrirModalEmergencia(e)">✏️</button>
-            <button *ngIf="puedeEliminar" (click)="eliminarEmergencia(e.id)">🗑️</button>
+            <button class="btn-editar" (click)="abrirModalEmergencia(e)"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminarEmergencia(e.id)"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
       </div>
@@ -84,7 +92,9 @@
 <div class="modal-overlay" *ngIf="mostrarModalEmergencia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>🚨 {{ editandoEmergencia ? 'Editar' : 'Nuevo' }} Número</h2>
+      <h2>
+        <i class="fa-solid fa-pen"></i>
+         {{ editandoEmergencia ? 'Editar' : 'Nuevo' }} Número</h2>
       <button (click)="mostrarModalEmergencia = false">✕</button>
     </div>
     <div class="modal-body">

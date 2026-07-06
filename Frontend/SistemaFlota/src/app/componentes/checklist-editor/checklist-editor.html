@@ -28,7 +28,7 @@
         class="glass-input">
 
       <div class="formulario-botones">
-        <button class="btn-guardar" (click)="guardarChecklist()">
+        <button class="btn-agregar" (click)="guardarChecklist()">
           <i class="fa-solid fa-{{ editando ? 'floppy-disk' : 'plus' }}"></i>
           {{ editando ? 'Actualizar' : 'Agregar' }}
         </button>
@@ -41,7 +41,7 @@
   </div>
 
   <!-- TABLA -->
-  <div class="tabla-card" *ngIf="todosChecklist.length > 0">
+  <div class="tabla-container" *ngIf="todosChecklist.length > 0">
     <table>
       <thead>
         <tr>

@@ -13,17 +13,14 @@
   flex-wrap: wrap;
   gap: 12px;
 
-  h1 {
-    font-size: 26px;
-    color: #0f172a;
-    font-weight: bold;
-    margin: 0 0 4px;
+  .subtitulo {
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    margin: 0;
   }
 
-  .subtitulo {
-    font-size: 13px;
-    color: #64748b;
-    margin: 0;
+  i {
+    color: var(--verde-oscuro);
   }
 }
 
@@ -31,42 +28,6 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.btn-excel {
-  background: #15803d;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: 0.2s;
-  width: auto;
-
-  &:hover {
-    background: #166534;
-    transform: translateY(-2px);
-  }
-}
-
-.btn-nueva {
-  background: #0f172a;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: 0.2s;
-  width: auto;
-
-  &:hover {
-    background: #1e293b;
-    transform: translateY(-2px);
-  }
 }
 
 // STATS
@@ -78,11 +39,11 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--blanco);
   border-radius: 14px;
   padding: 16px;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 10px var(--gris-oscuro);
   border-top: 4px solid #15803d;
 
   &.azul {
@@ -103,15 +64,15 @@
 
   .stat-numero {
     display: block;
-    font-size: 28px;
+    font-size: 1.75rem;
     font-weight: bold;
-    color: #0f172a;
+    color: var(--gris-oscuro);
     margin-bottom: 4px;
   }
 
   .stat-label {
-    font-size: 12px;
-    color: #64748b;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
   }
 }
 
@@ -133,8 +94,8 @@
   border-bottom: 1px solid #f1f5f9;
 
   h2 {
-    font-size: 18px;
-    color: #0f172a;
+    font-size: 1.125rem;
+    color: var(--gris-oscuro);
     margin: 0;
   }
 }
@@ -174,9 +135,9 @@
   }
 
   label {
-    font-size: 12px;
+    font-size: 1rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--gris-oscuro);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -185,9 +146,9 @@
   select,
   textarea {
     padding: 10px 14px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--gris-medio);
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 1rem;
     transition: 0.2s;
     width: 100%;
 
@@ -217,17 +178,17 @@
   margin-bottom: 20px;
 
   h3 {
-    font-size: 16px;
-    color: #0f172a;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
     font-weight: 600;
     margin: 0 0 8px;
   }
 }
 
 .preguntas-info {
-  font-size: 13px;
-  color: #64748b;
-  background: #f8fafc;
+  font-size: 1rem;
+  color: var(--gris-oscuro);
+  background: var(--blanco);
   padding: 10px 14px;
   border-radius: 10px;
   margin-bottom: 16px;
@@ -263,8 +224,8 @@
   flex: 1;
 
   p {
-    font-size: 14px;
-    color: #374151;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
     margin: 0;
   }
 }
