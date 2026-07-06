@@ -21,22 +21,22 @@ export class InspeccionesComponent implements OnInit, AfterViewInit {
   @ViewChild('firmaModalCanvas') firmaModalCanvas!: ElementRef<HTMLCanvasElement>;
   signaturePad!: SignaturePad;
 
-  kilometraje       = 0;
-conductores:      any[] = [];
-vehiculos:        any[] = [];
-tiposVehiculo:    any[] = [];
-checklist:        any[] = [];
-conductorId       = 0;
-vehiculoId        = 0;
-tipoVehiculoId    = 0;
-fotoOdometro:     File | null = null;
-fotoSeleccionada: File | null = null;
-guardando         = false;
-guardadoExito     = false;
-resultadoInspeccion: any = null;  // ← línea nueva
+  kilometraje = 0;
+  conductores: any[] = [];
+  vehiculos: any[] = [];
+  tiposVehiculo: any[] = [];
+  checklist: any[] = [];
+  conductorId = 0;
+  vehiculoId = 0;
+  tipoVehiculoId = 0;
+  fotoOdometro: File | null = null;
+  fotoSeleccionada: File | null = null;
+  guardando = false;
+  guardadoExito = false;
+  resultadoInspeccion: any = null;  // ← línea nueva
 
-modalFirmaAbierto = false;
-firmaCapturada:   string | null = null;
+  modalFirmaAbierto = false;
+  firmaCapturada: string | null = null;
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('inspecciones'); }
 
@@ -72,8 +72,8 @@ firmaCapturada:   string | null = null;
     const ctx = canvas.getContext('2d')!;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     this.signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgb(255,255,255)',
-      penColor: 'rgb(10,10,10)',
+      backgroundColor: '#475569',
+      penColor: '#FFFFFF',
       minWidth: 1.5,
       maxWidth: 3.5,
     });

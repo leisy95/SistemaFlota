@@ -188,8 +188,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         datasets: [{
           label: 'Inspecciones',
           data: [5, 8, 6, 10, 7, 12],
-          backgroundColor: 'rgba(99,102,241,0.6)',
-          borderColor: 'rgba(99,102,241,1)',
+          backgroundColor: '#90A4AE',
+          borderColor: '#558B2F',
           borderWidth: 1, borderRadius: 8, borderSkipped: false,
         }]
       },
@@ -212,7 +212,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         labels: ['Pendientes', 'Autorizadas', 'Rechazadas'],
         datasets: [{
           data: [this.autorizacionesPendientes || 1, this.autorizacionesAutorizadas || 1, this.autorizacionesRechazadas || 0],
-          backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
+          backgroundColor: ['#f59e0b', '#8BC34A', '#ef4444'],
           borderWidth: 0, hoverOffset: 8
         }]
       },

@@ -148,7 +148,7 @@
   <div class="tab-contenido" *ngIf="tabActual==='examenes'">
     <div class="tab-header-accion">
       <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Resolución 2346 — examen médico ocupacional obligatorio</p>
-      <button class="btn-agregar-tab" (click)="abrirModalExamen()">
+      <button class="btn-agregar" (click)="abrirModalExamen()">
         <i class="fa-solid fa-plus"></i> Agregar examen
       </button>
     </div>
@@ -190,7 +190,7 @@
   <div class="tab-contenido" *ngIf="tabActual==='capacitaciones'">
     <div class="tab-header-accion">
       <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Decreto 1079 — capacitación obligatoria en normas de tránsito</p>
-      <button class="btn-agregar-tab" (click)="abrirModalCapacitacion()">
+      <button class="btn-agregar" (click)="abrirModalCapacitacion()">
         <i class="fa-solid fa-plus"></i> Agregar capacitación
       </button>
     </div>
@@ -231,7 +231,7 @@
   <div class="tab-contenido" *ngIf="tabActual==='infracciones'">
     <div class="tab-header-accion">
       <p class="tab-desc"><i class="fa-solid fa-circle-info"></i> Registro de comparendos e infracciones de tránsito</p>
-      <button class="btn-agregar-tab rojo" (click)="abrirModalInfraccion()">
+      <button class="btn-agregar rojo" (click)="abrirModalInfraccion()">
         <i class="fa-solid fa-plus"></i> Registrar infracción
       </button>
     </div>
@@ -277,7 +277,7 @@
 <!-- ══════════ MODAL EXAMEN ══════════ -->
 <div class="modal-overlay" *ngIf="mostrarModalExamen">
   <div class="modal-hv">
-    <div class="modal-hv-header">
+    <div class="select-estado-inf">
       <h3><i class="fa-solid fa-stethoscope"></i> Agregar Examen Médico</h3>
       <button (click)="mostrarModalExamen=false"><i class="fa-solid fa-xmark"></i></button>
     </div>

@@ -2,12 +2,21 @@
 
   <div class="header">
     <div>
-      <h1>🔄 Cambio de Ruta</h1>
+      <h1>
+        <i class="fa-solid fa-route"></i>
+        Cambio de Ruta
+      </h1>
       <p class="subtitulo">Solicitudes y autorizaciones de cambio de ruta</p>
     </div>
     <div class="header-acciones">
-      <button class="btn-excel" (click)="exportarExcel()">📊 Excel</button>
-      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Nueva Solicitud</button>
+      <button class="btn-excel" (click)="exportarExcel()">
+        <i class="fa-solid fa-file-excel"></i>
+        Excel
+      </button>
+      <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">
+        <i class="fa-solid fa-plus"></i>
+        Nueva Solicitud
+      </button>
     </div>
   </div>
 
@@ -36,30 +45,34 @@
   </div>
 
   <div class="alerta-pendientes" *ngIf="pendientes > 0">
-    ⚠️ Hay <strong>{{ pendientes }}</strong> cambio(s) de ruta pendiente(s) de autorización
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    Hay
+    <strong>{{ pendientes }}</strong> cambio(s) de ruta pendiente(s) de autorización
   </div>
 
   <!-- FILTROS -->
   <div class="filtros-panel">
-    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
-      (input)="aplicarFiltros()"
-      placeholder="🔍 Buscar conductor, vehículo, ruta...">
+    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
+      placeholder=" Buscar conductor, vehículo, ruta...">
 
     <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
       <option value="">Todos los estados</option>
-      <option value="Pendiente">⏳ Pendiente</option>
-      <option value="Autorizado">✅ Autorizado</option>
-      <option value="Confirmado">🤝 Confirmado</option>
-      <option value="Rechazado">❌ Rechazado</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Autorizado">Autorizado</option>
+      <option value="Confirmado">Confirmado</option>
+      <option value="Rechazado">Rechazado</option>
     </select>
 
-    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
-      (change)="aplicarFiltros()">
-    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
-      (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
 
-    <button class="btn-refresh" (click)="cargarCambios()">🔄</button>
-    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
+    <button class="btn-refresh" (click)="cargarCambios()">
+      <i class="fa-solid fa-rotate-right"></i>
+    </button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">
+      <i class="fa-solid fa-xmark"></i>
+      Limpiar
+    </button>
   </div>
 
   <p class="resultado-filtro" *ngIf="cambiosFiltrados.length !== cambios.length">
@@ -71,16 +84,20 @@
     <table>
       <thead>
         <tr>
-          <th>Fecha</th><th>Conductor</th><th>Vehículo</th>
-          <th>Ruta original</th><th>Nueva ruta</th><th>Motivo</th>
-          <th>Estado</th><th>Autorizado por</th><th>Acciones</th>
+          <th>Fecha</th>
+          <th>Conductor</th>
+          <th>Vehículo</th>
+          <th>Ruta original</th>
+          <th>Nueva ruta</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th>Autorizado por</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let c of cambiosFiltrados"
-          [class.fila-pendiente]="c.estado === 'Pendiente'"
-          [class.fila-autorizado]="c.estado === 'Autorizado'"
-          [class.fila-confirmado]="c.estado === 'Confirmado'"
+        <tr *ngFor="let c of cambiosFiltrados" [class.fila-pendiente]="c.estado === 'Pendiente'"
+          [class.fila-autorizado]="c.estado === 'Autorizado'" [class.fila-confirmado]="c.estado === 'Confirmado'"
           [class.fila-rechazado]="c.estado === 'Rechazado'">
 
           <td data-label="Fecha">{{ c.fechaSolicitud | date:'short' }}</td>
@@ -99,22 +116,22 @@
           <td data-label="Autorizado por">{{ c.autorizadoPor || '-' }}</td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-autorizar"
-                *ngIf="c.estado === 'Pendiente' && puedeEditar"
-                (click)="abrirAutorizar(c)">✅</button>
-              <button class="btn-rechazar"
-                *ngIf="c.estado === 'Pendiente' && puedeEditar"
-                (click)="abrirRechazar(c)">❌</button>
-              <!-- ✅ Botón confirmar — visible para Conductor cuando está Autorizado -->
-              <button class="btn-confirmar-conductor"
-                *ngIf="c.estado === 'Autorizado' &&
+              <button class="btn-autorizar" *ngIf="c.estado === 'Pendiente' && puedeEditar" (click)="abrirAutorizar(c)">
+                <i class="fa-solid fa-circle-check"></i>
+              </button>
+              <button class="btn-rechazar" *ngIf="c.estado === 'Pendiente' && puedeEditar" (click)="abrirRechazar(c)">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </button>
+              <!-- Botón confirmar — visible para Conductor cuando está Autorizado -->
+              <button class="btn-confirmar-conductor" *ngIf="c.estado === 'Autorizado' &&
                   (rolUsuario === 'Conductor' || rolUsuario === 'Admin' || rolUsuario === 'Jefe')"
                 (click)="confirmarCambio(c)">
-                🤝 Confirmar
+                <i class="fa-solid fa-handshake"></i>
+                Confirmar
               </button>
-              <button class="btn-eliminar"
-                *ngIf="puedeEliminar"
-                (click)="eliminar(c.id)">🗑️</button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(c.id)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -123,12 +140,20 @@
   </div>
 
   <div class="vacio" *ngIf="cambiosFiltrados.length === 0 && cambios.length > 0">
-    <p>🔍 No hay registros con ese filtro</p>
-    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+    <p>
+      <i class="fa-solid fa-magnifying-glass"></i>
+      No hay registros con ese filtro
+    </p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">
+      <i class="fa-solid fa-filter-circle-xmark"></i>
+      Limpiar filtros</button>
   </div>
 
   <div class="vacio" *ngIf="cambios.length === 0">
-    <p>🔄 No hay solicitudes de cambio de ruta</p>
+    <p>
+      <i class="fa-solid fa-route"></i>
+      No hay solicitudes de cambio de ruta
+    </p>
     <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Crear primera solicitud</button>
   </div>
 
@@ -139,12 +164,19 @@
   <div class="modal">
 
     <div class="modal-header">
-      <h2>🔄 Nueva Solicitud de Cambio de Ruta</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      <h2>
+        <i class="fa-solid fa-route"></i>
+        Nueva Solicitud de Cambio de Ruta
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <div class="importar-aut">
-      <label>🔗 Importar desde autorización <span class="opcional">(opcional)</span></label>
+      <label>
+        <i class="fa-solid fa-link"></i>
+        Importar desde autorización <span class="opcional">(opcional)</span></label>
       <select (change)="importarAutorizacion(+$any($event.target).value)">
         <option value="0">Seleccione una autorización...</option>
         <option *ngFor="let a of autorizaciones" [value]="a.id">
@@ -156,41 +188,58 @@
 
     <div class="form-grid">
       <div class="form-group">
-        <label>👤 Conductor *</label>
+        <label>
+          <i class="fa-solid fa-user"></i>
+          Conductor *</label>
         <select [(ngModel)]="form.conductorId">
           <option [value]="0">Seleccione conductor</option>
           <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
         </select>
       </div>
       <div class="form-group">
-        <label>🚗 Vehículo *</label>
+        <label>
+          <i class="fa-solid fa-truck"></i>
+          Vehículo *</label>
         <select [(ngModel)]="form.vehiculoId">
           <option [value]="0">Seleccione vehículo</option>
           <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }}</option>
         </select>
       </div>
       <div class="form-group full">
-        <label>📍 Ruta Original *</label>
+        <label>
+          <i class="fa-solid fa-location-dot"></i>
+          Ruta Original *</label>
         <input type="text" [(ngModel)]="form.rutaOriginal" placeholder="Ruta o destino original asignado">
       </div>
       <div class="form-group full">
-        <label>🆕 Nueva Ruta *</label>
+        <label>
+          <i class="fa-solid fa-road"></i>
+          Nueva Ruta *</label>
         <input type="text" [(ngModel)]="form.nuevaRuta" placeholder="Nueva ruta o destino solicitado">
       </div>
       <div class="form-group full">
-        <label>❓ Motivo del Cambio *</label>
+        <label>
+          <i class="fa-solid fa-circle-question"></i>
+          Motivo del Cambio *</label>
         <textarea [(ngModel)]="form.motivoCambio"
           placeholder="Explique detalladamente el motivo del cambio de ruta..."></textarea>
       </div>
     </div>
 
     <div class="aviso-notificacion">
-      📱 Al guardar se enviará notificación por WhatsApp a todos los contactos registrados
+      <i class="fa-brands fa-whatsapp"></i>
+      Al guardar se enviará notificación por WhatsApp a todos los contactos registrados
     </div>
 
     <div class="modal-botones">
-      <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardar()">🔄 Enviar Solicitud</button>
+      <button class="btn-cancelar" (click)="cerrarModal()">
+        <i class="fa-solid fa-xmark"></i>
+        Cancelar
+      </button>
+      <button class="btn-guardar" (click)="guardar()">
+        <i class="fa-solid fa-paper-plane"></i>
+        Enviar Solicitud
+      </button>
     </div>
 
   </div>
@@ -201,40 +250,64 @@
   <div class="modal modal-pequeno">
 
     <div class="modal-header">
-      <h2>{{ accionAut === 'autorizar' ? '✅ Autorizar' : '❌ Rechazar' }} Cambio de Ruta</h2>
-      <button class="btn-cerrar" (click)="cerrarAut()">✕</button>
+      <h2>
+        <i class="fa-solid" [ngClass]="accionAut === 'autorizar' ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+        {{ accionAut === 'autorizar' ? 'Autorizar' : 'Rechazar' }} Cambio de Ruta
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarAut()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
-    <div class="resumen-cambio"
-      [class.resumen-autorizar]="accionAut === 'autorizar'"
+    <div class="resumen-cambio" [class.resumen-autorizar]="accionAut === 'autorizar'"
       [class.resumen-rechazar]="accionAut === 'rechazar'">
-      <p><strong>👤 Conductor:</strong> {{ seleccionado?.conductor?.nombre }}</p>
-      <p><strong>🚗 Vehículo:</strong>  {{ seleccionado?.vehiculo?.placa }}</p>
-      <p><strong>📍 Ruta original:</strong> {{ seleccionado?.rutaOriginal }}</p>
-      <p><strong>🆕 Nueva ruta:</strong> {{ seleccionado?.nuevaRuta }}</p>
-      <p><strong>❓ Motivo:</strong> {{ seleccionado?.motivoCambio }}</p>
+      <p><strong>
+          <i class="fa-solid fa-user"></i>
+          Conductor:</strong> {{ seleccionado?.conductor?.nombre }}</p>
+      <p><strong>
+          <i class="fa-solid fa-truck"></i>
+          Vehículo:</strong> {{ seleccionado?.vehiculo?.placa }}</p>
+      <p><strong>
+          <i class="fa-solid fa-route"></i>
+          Ruta original:</strong> {{ seleccionado?.rutaOriginal }}</p>
+      <p><strong>
+          <i class="fa-solid fa-location-dot"></i>
+          Nueva ruta:</strong> {{ seleccionado?.nuevaRuta }}</p>
+      <p><strong>
+          <i class="fa-solid fa-circle-question"></i>
+          Motivo:</strong> {{ seleccionado?.motivoCambio }}</p>
     </div>
 
     <div class="form-grid">
       <div class="form-group full">
-        <label>👤 Nombre de quien {{ accionAut === 'autorizar' ? 'autoriza' : 'rechaza' }} *</label>
+        <label>
+          <i class="fa-solid fa-user-check"></i>
+          Nombre de quien {{ accionAut === 'autorizar' ? 'autoriza' : 'rechaza' }} *
+        </label>
         <input type="text" [(ngModel)]="formAut.autorizadoPor" placeholder="Nombre completo">
       </div>
       <div class="form-group full">
-        <label>💬 Observación <span class="opcional">(opcional)</span></label>
+        <label>
+          <i class="fa-solid fa-comment-dots"></i>
+          Observación <span class="opcional">(opcional)</span></label>
         <textarea [(ngModel)]="formAut.observacion" placeholder="Observaciones adicionales..."></textarea>
       </div>
     </div>
 
     <div class="aviso-notificacion" *ngIf="accionAut === 'autorizar'">
-      📱 Se enviará WhatsApp al conductor notificando la autorización
+      <i class="fa-brands fa-whatsapp"></i>
+      Se enviará WhatsApp al conductor notificando la autorización
     </div>
 
     <div class="modal-botones">
-      <button class="btn-cancelar" (click)="cerrarAut()">Cancelar</button>
-      <button [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'"
-        (click)="confirmarAut()">
-        {{ accionAut === 'autorizar' ? '✅ Confirmar Autorización' : '❌ Confirmar Rechazo' }}
+      <button class="btn-cancelar" (click)="cerrarAut()">
+        <i class="fa-solid fa-ban"></i>
+        Cancelar</button>
+      <button [class]="accionAut === 'autorizar' ? 'btn-confirmar-aut' : 'btn-confirmar-rec'" (click)="confirmarAut()">
+        <i class="fa-solid" [ngClass]="accionAut === 'autorizar'
+             ? 'fa-circle-check'
+             : 'fa-circle-xmark'"></i>
+        {{ accionAut === 'autorizar' ? 'Confirmar Autorización' : 'Confirmar Rechazo' }}
       </button>
     </div>
 

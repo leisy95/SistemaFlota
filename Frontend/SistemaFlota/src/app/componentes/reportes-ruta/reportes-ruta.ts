@@ -34,12 +34,12 @@ export class ReporteRutaComponent implements OnInit {
   };
 
   readonly tiposIncidente = [
-    { value: 'DañoMecanico', label: '🔧 Daño mecánico' },
-    { value: 'Averia',       label: '⚠️ Avería del vehículo' },
-    { value: 'Trancon',      label: '🚗 Trancón' },
-    { value: 'CierreVia',    label: '🚧 Cierre de vía' },
-    { value: 'Accidente',    label: '💥 Accidente de tránsito' },
-    { value: 'Otro',         label: '📋 Otro' },
+    { value: 'DañoMecanico', label: 'Daño mecánico' },
+    { value: 'Averia',       label: 'Avería del vehículo' },
+    { value: 'Trancon',      label: 'Trancón' },
+    { value: 'CierreVia',    label: 'Cierre de vía' },
+    { value: 'Accidente',    label: 'Accidente de tránsito' },
+    { value: 'Otro',         label: 'Otro' },
   ];
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('reportes-ruta'); }
@@ -120,7 +120,7 @@ export class ReporteRutaComponent implements OnInit {
     this.fotosSeleccionadas.forEach(foto => fd.append('Fotos', foto));
 
     this.incidentesService.crearIncidente(fd).subscribe({
-      // ✅ Twilio envía WhatsApp automáticamente desde el backend
+      // Twilio envía WhatsApp automáticamente desde el backend
       next: () => { this.enviando = false; this.enviado = true; },
       error: (err) => { console.error(err); this.enviando = false; this.errorMsg = 'Error enviando el reporte. Intente de nuevo.'; }
     });

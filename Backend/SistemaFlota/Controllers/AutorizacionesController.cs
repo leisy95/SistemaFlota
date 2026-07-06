@@ -38,7 +38,7 @@ namespace SistemaFlota
         [HttpGet]
         public async Task<IActionResult> Get(
     [FromQuery] int pagina = 1,
-    [FromQuery] int porPagina = 20)
+    [FromQuery] int porPagina = 200)
         {
             try
             {
