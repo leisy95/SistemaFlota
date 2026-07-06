@@ -7,10 +7,10 @@
 <div class="cy-container" *ngIf="vista === 'cajones'">
   <div class="cy-header">
     <div>
-      <h4><i class="fa-solid fa-box-open"></i> Cyreles</h4>
+      <h1><i class="fa-solid fa-box-open"></i> Cyreles</h1>
       <small>Gestión de cajones y registros de impresión</small>
     </div>
-    <button class="cy-btn-primary" (click)="abrirCrearCajon()">
+    <button class="btn-agregar" (click)="abrirCrearCajon()">
       <i class="fa-solid fa-plus"></i> Nuevo Cajón
     </button>
   </div>
@@ -46,10 +46,10 @@
         <i class="fa-solid fa-list"></i> {{ c.totalRegistros }} registros
       </div>
       <div class="cy-card-acciones" (click)="$event.stopPropagation()">
-        <button class="cy-btn-icono cy-editar" (click)="abrirEditarCajon(c, $event)" title="Editar">
+        <button class="btn-editar" (click)="abrirEditarCajon(c, $event)" title="Editar">
           <i class="fa-solid fa-pencil"></i>
         </button>
-        <button class="cy-btn-icono cy-eliminar" (click)="eliminarCajon(c, $event)" title="Eliminar">
+        <button class="btn-eliminar" (click)="eliminarCajon(c, $event)" title="Eliminar">
           <i class="fa-solid fa-trash"></i>
         </button>
       </div>
@@ -69,19 +69,19 @@
 
   <div class="cy-header">
     <div>
-      <h4><i class="fa-solid fa-list"></i> Cajón {{ cajonActual?.numero }}
+      <h1><i class="fa-solid fa-list"></i> Cajón {{ cajonActual?.numero }}
         <span *ngIf="cajonActual?.descripcion" class="cy-desc-badge">{{ cajonActual?.descripcion }}</span>
-      </h4>
+      </h1>
       <small>{{ registros.length }} registros en total</small>
     </div>
     <div class="cy-header-acciones">
-      <button class="cy-btn-excel" (click)="exportarExcel()" [disabled]="registrosFiltrados.length === 0">
+      <button class="btn-excel" (click)="exportarExcel()" [disabled]="registrosFiltrados.length === 0">
         <i class="fa-solid fa-table"></i> Excel
       </button>
       <button class="cy-btn-pdf" (click)="exportarPDF()" [disabled]="registrosFiltrados.length === 0">
         <i class="fa-solid fa-file-pdf"></i> PDF
       </button>
-      <button class="cy-btn-primary" (click)="abrirCrearRegistro()">
+      <button class="btn-agregar" (click)="abrirCrearRegistro()">
         <i class="fa-solid fa-plus"></i> Nuevo Registro
       </button>
     </div>
@@ -168,10 +168,10 @@
       </div>
     </div>
     <div class="cy-detalle-acciones">
-      <button class="cy-btn-editar-detalle" (click)="abrirEditarRegistro(registroActual)">
+      <button class="btn-editar" (click)="abrirEditarRegistro(registroActual)">
         <i class="fa-solid fa-pencil"></i> Editar
       </button>
-      <button class="cy-btn-eliminar-detalle" (click)="eliminarRegistro(registroActual)">
+      <button class="btn-eliminar" (click)="eliminarRegistro(registroActual)">
         <i class="fa-solid fa-trash"></i> Eliminar
       </button>
     </div>
@@ -182,7 +182,7 @@
 <div class="cy-modal-overlay" *ngIf="modal === 'crear-cajon' || modal === 'editar-cajon'">
   <div class="cy-modal">
     <div class="cy-modal-header">
-      <h5><i class="fa-solid fa-box"></i> {{ modal === 'crear-cajon' ? 'Nuevo Cajón' : 'Editar Cajón' }}</h5>
+      <h1><i class="fa-solid fa-box"></i> {{ modal === 'crear-cajon' ? 'Nuevo Cajón' : 'Editar Cajón' }}</h1>
       <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="cy-modal-body">
@@ -212,8 +212,8 @@
 <div class="cy-modal-overlay" *ngIf="modal === 'crear-registro' || modal === 'editar-registro'">
   <div class="cy-modal">
     <div class="cy-modal-header">
-      <h5><i class="fa-solid fa-file-image"></i> {{ modal === 'crear-registro' ? 'Nuevo Registro' : 'Editar Registro' }}
-      </h5>
+      <h1><i class="fa-solid fa-file-image"></i> {{ modal === 'crear-registro' ? 'Nuevo Registro' : 'Editar Registro' }}
+      </h1>
       <button class="cy-btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="cy-modal-body">

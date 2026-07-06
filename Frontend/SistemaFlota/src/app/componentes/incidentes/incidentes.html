@@ -113,29 +113,49 @@
   <div class="modal">
 
     <div class="modal-header">
-      <h2>🚨 Incidente #{{ incidenteSeleccionado.id }}</h2>
-      <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+      <h2>
+         <i class="fa-solid fa-triangle-exclamation"></i>
+        Incidente #{{ incidenteSeleccionado.id }}</h2>
+      <button class="btn-cerrar" (click)="cerrarDetalle()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <div class="detalle-grid">
-      <div class="detalle-item"><span>👤 Conductor</span><strong>{{ incidenteSeleccionado.conductor?.nombre }}</strong></div>
-      <div class="detalle-item"><span>🚚 Vehículo</span><strong>{{ incidenteSeleccionado.vehiculo?.placa }}</strong></div>
-      <div class="detalle-item"><span>📅 Fecha</span><strong>{{ incidenteSeleccionado.fechaReporte | date:'medium' }}</strong></div>
-      <div class="detalle-item"><span>⚠️ Tipo</span><strong>{{ getBadgeTipo(incidenteSeleccionado.tipoIncidente) }}</strong></div>
-      <div class="detalle-item full"><span>📋 Descripción</span><strong>{{ incidenteSeleccionado.descripcionDetallada }}</strong></div>
+      <div class="detalle-item"><span>
+        <i class="fa-solid fa-user"></i>
+        Conductor</span><strong>{{ incidenteSeleccionado.conductor?.nombre }}</strong></div>
+      <div class="detalle-item"><span>
+        <i class="fa-solid fa-truck"></i>
+        Vehículo</span><strong>{{ incidenteSeleccionado.vehiculo?.placa }}</strong></div>
+      <div class="detalle-item"><span>
+        <i class="fa-solid fa-calendar-days"></i>
+        Fecha</span><strong>{{ incidenteSeleccionado.fechaReporte | date:'medium' }}</strong></div>
+      <div class="detalle-item"><span>
+        <i class="fa-solid fa-circle-exclamation"></i>
+        Tipo</span><strong>{{ getBadgeTipo(incidenteSeleccionado.tipoIncidente) }}</strong></div>
+      <div class="detalle-item full"><span>
+        <i class="fa-solid fa-file-lines"></i>
+        Descripción</span><strong>{{ incidenteSeleccionado.descripcionDetallada }}</strong></div>
       <div class="detalle-item full" *ngIf="incidenteSeleccionado.ubicacionGPS">
-        <span>📍 Ubicación GPS</span>
+        <span>
+          <i class="fa-solid fa-location-dot"></i>
+          Ubicación GPS</span>
         <div class="ubicacion-links">
           <strong>{{ incidenteSeleccionado.ubicacionGPS }}</strong>
           <a [href]="'https://maps.google.com/?q=' + incidenteSeleccionado.latitud + ',' + incidenteSeleccionado.longitud"
-            target="_blank" class="btn-mapa">🗺️ Ver en Google Maps</a>
+            target="_blank" class="btn-mapa">
+            <i class="fa-solid fa-map-location-dot"></i>
+             Ver en Google Maps</a>
         </div>
       </div>
     </div>
 
-    <!-- ✅ fotos con baseUrl dinámico -->
+    <!-- fotos con baseUrl dinámico -->
     <div class="fotos-detalle" *ngIf="obtenerFotos(incidenteSeleccionado.fotos).length > 0">
-      <h3>📸 Fotos de evidencia</h3>
+      <h3>
+        <i class="fa-solid fa-camera"></i>
+        Fotos de evidencia</h3>
       <div class="fotos-grid">
         <img *ngFor="let foto of obtenerFotos(incidenteSeleccionado.fotos)"
           [src]="baseUrl + '/incidentes/' + foto"
@@ -144,47 +164,66 @@
     </div>
 
     <div class="revision-info" *ngIf="incidenteSeleccionado.estado === 'Revisado'">
-      <h3>✅ Información de revisión</h3>
+      <h3>
+         <i class="fa-solid fa-circle-check"></i>
+        Información de revisión</h3>
       <p><strong>Revisado por:</strong> {{ incidenteSeleccionado.revisadoPor }}</p>
-      <p><strong>Fecha:</strong> {{ incidenteSeleccionado.fechaRevision | date:'medium' }}</p>
+      <p><strong>
+        <i class="fa-solid fa-calendar-check"></i>
+        Fecha:</strong> {{ incidenteSeleccionado.fechaRevision | date:'medium' }}</p>
       <p *ngIf="incidenteSeleccionado.observacionRevision">
-        <strong>Observación:</strong> {{ incidenteSeleccionado.observacionRevision }}
+        <strong>
+          <i class="fa-solid fa-comment-dots"></i>
+          Observación:</strong> {{ incidenteSeleccionado.observacionRevision }}
       </p>
     </div>
 
     <div class="revision-form"
       *ngIf="mostrarModalRevisar && incidenteSeleccionado.estado === 'Pendiente' && puedeEditar">
-      <h3>✅ Marcar como revisado</h3>
+      <h3>
+         <i class="fa-solid fa-clipboard-check"></i>
+        Marcar como revisado</h3>
       <div class="form-group">
-        <label>👤 Nombre de quien revisa *</label>
+        <label>
+          <i class="fa-solid fa-user-check"></i>
+          Nombre de quien revisa *</label>
         <input type="text" [(ngModel)]="revisadoPor" placeholder="Su nombre completo">
       </div>
       <div class="form-group">
-        <label>💬 Observaciones</label>
+        <label>
+          <i class="fa-solid fa-comment-dots"></i>
+          Observaciones</label>
         <textarea [(ngModel)]="observacion"
           placeholder="Acciones tomadas, estado actual, etc."></textarea>
       </div>
       <div class="revision-botones">
-        <button class="btn-cancelar-rev" (click)="mostrarModalRevisar = false">Cancelar</button>
-        <button class="btn-confirmar"    (click)="confirmarRevision()">✅ Confirmar Revisión</button>
+        <button class="btn-cancelar-rev" (click)="mostrarModalRevisar = false">
+           <i class="fa-solid fa-ban"></i>
+          Cancelar</button>
+        <button class="btn-confirmar"    (click)="confirmarRevision()">
+           <i class="fa-solid fa-circle-check"></i>
+           Confirmar Revisión</button>
       </div>
     </div>
 
     <div class="modal-botones">
-      <!-- ✅ Link directo WhatsApp sin método automático -->
+      <!-- Link directo WhatsApp sin método automático -->
       <a class="btn-whatsapp"
         *ngIf="incidenteSeleccionado.conductor?.telefono"
         [href]="getLinkWhatsApp(incidenteSeleccionado.conductor.telefono)"
         target="_blank">
-        📱 Contactar Conductor
+        <i class="fa-brands fa-whatsapp"></i>
+        Contactar Conductor
       </a>
       <button class="btn-pdf-individual" (click)="descargarPDF(incidenteSeleccionado)">
-        📄 Descargar PDF
+        <i class="fa-solid fa-file-pdf"></i>
+        Descargar PDF
       </button>
       <button class="btn-revisar-modal"
         *ngIf="incidenteSeleccionado.estado === 'Pendiente' && !mostrarModalRevisar && puedeEditar"
         (click)="abrirRevisar()">
-        ✅ Marcar Revisado
+        <i class="fa-solid fa-clipboard-check"></i>
+        Marcar Revisado
       </button>
     </div>
 

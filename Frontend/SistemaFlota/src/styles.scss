@@ -3,6 +3,7 @@
   --verde-principal: #8BC34A;
   --verde-oscuro: #558B2F;
   --verde-oscuro-hover: #1b5e20;
+  --verde-fondo-botones: #1f271726;
   --verde-suave: #E8F5E9;
   --fondo: #F5F7F4;
   --blanco: #FFFFFF;
@@ -61,6 +62,216 @@ body {
 
   background-attachment: fixed;
   color: black;
+}
+
+// Titulos
+.header-titulo,
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  i {
+    font-size: 28px;
+    color: var(--verde-principal);
+  }
+}
+
+// Tablas generales
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  color: var(--blanco);
+
+  th {
+    background: linear-gradient(135deg,
+        var(--verde-principal),
+        var(--verde-oscuro)) !important;
+    padding: 18px;
+    text-align: left;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+}
+
+tbody {
+  tr {
+    border-bottom: 1px solid var(--gris-claro);
+    transition: 0.2s;
+
+    &:hover {
+      background: var(--blanco);
+    }
+  }
+
+  td {
+    padding: 18px;
+    font-size: 1rem;
+    color: #334155;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+}
+
+tbody td {
+
+  color: var(--gris-oscuro);
+
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Botón Editar */
+.btn-editar,
+.btn-eliminar {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.2s;
+  width: auto;
+
+  &:hover {
+    background: #fecaca;
+  }
+}
+
+.btn-ajuste {
+  background: linear-gradient(135deg, var(--amarillo-oscuro), var(--amarillo)) !important;
+  color: var(--blanco) !important;
+}
+
+.btn-editar {
+  background: linear-gradient(135deg, var(--verde-principal), var(--verde-oscuro)) !important;
+  color: var(--blanco) !important;
+
+  &:hover {
+    background: var(--blanco) !important;
+    color: var(--gris-oscuro) !important;
+    border-color: var(--gris-oscuro) !important;
+  }
+}
+
+/* Botón Eliminar */
+.btn-eliminar {
+  background: linear-gradient(135deg, var(--blanco), var(--blanco)) !important;
+  color: var(--rojo-oscuro) !important;
+  border-color: var(--gris-medio) !important;
+
+  &:hover {
+    background: var(--rojo-oscuro) !important;
+    color: var(--blanco) !important;
+    border-color: var(--gris-oscuro) !important;
+  }
+}
+
+.btn-buscarr {
+  background: linear-gradient(135deg, var(--blanco), var(--blanco)) !important;
+  color: var(--azul-cielo) !important;
+  border: 2px solid var(--azul-cielo) !important;
+  border-radius: 30px !important;
+  box-shadow: none !important;
+}
+
+.btn-imprimir {
+  background: linear-gradient(135deg, var(--azul-nube), var(--azul-cielo)) !important;
+  color: var(--blanco) !important;
+}
+
+.btn-excel {
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  border: 1px solid var(--verde-oscuro);
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all .2s ease;
+  width: auto;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    color: var(--verde-oscuro);
+    font-size: 1rem;
+    transition: color .2s ease;
+  }
+
+  &:hover {
+    background: var(--azul-oscuro);
+    color: var(--blanco);
+    transform: translateY(-2px);
+
+    i {
+      color: var(--blanco);
+    }
+  }
+}
+
+.btn-agregar {
+  background: var(--verde-fondo-botones);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: var(--verde-oscuro);
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: var(--azul-oscuro);
+    color: var(--blanco);
+    transform: translateY(-2px);
+
+    i {
+      color: var(--blanco);
+    }
+  }
+}
+
+.btn-ver {
+  background: var(--verde-fondo-botones);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: var(--verde-oscuro);
+
+  &:hover {
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+  }
+}
+
+/* Paginador */
+.paginator {
+  border-top: 1px solid var(--verde-oscuro) !important;
+  font-weight: 600 !important;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  background-color: var(--blanco) !important;
+  color: var(--verde-oscuro) !important;
 }
 
 .content {
@@ -190,27 +401,6 @@ body {
 
 .btn-info {
   background: var(--info);
-}
-
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  background: var(--primary);
-  color: white;
-}
-
-th,
-td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-tr:hover {
-  background: rgba(139, 195, 74, .08);
 }
 
 @media(max-width:768px) {

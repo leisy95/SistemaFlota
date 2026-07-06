@@ -39,7 +39,7 @@
     </div>
 
     <div class="acciones">
-      <button class="btn-ver"       (click)="ver(c)">
+      <button class="btn-ver" (click)="ver(c)">
         <i class="fa-solid fa-eye"></i> Ver
       </button>
       <button class="btn-hoja-vida" (click)="abrirHojaVida(c)">
@@ -50,6 +50,7 @@
       </button>
       <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(c.id)">
         <i class="fa-solid fa-trash"></i>
+        Eliminar
       </button>
     </div>
 

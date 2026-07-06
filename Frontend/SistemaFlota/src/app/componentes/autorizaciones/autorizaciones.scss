@@ -30,7 +30,7 @@
 }
 
 .contenedor {
-  padding: 24px;
+  padding: 12px;
   background: var(--gris-fondo);
   min-height: 100vh;
 }
@@ -125,43 +125,43 @@
 .tabla-container {
   background: var(--blanco);
   border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
 }
 
 table {
-  width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
+  width: max-content;
+  min-width: 100%;
 }
 
-thead {
-  background: var(--verde-principal);
-  color: var(--blanco);
-
-  th {
-    padding: 16px 18px;
-    text-align: left;
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
+th:last-child,
+td:last-child {
+  width: 340px;
+  min-width: 340px;
 }
 
-tbody {
-  tr {
-    border-bottom: 1px solid var(--gris-claro);
-    transition: 0.2s;
+td[data-label="Acción"] {
+  white-space: nowrap;
+}
 
-    &:hover {
-      background: var(--blanco);
-    }
-  }
+.btn-acciones-tabla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
 
-  td {
-    padding: 14px 18px;
-    font-size: 1.1rem;
-    color: var(--gris-oscuro);
-    vertical-align: middle;
-  }
+.btn-acciones-tabla>* {
+  flex-shrink: 0;
+}
+
+th:last-child,
+td:last-child {
+  width: 420px;
+  min-width: 420px;
 }
 
 .badge-pendiente {
@@ -601,7 +601,7 @@ tbody {
     gap: 6px;
 
     i {
-      color: var(--gris-claro);
+      color: var(--verde-claro);
       font-size: 1rem;
     }
   }
@@ -957,21 +957,87 @@ tbody {
   border: 1px solid var(--verde-borde);
 }
 
+.facturas-container {
+  margin-bottom: 20px;
+}
+
+.facturas-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gris-oscuro);
+
+  i {
+    color: var(--verde-principal);
+    font-size: 18px;
+  }
+}
+
 .facturas-resumen {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 10px;
 }
 
 .factura-resumen-item {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+
   background: var(--blanco);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 1.1rem;
-  color: var(--gris-oscuro);
+  border: 1px solid var(--gris-claro);
+  border-left: 4px solid var(--verde-principal);
+  border-radius: 12px;
+
+  padding: 14px 16px;
+  transition: .2s;
+
+  &:hover {
+    background: var(--gris-fondo);
+  }
+}
+
+.dato {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  i {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--verde-fondo-botones);
+    color: var(--verde-principal);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+  }
+
+  small {
+    display: block;
+    font-size: .75rem;
+    color: var(--gris-medio);
+    margin-bottom: 2px;
+  }
+
+  strong {
+    display: block;
+    color: var(--gris-oscuro);
+    font-size: .95rem;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 768px) {
+  .factura-resumen-item {
+    grid-template-columns: 1fr;
+  }
 }
 
 // GUÍA
@@ -1171,7 +1237,7 @@ tbody {
     gap: 8px;
 
     i {
-      color: var(--color-primario);
+      color: var(--verde-principal);
     }
   }
 }
@@ -1214,7 +1280,7 @@ tbody {
     }
 
     i {
-      color: var(--gris-claro);
+      color: var(--verde-oscuro);
       font-size: 1.1rem;
     }
   }

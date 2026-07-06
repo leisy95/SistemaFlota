@@ -4,59 +4,12 @@
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 1.8rem !important;
-  color: var(--gris-oscuro);
-  margin-bottom: 25px;
-  font-weight: bold;
-}
-
 // TABLA DESKTOP
 .tabla-container {
   background: var(--blanco);
   border: 1px solid var(--gris-claro);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
   overflow: hidden;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead {
-  background: var(--verde-principal);
-  color: var(--blanco);
-
-  th {
-    padding: 18px;
-    text-align: left;
-    font-size: 15px;
-    font-weight: 600;
-  }
-}
-
-tbody {
-  tr {
-    border-bottom: 1px solid var(--gris-claro);
-    transition: 0.2s;
-
-    &:hover {
-      background: var(--blanco);
-    }
-  }
-
-  td {
-    padding: 18px;
-    font-size: 14px;
-    color: #334155;
-  }
-}
-
-tbody td {
-
-  color: var(--gris-oscuro);
-
 }
 
 // BOTONES ACCIÓN
