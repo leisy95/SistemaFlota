@@ -181,7 +181,7 @@ namespace SistemaFlota.Migrations
             migrationBuilder.DropColumn(
                 name: "WhatsAppEnviado",
                 table: "Inspecciones");
-
+            
             migrationBuilder.DropColumn(
                 name: "ClasificacionVehiculo",
                 table: "Conductores");

@@ -87,14 +87,14 @@ export class CostosFleteComponent implements OnInit {
   }
 
   cargar() {
-    let url = `${environment.apiUrl}/CostosFletes?`;
+    let url = `${environment.apiUrl}/CostosFlete?`;
     if (this.filtroDesde) url += `desde=${this.filtroDesde}&`;
     if (this.filtroHasta) url += `hasta=${this.filtroHasta}&`;
     if (this.filtroConductor) url += `conductor=${this.filtroConductor}&`;
     if (this.filtroEstado) url += `estado=${this.filtroEstado}&`;
     if (this.filtroCiudad) url += `ciudad=${this.filtroCiudad}&`;
     this.http.get<any[]>(url, { headers: this.headers }).subscribe({
-      next: d => this.registros = d,
+      next: (d: any) => this.registros = Array.isArray(d) ? d : [],
       error: e => console.error(e)
     });
   }
@@ -124,7 +124,7 @@ export class CostosFleteComponent implements OnInit {
   guardar() {
     if (!this.form.autorizacionId) { alert('Seleccione una autorización'); return; }
     const body = { ...this.form, total: this.total };
-    this.http.post(`${environment.apiUrl}/CostosFletes`, body, { headers: this.headers }).subscribe({
+    this.http.post(`${environment.apiUrl}/CostosFlete`, body, { headers: this.headers }).subscribe({
       next: () => { this.vista = 'lista'; this.cargar(); },
       error: e => { console.error(e); alert('Error guardando'); }
     });
@@ -148,7 +148,7 @@ export class CostosFleteComponent implements OnInit {
 
   guardarEdicion() {
     const body = { ...this.form, total: this.total };
-    this.http.put(`${environment.apiUrl}/CostosFletes/${this.registroSeleccionado.id}`, body, { headers: this.headers }).subscribe({
+    this.http.put(`${environment.apiUrl}/CostosFlete/${this.registroSeleccionado.id}`, body, { headers: this.headers }).subscribe({
       next: () => { this.vista = 'lista'; this.cargar(); },
       error: e => { console.error(e); alert('Error editando'); }
     });
@@ -184,7 +184,7 @@ export class CostosFleteComponent implements OnInit {
   confirmarVerificacion() {
     if (!this.firmaDataUrl) { alert('Dibuje la firma'); return; }
     const body = { verificadoPor: this.nombreVerificador, firmaVerificacion: this.firmaDataUrl };
-    this.http.put(`${environment.apiUrl}/CostosFletes/${this.registroSeleccionado.id}/verificar`, body, { headers: this.headers }).subscribe({
+    this.http.put(`${environment.apiUrl}/CostosFlete/${this.registroSeleccionado.id}/verificar`, body, { headers: this.headers }).subscribe({
       next: () => { this.vista = 'lista'; this.cargar(); },
       error: e => { console.error(e); alert('Error verificando'); }
     });
@@ -277,6 +277,6 @@ export class CostosFleteComponent implements OnInit {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Costos Fletes');
-    XLSX.writeFile(wb, 'CostosFletes_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    XLSX.writeFile(wb, 'CostosFlete_'+new Date().toISOString().slice(0,10)+'.xlsx');
   }
 }

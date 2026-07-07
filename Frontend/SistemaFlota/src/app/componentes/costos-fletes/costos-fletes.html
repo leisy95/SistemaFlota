@@ -14,7 +14,7 @@
     <div class="stats-grid">
       <div class="stat-card azul">
         <span class="stat-label">Total gastos</span>
-        <span class="stat-valor">${{ totalGastosFiltrados | number:'1.0-0':'es' }}</span>
+        <span class="stat-valor">${{ totalGastosFiltrados | number:'1.0-0' }}</span>
       </div>
       <div class="stat-card amarillo">
         <span class="stat-label">Pendientes</span>
@@ -26,7 +26,7 @@
       </div>
       <div class="stat-card cyan">
         <span class="stat-label">Promedio por kilo</span>
-        <span class="stat-valor">${{ promedioPorKilo | number:'1.0-2':'es' }}</span>
+        <span class="stat-valor">${{ promedioPorKilo | number:'1.0-2' }}</span>
       </div>
     </div>
 
@@ -60,9 +60,9 @@
           <div><span class="info-label">Conductor</span><span>{{ r.autorizacion?.conductor }}</span></div>
           <div><span class="info-label">Placa</span><span>{{ r.autorizacion?.placa }}</span></div>
           <div><span class="info-label">Destino</span><span>{{ r.autorizacion?.ciudadDestino }}</span></div>
-          <div><span class="info-label">Kilos</span><span>{{ r.autorizacion?.kilosTransportados | number:'1.0-0':'es' }} kg</span></div>
-          <div><span class="info-label">Total gastos</span><span class="total-valor">${{ r.total | number:'1.0-0':'es' }}</span></div>
-          <div><span class="info-label">$/kg</span><span class="total-valor">${{ (r.total / (r.autorizacion?.kilosTransportados || 1)) | number:'1.0-2':'es' }}</span></div>
+          <div><span class="info-label">Kilos</span><span>{{ r.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</span></div>
+          <div><span class="info-label">Total gastos</span><span class="total-valor">${{ r.total | number:'1.0-0' }}</span></div>
+          <div><span class="info-label">$/kg</span><span class="total-valor">${{ (r.total / (r.autorizacion?.kilosTransportados || 1)) | number:'1.0-2' }}</span></div>
         </div>
         <div class="reg-acciones">
           <button class="btn-ver" (click)="ver(r)">👁 Ver</button>
@@ -94,7 +94,7 @@
           <div><span class="info-label">Conductor</span><strong>{{ autorizacionSeleccionada.conductor }}</strong></div>
           <div><span class="info-label">Placa</span><strong>{{ autorizacionSeleccionada.placa }}</strong></div>
           <div><span class="info-label">Destino</span><strong>{{ autorizacionSeleccionada.ciudadDestino }}</strong></div>
-          <div><span class="info-label">Kilos</span><strong>{{ autorizacionSeleccionada.kilosTransportados | number:'1.0-0':'es' }} kg</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ autorizacionSeleccionada.kilosTransportados | number:'1.0-0' }} kg</strong></div>
           <div><span class="info-label">Clientes</span><strong>{{ autorizacionSeleccionada.clientesEntregados }}</strong></div>
         </div>
       </div>
@@ -113,7 +113,7 @@
         </div>
         <div class="total-box">
           <span>Total gastos</span>
-          <span>${{ total | number:'1.0-0':'es' }}</span>
+          <span>${{ total | number:'1.0-0' }}</span>
         </div>
       </div>
 
@@ -142,24 +142,24 @@
           <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
           <div><span class="info-label">Placa</span><strong>{{ registroSeleccionado.autorizacion?.placa }}</strong></div>
           <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
-          <div><span class="info-label">Kilos</span><strong>{{ registroSeleccionado.autorizacion?.kilosTransportados | number:'1.0-0':'es' }} kg</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ registroSeleccionado.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</strong></div>
         </div>
       </div>
       <div class="form-section">
         <h3>Gastos</h3>
         <div class="gastos-lista">
-          <div class="gasto-row ver"><span>Peajes</span><span>${{ registroSeleccionado.peajes | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Combustible</span><span>${{ registroSeleccionado.combustible | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Parqueos</span><span>${{ registroSeleccionado.parqueos | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Descargue Mcia</span><span>${{ registroSeleccionado.descarguesMcia | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Cargue materiales</span><span>${{ registroSeleccionado.cargueMateriales | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Alimentación</span><span>${{ registroSeleccionado.alimentacion | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Hospedaje</span><span>${{ registroSeleccionado.hospedaje | number:'1.0-0':'es' }}</span></div>
-          <div class="gasto-row ver"><span>Varios</span><span>${{ registroSeleccionado.varios | number:'1.0-0':'es' }}</span></div>
+          <div class="gasto-row ver"><span>Peajes</span><span>${{ registroSeleccionado.peajes | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Combustible</span><span>${{ registroSeleccionado.combustible | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Parqueos</span><span>${{ registroSeleccionado.parqueos | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Descargue Mcia</span><span>${{ registroSeleccionado.descarguesMcia | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Cargue materiales</span><span>${{ registroSeleccionado.cargueMateriales | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Alimentación</span><span>${{ registroSeleccionado.alimentacion | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Hospedaje</span><span>${{ registroSeleccionado.hospedaje | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Varios</span><span>${{ registroSeleccionado.varios | number:'1.0-0' }}</span></div>
         </div>
         <div class="total-box">
           <span>Total</span>
-          <span>${{ registroSeleccionado.total | number:'1.0-0':'es' }}</span>
+          <span>${{ registroSeleccionado.total | number:'1.0-0' }}</span>
         </div>
       </div>
       <div class="btn-row">
@@ -178,7 +178,7 @@
         <div class="datos-aut">
           <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
           <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
-          <div><span class="info-label">Total gastos</span><strong>${{ registroSeleccionado.total | number:'1.0-0':'es' }}</strong></div>
+          <div><span class="info-label">Total gastos</span><strong>${{ registroSeleccionado.total | number:'1.0-0' }}</strong></div>
         </div>
       </div>
       <div class="form-section">

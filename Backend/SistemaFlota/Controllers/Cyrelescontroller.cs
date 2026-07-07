@@ -82,6 +82,8 @@ namespace SistemaFlota.Controllers
             return NoContent();
         }
 
+
+
         // ── GET api/cyreles/registros ─────────────────────────────────────────
         [HttpGet("registros")]
         public async Task<IActionResult> GetRegistros(
@@ -163,6 +165,7 @@ namespace SistemaFlota.Controllers
         // ── PUT api/cyreles/registros/{id} ────────────────────────────────────
         [HttpPut("registros/{id}")]
         [Consumes("multipart/form-data")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> EditarRegistro(
             int id,
             [FromForm] RegistroDto dto,
