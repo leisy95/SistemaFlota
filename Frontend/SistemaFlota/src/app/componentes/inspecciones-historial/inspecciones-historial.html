@@ -42,7 +42,7 @@
       Mostrando {{ historialFiltrado.length }} de {{ historial.length }} registros
     </p>
 
-    <div class="tabla-container" *ngIf="historialPaginado.length > 0">
+    <div class="tabla-container desktop-table" *ngIf="historialPaginado.length > 0">
       <table>
         <thead>
           <tr>
@@ -89,6 +89,59 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Movil -->
+
+    <!-- Móvil -->
+    <div class="mobile-cards">
+
+      <div class="historial-card" *ngFor="let item of historialPaginado">
+
+        <div class="fila">
+          <span>Fecha</span>
+          <strong>{{ item.fecha | date:'short' }}</strong>
+        </div>
+
+        <div class="fila">
+          <span>Conductor</span>
+          <strong>{{ item.conductor?.nombre }}</strong>
+        </div>
+
+        <div class="fila">
+          <span>Vehículo</span>
+          <strong>{{ item.vehiculo?.placa }}</strong>
+        </div>
+
+        <div class="fila">
+          <span>Kilometraje</span>
+          <strong>{{ item.kilometraje }} km</strong>
+        </div>
+
+        <div class="fila">
+          <span>WhatsApp</span>
+
+          <i *ngIf="item.whatsAppEnviado" class="fa-solid fa-circle-check ok">
+          </i>
+
+          <i *ngIf="item.whatsAppEnviado===false" class="fa-solid fa-circle-xmark no">
+          </i>
+
+        </div>
+
+        <div class="acciones">
+          <button class="btn-ver" (click)="verDetalle(item.id)">
+            Ver
+          </button>
+          <button class="btn-pdf" (click)="descargarPDF(item)">
+            PDF
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
 
     <div class="vacio" *ngIf="historialPaginado.length === 0 && historial.length > 0">
       <p> No hay registros con ese filtro</p>

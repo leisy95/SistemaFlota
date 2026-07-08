@@ -22,55 +22,63 @@
   <div class="stats-grid">
     <div class="stat-card rojo">
       <span class="stat-numero">{{ sos }}</span>
-      <span class="stat-label">🔴 SOS</span>
+      <span class="stat-label"><i class="fas fa-circle-exclamation"></i> SOS</span>
     </div>
     <div class="stat-card amarillo">
       <span class="stat-numero">{{ pendientes }}</span>
-      <span class="stat-label">⏳ Pendientes</span>
+      <span class="stat-label"> <i class="fas fa-hourglass-half"></i> Pendientes</span>
     </div>
     <div class="stat-card azul">
       <span class="stat-numero">{{ enProceso }}</span>
-      <span class="stat-label">🔄 En Proceso</span>
+      <span class="stat-label"><i class="fas fa-arrows-rotate"></i> En Proceso En Proceso</span>
     </div>
     <div class="stat-card naranja">
       <span class="stat-numero">{{ despachados }}</span>
-      <span class="stat-label">🚚 Despachados</span>
+      <span class="stat-label"><i class="fas fa-truck"></i> Despachados</span>
     </div>
     <div class="stat-card verde">
       <span class="stat-numero">{{ entregados }}</span>
-      <span class="stat-label">✅ Entregados</span>
+      <span class="stat-label"><i class="fas fa-circle-check"></i> Entregados</span>
     </div>
   </div>
 
   <!-- ALERTA SOS -->
   <div class="alerta-sos" *ngIf="sos > 0">
-    🔴 Hay <strong>{{ sos }}</strong> pedido(s) con prioridad SOS
+    <i class="fas fa-circle-exclamation"></i>
+    Hay <strong>{{ sos }}</strong> pedido(s) con prioridad SOS
   </div>
 
   <!-- FILTROS -->
   <div class="filtros-panel">
-    <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
-      placeholder="🔍 Buscar cliente, referencia, destino...">
+    <div class="input-icon">
+      <i class="fas fa-search"></i>
+      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
+        placeholder="Buscar cliente, referencia, destino...">
+    </div>
 
     <select [(ngModel)]="filtroPrioridad" (change)="aplicarFiltros()">
       <option value="">Todas las prioridades</option>
-      <option value="SOS">🔴 SOS</option>
-      <option value="Urgente">🟡 Urgente</option>
-      <option value="Normal">🟢 Normal</option>
+      <option value="SOS"><i class="fas fa-circle-exclamation"></i>SOS</option>
+      <option value="Urgente">Urgente</option>
+      <option value="Normal">Normal</option>
     </select>
 
     <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
       <option value="">Todos los estados</option>
-      <option value="Pendiente">⏳ Pendiente</option>
-      <option value="EnProceso">🔄 En Proceso</option>
-      <option value="Despachado">🚚 Despachado</option>
-      <option value="Entregado">✅ Entregado</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="EnProceso">En Proceso</option>
+      <option value="Despachado">Despachado</option>
+      <option value="Entregado">Entregado</option>
     </select>
 
     <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
     <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
-    <button class="btn-refresh" (click)="cargarPedidos()">🔄</button>
-    <button class="btn-limpiar" (click)="limpiarFiltros()">✕ Limpiar</button>
+    <button class="btn-refresh" (click)="cargarPedidos()">
+      <i class="fas fa-rotate-right"></i>
+    </button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">
+      <i class="fas fa-xmark"></i>
+      Limpiar</button>
   </div>
 
   <p class="resultado-filtro" *ngIf="pedidosFiltrados.length !== pedidos.length">
@@ -98,12 +106,21 @@
 
           <td data-label="Prioridad">
             <span [class]="getBadgePrioridad(p.prioridad)">
-              {{ p.prioridad === 'SOS' ? '🔴 SOS' : p.prioridad === 'Urgente' ? '🟡 Urgente' : '🟢 Normal' }}
+              <i class="fas" [ngClass]="{
+                'fa-circle-exclamation': p.prioridad === 'SOS',
+                'fa-triangle-exclamation': p.prioridad === 'Urgente',
+                'fa-circle-check': p.prioridad === 'Normal'
+              }">
+              </i>
+
+              {{ p.prioridad }}
             </span>
           </td>
           <td data-label="Fecha">{{ p.fechaRegistro | date:'short' }}</td>
           <td data-label="Vendedor">{{ p.vendedorNombre }}</td>
-          <td data-label="Cliente"><strong>{{ p.cliente }}</strong></td>
+          <td data-label="Cliente">
+            <strong class="valor-cliente">{{ p.cliente }}</strong>
+          </td>
           <td data-label="Referencias">
             <div class="refs-resumen">
               <span *ngFor="let r of p.referencias" class="ref-chip">
@@ -135,13 +152,25 @@
   </div>
 
   <div class="vacio" *ngIf="pedidosFiltrados.length === 0 && pedidos.length > 0">
-    <p>🔍 No hay pedidos con ese filtro</p>
-    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">Limpiar filtros</button>
+    <p>
+      <i class="fas fa-magnifying-glass"></i>
+      No hay pedidos con ese filtro
+    </p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">
+      <i class="fas fa-filter-circle-xmark"></i>
+      Limpiar filtros
+    </button>
   </div>
 
+
   <div class="vacio" *ngIf="pedidos.length === 0">
-    <p>📦 No hay pedidos registrados</p>
-    <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">+ Crear primer pedido</button>
+    <p>
+      <i class="fas fa-box-open"></i>
+      No hay pedidos registrados
+    </p>
+    <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevo()">
+      <i class="fas fa-plus"></i>
+      Crear primer pedido</button>
   </div>
 
 </div>
@@ -150,27 +179,32 @@
 <div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal">
     <div class="modal-header">
-      <h2>{{ editando ? '✏️ Editar Pedido' : '📦 Nuevo Pedido' }}</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      <h2>
+        <i class="fas" [ngClass]="editando ? 'fa-pen-to-square' : 'fa-box-open'"></i>
+        {{ editando ? 'Editar Pedido' : 'Nuevo Pedido' }}
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <i class="fas fa-xmark"></i>
+      </button>
     </div>
 
     <div class="form-grid">
       <div class="form-group">
-        <label>👤 Vendedor *</label>
+        <label><i class="fas fa-user"></i> Vendedor *</label>
         <input type="text" [(ngModel)]="form.vendedorNombre" placeholder="Nombre del vendedor">
       </div>
       <div class="form-group">
-        <label>🏪 Cliente *</label>
+        <label><i class="fas fa-store"></i> Cliente *</label>
         <input type="text" [(ngModel)]="form.cliente" placeholder="Nombre del cliente">
       </div>
       <div class="form-group full">
-        <label>📍 Destino *</label>
+        <label><i class="fas fa-location-dot"></i> Destino *</label>
         <input type="text" [(ngModel)]="form.destino" placeholder="Ciudad / Municipio">
       </div>
 
-      <!-- ✅ Referencias dinámicas -->
+      <!-- Referencias dinámicas -->
       <div class="form-group full">
-        <label>📦 Referencias *</label>
+        <label><i class="fas fa-box"></i> Referencias *</label>
         <div class="referencias-lista">
           <div class="ref-header" *ngIf="referencias.length > 0">
             <span>Referencia</span>
@@ -186,14 +220,14 @@
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
-          <button class="btn-agregar-fila" (click)="agregarReferencia()">
+          <button class="btn-agregar" (click)="agregarReferencia()">
             <i class="fa-solid fa-plus"></i> Agregar referencia
           </button>
         </div>
       </div>
 
       <div class="form-group full">
-        <label>🚨 Prioridad *</label>
+        <label><i class="fas fa-triangle-exclamation"></i> Prioridad *</label>
         <div class="prioridad-btns">
           <button *ngFor="let pr of prioridades"
             [class]="'btn-prioridad ' + (form.prioridad === pr.value ? pr.class + '-activo' : '')"
@@ -204,20 +238,23 @@
       </div>
 
       <div class="form-group full">
-        <label>📋 Observaciones</label>
+        <label><i class="fas fa-clipboard-list"></i> Observaciones</label>
         <textarea [(ngModel)]="form.observaciones"
           placeholder="Instrucciones especiales, detalles del pedido..."></textarea>
       </div>
     </div>
 
     <div class="aviso-whatsapp" *ngIf="form.prioridad === 'SOS' || form.prioridad === 'Urgente'">
-      📱 Se enviará WhatsApp automáticamente al equipo de bodega
+      <i class="fab fa-whatsapp"></i> Se enviará WhatsApp automáticamente al equipo de bodega
     </div>
 
     <div class="modal-botones">
-      <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-cancelar" (click)="cerrarModal()">
+        <i class="fas fa-times"></i>
+        Cancelar</button>
       <button class="btn-guardar" (click)="guardar()">
-        {{ editando ? '💾 Guardar cambios' : '📦 Crear Pedido' }}
+        <i class="fas" [ngClass]="editando ? 'fa-floppy-disk' : 'fa-box-open'"></i>
+        {{ editando ? 'Guardar cambios' : 'Crear Pedido' }}
       </button>
     </div>
   </div>
@@ -227,33 +264,38 @@
 <div class="modal-overlay" *ngIf="mostrarEstado">
   <div class="modal modal-pequeno">
     <div class="modal-header">
-      <h2>🔄 Cambiar Estado</h2>
-      <button class="btn-cerrar" (click)="cerrarEstado()">✕</button>
+      <h2><i class="fas fa-arrows-rotate"></i> Cambiar Estado</h2>
+      <button class="btn-cerrar" (click)="cerrarEstado()">
+        <i class="fas fa-xmark"></i>
+      </button>
     </div>
 
     <div class="resumen-pedido">
-      <p><strong>🏪 Cliente:</strong> {{ seleccionado?.cliente }}</p>
-      <p><strong>📍 Destino:</strong> {{ seleccionado?.destino }}</p>
+      <p><strong><i class="fas fa-store"></i> Cliente:</strong> {{ seleccionado?.cliente }}</p>
+      <p><strong><i class="fas fa-location-dot"></i> Destino:</strong> {{ seleccionado?.destino }}</p>
       <p><strong>Estado actual:</strong>
         <span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado) }}</span>
       </p>
     </div>
 
     <div class="form-group">
-      <label>🔄 Nuevo Estado *</label>
+      <label><i class="fas fa-arrows-rotate"></i> Nuevo Estado *</label>
       <select [(ngModel)]="formEstado.estado">
         <option value="">Seleccione estado</option>
         <option *ngFor="let e of estadosList" [value]="e.value">{{ e.label }}</option>
       </select>
     </div>
     <div class="form-group">
-      <label>👤 Nombre de quien gestiona *</label>
+      <label><i class="fas fa-user"></i> Nombre de quien gestiona *</label>
       <input type="text" [(ngModel)]="formEstado.gestionadoPor" placeholder="Su nombre completo">
     </div>
 
     <div class="modal-botones">
-      <button class="btn-cancelar" (click)="cerrarEstado()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardarEstado()">✅ Confirmar</button>
+      <button class="btn-cancelar" (click)="cerrarEstado()">
+        <i class="fas fa-times"></i>
+        Cancelar</button>
+      <button class="btn-guardar" (click)="guardarEstado()">
+        <i class="fas fa-circle-check"></i> Confirmar</button>
     </div>
   </div>
 </div>
@@ -262,58 +304,68 @@
 <div class="modal-overlay" *ngIf="mostrarDetalle">
   <div class="modal">
     <div class="modal-header">
-      <h2>📦 Detalle Pedido #{{ seleccionado?.id }}</h2>
+      <h2> <i class="fas fa-box-open"></i> Detalle Pedido #{{ seleccionado?.id }}</h2>
       <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
     </div>
 
     <div class="detalle-grid">
       <div class="detalle-item">
-        <span>🚨 Prioridad</span>
-        <strong><span [class]="getBadgePrioridad(seleccionado?.prioridad)">
-            {{ seleccionado?.prioridad === 'SOS' ? '🔴 SOS' : seleccionado?.prioridad === 'Urgente' ? '🟡 Urgente' : '🟢
-            Normal' }}
-          </span></strong>
+        <span><i class="fas fa-triangle-exclamation"></i> Prioridad</span>
+        <strong>
+          <span [class]="getBadgePrioridad(seleccionado?.prioridad)">
+            <i class="fas" [ngClass]="{
+                'fa-circle-exclamation': seleccionado?.prioridad === 'SOS',
+                'fa-triangle-exclamation': seleccionado?.prioridad === 'Urgente',
+                'fa-circle-check': seleccionado?.prioridad === 'Normal'
+              }">
+            </i>
+
+            {{ seleccionado?.prioridad }}
+          </span>
+        </strong>
       </div>
       <div class="detalle-item">
-        <span>📊 Estado</span>
+        <span><i class="fas fa-chart-simple"></i> Estado</span>
         <strong><span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado)
             }}</span></strong>
       </div>
-      <div class="detalle-item"><span>👤 Vendedor</span><strong>{{ seleccionado?.vendedorNombre }}</strong></div>
-      <div class="detalle-item"><span>🏪 Cliente</span><strong>{{ seleccionado?.cliente }}</strong></div>
-      <div class="detalle-item"><span>📍 Destino</span><strong>{{ seleccionado?.destino }}</strong></div>
-      <div class="detalle-item"><span>📅 Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium'
+      <div class="detalle-item"><span><i class="fas fa-user"></i> Vendedor</span><strong>{{ seleccionado?.vendedorNombre }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-store"></i> Cliente</span><strong>{{ seleccionado?.cliente }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-location-dot"></i> Destino</span><strong>{{ seleccionado?.destino }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-calendar"></i> Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium'
           }}</strong></div>
-      <div class="detalle-item"><span>👷 Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong>
+      <div class="detalle-item"><span><i class="fas fa-user-gear"></i> Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong>
       </div>
-      <div class="detalle-item"><span>🚚 Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ?
+      <div class="detalle-item"><span><i class="fas fa-truck"></i> Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ?
           (seleccionado.fechaDespacho | date:'medium') : '-' }}</strong></div>
-      <div class="detalle-item"><span>✅ Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ?
+      <div class="detalle-item"><span><i class="fas fa-circle-check"></i> Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ?
           (seleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
 
-      <!-- ✅ Referencias -->
+      <!-- Referencias -->
       <div class="detalle-item full">
-        <span>📦 Referencias</span>
+        <span><i class="fas fa-box"></i> Referencias</span>
         <div class="referencias-detalle">
           <div class="ref-detalle-item" *ngFor="let r of seleccionado?.referencias">
             <strong>{{ r.referencia }}</strong>
-            <span *ngIf="r.cantidadKg">⚖️ {{ r.cantidadKg }} kg</span>
-            <span *ngIf="r.cantidadUnidades">🔢 {{ r.cantidadUnidades }} uds</span>
+            <span *ngIf="r.cantidadKg"><i class="fas fa-weight-hanging"></i> {{ r.cantidadKg }} kg</span>
+            <span *ngIf="r.cantidadUnidades"><i class="fas fa-hashtag"></i> {{ r.cantidadUnidades }} uds</span>
           </div>
           <span *ngIf="!seleccionado?.referencias?.length">-</span>
         </div>
       </div>
 
       <div class="detalle-item full" *ngIf="seleccionado?.observaciones">
-        <span>📋 Observaciones</span>
+        <span><i class="fas fa-clipboard-list"></i> Observaciones</span>
         <strong>{{ seleccionado?.observaciones }}</strong>
       </div>
     </div>
 
     <div class="modal-botones">
-      <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
+      <button class="btn-cancelar" (click)="cerrarDetalle()">
+        <i class="fas fa-times"></i>
+        Cerrar</button>
       <button class="btn-estado-btn" *ngIf="puedeEditar" (click)="abrirEstado(seleccionado); cerrarDetalle()">
-        🔄 Cambiar Estado
+        <i class="fas fa-arrows-rotate"></i> Cambiar Estado
       </button>
     </div>
   </div>

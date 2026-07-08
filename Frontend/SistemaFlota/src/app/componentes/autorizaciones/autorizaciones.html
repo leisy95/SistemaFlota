@@ -85,7 +85,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let a of autorizacionesPaginadas; trackBy: trackById">
-          <td data-label="Conductor">{{ a.conductor?.nombre }}</td>
+          <td data-label="Conductor"><span>{{ a.conductor?.nombre }}</span></td>
           <td data-label="Vehículo">{{ a.vehiculo?.placa | uppercase }}</td>
           <td data-label="Tipo"><span class="tipo-badge">{{ a.tipoVuelta }}</span></td>
           <td data-label="Destino">{{ a.destinoCompleto || 'Mensajería' | lowercase }}</td>

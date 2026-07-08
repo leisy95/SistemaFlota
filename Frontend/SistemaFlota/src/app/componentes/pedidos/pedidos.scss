@@ -38,7 +38,7 @@
   padding: 16px;
   text-align: center;
   box-shadow: 0 4px 10px var(--gris-oscuro);
-  border-top: 4px solid #15803d;
+  border-top: 4px solid var(--gris-oscuro);
 
   &.rojo {
     border-top-color: #dc2626;
@@ -58,6 +58,10 @@
 
   &.verde {
     border-top-color: #15803d;
+  }
+
+  i {
+    color: var(--verde-oscuro);
   }
 
   .stat-numero {
@@ -196,7 +200,7 @@
   font-style: italic;
 }
 
-// ── TABLA ─────────────────────────────────────────────────────────────────────
+// TABLA 
 .tabla-container {
   width: 100%;
   max-width: 100%;
@@ -213,7 +217,7 @@
   min-width: 1700px;
 }
 
-// ── BADGES PRIORIDAD ──────────────────────────────────────────────────────────
+// BADGES PRIORIDAD 
 .badge-sos {
   background: #fee2e2;
   color: #b91c1c;
@@ -244,7 +248,7 @@
   white-space: nowrap;
 }
 
-// ── BADGES ESTADO ─────────────────────────────────────────────────────────────
+// BADGES ESTADO 
 .badge-pendiente {
   background: #fef9c3;
   color: #854d0e;
@@ -285,7 +289,7 @@
   white-space: nowrap;
 }
 
-// ── BOTONES TABLA ─────────────────────────────────────────────────────────────
+// BOTONES TABLA 
 .btn-acciones {
   display: flex;
   gap: 5px;
@@ -293,13 +297,13 @@
 }
 
 .btn-estado-btn {
-  background: #ede9fe;
-  color: #5b21b6;
+  background: var(verde-fondo-botones);
+  color: var(--verde-oscuro);
   border: none;
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 1rem;
   width: auto;
 
   &:hover {
@@ -307,37 +311,7 @@
   }
 }
 
-.btn-editar {
-  background: #fef9c3;
-  color: #854d0e;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  width: auto;
-
-  &:hover {
-    background: #fde047;
-  }
-}
-
-.btn-eliminar {
-  background: #fee2e2;
-  color: #b91c1c;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  width: auto;
-
-  &:hover {
-    background: #fecaca;
-  }
-}
-
-// ── REFERENCIAS EN TABLA ──────────────────────────────────────────────────────
+// REFERENCIAS EN TABLA
 .refs-resumen {
   display: flex;
   flex-wrap: wrap;
@@ -361,14 +335,14 @@
   }
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
+// MODAL 
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--blanco);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -377,14 +351,13 @@
 }
 
 .modal {
-  background: white;
   border-radius: 16px;
   padding: 24px;
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px var(--gris-oscuro);
 
   &.modal-pequeno {
     max-width: 480px;
@@ -397,34 +370,21 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--gris-oscuro);
+  gap: 2px;
 
   h2 {
-    font-size: 18px;
-    color: #0f172a;
+    font-size: 1.25rem;
+    color: var(--gris-oscuro);
     margin: 0;
     font-weight: 600;
   }
-}
-
-.btn-cerrar {
-  background: #f1f5f9;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: #e2e8f0;
+  i {
+    color: var(--verde-oscuro);
   }
 }
 
-// ── FORM ──────────────────────────────────────────────────────────────────────
+// FORM 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -442,9 +402,9 @@
   }
 
   label {
-    font-size: 12px;
+    font-size: 1rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--gris-oscuro);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -453,9 +413,9 @@
   select,
   textarea {
     padding: 10px 14px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--gris-medio);
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 1rem;
     transition: 0.2s;
     width: 100%;
 
@@ -472,7 +432,7 @@
   }
 }
 
-// ── REFERENCIAS DINÁMICAS ─────────────────────────────────────────────────────
+// REFERENCIAS DINÁMICAS 
 .referencias-lista {
   display: flex;
   flex-direction: column;
@@ -562,7 +522,7 @@
   }
 }
 
-// ── PRIORIDAD BOTONES ─────────────────────────────────────────────────────────
+//  PRIORIDAD BOTONES 
 .prioridad-btns {
   display: flex;
   gap: 10px;
@@ -614,21 +574,21 @@
   margin-bottom: 16px;
 }
 
-// ── RESUMEN PEDIDO ────────────────────────────────────────────────────────────
+// RESUMEN PEDIDO 
 .resumen-pedido {
-  background: #f8fafc;
+  background: var(--gris-claro);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 16px;
 
   p {
-    font-size: 13px;
-    color: #374151;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
     margin: 4px 0;
   }
 }
 
-// ── MODAL BOTONES ─────────────────────────────────────────────────────────────
+// MODAL BOTONES 
 .modal-botones {
   display: flex;
   justify-content: flex-end;
@@ -636,21 +596,6 @@
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
-}
-
-.btn-cancelar {
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  padding: 12px 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  width: auto;
-
-  &:hover {
-    background: #e2e8f0;
-  }
 }
 
 .btn-guardar {
@@ -670,7 +615,7 @@
   }
 }
 
-// ── DETALLE ───────────────────────────────────────────────────────────────────
+// DETALLE 
 .detalle-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -679,7 +624,7 @@
 }
 
 .detalle-item {
-  background: #f8fafc;
+  background: var(--gris-claro);
   border-radius: 10px;
   padding: 12px 14px;
 
@@ -689,16 +634,16 @@
 
   span {
     display: block;
-    font-size: 11px;
-    color: #64748b;
+    font-size: 0.95rem;
+    color: var(--gris-oscuro);
     text-transform: uppercase;
     font-weight: 600;
     margin-bottom: 4px;
   }
 
   strong {
-    font-size: 14px;
-    color: #0f172a;
+    font-size: 0.95rem;
+    color: var(--gris-oscuro);
   }
 }
 
@@ -710,41 +655,40 @@
 }
 
 .ref-detalle-item {
-  background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--gris-oscuro);
   border-radius: 8px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 1rem;
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
 
   strong {
-    color: #0f172a;
+    color: var(--gris-oscuro);
     font-size: 14px;
   }
 
   span {
-    color: #64748b;
+    color: var(--gris-oscuro);
   }
 }
 
-// ── VACÍO ─────────────────────────────────────────────────────────────────────
+// VACÍO 
 .vacio {
   text-align: center;
   padding: 40px;
-  color: #94a3b8;
-  background: white;
+  color: var(--gris-oscuro);
+  background: var(--blanco);
   border-radius: 16px;
-  font-size: 15px;
+  font-size: 1rem;
 
   button {
     margin-top: 12px;
   }
 }
 
-// ── RESPONSIVE ────────────────────────────────────────────────────────────────
+// RESPONSIVE
 @media (max-width: 768px) {
   .contenedor {
     padding: 16px;
@@ -788,8 +732,20 @@
   }
 
   .tabla-container {
-    background: transparent;
+    background: var(--blanco);
     box-shadow: none;
+  }
+
+  .tabla-container {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  .tabla-container table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
   }
 
   table {
@@ -806,11 +762,11 @@
 
   tbody tr {
     display: block;
-    background: white;
+    background: var(--gris-claro);
     border-radius: 12px;
     margin-bottom: 12px;
     padding: 14px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px var(--gris-oscuro);
     border: none;
 
     &.fila-sos {
@@ -824,23 +780,76 @@
 
   tbody td {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 6px 0;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 13px;
+    border-bottom: 1px solid var(--gris-claro);
+    gap: 10px;
+  }
 
-    &:last-child {
-      border-bottom: none;
-    }
+  tbody td::before {
+    content: attr(data-label);
+    width: 90px;
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--gris-oscuro);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
 
-    &::before {
-      content: attr(data-label);
-      font-weight: 600;
-      color: #64748b;
-      font-size: 11px;
-      text-transform: uppercase;
-    }
+  tbody td>* {
+    flex: 1;
+    text-align: right;
+    min-width: 0;
+  }
+
+  .valor-cliente {
+    flex: 1;
+    text-align: right;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .pag-info {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .btn-pag:first-child {
+    order: 2;
+  }
+
+  .btn-pag:last-child {
+    order: 3;
+  }
+
+  .btn-pag {
+    flex: 1;
+    min-width: 140px;
+    max-width: 180px;
+    justify-content: center;
+  }
+
+  .pag-registros {
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
   }
 }
 

@@ -52,7 +52,7 @@
   </div>
 
   <!-- ── Tabla ── -->
-  <div class="srrhh-tabla-wrap">
+  <div class="srrhh-tabla-wrap desktop-view">
     <div *ngIf="cargando" class="srrhh-loading">
       <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
     </div>
@@ -63,9 +63,17 @@
     <table *ngIf="!cargando && registrosFiltrados.length > 0" class="srrhh-tabla">
       <thead>
         <tr>
-          <th>#</th><th>Área</th><th>Mes / Año</th><th>Fuente</th>
-          <th>Factor Riesgo</th><th>Prioridad</th><th>Estado</th>
-          <th>Responsable</th><th>Evidencias</th><th>Seguimiento</th><th>Acciones</th>
+          <th>#</th>
+          <th>Área</th>
+          <th>Mes / Año</th>
+          <th>Fuente</th>
+          <th>Factor Riesgo</th>
+          <th>Prioridad</th>
+          <th>Estado</th>
+          <th>Responsable</th>
+          <th>Evidencias</th>
+          <th>Seguimiento</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -80,9 +88,8 @@
           <td>{{ r.responsable || '—' }}</td>
           <td>
             <div class="miniaturas" *ngIf="getFotosEvidencia(r).length > 0; else sinFoto">
-              <img *ngFor="let f of getFotosEvidencia(r).slice(0,3); let i = index"
-                [src]="getFotoUrl(f.nombreArchivo)" class="miniatura"
-                (click)="abrirGaleria(getFotosEvidencia(r), i)">
+              <img *ngFor="let f of getFotosEvidencia(r).slice(0,3); let i = index" [src]="getFotoUrl(f.nombreArchivo)"
+                class="miniatura" (click)="abrirGaleria(getFotosEvidencia(r), i)">
               <span *ngIf="getFotosEvidencia(r).length > 3" class="mas-fotos"
                 (click)="abrirGaleria(getFotosEvidencia(r), 0)">+{{ getFotosEvidencia(r).length - 3 }}</span>
             </div>
@@ -91,8 +98,7 @@
           <td>
             <div class="miniaturas" *ngIf="getFotosSeguimiento(r).length > 0; else sinFotoSeg">
               <img *ngFor="let f of getFotosSeguimiento(r).slice(0,3); let i = index"
-                [src]="getFotoUrl(f.nombreArchivo)" class="miniatura"
-                (click)="abrirGaleria(getFotosSeguimiento(r), i)">
+                [src]="getFotoUrl(f.nombreArchivo)" class="miniatura" (click)="abrirGaleria(getFotosSeguimiento(r), i)">
               <span *ngIf="getFotosSeguimiento(r).length > 3" class="mas-fotos"
                 (click)="abrirGaleria(getFotosSeguimiento(r), 0)">+{{ getFotosSeguimiento(r).length - 3 }}</span>
             </div>
@@ -100,9 +106,12 @@
           </td>
           <td>
             <div class="acciones">
-              <button class="btn-icono btn-ver"      (click)="abrirVer(r)"    title="Ver"><i class="fa-solid fa-eye"></i></button>
-              <button class="btn-icono btn-editar"   (click)="abrirEditar(r)" title="Editar"><i class="fa-solid fa-pencil"></i></button>
-              <button class="btn-icono btn-eliminar" (click)="eliminar(r)"    title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn-icono btn-ver" (click)="abrirVer(r)" title="Ver"><i
+                  class="fa-solid fa-eye"></i></button>
+              <button class="btn-icono btn-editar" (click)="abrirEditar(r)" title="Editar"><i
+                  class="fa-solid fa-pencil"></i></button>
+              <button class="btn-icono btn-eliminar" (click)="eliminar(r)" title="Eliminar"><i
+                  class="fa-solid fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -111,6 +120,87 @@
     <div *ngIf="!cargando && registrosFiltrados.length > 0" class="srrhh-contador">
       Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
     </div>
+  </div>
+
+  <!-- Movil -->
+  <div class="mobile-view" *ngIf="!cargando && registrosFiltrados.length > 0">
+
+    <div class="seguimiento-card" *ngFor="let r of registrosFiltrados | slice:0:cantidadVisible">
+
+      <div class="card-header">
+        <div>
+          <h3>{{ r.area }}</h3>
+          <small>#{{ r.id }}</small>
+        </div>
+
+        <span class="badge" [class]="getBadgeEstado(r.estado)">
+          {{ r.estado }}
+        </span>
+      </div>
+
+      <div class="card-body">
+
+        <div class="dato">
+          <i class="fa-solid fa-calendar"></i>
+          {{ getNombreMes(r.mes) }} {{ r.anio }}
+        </div>
+
+        <div class="dato">
+          <i class="fa-solid fa-location-dot"></i>
+          {{ r.fuente }}
+        </div>
+
+        <div class="dato">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          {{ r.factorRiesgo || 'Sin riesgo' }}
+        </div>
+
+        <div class="dato">
+          <i class="fa-solid fa-user"></i>
+          {{ r.responsable || 'Sin responsable' }}
+        </div>
+
+        <div class="badges">
+          <span class="badge" [class]="getBadgePrioridad(r.prioridad)">
+            {{ r.prioridad }}
+          </span>
+        </div>
+
+        <!-- Evidencias -->
+
+        <div class="miniaturas" *ngIf="getFotosEvidencia(r).length">
+
+          <img *ngFor="let f of getFotosEvidencia(r).slice(0,3); let i=index" [src]="getFotoUrl(f.nombreArchivo)"
+            (click)="abrirGaleria(getFotosEvidencia(r),i)">
+        </div>
+
+      </div>
+
+      <div class="card-footer">
+
+        <button class="btn-icono btn-ver" (click)="abrirVer(r)">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+
+        <button class="btn-icono btn-editar" (click)="abrirEditar(r)">
+          <i class="fa-solid fa-pencil"></i>
+        </button>
+
+        <button class="btn-icono btn-eliminar" (click)="eliminar(r)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="cargar-mas" *ngIf="cantidadVisible < registrosFiltrados.length">
+      <button class="btn-cargar" (click)="cantidadVisible = cantidadVisible + 10">
+        Ver más
+      </button>
+
+    </div>
+
   </div>
 </div>
 
@@ -174,15 +264,15 @@
             <button type="button" class="btn-camara" (click)="inputCamaraEv.click()">
               <i class="fa-solid fa-camera"></i> Cámara
             </button>
-            <input #inputCamaraEv type="file" accept="image/*" capture="environment"
-              style="display:none" (change)="onFotosEvidencia($event)">
+            <input #inputCamaraEv type="file" accept="image/*" capture="environment" style="display:none"
+              (change)="onFotosEvidencia($event)">
 
             <!-- Botón galería -->
             <button type="button" class="btn-galeria" (click)="inputGaleriaEv.click()">
               <i class="fa-solid fa-images"></i> Galería
             </button>
-            <input #inputGaleriaEv type="file" accept="image/*" multiple
-              style="display:none" (change)="onFotosEvidencia($event)">
+            <input #inputGaleriaEv type="file" accept="image/*" multiple style="display:none"
+              (change)="onFotosEvidencia($event)">
           </div>
 
           <!-- Previews nuevas -->
@@ -229,7 +319,8 @@
       <div class="form-grid">
         <div class="form-group col-12">
           <label>Plan de Acción Sugerido</label>
-          <textarea rows="3" [(ngModel)]="form.planAccionSugerido" placeholder="Describe las acciones a tomar..."></textarea>
+          <textarea rows="3" [(ngModel)]="form.planAccionSugerido"
+            placeholder="Describe las acciones a tomar..."></textarea>
         </div>
         <div class="form-group col-4">
           <label>Responsable</label>
@@ -256,22 +347,23 @@
               <button type="button" class="btn-camara" (click)="inputCamaraSeg.click()">
                 <i class="fa-solid fa-camera"></i> Cámara
               </button>
-              <input #inputCamaraSeg type="file" accept="image/*" capture="environment"
-                style="display:none" (change)="onFotosSeguimiento($event)">
+              <input #inputCamaraSeg type="file" accept="image/*" capture="environment" style="display:none"
+                (change)="onFotosSeguimiento($event)">
 
               <!-- Botón galería -->
               <button type="button" class="btn-galeria" (click)="inputGaleriaSeg.click()">
                 <i class="fa-solid fa-images"></i> Galería
               </button>
-              <input #inputGaleriaSeg type="file" accept="image/*" multiple
-                style="display:none" (change)="onFotosSeguimiento($event)">
+              <input #inputGaleriaSeg type="file" accept="image/*" multiple style="display:none"
+                (change)="onFotosSeguimiento($event)">
             </div>
 
             <!-- Previews nuevas -->
             <div class="galeria-preview" *ngIf="previewsSeguimiento.length > 0">
               <div class="preview-item" *ngFor="let p of previewsSeguimiento; let i = index">
                 <img [src]="p">
-                <button class="btn-quitar" (click)="quitarPreviewSeguimiento(i)"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn-quitar" (click)="quitarPreviewSeguimiento(i)"><i
+                    class="fa-solid fa-xmark"></i></button>
               </div>
             </div>
             <!-- Fotos ya guardadas -->
@@ -319,9 +411,11 @@
       </div>
       <div class="detalle-grid">
         <div class="detalle-item"><span class="detalle-label">Área</span><strong>{{ r.area }}</strong></div>
-        <div class="detalle-item"><span class="detalle-label">Período</span><strong>{{ getNombreMes(r.mes) }} {{ r.anio }}</strong></div>
+        <div class="detalle-item"><span class="detalle-label">Período</span><strong>{{ getNombreMes(r.mes) }} {{ r.anio
+            }}</strong></div>
         <div class="detalle-item"><span class="detalle-label">Fuente</span><strong>{{ r.fuente }}</strong></div>
-        <div class="detalle-item" *ngIf="r.areas"><span class="detalle-label">Áreas</span><strong>{{ r.areas }}</strong></div>
+        <div class="detalle-item" *ngIf="r.areas"><span class="detalle-label">Áreas</span><strong>{{ r.areas }}</strong>
+        </div>
         <div class="detalle-item col-12">
           <span class="detalle-label">Descripción</span>
           <p class="detalle-texto">{{ r.descripcion }}</p>
@@ -329,14 +423,18 @@
         <div class="detalle-item col-12" *ngIf="getFotosEvidencia(r).length > 0">
           <span class="detalle-label">Evidencia Fotográfica ({{ getFotosEvidencia(r).length }} fotos)</span>
           <div class="galeria-thumb">
-            <img *ngFor="let f of getFotosEvidencia(r); let i = index"
-              [src]="getFotoUrl(f.nombreArchivo)" class="thumb" (click)="abrirGaleria(getFotosEvidencia(r), i)">
+            <img *ngFor="let f of getFotosEvidencia(r); let i = index" [src]="getFotoUrl(f.nombreArchivo)" class="thumb"
+              (click)="abrirGaleria(getFotosEvidencia(r), i)">
           </div>
         </div>
-        <div class="detalle-item"><span class="detalle-label">Factor de Riesgo</span><strong>{{ r.factorRiesgo || '—' }}</strong></div>
-        <div class="detalle-item"><span class="detalle-label">Responsable</span><strong>{{ r.responsable || '—' }}</strong></div>
-        <div class="detalle-item"><span class="detalle-label">Fecha Ejecución</span><strong>{{ r.fechaEjecucion ? (r.fechaEjecucion | date:'dd/MM/yyyy') : '—' }}</strong></div>
-        <div class="detalle-item"><span class="detalle-label">Fecha Seguimiento</span><strong>{{ r.fechaSeguimiento ? (r.fechaSeguimiento | date:'dd/MM/yyyy') : '—' }}</strong></div>
+        <div class="detalle-item"><span class="detalle-label">Factor de Riesgo</span><strong>{{ r.factorRiesgo || '—'
+            }}</strong></div>
+        <div class="detalle-item"><span class="detalle-label">Responsable</span><strong>{{ r.responsable || '—'
+            }}</strong></div>
+        <div class="detalle-item"><span class="detalle-label">Fecha Ejecución</span><strong>{{ r.fechaEjecucion ?
+            (r.fechaEjecucion | date:'dd/MM/yyyy') : '—' }}</strong></div>
+        <div class="detalle-item"><span class="detalle-label">Fecha Seguimiento</span><strong>{{ r.fechaSeguimiento ?
+            (r.fechaSeguimiento | date:'dd/MM/yyyy') : '—' }}</strong></div>
         <div class="detalle-item col-12" *ngIf="r.planAccionSugerido">
           <span class="detalle-label">Plan de Acción</span>
           <p class="detalle-texto">{{ r.planAccionSugerido }}</p>
@@ -344,8 +442,8 @@
         <div class="detalle-item col-12" *ngIf="getFotosSeguimiento(r).length > 0">
           <span class="detalle-label">Registro Fotográfico Posterior ({{ getFotosSeguimiento(r).length }} fotos)</span>
           <div class="galeria-thumb">
-            <img *ngFor="let f of getFotosSeguimiento(r); let i = index"
-              [src]="getFotoUrl(f.nombreArchivo)" class="thumb" (click)="abrirGaleria(getFotosSeguimiento(r), i)">
+            <img *ngFor="let f of getFotosSeguimiento(r); let i = index" [src]="getFotoUrl(f.nombreArchivo)"
+              class="thumb" (click)="abrirGaleria(getFotosSeguimiento(r), i)">
           </div>
         </div>
         <div class="detalle-item col-12" *ngIf="r.observaciones">

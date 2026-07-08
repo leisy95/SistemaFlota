@@ -39,6 +39,9 @@ export class SeguimientosRrhhComponent implements OnInit {
   mensajeError = '';
   mensajeExito = '';
 
+  // Para Moviles paginacion
+  cantidadVisible = 10;
+
   fotosGaleria: SeguimientoRrhhFoto[] = [];
   fotoGaleriaActual = 0;
 
