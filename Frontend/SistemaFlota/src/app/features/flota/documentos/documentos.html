@@ -1,0 +1,355 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div>
+      <h1 class="title">📁 Gestión de Documentos</h1>
+      <p class="subtitulo">Documentos de vehículos y archivos generales</p>
+    </div>
+    <div class="header-acciones" *ngIf="puedeCrear">
+      <button class="btn-agregar" (click)="abrirSubir('vehiculo')">🚚 Doc. Vehículo</button>
+      <button class="btn-subir-general"  (click)="abrirSubir('general')">📄 Doc. General</button>
+    </div>
+  </div>
+
+  <!-- ALERTA VENCER -->
+  <div class="alerta-vencer" *ngIf="porVencer.total > 0">
+    ⚠️ Tienes <strong>{{ porVencer.total }}</strong> documento(s) por vencer en los próximos 30 días.
+    <button (click)="cambiarTab('vencer')">Ver →</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button [class.activo]="tabActual === 'vehiculo'"  (click)="cambiarTab('vehiculo')">🚚 Vehículos</button>
+    <button [class.activo]="tabActual === 'generales'" (click)="cambiarTab('generales')">📄 Generales</button>
+    <button [class.activo]="tabActual === 'vencer'"    (click)="cambiarTab('vencer')">
+      ⚠️ Por Vencer
+      <span class="badge-count" *ngIf="porVencer.total > 0">{{ porVencer.total }}</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- TAB VEHÍCULOS                      -->
+  <!-- ═══════════════════════════════════ -->
+  <div *ngIf="tabActual === 'vehiculo'">
+
+    <!-- Stats rápidos -->
+    <div class="stats-docs" *ngIf="vehiculoSeleccionado > 0">
+      <div class="stat-doc">
+        <span class="stat-n">{{ totalVehiculo }}</span>
+        <span class="stat-l">Total</span>
+      </div>
+      <div class="stat-doc verde">
+        <span class="stat-n">{{ totalVehiculo - vencidosVeh - porVencerVeh }}</span>
+        <span class="stat-l">Vigentes</span>
+      </div>
+      <div class="stat-doc amarillo">
+        <span class="stat-n">{{ porVencerVeh }}</span>
+        <span class="stat-l">Por vencer</span>
+      </div>
+      <div class="stat-doc rojo">
+        <span class="stat-n">{{ vencidosVeh }}</span>
+        <span class="stat-l">Vencidos</span>
+      </div>
+    </div>
+
+    <!-- Selector vehículo -->
+    <div class="selector-vehiculo">
+      <select [(ngModel)]="vehiculoSeleccionado" (change)="seleccionarVehiculo()">
+        <option [value]="0">Seleccione un vehículo</option>
+        <option *ngFor="let v of vehiculos" [value]="v.id">
+          {{ v.placa }} — {{ v.marca }} {{ v.modelo }}
+        </option>
+      </select>
+    </div>
+
+    <div class="vacio" *ngIf="vehiculoSeleccionado === 0">
+      <p>🚚 Seleccione un vehículo para ver sus documentos</p>
+    </div>
+
+    <div *ngIf="vehiculoSeleccionado > 0">
+
+      <!-- Filtros vehículo -->
+      <div class="filtros-panel">
+        <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+          (input)="aplicarFiltrosVehiculo()"
+          placeholder="🔍 Buscar documento...">
+
+        <select [(ngModel)]="filtroTipoDoc" (change)="aplicarFiltrosVehiculo()">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let t of tiposDocumentoVehiculo" [value]="t">{{ t }}</option>
+        </select>
+
+        <select [(ngModel)]="filtroEstadoVeh" (change)="aplicarFiltrosVehiculo()">
+          <option value="">Todos los estados</option>
+          <option value="Vigente">✅ Vigente</option>
+          <option value="PorVencer">⚠️ Por vencer</option>
+          <option value="Vencido">❌ Vencido</option>
+        </select>
+
+        <button class="btn-limpiar" (click)="limpiarFiltrosVehiculo()">✕ Limpiar</button>
+      </div>
+
+      <!-- Resultado filtro -->
+      <p class="resultado-filtro" *ngIf="documentosVehiculoFiltrados.length !== documentosVehiculo.length">
+        Mostrando {{ documentosVehiculoFiltrados.length }} de {{ documentosVehiculo.length }} documentos
+      </p>
+
+      <div class="docs-grid" *ngIf="documentosVehiculoFiltrados.length > 0">
+        <div class="doc-card" *ngFor="let d of documentosVehiculoFiltrados"
+          [class.vencido]="estaVencido(d.fechaVencimiento)"
+          [class.proximo]="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30">
+
+          <div class="doc-icon">{{ getIconoExtension(d.extension) }}</div>
+
+          <div class="doc-info">
+            <strong>{{ d.nombre }}</strong>
+            <span class="doc-tipo">{{ d.tipoDocumento }}</span>
+            <span class="doc-fecha" *ngIf="d.fechaVencimiento">
+              <span *ngIf="estaVencido(d.fechaVencimiento)" class="vencido-label">❌ Vencido</span>
+              <span *ngIf="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30" class="proximo-label">
+                ⚠️ Vence en {{ diasParaVencer(d.fechaVencimiento) }} días
+              </span>
+              <span *ngIf="diasParaVencer(d.fechaVencimiento) > 30">
+                📅 {{ d.fechaVencimiento | date:'shortDate' }}
+              </span>
+            </span>
+            <span class="doc-fecha">{{ d.fechaSubida | date:'short' }}</span>
+          </div>
+
+          <div class="doc-acciones">
+            <a [href]="getUrlDocumento('vehiculo', d.archivoUrl)" target="_blank" class="btn-ver-doc">👁️ Ver</a>
+            <button class="btn-eliminar-doc" *ngIf="puedeEliminar" (click)="eliminarVehiculo(d.id)">🗑️</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="vacio" *ngIf="documentosVehiculoFiltrados.length === 0 && documentosVehiculo.length > 0">
+        <p>🔍 No hay documentos con ese filtro</p>
+        <button class="btn-limpiar-vacio" (click)="limpiarFiltrosVehiculo()">Limpiar filtros</button>
+      </div>
+
+      <div class="vacio" *ngIf="documentosVehiculo.length === 0">
+        <p>📄 No hay documentos para este vehículo</p>
+        <button class="btn-subir-vehiculo" *ngIf="puedeCrear" (click)="abrirSubir('vehiculo')">+ Subir documento</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- TAB GENERALES                      -->
+  <!-- ═══════════════════════════════════ -->
+  <div *ngIf="tabActual === 'generales'">
+
+    <!-- Stats rápidos -->
+    <div class="stats-docs">
+      <div class="stat-doc">
+        <span class="stat-n">{{ totalGenerales }}</span>
+        <span class="stat-l">Total</span>
+      </div>
+      <div class="stat-doc verde">
+        <span class="stat-n">{{ totalGenerales - vencidosGen }}</span>
+        <span class="stat-l">Vigentes</span>
+      </div>
+      <div class="stat-doc rojo">
+        <span class="stat-n">{{ vencidosGen }}</span>
+        <span class="stat-l">Vencidos</span>
+      </div>
+    </div>
+
+    <!-- Filtros generales -->
+    <div class="filtros-panel">
+      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda"
+        (input)="aplicarFiltrosGenerales()"
+        placeholder="🔍 Buscar documento...">
+
+      <select [(ngModel)]="filtroCategoria" (change)="cargarDocumentosGenerales()">
+        <option value="">Todas las categorías</option>
+        <option *ngFor="let c of categoriasGenerales" [value]="c">{{ c }}</option>
+      </select>
+
+      <select [(ngModel)]="filtroEstadoGen" (change)="aplicarFiltrosGenerales()">
+        <option value="">Todos los estados</option>
+        <option value="Vigente">✅ Vigente</option>
+        <option value="PorVencer">⚠️ Por vencer</option>
+        <option value="Vencido">❌ Vencido</option>
+      </select>
+
+      <button class="btn-limpiar" (click)="limpiarFiltrosGenerales()">✕ Limpiar</button>
+    </div>
+
+    <!-- Resultado filtro -->
+    <p class="resultado-filtro" *ngIf="documentosGeneralesFiltrados.length !== documentosGenerales.length">
+      Mostrando {{ documentosGeneralesFiltrados.length }} de {{ documentosGenerales.length }} documentos
+    </p>
+
+    <div class="docs-grid" *ngIf="documentosGeneralesFiltrados.length > 0">
+      <div class="doc-card" *ngFor="let d of documentosGeneralesFiltrados"
+        [class.vencido]="estaVencido(d.fechaVencimiento)"
+        [class.proximo]="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30">
+
+        <div class="doc-icon">{{ getIconoExtension(d.extension) }}</div>
+
+        <div class="doc-info">
+          <strong>{{ d.nombre }}</strong>
+          <span class="doc-tipo">{{ d.categoria }}</span>
+          <span class="doc-desc" *ngIf="d.descripcion">{{ d.descripcion }}</span>
+          <span class="doc-tamano">{{ getTamano(d.tamanoBytes) }}</span>
+          <span class="doc-fecha" *ngIf="d.fechaVencimiento">
+            <span *ngIf="estaVencido(d.fechaVencimiento)" class="vencido-label">❌ Vencido</span>
+            <span *ngIf="!estaVencido(d.fechaVencimiento) && diasParaVencer(d.fechaVencimiento) <= 30" class="proximo-label">
+              ⚠️ Vence en {{ diasParaVencer(d.fechaVencimiento) }} días
+            </span>
+            <span *ngIf="diasParaVencer(d.fechaVencimiento) > 30">
+              📅 {{ d.fechaVencimiento | date:'shortDate' }}
+            </span>
+          </span>
+          <span class="doc-fecha">{{ d.fechaSubida | date:'short' }}</span>
+        </div>
+
+        <div class="doc-acciones">
+          <a [href]="getUrlDocumento('general', d.archivoUrl)" target="_blank" class="btn-ver-doc">👁️ Ver</a>
+          <button class="btn-eliminar-doc" *ngIf="puedeEliminar" (click)="eliminarGeneral(d.id)">🗑️</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="vacio" *ngIf="documentosGeneralesFiltrados.length === 0 && documentosGenerales.length > 0">
+      <p>🔍 No hay documentos con ese filtro</p>
+      <button class="btn-limpiar-vacio" (click)="limpiarFiltrosGenerales()">Limpiar filtros</button>
+    </div>
+
+    <div class="vacio" *ngIf="documentosGenerales.length === 0">
+      <p>📄 No hay documentos generales</p>
+      <button class="btn-subir-general" *ngIf="puedeCrear" (click)="abrirSubir('general')">+ Subir documento</button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- TAB POR VENCER                     -->
+  <!-- ═══════════════════════════════════ -->
+  <div *ngIf="tabActual === 'vencer'">
+
+    <!-- Filtro días -->
+    <div class="filtros-panel">
+      <label class="label-filtro">⏰ Mostrar documentos que vencen en:</label>
+      <select [(ngModel)]="filtroDiasVencer" (change)="aplicarFiltroVencer()">
+        <option value="7">7 días</option>
+        <option value="15">15 días</option>
+        <option value="30">30 días</option>
+        <option value="60">60 días</option>
+        <option value="90">90 días</option>
+      </select>
+    </div>
+
+    <div class="vacio" *ngIf="porVencerFiltrados.length === 0">
+      <p>✅ No hay documentos por vencer en los próximos {{ filtroDiasVencer }} días</p>
+    </div>
+
+    <div class="vencer-lista" *ngIf="porVencerFiltrados.length > 0">
+      <div class="vencer-item" *ngFor="let d of porVencerFiltrados"
+        [class.vencido]="estaVencido(d.fechaVencimiento)">
+        <span class="vencer-icono">📄</span>
+        <div class="vencer-info">
+          <strong>{{ d.nombre }}</strong>
+          <span>{{ d.tipoDocumento || d.categoria }} —
+            <em>{{ d._tipo }}</em>
+            <span *ngIf="d.vehiculo"> · Vehículo: {{ d.vehiculo }}</span>
+          </span>
+        </div>
+        <div class="vencer-fecha" [class.vencido]="estaVencido(d.fechaVencimiento)">
+          <span *ngIf="estaVencido(d.fechaVencimiento)">❌ Vencido</span>
+          <span *ngIf="!estaVencido(d.fechaVencimiento)">⚠️ {{ diasParaVencer(d.fechaVencimiento) }} días</span>
+          <small>{{ d.fechaVencimiento | date:'shortDate' }}</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL SUBIR -->
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>{{ tipoSubida === 'vehiculo' ? '🚚 Documento de Vehículo' : '📄 Documento General' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarModal = false">✕</button>
+    </div>
+
+    <div *ngIf="tipoSubida === 'vehiculo'">
+      <div class="form-group">
+        <label>🚚 Vehículo *</label>
+        <select [(ngModel)]="formVehiculo.vehiculoId">
+          <option [value]="0">Seleccione vehículo</option>
+          <option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📋 Tipo de Documento *</label>
+        <select [(ngModel)]="formVehiculo.tipoDocumento">
+          <option value="">Seleccione tipo</option>
+          <option *ngFor="let t of tiposDocumentoVehiculo" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📝 Nombre *</label>
+        <input type="text" [(ngModel)]="formVehiculo.nombre" placeholder="Ej: SOAT 2025">
+      </div>
+      <div class="form-group">
+        <label>💬 Descripción</label>
+        <input type="text" [(ngModel)]="formVehiculo.descripcion" placeholder="Descripción opcional">
+      </div>
+      <div class="form-group">
+        <label>📅 Fecha de Vencimiento</label>
+        <input type="date" [(ngModel)]="formVehiculo.fechaVencimiento">
+      </div>
+    </div>
+
+    <div *ngIf="tipoSubida === 'general'">
+      <div class="form-group">
+        <label>📝 Nombre *</label>
+        <input type="text" [(ngModel)]="formGeneral.nombre" placeholder="Nombre del documento">
+      </div>
+      <div class="form-group">
+        <label>🏷️ Categoría</label>
+        <select [(ngModel)]="formGeneral.categoria">
+          <option *ngFor="let c of categoriasGenerales" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>💬 Descripción</label>
+        <input type="text" [(ngModel)]="formGeneral.descripcion" placeholder="Descripción opcional">
+      </div>
+      <div class="form-group">
+        <label>📅 Fecha de Vencimiento</label>
+        <input type="date" [(ngModel)]="formGeneral.fechaVencimiento">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>📁 Archivo *</label>
+      <label class="btn-archivo" for="inputArchivo">
+        <span>{{ archivoSeleccionado ? '✅ ' + archivoSeleccionado.name : '📁 Seleccionar archivo' }}</span>
+      </label>
+      <input id="inputArchivo" type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+        (change)="seleccionarArchivo($event)"
+        style="display:none">
+      <small>PDF, imágenes, Word, Excel — Máx 10MB</small>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="mostrarModal = false">Cancelar</button>
+      <button class="btn-guardar" (click)="subirDocumento()" [disabled]="subiendo">
+        <span *ngIf="!subiendo">📤 Subir documento</span>
+        <span *ngIf="subiendo">⏳ Subiendo...</span>
+      </button>
+    </div>
+
+  </div>
+</div>

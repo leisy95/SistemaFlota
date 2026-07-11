@@ -1,0 +1,193 @@
+export interface MenuItem {
+    key: string;
+    label: string;
+    icon: string;
+    ruta: string;
+    modulo?: string;
+}
+
+
+export const MENU_MODULOS: MenuItem[] = [
+
+    // FLOTA 
+
+    {
+        key: 'dashboard',
+        label: 'Panel de control',
+        icon: 'fa-solid fa-gauge-high',
+        ruta: '/flota/dashboard',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'conductores',
+        label: 'Conductores',
+        icon: 'fa-solid fa-id-card',
+        ruta: '/flota/conductores',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'vehiculos',
+        label: 'Vehículos',
+        icon: 'fa-solid fa-truck',
+        ruta: '/flota/vehiculos',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'inspecciones',
+        label: 'Inspecciones',
+        icon: 'fa-solid fa-clipboard-check',
+        ruta: '/flota/inspecciones',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'ver-inspecciones',
+        label: 'Historial inspecciones',
+        icon: 'fa-solid fa-clock-rotate-left',
+        ruta: '/flota/ver-inspecciones',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'autorizaciones',
+        label: 'Autorizaciones',
+        icon: 'fa-solid fa-file-circle-check',
+        ruta: '/flota/autorizaciones',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'reporte-ruta',
+        label: 'Reporte en Ruta',
+        icon: 'fa-solid fa-triangle-exclamation',
+        ruta: '/flota/reporte-ruta',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'cambio-ruta',
+        label: 'Cambio Ruta',
+        icon: 'fa-solid fa-id-card',
+        ruta: '/flota/cambio-ruta',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'mantenimiento',
+        label: 'Mantenimiento',
+        icon: 'fa-solid fa-wrench',
+        ruta: '/flota/mantenimiento',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'documentos',
+        label: 'Documentos',
+        icon: 'fa-solid fa-folder-open',
+        ruta: '/flota/documentos',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'checklist',
+        label: 'Checklist',
+        icon: 'fa-solid fa-box',
+        ruta: '/flota/checklist',
+        modulo: 'flota'
+    },
+
+
+    //  SST / RRHH 
+
+    {
+        key: 'rrhh-seguimientos',
+        label: 'Seguimientos SST',
+        icon: 'fa-solid fa-clipboard-list',
+        ruta: '/rrhh/rrhh-seguimientos',
+        modulo: 'rrhh'
+    },
+
+
+    //  CALIDAD
+
+    {
+        key: 'calidad-cyreles',
+        label: 'Cyreles',
+        icon: 'fa-solid fa-box-open',
+        ruta: '/calidad/calidad-cyreles',
+        modulo: 'calidad'
+    },
+
+    {
+        key: 'calidad-formatos',
+        label: 'Formatos',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/calidad/calidad-formatos',
+        modulo: 'calidad'
+    },
+
+    // Control envios 
+
+    {
+        key: 'trazabilidad',
+        label: 'Trazabilidad',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/control-envios/trazabilidad',
+        modulo: 'control-envios'
+    },
+
+    {
+        key: 'costos-flete',
+        label: 'Costos Flete',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/control-envios/costos-flete',
+        modulo: 'control-envios'
+    },
+
+    {
+        key: 'pedidos',
+        label: 'Pedidos',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/control-envios/pedidos',
+        modulo: 'control-envios'
+    },
+
+    // Reportes
+
+    {
+        key: 'auditoria',
+        label: 'Auditoria',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/reportes/auditoria',
+        modulo: 'reportes'
+    },
+
+    // Configuracion
+
+    {
+        key: 'configuracion',
+        label: 'Configuracion',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/configuracion/configuracion',
+        modulo: 'configuracion'
+    },
+
+     {
+        key: 'contactos-notificacion',
+        label: 'Contactos',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/configuracion/contactos-notificacion',
+        modulo: 'configuracion'
+    },
+
+     {
+        key: 'usuarios',
+        label: 'Usuarios',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/configuracion/usuarios',
+        modulo: 'configuracion'
+    }
+];

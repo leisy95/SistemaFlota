@@ -1,0 +1,134 @@
+.dialog-backdrop {
+
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, .45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 99999;
+
+    backdrop-filter: blur(4px);
+
+}
+
+.dialog {
+
+    width: 420px;
+    max-width: 92%;
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    animation: aparecer .25s ease;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, .25);
+
+}
+
+.icono {
+
+    font-size: 65px;
+
+    margin-bottom: 18px;
+
+}
+
+.success {
+
+    color: #28a745;
+
+}
+
+.warning {
+
+    color: #f39c12;
+
+}
+
+.error {
+
+    color: #dc3545;
+
+}
+
+.info {
+
+    color: #0d6efd;
+
+}
+
+h2 {
+
+    margin: 0;
+
+    font-size: 26px;
+
+    color: #222;
+
+}
+
+p {
+
+    margin: 18px 0 28px;
+
+    color: #666;
+
+    line-height: 1.5;
+
+}
+
+.btn {
+
+    border: none;
+
+    background: #1d7cf2;
+
+    color: white;
+
+    padding: 12px 35px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    transition: .25s;
+
+}
+
+.btn:hover {
+
+    transform: translateY(-2px);
+
+    background: #1466cb;
+
+}
+
+@keyframes aparecer {
+
+    from {
+
+        opacity: 0;
+        transform: scale(.9);
+
+    }
+
+    to {
+
+        opacity: 1;
+        transform: scale(1);
+
+    }
+
+}

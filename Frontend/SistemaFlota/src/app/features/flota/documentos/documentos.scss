@@ -1,0 +1,722 @@
+.contenedor {
+  margin-top: 70px;
+  padding: 24px;
+  background: #f1f5f9;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .subtitulo {
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    margin: 0;
+  }
+}
+
+.header-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-subir-general {
+  background: var(--azul-oscuro);
+  color: var(--gris-oscuro);
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: 0.2s;
+  width: auto;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}
+
+// ALERTA VENCER
+.alerta-vencer {
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #854d0e;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  button {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    width: auto;
+  }
+}
+
+// TABS
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 4px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--gris-oscuro);
+  flex-wrap: wrap;
+
+  button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    transition: 0.2s;
+    white-space: nowrap;
+    position: relative;
+    width: auto;
+
+    &:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    &.activo {
+      background: var(--gris-oscuro);
+      color: white;
+      font-weight: 600;
+    }
+  }
+}
+
+.badge-count {
+  background: #dc2626;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+}
+
+// STATS DOCUMENTOS
+.stats-docs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-doc {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-top: 3px solid #cbd5e1;
+  min-width: 80px;
+
+  &.verde {
+    border-top-color: var(--color-primario);
+  }
+
+  &.amarillo {
+    border-top-color: #f59e0b;
+  }
+
+  &.rojo {
+    border-top-color: #dc2626;
+  }
+
+  .stat-n {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    color: #0f172a;
+  }
+
+  .stat-l {
+    display: block;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    margin-top: 2px;
+  }
+}
+
+// SELECTOR VEHÍCULO
+.selector-vehiculo {
+  margin-bottom: 16px;
+
+  select {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primario);
+    }
+  }
+}
+
+// FILTROS PANEL
+.filtros-panel {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  select {
+    padding: 9px 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+    min-width: 160px;
+    height: 40px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primario);
+    }
+  }
+}
+
+.input-busqueda {
+  padding: 9px 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: white;
+  flex: 1;
+  min-width: 200px;
+  height: 40px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+  }
+}
+
+.btn-limpiar {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 9px 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  height: 40px;
+  white-space: nowrap;
+  width: auto;
+  transition: 0.2s;
+
+  &:hover {
+    background: #fecaca;
+  }
+}
+
+.btn-limpiar-vacio {
+  background: var(--color-primario);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: auto;
+  margin-top: 8px;
+}
+
+.label-filtro {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resultado-filtro {
+  font-size: 12px;
+  color: var(--gris-oscuro);
+  margin: -8px 0 12px;
+  font-style: italic;
+}
+
+// FILTROS LEGACY (tab generales original)
+.filtros {
+  margin-bottom: 16px;
+
+  select {
+    padding: 10px 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+    min-width: 200px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primario);
+    }
+  }
+}
+
+// GRID DOCUMENTOS
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.doc-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  &.vencido {
+    border-left-color: #dc2626;
+    background: #fff5f5;
+  }
+
+  &.proximo {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+  }
+}
+
+.doc-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.doc-info {
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    display: block;
+    font-size: 1rem;
+    color: #0f172a;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .doc-tipo {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .doc-desc {
+    display: block;
+    font-size: 12px;
+    color: var(--gris-oscuro);
+    margin-bottom: 2px;
+  }
+
+  .doc-tamano {
+    display: block;
+    font-size: 1rem;
+    color: #94a3b8;
+  }
+
+  .doc-fecha {
+    display: block;
+    font-size: 1rem;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+}
+
+.vencido-label {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.proximo-label {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.doc-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-ver-doc {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+  transition: 0.2s;
+
+  &:hover {
+    background: #2563eb;
+  }
+}
+
+.btn-eliminar-doc {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+  width: auto;
+
+  &:hover {
+    background: #fecaca;
+  }
+}
+
+// POR VENCER
+.seccion-titulo {
+  font-size: 16px;
+  color: #0f172a;
+  font-weight: 600;
+  margin: 20px 0 12px;
+}
+
+.vencer-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.vencer-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #f59e0b;
+
+  &.vencido {
+    border-left-color: #dc2626;
+    background: #fff5f5;
+  }
+}
+
+.vencer-icono {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.vencer-info {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 1rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--gris-oscuro);
+  }
+
+  em {
+    color: #3b82f6;
+    font-style: normal;
+    font-weight: 600;
+  }
+}
+
+.vencer-fecha {
+  text-align: right;
+  flex-shrink: 0;
+
+  span {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-bottom: 2px;
+  }
+
+  small {
+    font-size: 1rem;
+    color: #94a3b8;
+  }
+
+  &.vencido span {
+    color: #dc2626;
+  }
+}
+
+// VACÍO
+.vacio {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gris-oscuro);
+  background: white;
+  border-radius: 16px;
+
+  p {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+}
+
+// MODAL
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 16px;
+}
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  width: 500px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 18px;
+    color: #0f172a;
+    margin: 0;
+  }
+}
+
+.btn-cerrar {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  width: auto;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 10px 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primario);
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+    }
+  }
+
+  small {
+    display: block;
+    font-size: 1rem;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+}
+
+.btn-archivo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 1rem 16px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #374151;
+  transition: 0.2s;
+  width: 100%;
+
+  span {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    border-color: var(--color-primario);
+    background: #f0fdf4;
+  }
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 16px;
+}
+
+.btn-guardar {
+  background: var(--color-primario);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: 0.2s;
+  width: auto;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.btn-cancelar {
+  background: #f1f5f9;
+  color: var(--gris-oscuro);
+  border: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: auto;
+
+  &:hover {
+    background: #e2e8f0;
+  }
+}
+
+@media (max-width: 768px) {
+  .contenedor {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .docs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .modal-botones {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .filtros-panel {
+    flex-direction: column;
+  }
+
+  .input-busqueda,
+  .filtros-panel select,
+  .btn-limpiar {
+    width: 100%;
+    flex: none;
+  }
+
+  .stats-docs {
+    gap: 8px;
+  }
+
+  .stat-doc {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 12px;
+  }
+}
