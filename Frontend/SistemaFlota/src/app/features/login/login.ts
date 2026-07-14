@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
 import { environment } from '../../../environments/environment';
 import { retry } from 'rxjs';
+import { PermisosService } from '../../core/services/permisos.service';
 
 
 @Component({
@@ -41,7 +42,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private configuracionService: ConfiguracionService,
-    private router: Router
+    private router: Router,
+    private permisosService: PermisosService
   ) { }
 
   ngOnInit(): void {
@@ -101,6 +103,13 @@ export class LoginComponent implements OnInit {
             permisos: res.permisos ?? []
 
           });
+
+          this.permisosService.cargar({
+            rol: res.rol,
+            permisos: res.permisos ?? []
+          });
+
+          console.log('Después de cargar:', this.permisosService);
 
           this.nombreUsuario = res.username;
           this.mostrarBienvenida = true;

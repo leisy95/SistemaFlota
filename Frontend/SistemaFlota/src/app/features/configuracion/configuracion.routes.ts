@@ -27,11 +27,19 @@ export const CONFIGURACION_ROUTES: Routes = [
     },
 
      {
-        path: 'contactos',
+        path: 'contactos-notificacion',
         loadComponent: () =>
             import('./contactos-notificacion/contactos-notificacion')
                 .then(c => c.ContactosNotificacionComponent),
-        data: { animation: 'contactos' }
+        data: { animation: 'contactos-notificacion' }
+    },
+
+    {
+        path: 'centro-informacion',
+        loadComponent: () =>
+            import('../flota/centro-informacion/centro-informacion')
+                .then(c => c.CentroInformacionComponent),
+        data: { animation: 'contactos-notificacion' }
     },
 
 ];

@@ -4,16 +4,16 @@ export const CALIDAD_ROUTES: Routes = [
 
     {
         path: '',
-        redirectTo: 'cyreles',
+        redirectTo: 'calidad-cyreles',
         pathMatch: 'full'
     },
 
     {
-        path: 'cyreles',
+        path: 'calidad-cyreles',
         loadComponent: () =>
             import('./Cyreles/cyreles.component')
             .then(c => c.CyrelesComponent),
-        data: { animation: 'cyreles' }
+        data: { animation: 'calidad-cyreles' }
     },
 
     {

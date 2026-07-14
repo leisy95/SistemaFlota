@@ -46,7 +46,9 @@ export class VehiculosComponent implements OnInit {
     private conductoresService:   ConductoresService,
     private tiposVehiculoService: TiposVehiculoService,
     private permisosService:      PermisosService
-  ) {}
+  ) {
+    console.log('Vehiculos:', permisosService);
+  }
 
   ngOnInit(): void {
     this.obtenerVehiculos();

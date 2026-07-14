@@ -33,14 +33,18 @@ export class InspeccionesHistorialComponent implements OnInit {
   filtroFechaDesde = '';
   filtroFechaHasta = '';
 
-  get puedeVer(): boolean { return this.permisosService.puedeVer('inspecciones'); }
+  get puedeVer(): boolean {
+    return this.permisosService.puedeVer('inspecciones');
+  }
 
   constructor(
     private inspeccionesService: InspeccionesService,
     private permisosService: PermisosService
   ) { }
 
-  ngOnInit(): void { this.obtenerHistorial(); }
+  ngOnInit(): void {
+    this.obtenerHistorial();
+  }
 
   obtenerHistorial() {
     this.inspeccionesService.obtenerHistorial({
@@ -49,7 +53,7 @@ export class InspeccionesHistorialComponent implements OnInit {
       buscar: this.filtroBusqueda || undefined
     }).subscribe({
       next: (res: any) => {
-        // Compatible con respuesta paginada o array directo
+        
         if (Array.isArray(res)) {
           this.historial = res;
           this.historialFiltrado = res;
@@ -161,7 +165,7 @@ export class InspeccionesHistorialComponent implements OnInit {
         : Promise.resolve(null)
     ]);
 
-    // ── Cabecera ──────────────────────────────────────────────────────────
+    //  Cabecera
     doc.setFillColor(...VERDE); doc.rect(0, 0, 210, 42, 'F');
     if (logo) doc.addImage(logo, 'PNG', 5, 4, 32, 32);
     doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold');
@@ -172,7 +176,7 @@ export class InspeccionesHistorialComponent implements OnInit {
     doc.setFontSize(6); doc.setTextColor(200, 200, 200);
     doc.text('Escanear QR', 191, 37, { align: 'center' });
 
-    // ── Badge estado general ──────────────────────────────────────────────
+    //  Badge estado general ───
     const estadoGeneral = inspeccion.estadoGeneral ?? 'APTO';
     const pct = inspeccion.porcentajeNoConf ?? 0;
     const noConf = inspeccion.totalNoConformes ?? 0;
@@ -196,7 +200,7 @@ export class InspeccionesHistorialComponent implements OnInit {
     doc.setFontSize(8); doc.setTextColor(...GRIS); doc.setFont('helvetica', 'normal');
     doc.text(`No conformes: ${noConf}/${total} (${pct}%)`, 120, 54);
 
-    // ── Datos generales ───────────────────────────────────────────────────
+    //  Datos generales 
     const datos = [
       ['ID', `${inspeccion.id}`],
       ['Fecha', new Date(inspeccion.fecha).toLocaleString()],
@@ -218,7 +222,7 @@ export class InspeccionesHistorialComponent implements OnInit {
 
     doc.setDrawColor(...VERDE); doc.setLineWidth(0.5); doc.line(14, 108, 196, 108);
 
-    // ── Tabla checklist ───────────────────────────────────────────────────
+    //  Tabla checklist 
     autoTable(doc, {
       startY: 112,
       head: [['#', 'Ítem', 'Estado', 'Observación']],
@@ -252,7 +256,7 @@ export class InspeccionesHistorialComponent implements OnInit {
       }
     });
 
-    // ── Firma ─────────────────────────────────────────────────────────────
+    // Firma
     if (firma) {
       const firmaY = (doc as any).lastAutoTable?.finalY ?? 200;
       if (firmaY + 60 > 280) doc.addPage();
@@ -265,7 +269,7 @@ export class InspeccionesHistorialComponent implements OnInit {
       doc.text(inspeccion.conductor?.nombre ?? '', 54, firmaY + 58, { align: 'center' });
     }
 
-    // ── Pie de página ─────────────────────────────────────────────────────
+    //  Pie de página 
     const n = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= n; i++) {
       doc.setPage(i);

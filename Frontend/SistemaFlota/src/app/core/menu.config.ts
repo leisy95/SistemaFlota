@@ -68,10 +68,26 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
+        key: 'incidentes',
+        label: 'Incidentes',
+        icon: 'fa-solid fa-triangle-exclamation',
+        ruta: '/flota/incidentes',
+        modulo: 'flota'
+    },
+
+    {
         key: 'cambio-ruta',
         label: 'Cambio Ruta',
         icon: 'fa-solid fa-id-card',
         ruta: '/flota/cambio-ruta',
+        modulo: 'flota'
+    },
+
+    {
+        key: 'solicitud-taller',
+        label: 'Solicitud taller',
+        icon: 'fa-solid fa-wrench',
+        ruta: '/flota/solicitud-taller',
         modulo: 'flota'
     },
 
@@ -92,6 +108,14 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
+        key: 'encuesta-fatiga',
+        label: 'Encuesta fatiga',
+        icon: 'fa-solid fa-folder-open',
+        ruta: '/flota/encuesta-fatiga',
+        modulo: 'flota'
+    },
+
+    {
         key: 'checklist',
         label: 'Checklist',
         icon: 'fa-solid fa-box',
@@ -99,6 +123,13 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'flota'
     },
 
+    {
+        key: 'centro-informacion',
+        label: 'Centro informacion',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/configuracion/centro-informacion',
+        modulo: 'flota'
+    },
 
     //  SST / RRHH 
 
@@ -175,7 +206,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'configuracion'
     },
 
-     {
+    {
         key: 'contactos-notificacion',
         label: 'Contactos',
         icon: 'fa-solid fa-file-lines',
@@ -183,11 +214,11 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'configuracion'
     },
 
-     {
+    {
         key: 'usuarios',
         label: 'Usuarios',
         icon: 'fa-solid fa-file-lines',
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
-    }
+    },
 ];

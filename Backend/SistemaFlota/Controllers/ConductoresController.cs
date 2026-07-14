@@ -32,6 +32,7 @@ namespace SistemaFlota
         // =========================
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult>
             Get()

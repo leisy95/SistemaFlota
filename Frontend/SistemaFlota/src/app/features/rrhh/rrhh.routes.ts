@@ -9,5 +9,12 @@ export const RRHH_ROUTES: Routes = [
                 .then(c => c.SeguimientosRrhhComponent),
         data: { animation: 'seguimientos-rrhh' }
     },
+    {
+        path: 'rrhh-seguimientos',
+        loadComponent: () =>
+            import('./seguimientos-rrhh/seguimientos-rrhh.component')
+                .then(c => c.SeguimientosRrhhComponent),
+        data: { animation: 'seguimientos-rrhh' }
+    },
 
 ];

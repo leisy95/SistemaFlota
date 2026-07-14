@@ -39,11 +39,11 @@ export const FLOTA_ROUTES: Routes = [
         data: { animation: 'inspecciones' }
     },
     {
-        path: 'historial',
+        path: 'ver-inspecciones',
         loadComponent: () =>
             import('./inspecciones-historial/inspecciones-historial')
                 .then(c => c.InspeccionesHistorialComponent),
-        data: { animation: 'historial' }
+        data: { animation: 'ver-inspecciones' }
     },
     {
         path: 'autorizaciones',
@@ -66,18 +66,39 @@ export const FLOTA_ROUTES: Routes = [
                 .then(c => c.CambioRutaComponent),
         data: { animation: 'cambio-ruta' }
     },
+     {
+        path: 'solicitud-taller',
+        loadComponent: () =>
+            import('./solicitud-taller/solicitud-taller')
+                .then(c => c.SolicitudTallerComponent),
+        data: { animation: 'cambio-ruta' }
+    },
     {
-        path: 'reportes',
+        path: 'reporte-ruta',
         loadComponent: () =>
             import('./reportes-ruta/reportes-ruta')
                 .then(c => c.ReporteRutaComponent),
-        data: { animation: 'reportes' }
+        data: { animation: 'reporte-ruta' }
+    },
+    {
+        path: 'incidentes',
+        loadComponent: () =>
+            import('./incidentes/incidentes')
+                .then(c => c.IncidentesComponent),
+        data: { animation: 'reporte-ruta' }
     },
     {
         path: 'documentos',
         loadComponent: () =>
             import('./documentos/documentos')
                 .then(c => c.DocumentosComponent),
+        data: { animation: 'documentos' }
+    },
+    {
+        path: 'encuesta-fatiga',
+        loadComponent: () =>
+            import('./encuesta-fatiga/encuesta-fatiga')
+                .then(c => c.EncuestaFatigaComponent),
         data: { animation: 'documentos' }
     },
     {
