@@ -8,14 +8,15 @@ import { Subject } from 'rxjs';
 import { takeUntil, timeout, catchError } from 'rxjs/operators';
 import { TimeoutError, throwError } from 'rxjs';
 
-import { ConductoresService }    from '../../../core/services/conductores.service';
-import { VehiculosService }      from '../../../core/services/vehiculos.service';
+import { ConductoresService } from '../../../core/services/conductores.service';
+import { VehiculosService } from '../../../core/services/vehiculos.service';
 import { AutorizacionesService } from '../../../core/services/autorizaciones.service';
-import { ConfiguracionService }  from '../../../core/services/configuracion.service';
-import { PdfService }            from '../../../core/services/pdf.service';
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { PdfService } from '../../../core/services/pdf.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-autorizaciones',
@@ -30,14 +31,14 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   private destroy$ = new Subject<void>();
 
   pasoActual: number = 1;
-  conductores:           any[] = [];
-  vehiculos:             any[] = [];
-  conductorSeleccionado: any   = null;
-  autorizacionActual:    any   = null;
+  conductores: any[] = [];
+  vehiculos: any[] = [];
+  conductorSeleccionado: any = null;
+  autorizacionActual: any = null;
 
   // ── Paginación ────────────────────────────────────────────────────────────
   paginaActual = 1;
-  porPagina    = 10;
+  porPagina = 10;
   totalPaginas = 1;
 
   get autorizacionesPaginadas(): any[] {
@@ -59,32 +60,32 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   };
 
   facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
-  facturasEditar:   { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
+  facturasEditar: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
 
   pesoBaseClientes = 0;
 
-  guiaGenerada     = '';
-  usuarioFirma     = '';
+  guiaGenerada = '';
+  usuarioFirma = '';
   observacionFirma = '';
-  notificacion:    string | null = null;
-  autorizaciones:  any[] = [];
+  notificacion: string | null = null;
+  autorizaciones: any[] = [];
   autorizacionesFiltradas: any[] = [];
 
-  vistaLista    = true;
-  rolUsuario    = '';
+  vistaLista = true;
+  rolUsuario = '';
   nombreEmpresa = 'la empresa';
 
-  mostrarModalLlegada           = false;
-  mostrarModalConfirmar         = false;
-  mostrarModalEditar            = false;
-  mostrarModalDetalle           = false;
-  mostrarModalSalidaRapida      = false;
-  mostrarModalLlegadaRapida     = false;
-  mostrarModalSelectorLlegada   = false;
-  mostrarModalSelectorSalida    = false;
-  autorizacionLlegada:   any = null;
-  autorizacionEditando:  any = null;
-  autorizacionDetalle:   any = null;
+  mostrarModalLlegada = false;
+  mostrarModalConfirmar = false;
+  mostrarModalEditar = false;
+  mostrarModalDetalle = false;
+  mostrarModalSalidaRapida = false;
+  mostrarModalLlegadaRapida = false;
+  mostrarModalSelectorLlegada = false;
+  mostrarModalSelectorSalida = false;
+  autorizacionLlegada: any = null;
+  autorizacionEditando: any = null;
+  autorizacionDetalle: any = null;
 
   formSalidaRapida = {
     conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: ''
@@ -102,40 +103,41 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   };
 
   formEditar = {
-    conductorId:      0,
-    vehiculoId:       0,
-    destinoCompleto:  '',
-    tipoVuelta:       '',
+    conductorId: 0,
+    vehiculoId: 0,
+    destinoCompleto: '',
+    tipoVuelta: '',
     descripcionCarga: '',
     cantidadClientes: 0,
-    pesoKilos:        0,
-    numeroGuia:       ''
+    pesoKilos: 0,
+    numeroGuia: ''
   };
 
   readonly estadosVehiculo = ['Bueno', 'Novedad', 'Requiere taller'];
 
-  filtroBusqueda   = '';
-  filtroEstado     = '';
-  filtroTipo       = '';
+  filtroBusqueda = '';
+  filtroEstado = '';
+  filtroTipo = '';
   filtroFechaDesde = '';
   filtroFechaHasta = '';
 
   readonly tiposVuelta = [
-    { value: 'Solo entrega',       label: 'Solo entrega' },
-    { value: 'Mixta',              label: 'Mixta' },
+    { value: 'Solo entrega', label: 'Solo entrega' },
+    { value: 'Mixta', label: 'Mixta' },
     { value: 'Recogida y entrega', label: 'Recogida y entrega' },
-    { value: 'Solo recoge',        label: 'Solo recoge' },
-    { value: 'Mensajería',         label: 'Mensajería' },
+    { value: 'Solo recoge', label: 'Solo recoge' },
+    { value: 'Mensajería', label: 'Mensajería' },
   ];
 
   constructor(
-    private conductoresService:    ConductoresService,
-    private vehiculosService:      VehiculosService,
+    private conductoresService: ConductoresService,
+    private vehiculosService: VehiculosService,
     private autorizacionesService: AutorizacionesService,
-    private configuracionService:  ConfiguracionService,
-    private pdfService:            PdfService,
-    private cdr:                   ChangeDetectorRef
-  ) {}
+    private configuracionService: ConfiguracionService,
+    private pdfService: PdfService,
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
     const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -148,11 +150,23 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         if (data.nombreEmpresa?.trim()) this.nombreEmpresa = data.nombreEmpresa;
         this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
+    });
+
+    this.route.queryParams.subscribe(params => {
+
+      if (params['accion'] === 'salida') {
+        this.abrirSelectorSalida();
+      }
+
+      if (params['accion'] === 'llegada') {
+        this.abrirSelectorLlegada();
+      }
+
     });
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   get puedeAccesoRapido(): boolean {
@@ -215,7 +229,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   getBadgeSalida(a: any): string {
     if (a.fechaSalidaReal) return 'ruta';
-    if (a.fechaPorteria)   return 'sinconfirmar';
+    if (a.fechaPorteria) return 'sinconfirmar';
     return 'sinregistrar';
   }
 
@@ -238,12 +252,12 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   guardarSalidaRapida() {
     if (!this.formSalidaRapida.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formSalidaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+    if (!this.formSalidaRapida.vehiculoId) { alert('Seleccione un vehículo'); return; }
     this.guardandoRapido = true;
     this.autorizacionesService.salidaRapida({
       conductorId: this.formSalidaRapida.conductorId,
-      vehiculoId:  this.formSalidaRapida.vehiculoId,
-      tipoVuelta:  this.formSalidaRapida.tipoVuelta,
+      vehiculoId: this.formSalidaRapida.vehiculoId,
+      tipoVuelta: this.formSalidaRapida.tipoVuelta,
       destinoCompleto: this.formSalidaRapida.destinoCompleto || undefined
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => {
@@ -258,22 +272,22 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('🚛 Salida registrada — WhatsApp enviado');
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
   guardarLlegadaRapida() {
     if (!this.formLlegadaRapida.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formLlegadaRapida.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+    if (!this.formLlegadaRapida.vehiculoId) { alert('Seleccione un vehículo'); return; }
     this.guardandoRapido = true;
     this.autorizacionesService.llegadaRapida({
       conductorId: this.formLlegadaRapida.conductorId,
-      vehiculoId:  this.formLlegadaRapida.vehiculoId,
-      tipoVuelta:  this.formLlegadaRapida.tipoVuelta,
-      destinoCompleto:  this.formLlegadaRapida.destinoCompleto || undefined,
+      vehiculoId: this.formLlegadaRapida.vehiculoId,
+      tipoVuelta: this.formLlegadaRapida.tipoVuelta,
+      destinoCompleto: this.formLlegadaRapida.destinoCompleto || undefined,
       kilometrajeFinal: this.formLlegadaRapida.kilometrajeFinal,
-      novedadesViaje:   this.formLlegadaRapida.novedadesViaje,
-      estadoVehiculo:   this.formLlegadaRapida.estadoVehiculo
+      novedadesViaje: this.formLlegadaRapida.novedadesViaje,
+      estadoVehiculo: this.formLlegadaRapida.estadoVehiculo
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => {
         alert(`Error: ${JSON.stringify(err.error ?? err.message)}`);
@@ -287,7 +301,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('🏁 Llegada registrada — WhatsApp enviado');
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -297,22 +311,22 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     let base: any[];
     switch (this.rolUsuario) {
       case 'Facturacion': base = [...this.autorizaciones]; break;
-      case 'Bodega':      base = this.autorizaciones.filter(a => a.estado === 'Bodega'); break;
-      case 'Porteria':    base = this.autorizaciones.filter(a =>
+      case 'Bodega': base = this.autorizaciones.filter(a => a.estado === 'Bodega'); break;
+      case 'Porteria': base = this.autorizaciones.filter(a =>
         a.estado === 'Porteria' || (a.estado === 'Autorizado' && a.estadoLlegada === 'ReportadaLlegada')); break;
-      case 'Vendedor':    base = this.autorizaciones.filter(a => a.estado === 'Autorizado'); break;
-      default:            base = [...this.autorizaciones];
+      case 'Vendedor': base = this.autorizaciones.filter(a => a.estado === 'Autorizado'); break;
+      default: base = [...this.autorizaciones];
     }
     this.autorizacionesFiltradas = base.filter(a => {
       const okEstado = !this.filtroEstado || a.estado === this.filtroEstado;
-      const okTipo   = !this.filtroTipo   || a.tipoVuelta === this.filtroTipo;
-      const fecha    = new Date(a.fechaCreacion);
-      const okDesde  = !this.filtroFechaDesde || fecha >= new Date(this.filtroFechaDesde);
-      const okHasta  = !this.filtroFechaHasta || fecha <= new Date(this.filtroFechaHasta + 'T23:59:59');
-      const okBusq   = !q ||
+      const okTipo = !this.filtroTipo || a.tipoVuelta === this.filtroTipo;
+      const fecha = new Date(a.fechaCreacion);
+      const okDesde = !this.filtroFechaDesde || fecha >= new Date(this.filtroFechaDesde);
+      const okHasta = !this.filtroFechaHasta || fecha <= new Date(this.filtroFechaHasta + 'T23:59:59');
+      const okBusq = !q ||
         a.conductor?.nombre?.toLowerCase().includes(q) ||
-        a.vehiculo?.placa?.toLowerCase().includes(q)   ||
-        a.destinoCompleto?.toLowerCase().includes(q)   ||
+        a.vehiculo?.placa?.toLowerCase().includes(q) ||
+        a.destinoCompleto?.toLowerCase().includes(q) ||
         a.numeroGuia?.toLowerCase().includes(q);
       return okEstado && okTipo && okDesde && okHasta && okBusq;
     });
@@ -330,15 +344,15 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   private actualizarFiltradas(): void { this.aplicarFiltros(); }
 
-  get puedeCrear():  boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
+  get puedeCrear(): boolean { return !['Bodega', 'Porteria'].includes(this.rolUsuario); }
   get puedeEditar(): boolean { return ['Admin', 'Jefe', 'Facturacion', 'Bodega'].includes(this.rolUsuario); }
 
   get tituloPorRol(): string {
     switch (this.rolUsuario) {
       case 'Facturacion': return 'Autorizaciones de Salida';
-      case 'Bodega':      return 'Pendientes de Bodega';
-      case 'Porteria':    return 'Control de Portería';
-      default:            return 'Autorizaciones de Salida';
+      case 'Bodega': return 'Pendientes de Bodega';
+      case 'Porteria': return 'Control de Portería';
+      default: return 'Autorizaciones de Salida';
     }
   }
 
@@ -406,14 +420,14 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   abrirEditar(autorizacion: any) {
     this.autorizacionEditando = autorizacion;
     this.formEditar = {
-      conductorId:      autorizacion.conductorId      ?? 0,
-      vehiculoId:       autorizacion.vehiculoId       ?? 0,
-      destinoCompleto:  autorizacion.destinoCompleto  ?? '',
-      tipoVuelta:       autorizacion.tipoVuelta       ?? '',
+      conductorId: autorizacion.conductorId ?? 0,
+      vehiculoId: autorizacion.vehiculoId ?? 0,
+      destinoCompleto: autorizacion.destinoCompleto ?? '',
+      tipoVuelta: autorizacion.tipoVuelta ?? '',
       descripcionCarga: autorizacion.descripcionCarga ?? '',
       cantidadClientes: autorizacion.cantidadClientes ?? 0,
-      pesoKilos:        autorizacion.pesoKilos        ?? 0,
-      numeroGuia:       autorizacion.numeroGuia       ?? ''
+      pesoKilos: autorizacion.pesoKilos ?? 0,
+      numeroGuia: autorizacion.numeroGuia ?? ''
     };
     this.facturasEditar = this.obtenerFacturas(autorizacion.facturasClientes);
     const pesoFacturasYaGuardadas = this.facturasEditar.reduce((sum, f) => {
@@ -430,19 +444,19 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   guardarEdicion() {
     if (!this.autorizacionEditando) return;
     if (!this.formEditar.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formEditar.vehiculoId)  { alert('Seleccione un vehículo'); return; }
+    if (!this.formEditar.vehiculoId) { alert('Seleccione un vehículo'); return; }
     const pesoFinal = parseFloat(
       (this.pesoBaseClientes + this.pesoTotalFacturasEditar || this.formEditar.pesoKilos).toFixed(2)
     );
     const datos = {
-      conductorId:      this.formEditar.conductorId,
-      vehiculoId:       this.formEditar.vehiculoId,
-      destinoCompleto:  this.formEditar.destinoCompleto,
+      conductorId: this.formEditar.conductorId,
+      vehiculoId: this.formEditar.vehiculoId,
+      destinoCompleto: this.formEditar.destinoCompleto,
       cantidadClientes: this.formEditar.cantidadClientes,
-      pesoKilos:        pesoFinal,
-      tipoVuelta:       this.formEditar.tipoVuelta,
+      pesoKilos: pesoFinal,
+      tipoVuelta: this.formEditar.tipoVuelta,
       descripcionCarga: this.formEditar.descripcionCarga,
-      numeroGuia:       this.formEditar.numeroGuia,
+      numeroGuia: this.formEditar.numeroGuia,
       facturasClientes: this.facturasEditar.length > 0
         ? JSON.stringify(this.facturasEditar) : null
     };
@@ -459,7 +473,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
           this.obtenerAutorizaciones();
           this.cdr.markForCheck();
         },
-        error: () => {}
+        error: () => { }
       });
   }
 
@@ -484,8 +498,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   guardarReporteLlegada() {
     this.autorizacionesService.reportarLlegada(this.autorizacionLlegada.id, {
       kilometrajeFinal: this.formLlegada.kilometrajeFinal,
-      novedadesViaje:   this.formLlegada.novedadesViaje,
-      estadoVehiculo:   this.formLlegada.estadoVehiculo
+      novedadesViaje: this.formLlegada.novedadesViaje,
+      estadoVehiculo: this.formLlegada.estadoVehiculo
     }).pipe(timeout(15000), takeUntil(this.destroy$),
       catchError(err => {
         alert(`Error: ${JSON.stringify(err.error ?? err.message)}`);
@@ -497,7 +511,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('✅ Llegada reportada — WhatsApp enviado');
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -523,7 +537,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('✅ Llegada confirmada por portería');
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -565,20 +579,20 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     if (!this.form.vehiculoId) { alert('Seleccione una placa'); return; }
     if (!this.form.tipoVuelta) { alert('Seleccione tipo de vuelta'); return; }
     if (!this.esMensajeria) {
-      if (!this.form.destinoCompleto)  { alert('Ingrese el destino'); return; }
+      if (!this.form.destinoCompleto) { alert('Ingrese el destino'); return; }
       if (!this.form.cantidadClientes) { alert('Ingrese cantidad de clientes'); return; }
-      if (!this.form.pesoKilos)        { alert('Ingrese el peso'); return; }
+      if (!this.form.pesoKilos) { alert('Ingrese el peso'); return; }
       if (!this.form.descripcionCarga) { alert('Ingrese descripción de la carga'); return; }
     }
     const datos = {
-      conductorId:      Number(this.conductorSeleccionado.id),
-      vehiculoId:       Number(this.form.vehiculoId),
-      destinoCompleto:  this.form.destinoCompleto  || '',
+      conductorId: Number(this.conductorSeleccionado.id),
+      vehiculoId: Number(this.form.vehiculoId),
+      destinoCompleto: this.form.destinoCompleto || '',
       cantidadClientes: Number(this.form.cantidadClientes) || 0,
-      pesoKilos:        Number(this.form.pesoKilos) || 0,
-      tipoVuelta:       this.form.tipoVuelta,
+      pesoKilos: Number(this.form.pesoKilos) || 0,
+      tipoVuelta: this.form.tipoVuelta,
       descripcionCarga: this.form.descripcionCarga || '',
-      numeroGuia:       this.form.numeroGuia       || '',
+      numeroGuia: this.form.numeroGuia || '',
       facturasClientes: this.facturasClientes.length > 0
         ? JSON.stringify(this.facturasClientes) : null
     };
@@ -589,7 +603,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
       })
     ).subscribe({
       next: (data) => { this.autorizacionActual = data; this.pasoActual = 3; this.cdr.markForCheck(); },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -605,7 +619,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.usuarioFirma = ''; this.observacionFirma = '';
         this.pasoActual = 4; this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -623,7 +637,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('Salida autorizada por Bodega');
         this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -640,24 +654,24 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
         setTimeout(() => this.resetear(), 3000);
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
   continuarAutorizacion(autorizacion: any) {
-    this.autorizacionActual    = autorizacion;
+    this.autorizacionActual = autorizacion;
     this.conductorSeleccionado = autorizacion.conductor;
-    this.vistaLista            = false;
+    this.vistaLista = false;
     switch (this.rolUsuario) {
       case 'Facturacion': this.pasoActual = 3; break;
-      case 'Bodega':      this.pasoActual = 4; break;
-      case 'Porteria':    this.pasoActual = 5; break;
+      case 'Bodega': this.pasoActual = 4; break;
+      case 'Porteria': this.pasoActual = 5; break;
       default:
         switch (autorizacion.estado) {
           case 'Pendiente': this.pasoActual = 3; break;
-          case 'Bodega':    this.pasoActual = 4; break;
-          case 'Porteria':  this.pasoActual = 5; break;
-          default:          this.pasoActual = 1;
+          case 'Bodega': this.pasoActual = 4; break;
+          case 'Porteria': this.pasoActual = 5; break;
+          default: this.pasoActual = 1;
         }
     }
     this.cdr.markForCheck();
@@ -675,7 +689,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
         this.mostrarNotificacion('🚛 Salida en ruta confirmada — WhatsApp enviado');
         this.obtenerAutorizaciones(); this.cdr.markForCheck();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -699,12 +713,12 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   getBadgeClass(estado: string): string {
     switch (estado) {
-      case 'Pendiente':  return 'badge-pendiente';
-      case 'Bodega':     return 'badge-bodega';
-      case 'Porteria':   return 'badge-porteria';
+      case 'Pendiente': return 'badge-pendiente';
+      case 'Bodega': return 'badge-bodega';
+      case 'Porteria': return 'badge-porteria';
       case 'Autorizado': return 'badge-autorizado';
-      case 'Rechazado':  return 'badge-rechazado';
-      default:           return 'badge-pendiente';
+      case 'Rechazado': return 'badge-rechazado';
+      default: return 'badge-pendiente';
     }
   }
 
@@ -725,27 +739,27 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     const hoja = XLSX.utils.json_to_sheet(datos);
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Autorizaciones');
-    XLSX.writeFile(libro, `autorizaciones_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(libro, `autorizaciones_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
   exportarPDF() {
     const doc = new jsPDF('landscape');
-    const VERDE = [21,128,61] as [number,number,number];
-    doc.setFillColor(...VERDE); doc.rect(0,0,297,20,'F');
-    doc.setFontSize(14); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    const VERDE = [21, 128, 61] as [number, number, number];
+    doc.setFillColor(...VERDE); doc.rect(0, 0, 297, 20, 'F');
+    doc.setFontSize(14); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold');
     doc.text('REPORTE DE AUTORIZACIONES', 148, 13, { align: 'center' });
     autoTable(doc, {
       startY: 30,
-      head: [['#','Conductor','Vehículo','Tipo','Destino','Estado','Llegada','Km Final']],
+      head: [['#', 'Conductor', 'Vehículo', 'Tipo', 'Destino', 'Estado', 'Llegada', 'Km Final']],
       body: this.autorizacionesFiltradas.map(a => [
-        a.id, a.conductor?.nombre??'-', a.vehiculo?.placa??'-',
-        a.tipoVuelta??'-', a.destinoCompleto||'Mensajería',
-        a.estado, a.estadoLlegada??'En ruta', a.kilometrajeFinal??'-'
+        a.id, a.conductor?.nombre ?? '-', a.vehiculo?.placa ?? '-',
+        a.tipoVuelta ?? '-', a.destinoCompleto || 'Mensajería',
+        a.estado, a.estadoLlegada ?? 'En ruta', a.kilometrajeFinal ?? '-'
       ]),
-      headStyles: { fillColor: VERDE, textColor: [255,255,255], fontStyle: 'bold', fontSize: 8 },
+      headStyles: { fillColor: VERDE, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
       bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [245,245,245] }
+      alternateRowStyles: { fillColor: [245, 245, 245] }
     });
-    doc.save(`autorizaciones_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`autorizaciones_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 }

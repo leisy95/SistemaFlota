@@ -168,6 +168,19 @@
 
 @media (max-width: 768px) {
 
+    .modulos {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .vehiculos {
+        order: -1;
+    }
+
+    .modulos-container {
+        margin: 0;
+    }
+
     .titulo-seccion {
         margin-bottom: 18px;
     }

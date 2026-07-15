@@ -32,7 +32,7 @@
     color: #374151;
     cursor: pointer;
     transition: .25s;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
 }
@@ -174,55 +174,56 @@
 }
 
 @media (max-width: 768px) {
-      .topbar {
-        left:0;
-        right:0;
-        width:100%;
-        height:60px;
-        padding:0 10px;
+
+    .btn-hamburguesa {
+        display: flex;
+    }
+
+    .topbar {
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 60px;
+        padding: 0 10px;
     }
 
     .topbar-left {
-        gap:8px;
+        gap: 8px;
     }
 
     .topbar-right {
-        gap:8px;
-        margin-left:auto;
+        gap: 8px;
+        margin-left: auto;
     }
 
     .topbar-modulo span {
-        display:none;
+        display: none;
     }
 
     .topbar-modulo i {
-        width:38px;
-        height:38px;
-        font-size:16px;
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
     }
 
     .calendario,
     .mensajes,
     .notificaciones {
-        display:none;
+        display: none;
     }
 
     .accion {
-        width:38px;
-        height:38px;
+        width: 38px;
+        height: 38px;
     }
 
     .usuario {
-        border-left:none;
-        padding-left:0;
+        border-left: none;
+        padding-left: 0;
     }
 
-    // .datos {
-    //     display:none;
-    // }
-
     .avatar {
-        width:38px;
-        height:38px;
+        width: 38px;
+        height: 38px;
     }
 }

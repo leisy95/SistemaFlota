@@ -24,14 +24,17 @@ export class PermisosService {
 
   // ¿Puede ver el módulo?
   puedeVer(modulo: string): boolean {
+    console.log('Rol:', this.rol);
+    console.log('Permisos:', this.permisos);
+    console.log('Módulo:', modulo);
 
     if (this.rol === 'Admin') {
       return true;
     }
 
     const p = this.permisos.find(p => p.modulo === modulo);
+    console.log('Permiso encontrado:', p);
     if (!p) return false;
-
     return p.puedeVer ?? true;
   }
 
@@ -39,6 +42,7 @@ export class PermisosService {
   puedeCrear(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
     const p = this.permisos.find(p => p.modulo === modulo);
+    ;
     if (!p) return true;
     return p.puedeCrear ?? false;
   }

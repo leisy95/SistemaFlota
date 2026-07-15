@@ -16,9 +16,41 @@
     </app-header>
     <main class="contenido">
 
+        <section class="accesos-rapidos">
+
+            <div class="titulo-accesos">
+                <i class="fa-solid fa-bolt"></i>
+                <h2>Accesos rápidos</h2>
+            </div>
+
+            <div class="lista-accesos">
+
+                <div class="acceso" *ngIf="tienePermiso('conductores')" (click)="irConductores()">
+
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Conductores</span>
+
+                </div>
+
+                <div class="acceso" *ngIf="tienePermiso('autorizaciones')" (click)="irConfirmarSalida()">
+
+                    <i class="fa-solid fa-truck-fast"></i>
+                    <span>Confirmar salida</span>
+
+                </div>
+
+                <div class="acceso" *ngIf="tienePermiso('autorizaciones')" (click)="irRegistrarLlegada()">
+
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span>Registrar llegada</span>
+
+                </div>
+
+            </div>
+
+        </section>
         <app-resumen></app-resumen>
-        <app-modulos>
-        </app-modulos>
+        <app-modulos> </app-modulos>
         <app-actividades></app-actividades>
 
     </main>

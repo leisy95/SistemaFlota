@@ -845,7 +845,7 @@ td:last-child {
   }
 }
 
-//  FACTURAS 
+//  FACTURAS
 .facturas-lista {
   display: flex;
   flex-direction: column;
@@ -1033,12 +1033,6 @@ td:last-child {
   }
 }
 
-@media (max-width: 768px) {
-  .factura-resumen-item {
-    grid-template-columns: 1fr;
-  }
-}
-
 // GUÍA
 .guia-input-group {
   display: flex;
@@ -1182,7 +1176,7 @@ td:last-child {
   font-style: italic;
 }
 
-//  MODAL LLEGADA 
+//  MODAL LLEGADA
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1415,7 +1409,7 @@ td:last-child {
   }
 }
 
-// BOTÓN VER 
+// BOTÓN VER
 .btn-ver-aut {
   background: #e0f2fe;
   color: #0369a1;
@@ -1433,7 +1427,7 @@ td:last-child {
   }
 }
 
-//  MODAL DETALLE GRANDE 
+//  MODAL DETALLE GRANDE
 .modal-detalle {
   background: var(--blanco);
   border-radius: 20px;
@@ -1511,8 +1505,14 @@ td:last-child {
   white-space: nowrap;
 }
 
-// RESPONSIVE 
+// RESPONSIVE
 @media (max-width: 768px) {
+
+  .factura-resumen-item {
+    grid-template-columns: 1fr;
+
+  }
+
   .contenedor {
     padding: 16px;
   }
@@ -1711,12 +1711,39 @@ td:last-child {
 
 @media (max-width: 768px) {
 
-  // ACCIONES EN MÓVIL 
+  // ACCIONES EN MÓVIL
   tbody td[data-label="Acción"] {
     display: block;
     width: 100%;
     padding-top: 12px;
   }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+
+    z-index: 999999;
+  }
+
+  .modal-llegada,
+  .modal-detalle {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 22px;
+    animation: subirModal .25s ease;
+    margin-top: 24px;
+  }
+
 
   .btn-acciones-tabla {
     display: flex;
@@ -1812,7 +1839,7 @@ td:last-child {
   justify-content: center;
 }
 
-// SELECTOR LISTA (modal selector rápido) 
+// SELECTOR LISTA (modal selector rápido)
 .selector-lista {
   display: flex;
   flex-direction: column;
@@ -1860,4 +1887,14 @@ td:last-child {
 .selector-fecha {
   font-size: 11px !important;
   color: var(--gris-claro) !important;
+}
+
+@keyframes subirModal {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
