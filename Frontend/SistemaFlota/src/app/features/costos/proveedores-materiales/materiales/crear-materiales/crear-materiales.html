@@ -1,0 +1,83 @@
+<div class="overlay">
+    <div class="modal">
+        <!-- Header -->
+        <div class="modal-header">
+            <div>
+                <h2>Nuevo Material</h2>
+                <p>Complete la información del material</p>
+            </div>
+            <button class="cerrar" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <!-- Formulario -->
+        <form>
+            <div class="campo ancho">
+                <label>Proveedor</label>
+                <select>
+                    <option>Seleccione proveedor</option>
+                </select>
+            </div>
+            <div class="grid2">
+                <div class="campo">
+                    <label>Materia Prima</label>
+                    <input type="text" placeholder="Ej: Polietileno de Baja Densidad">
+                </div>
+                <div class="campo">
+                    <label>Densidad</label>
+                    <select>
+                        <option>PEBD</option>
+                        <option>PEAD</option>
+                        <option>PP</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid2">
+                <div class="campo">
+                    <label>Calidad</label>
+                    <select>
+                        <option>Original</option>
+                        <option>Reciclado</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label>Color</label>
+                    <input type="text" placeholder="Ej: Natural, Negro, Blanco">
+                </div>
+            </div>
+            <div class="campo ancho">
+                <label>Línea de Producción</label>
+                <input type="text" placeholder="Ej: Línea A, Línea B">
+            </div>
+            <div class="grid3">
+                <div class="campo">
+                    <label>Precio Base/KG (COP)</label>
+                    <input type="number" placeholder="0.00">
+                </div>
+                <div class="campo">
+                    <label>Bultos</label>
+                    <input type="number" placeholder="0">
+                </div>
+                <div class="campo">
+                    <label>Cantidad (KG)</label>
+                    <input type="number" placeholder="0">
+                </div>
+            </div>
+            <div class="campo ancho">
+                <label>Estado</label>
+                <select>
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                </select>
+            </div>
+            <div class="botones">
+                <button class="btn-cancelar" (click)="cerrar()" type="button">
+                    Cancelar
+                </button>
+                <button type="submit" class="guardar">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

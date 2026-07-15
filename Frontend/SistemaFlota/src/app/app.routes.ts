@@ -63,6 +63,13 @@ export const routes: Routes = [
       },
 
       {
+        path: 'costos',
+        loadChildren: () =>
+          import('./features/costos/costos.routes')
+            .then(r => r.COSTOS_ROUTES)
+      },
+
+      {
         path: 'configuracion',
         loadChildren: () =>
           import('./features/configuracion/configuracion.routes')

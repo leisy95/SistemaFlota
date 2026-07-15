@@ -9,7 +9,7 @@ export interface MenuItem {
 
 export const MENU_MODULOS: MenuItem[] = [
 
-    // FLOTA 
+    // FLOTA
 
     {
         key: 'dashboard',
@@ -131,7 +131,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'flota'
     },
 
-    //  SST / RRHH 
+    //  SST / RRHH
 
     {
         key: 'rrhh-seguimientos',
@@ -160,7 +160,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'calidad'
     },
 
-    // Control envios 
+    // Control envios
 
     {
         key: 'trazabilidad',
@@ -220,5 +220,15 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-file-lines',
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
+    },
+
+    // Costos
+
+    {
+        key: 'prov/mater',
+        label: 'Prov - Materiales',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/proveedores-materiales',
+        modulo: 'costos'
     },
 ];

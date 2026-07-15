@@ -1,0 +1,132 @@
+<div class="contenedor">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="titulo">
+            <div>
+                <h1>Materiales por Proveedor</h1>
+                <span>
+                    {{ materiales.length }} de {{ materiales.length }}
+                    materiales en catálogo
+                </span>
+            </div>
+        </div>
+
+        <button class="btn-agregar" (click)="nuevoMaterial()">
+            <i class="fa-solid fa-plus"></i>
+            Nuevo Material
+        </button>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card">
+        <h3>
+            <i class="fa-solid fa-filter"></i>
+            Filtros
+        </h3>
+
+        <div class="filtros">
+
+            <div>
+                <label>Buscar</label>
+
+                <div class="inputIcon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input type="text" placeholder="Material, proveedor..." [(ngModel)]="buscar">
+                </div>
+            </div>
+
+            <div>
+                <label>Proveedor</label>
+
+                <select>
+                    <option>Todos</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Densidad</label>
+
+                <select>
+                    <option>Todos</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Color</label>
+
+                <select>
+                    <option>Todos</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="tabla">
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Proveedor</th>
+                    <th>Materia Prima</th>
+                    <th>Descripcion Compra</th>
+                    <th>Densidad</th>
+                    <th>Categoria</th>
+                    <th>Color</th>
+                    <th>Línea</th>
+                    <th>Precio</th>
+                    <th>Bultos</th>
+                    <th>Unidad</th>
+                    <th>Cantidad</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngFor="let item of materiales">
+                    <td>{{ item.codigo }}</td>
+                    <td>{{ item.proveedor }}</td>
+                    <td>{{ item.material }}</td>
+                    <td>{{ item.descripcion }}</td>
+                    <td>
+                        <span class="badge">
+                            {{ item.densidad }}
+                        </span>
+                    </td>
+                    <td>{{ item.categoria }}</td>
+                    <td>{{ item.color }}</td>
+                    <td>{{ item.linea }}</td>
+                    <td>{{ item.precio | currency }}</td>
+                    <td>{{ item.bultos }}</td>
+                    <td>{{ item.Unidad }}</td>
+                    <td>{{ item.cantidad }}</td>
+                    <td>
+                        <span class="activo">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Activo
+                        </span>
+                    </td>
+                    <td>{{ item.fecha }}</td>
+
+                    <td class="acciones">
+                        <button class="btn-editar" (click)="editar(item)">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-eliminar" (click)="eliminar(item)">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+    </div>
+</div>

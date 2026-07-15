@@ -1,0 +1,52 @@
+<div class="modal">
+    <div class="modal-header">
+        <div>
+
+            <h2>
+                {{ data ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+            </h2>
+
+            <p>
+                {{ data ? 'Actualice la información del proveedor'
+                : 'Complete la información del proveedor' }}
+            </p>
+
+        </div>
+
+        <button class="btn-cerrar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <form>
+        <div class="form-grid">
+            <div class="campo">
+                <label>Nombre del proveedor</label>
+                <input type="text">
+            </div>
+            <div class="campo">
+                <label>NIT</label>
+                <input type="text">
+            </div>
+            <div class="campo">
+                <label>Contacto</label>
+                <input type="text">
+            </div>
+            <div class="campo">
+                <label>Teléfono</label>
+                <input type="text">
+            </div>
+            <div class="campo campo-completo">
+                <label>Correo electrónico</label>
+                <input type="email">
+            </div>
+        </div>
+    </form>
+    <div class="modal-botones">
+        <button class="btn-cancelar" (click)="cerrar()" type="button">
+            Cancelar
+        </button>
+        <button class="btn-editar" type="submit">
+            {{ data ? 'Actualizar' : 'Guardar' }}
+        </button>
+    </div>
+</div>
