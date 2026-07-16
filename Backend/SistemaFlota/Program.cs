@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using SistemaFlota;
+using SistemaFlota.Services.Costos.Proveedores;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,16 +78,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+// Servicios
+builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 
-// ── TWILIO ────────────────────────────────────────────────────────────────────
+//  TWILIO 
 builder.Services.AddSingleton<ITwilioService, FlotaChatService>();
 
-// ── Zona horaria Colombia UTC-5 ───────────────────────────────────────────────
+//  Zona horaria Colombia UTC-5 
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
-// ── Puerto — solo Railway en producción ──────────────────────────────────────
+//  Puerto — solo Railway en producción 
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -95,9 +98,8 @@ if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-// =====================================
+
 // SEED
-// =====================================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

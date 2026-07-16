@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+using SistemaFlota.Models.Prov_Materiales.Materiales;
+using SistemaFlota.Models.Proveedores;
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
@@ -48,6 +50,19 @@ namespace SistemaFlota
         public DbSet<NumeroEmergencia> NumerosEmergencia { get; set; }
         public DbSet<CosteFlete> CostosFletes { get; set; }
 
-        //public DbSet<CosteFlete> CostosFletes { get; set; }
+        //  --Costos--
+        public DbSet<Proveedor> Proveedores { get; set; }
+        public DbSet<Material> Materiales { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.Proveedor)
+                .WithMany(p => p.Materiales)
+                .HasForeignKey(m => m.IdProveedor)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

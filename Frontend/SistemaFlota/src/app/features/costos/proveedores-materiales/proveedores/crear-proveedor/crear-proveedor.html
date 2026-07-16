@@ -17,36 +17,44 @@
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
-    <form>
+    <form (ngSubmit)="guardar()">
         <div class="form-grid">
             <div class="campo">
                 <label>Nombre del proveedor</label>
-                <input type="text">
+                <input type="text" [(ngModel)]="proveedor.nombre" name="nombre"
+                    placeholder="Ej: Plásticos del Norte S.A.S.">
             </div>
+
             <div class="campo">
                 <label>NIT</label>
-                <input type="text">
+                <input type="text" [(ngModel)]="proveedor.nit" name="nit" placeholder="Ej: 900123456-7">
             </div>
+
             <div class="campo">
                 <label>Contacto</label>
-                <input type="text">
+                <input type="text" [(ngModel)]="proveedor.contacto" name="contacto" placeholder="Ej: Juan Pérez">
             </div>
+
             <div class="campo">
                 <label>Teléfono</label>
-                <input type="text">
+                <input type="text" [(ngModel)]="proveedor.telefono" name="telefono" placeholder="Ej: 3201234567">
             </div>
+
             <div class="campo campo-completo">
                 <label>Correo electrónico</label>
-                <input type="email">
+                <input type="email" [(ngModel)]="proveedor.correoElectronico" name="correoElectronico"
+                    placeholder="Ej: contacto@proveedor.com">
             </div>
         </div>
+
+        <div class="modal-botones">
+            <button class="btn-cancelar" type="button" (click)="cerrar()">
+                Cancelar
+            </button>
+
+            <button class="btn-editar" type="submit">
+                {{ data ? 'Actualizar' : 'Guardar' }}
+            </button>
+        </div>
     </form>
-    <div class="modal-botones">
-        <button class="btn-cancelar" (click)="cerrar()" type="button">
-            Cancelar
-        </button>
-        <button class="btn-editar" type="submit">
-            {{ data ? 'Actualizar' : 'Guardar' }}
-        </button>
-    </div>
 </div>
