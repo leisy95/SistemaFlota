@@ -154,6 +154,8 @@ namespace SistemaFlota
 
             if (dto.Permisos != null && dto.Permisos.Count > 0)
             {
+                bool inicioAsignado = false;
+
                 foreach (var p in dto.Permisos)
                 {
                     _context.UsuarioPermisos.Add(new UsuarioPermiso
@@ -163,8 +165,14 @@ namespace SistemaFlota
                         PuedeVer = p.PuedeVer,
                         PuedeCrear = p.PuedeCrear,
                         PuedeEditar = p.PuedeEditar,
-                        PuedeEliminar = p.PuedeEliminar
+                        PuedeEliminar = p.PuedeEliminar,
+                        EsInicio = p.PuedeVer && !inicioAsignado
                     });
+
+                    if (p.PuedeVer && !inicioAsignado)
+                    {
+                        inicioAsignado = true;
+                    }
                 }
                 await _context.SaveChangesAsync();
             }
@@ -222,6 +230,8 @@ namespace SistemaFlota
 
             if (dto.Permisos != null && dto.Permisos.Count > 0)
             {
+                bool inicioAsignado = false;
+
                 foreach (var p in dto.Permisos)
                 {
                     _context.UsuarioPermisos.Add(new UsuarioPermiso
@@ -231,8 +241,14 @@ namespace SistemaFlota
                         PuedeVer = p.PuedeVer,
                         PuedeCrear = p.PuedeCrear,
                         PuedeEditar = p.PuedeEditar,
-                        PuedeEliminar = p.PuedeEliminar
+                        PuedeEliminar = p.PuedeEliminar,
+                        EsInicio = p.PuedeVer && !inicioAsignado
                     });
+
+                    if (p.PuedeVer && !inicioAsignado)
+                    {
+                        inicioAsignado = true;
+                    }
                 }
             }
 

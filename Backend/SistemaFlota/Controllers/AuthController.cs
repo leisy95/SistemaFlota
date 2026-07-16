@@ -137,7 +137,8 @@ namespace SistemaFlota
                 puedeVer = p.PuedeVer,
                 puedeCrear = p.PuedeCrear,
                 puedeEditar = p.PuedeEditar,
-                puedeEliminar = p.PuedeEliminar
+                puedeEliminar = p.PuedeEliminar,
+                esInicio = p.EsInicio
             }).ToList();
 
             await _auditoria.RegistrarAsync(

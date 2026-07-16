@@ -12,10 +12,10 @@ namespace SistemaFlota
         [ForeignKey("UsuarioId")]
         public Usuario? Usuario { get; set; }
 
-        // MÓDULO AL QUE TIENE ACCESO
         public string Modulo { get; set; } = string.Empty;
 
-        // PERMISOS GRANULARES
+        public bool EsInicio { get; set; } = false;
+
         public bool PuedeVer { get; set; } = true;
         public bool PuedeCrear { get; set; } = false;
         public bool PuedeEditar { get; set; } = false;
