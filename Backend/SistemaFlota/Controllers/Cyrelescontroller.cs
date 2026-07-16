@@ -26,7 +26,7 @@ namespace SistemaFlota.Controllers
             return int.TryParse(v, out var id) ? id : 0;
         }
 
-        // ── GET api/cyreles/cajones ───────────────────────────────────────────
+        // GET api/cyreles/cajones
         [HttpGet("cajones")]
         public async Task<IActionResult> GetCajones()
         {
@@ -43,7 +43,7 @@ namespace SistemaFlota.Controllers
             return Ok(cajones);
         }
 
-        // ── POST api/cyreles/cajones ──────────────────────────────────────────
+        // POST api/cyreles/cajones 
         [HttpPost("cajones")]
         public async Task<IActionResult> CrearCajon([FromBody] CajonDto dto)
         {
@@ -56,7 +56,7 @@ namespace SistemaFlota.Controllers
             return Ok(cajon);
         }
 
-        // ── PUT api/cyreles/cajones/{id} ──────────────────────────────────────
+        // PUT api/cyreles/cajones/{id} 
         [HttpPut("cajones/{id}")]
         public async Task<IActionResult> EditarCajon(int id, [FromBody] CajonDto dto)
         {
@@ -68,7 +68,7 @@ namespace SistemaFlota.Controllers
             return Ok(cajon);
         }
 
-        // ── DELETE api/cyreles/cajones/{id} ───────────────────────────────────
+        // DELETE api/cyreles/cajones/{id} 
         [HttpDelete("cajones/{id}")]
         public async Task<IActionResult> EliminarCajon(int id)
         {
@@ -82,7 +82,9 @@ namespace SistemaFlota.Controllers
             return NoContent();
         }
 
-        // ── GET api/cyreles/registros ─────────────────────────────────────────
+
+
+        // GET api/cyreles/registros 
         [HttpGet("registros")]
         public async Task<IActionResult> GetRegistros(
             [FromQuery] int? cajonId,
@@ -116,7 +118,7 @@ namespace SistemaFlota.Controllers
             return Ok(result);
         }
 
-        // ── GET api/cyreles/registros/{id} ────────────────────────────────────
+        // GET api/cyreles/registros/{id} 
         [HttpGet("registros/{id}")]
         public async Task<IActionResult> GetRegistro(int id)
         {
@@ -137,12 +139,10 @@ namespace SistemaFlota.Controllers
             });
         }
 
-        // ── POST api/cyreles/registros ────────────────────────────────────────
+        // POST api/cyreles/registros 
         [HttpPost("registros")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> CrearRegistro(
-            [FromForm] RegistroDto dto,
-            [FromForm] IFormFile? foto)
+        public async Task<IActionResult> CrearRegistro([FromForm] RegistroDto dto)
         {
             var registro = new CyreleRegistro
             {
@@ -152,41 +152,44 @@ namespace SistemaFlota.Controllers
                 FechaCreacion = DateTime.Now
             };
 
-            if (foto != null && foto.Length > 0)
-                registro.Foto = await GuardarFoto(foto);
+            if (dto.Foto != null && dto.Foto.Length > 0)
+                registro.Foto = await GuardarFoto(dto.Foto);
 
             _context.CyreleRegistros.Add(registro);
             await _context.SaveChangesAsync();
+
             return Ok(registro);
         }
 
-        // ── PUT api/cyreles/registros/{id} ────────────────────────────────────
+        // PUT api/cyreles/registros/{id} 
         [HttpPut("registros/{id}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> EditarRegistro(
             int id,
-            [FromForm] RegistroDto dto,
-            [FromForm] IFormFile? foto)
+            [FromForm] RegistroDto dto)
         {
             var registro = await _context.CyreleRegistros.FindAsync(id);
-            if (registro == null) return NotFound();
+
+            if (registro == null)
+                return NotFound();
 
             registro.CajonId = dto.CajonId;
             registro.Nombre = dto.Nombre;
             registro.ModificadoPor = GetUserId();
             registro.FechaModificacion = DateTime.Now;
 
-            if (foto != null && foto.Length > 0)
+            if (dto.Foto != null && dto.Foto.Length > 0)
             {
                 EliminarFoto(registro.Foto);
-                registro.Foto = await GuardarFoto(foto);
+                registro.Foto = await GuardarFoto(dto.Foto);
             }
 
             await _context.SaveChangesAsync();
+
             return Ok(registro);
         }
 
-        // ── DELETE api/cyreles/registros/{id} ─────────────────────────────────
+        //  DELETE api/cyreles/registros/{id}
         [HttpDelete("registros/{id}")]
         public async Task<IActionResult> EliminarRegistro(int id)
         {
@@ -198,7 +201,7 @@ namespace SistemaFlota.Controllers
             return NoContent();
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
+      
         private async Task<string> GuardarFoto(IFormFile foto)
         {
             var carpeta = Path.Combine(_env.WebRootPath, "cyreles");
@@ -218,7 +221,7 @@ namespace SistemaFlota.Controllers
         }
     }
 
-    // ── DTOs ─────────────────────────────────────────────────────────────────
+    //  DTOs
     public class CajonDto
     {
         public int Numero { get; set; }
@@ -229,5 +232,6 @@ namespace SistemaFlota.Controllers
     {
         public int CajonId { get; set; }
         public string Nombre { get; set; } = string.Empty;
+        public IFormFile? Foto { get; set; }
     }
 }

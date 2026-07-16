@@ -1,0 +1,263 @@
+.contenedor {
+    margin-top: 70px;
+    padding: 1.5rem;
+}
+
+.header-ci {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.tabs {
+    display: flex;
+    background: var(--gris-claro);
+    border-radius: 10px;
+    border: 1px solid var(--gris-medio);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--gris-oscuro);
+    border-bottom: 3px solid transparent;
+}
+
+.tabs button.activo {
+    color: var(--verde-oscuro);
+    border-bottom-color: var(--verde-oscuro);
+    background: var(--blanco);
+}
+
+.acciones {
+    margin-bottom: 1.25rem;
+}
+
+.lista-rutas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-ruta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--blanco);
+    border: 1px solid var(--gris-claro);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+.card-ruta:hover {
+    background: var(--gris-claro);
+}
+
+.card-ruta .ruta-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.card-ruta .ruta-info p {
+    font-size: 1rem;
+    color: var(--gris-medio);
+    margin: 0 0 4px;
+}
+
+.card-ruta .ruta-info small {
+    font-size: 1rem;
+    color: var(--gris-medio);
+}
+
+.ruta-acciones {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ciudad-grupo {
+    margin-bottom: 2rem;
+}
+
+.ciudad-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--verde-principal);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--gris-claro);
+}
+
+.grid-emergencia {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.card-emergencia {
+    background: var(--blanco);
+    border: 1px solid var(--verde-principal);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.emergencia-tipo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gris-oscuro);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.emergencia-numero {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--rojo-oscuro);
+    margin-bottom: 4px;
+}
+
+.emergencia-obs {
+    font-size: 1rem;
+    color: var(--gris-medio);
+    margin-bottom: 8px;
+}
+
+.emergencia-acciones {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.emergencia-acciones button {
+    border: none;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 5px;
+}
+
+.vacio {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gris-oscuro);
+    background: var(--blanco);
+    border-radius: 12px;
+    border: 1px dashed #ddd;
+
+    p {
+        font-size: 1rem;
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--blanco);
+    border-radius: 14px;
+    width: 480px;
+    max-width: 95vw;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #eee;
+
+    i {
+        color: var(--verde-oscuro);
+    }
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--gris-oscuro);
+    text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--gris-claro);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.btn-cancelar {
+    padding: 9px 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-guardar {
+    padding: 9px 18px;
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}

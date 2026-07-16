@@ -6,7 +6,7 @@ using System.Security.Claims;
 namespace SistemaFlota.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/CostosFletes")]
     [Authorize]
     public class CostosFleteController : ControllerBase
     {

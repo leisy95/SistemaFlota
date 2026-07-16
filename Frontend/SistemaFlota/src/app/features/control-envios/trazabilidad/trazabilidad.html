@@ -1,0 +1,574 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+      <div>
+        <h1 style="display:flex; align-items:center; gap:10px; margin:0">
+          <i class="fa-solid fa-route"></i>
+          Trazabilidad de Facturas
+          <span style="background:#dcfce7; color:#15803d; font-size:12px; font-weight:600;
+                     padding:3px 10px; border-radius:20px; cursor:pointer"
+            (click)="mostrarSelectorTipo = !mostrarSelectorTipo">
+            {{ filtroTipo || 'Todas' }}
+            <i class="fa-solid fa-chevron-down" style="font-size:10px; margin-left:2px"></i>
+          </span>
+        </h1>
+        <p class="subtitulo">Seguimiento de entregas y validación de documentos</p>
+      </div>
+
+      <!-- Selector tipo — aparece al tocar el badge -->
+      <div *ngIf="mostrarSelectorTipo" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+             background:white; border:1px solid #e2e8f0; border-radius:12px;
+             padding:8px 12px; box-shadow:0 4px 12px rgba(0,0,0,0.08)">
+        <button *ngFor="let t of tiposFiltro"
+          (click)="filtroTipo = t.value; aplicarFiltros(); mostrarSelectorTipo = false" style="padding:5px 12px; border-radius:20px; font-size:12px; font-weight:500;
+               border:1px solid; cursor:pointer; transition:all 0.15s"
+          [style.background]="filtroTipo === t.value ? '#15803d' : '#f8fafc'"
+          [style.color]="filtroTipo === t.value ? 'white' : '#64748b'"
+          [style.border-color]="filtroTipo === t.value ? '#15803d' : '#e2e8f0'">
+          {{ t.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="header-acciones">
+      <button class="btn-excel" (click)="exportarExcel()">
+        <i class="fa-solid fa-file-excel"></i>
+        Excel</button>
+      <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevo()">
+        <i class="fa-solid fa-plus"></i>
+        Nuevo Registro</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card azul">
+      <span class="stat-numero">{{ registros.length }}</span>
+      <span class="stat-label">Total registros</span>
+    </div>
+    <div class="stat-card verde">
+      <span class="stat-numero">{{ entregados }}</span>
+      <span class="stat-label">Facturas entregadas</span>
+    </div>
+    <div class="stat-card rojo">
+      <span class="stat-numero">{{ pendientes }}</span>
+      <span class="stat-label">Pendientes entrega</span>
+    </div>
+    <div class="stat-card morado">
+      <span class="stat-numero">${{ totalFlete | number:'1.0-0' }}</span>
+      <span class="stat-label">Total flete</span>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-panel">
+    <div class="input-icono">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
+        placeholder="Buscar factura, cliente, conductor...">
+    </div>
+
+    <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+      <option value="">Todos los estados</option>
+      <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
+    </select>
+
+    <select [(ngModel)]="filtroEntregada" (change)="aplicarFiltros()">
+      <option value="">Todas las facturas</option>
+      <option value="si">
+        <i class="fa-solid fa-circle-check"></i>
+        Entregadas
+      </option>
+      <option value="no">
+        <i class="fa-solid fa-circle-xmark"></i>
+        No entregadas
+      </option>
+    </select>
+
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
+    <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
+    <button class="btn-refresh" (click)="cargarRegistros()">
+      <i class="fa-solid fa-rotate-right"></i>
+    </button>
+    <button class="btn-limpiar" (click)="limpiarFiltros()">
+      <i class="fa-solid fa-xmark"></i>
+      Limpiar</button>
+  </div>
+
+  <!-- <p class="resultado-filtro" *ngIf="registrosFiltrados.length !== registros.length">
+    Mostrando {{ registrosFiltrados.length }} de {{ registros.length }} registros
+  </p> -->
+
+  <!-- TABLA -->
+  <div class="tabla-container" *ngIf="registrosFiltrados.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Factura/Remisión</th>
+          <th>Cliente</th>
+          <th>Conductor</th>
+          <th>Vehículo</th>
+          <th>Flete</th>
+          <th>Entregada</th>
+          <th>Acuse</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of registrosFiltrados" [class.fila-entregada]="r.facturaEntregada"
+          [class.fila-pendiente]="!r.facturaEntregada">
+
+          <td data-label="Fecha">{{ r.fechaRegistro | date:'short' }}</td>
+          <td data-label="Factura/Remisión"><strong>{{ r.facturaRemision }}</strong></td>
+          <td data-label="Cliente">{{ r.cliente }}</td>
+          <td data-label="Conductor">{{ r.conductor }}</td>
+          <td data-label="Vehículo">{{ r.vehiculo || '-' }}</td>
+          <td data-label="Flete">
+            <span *ngIf="r.valorFlete">${{ r.valorFlete | number:'1.0-0' }}</span>
+            <span *ngIf="!r.valorFlete">-</span>
+          </td>
+          <td data-label="Entregada">
+            <span class="badge-entregada" *ngIf="r.facturaEntregada">
+              <i class="fa-solid fa-circle-check"></i>
+              Entregada</span>
+            <span class="badge-no-entregada" *ngIf="!r.facturaEntregada">
+              <i class="fa-solid fa-circle-xmark"></i>
+              Pendiente</span>
+          </td>
+
+          <td data-label="Acuse">
+            <span class="badge-si" *ngIf="r.ajusteRecibido">
+              <i class="fa-solid fa-circle-check"></i>
+              Sí</span>
+            <span class="badge-no" *ngIf="!r.ajusteRecibido">
+              <i class="fa-solid fa-circle-xmark"></i>
+              No</span>
+          </td>
+          <td data-label="Estado">
+            <span [class]="getBadgeEstado(r.estado)">{{ getLabelEstado(r.estado) }}</span>
+          </td>
+          <td data-label="Acciones">
+            <div class="btn-acciones">
+
+              <!-- Ver para todos -->
+              <button class="btn-ver" (click)="verDetalle(r)"><i class="fa-solid fa-eye"></i></button>
+              <button class="btn-editar" *ngIf="puedeEditar" (click)="editar(r)"><i
+                  class="fa-solid fa-pen"></i></button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)"><i
+                  class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="vacio" *ngIf="registrosFiltrados.length === 0 && registros.length > 0">
+    <p>
+      <i class="fa-solid fa-magnifying-glass"></i>
+      No hay registros con ese filtro
+    </p>
+    <button class="btn-limpiar-vacio" (click)="limpiarFiltros()">
+      <i class="fa-solid fa-filter-circle-xmark"></i>
+      Limpiar filtros</button>
+  </div>
+
+  <div class="vacio" *ngIf="registros.length === 0">
+    <p>
+      <i class="fa-solid fa-box-open"></i>
+      No hay registros de trazabilidad
+    </p>
+    <button class="btn-nueva" *ngIf="puedeCrear" (click)="nuevo()">
+      <i class="fa-solid fa-plus"></i>
+      Crear primer registro</button>
+  </div>
+
+</div>
+
+<!-- MODAL NUEVO/EDITAR -->
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal">
+
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid" [ngClass]="editando ? 'fa-pen-to-square' : 'fa-box-open'"></i>
+        {{ editando ? 'Editar' : 'Nuevo' }} Registro
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="importar-aut">
+      <label>
+        <i class="fa-solid fa-file-import"></i>
+        Importar desde autorización <span class="opcional">(opcional)</span></label>
+      <select (change)="importarAutorizacion(+$any($event.target).value)">
+        <option value="0">Seleccione una autorización...</option>
+        <option *ngFor="let a of autorizaciones" [value]="a.id">
+          #{{ a.id }} — {{ a.conductor }} — {{ a.vehiculo }}
+        </option>
+      </select>
+
+      <div *ngIf="facturasDisponibles.length > 0" class="facturas-disponibles">
+        <label>
+          <i class="fa-solid fa-file-lines"></i>
+          Seleccionar factura de esta autorización</label>
+        <select (change)="seleccionarFactura(+$any($event.target).value)">
+          <option value="-1">Seleccione una factura...</option>
+          <option *ngFor="let f of facturasDisponibles; let i = index" [value]="i">
+            {{ f.facturaRemision }} — {{ f.cliente }}
+            {{ f.pesoKilos ? '— ' + f.pesoKilos + ' kg' : '' }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-file-invoice"></i>
+          Factura o Remisión *</label>
+        <input type="text" [(ngModel)]="form.facturaRemision" placeholder="Ej: F-001 o R-001">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-user"></i>
+          Cliente *</label>
+        <input type="text" [(ngModel)]="form.cliente" placeholder="Nombre del cliente">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-id-card"></i>
+          Conductor *</label>
+        <input type="text" [(ngModel)]="form.conductor" placeholder="Nombre del conductor">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-building"></i>
+          Transportadora <span class="opcional">(si es externa)</span></label>
+        <input type="text" [(ngModel)]="form.transportadora" placeholder="Nombre de la transportadora">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-truck"></i>
+          Vehículo / Placa</label>
+        <input type="text" [(ngModel)]="form.vehiculo" placeholder="Ej: ABC-123">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-route"></i>
+          Guía</label>
+        <input type="text" [(ngModel)]="form.guia" placeholder="Número de guía">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-weight-hanging"></i>
+          Peso (kg)</label>
+        <input type="number" [(ngModel)]="form.pesoKilos" placeholder="Ej: 150">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-money-bill-wave"></i>
+          Valor del Flete</label>
+        <input type="number" [(ngModel)]="form.valorFlete" placeholder="Ej: 250000">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-arrow-rotate-right"></i>
+          Estado</label>
+        <select [(ngModel)]="form.estado">
+          <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-envelope-open-text"></i>
+          Factura entregada a empresa</label>
+        <div class="toggle-group">
+          <button class="btn-toggle" [class.activo-verde]="form.facturaEntregada"
+            (click)="form.facturaEntregada = true">
+            <i class="fa-solid fa-circle-check"></i>
+            Entregada</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.facturaEntregada"
+            (click)="form.facturaEntregada = false">
+            <i class="fa-solid fa-circle-xmark"></i>
+            Pendiente</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fa-solid fa-file-signature"></i>Acuse</label>
+        <div class="toggle-group">
+          <button class="btn-toggle" [class.activo-verde]="form.acuseRecibido" (click)="form.acuseRecibido = true">
+            <i class="fa-solid fa-circle-check"></i>
+            Sí</button>
+          <button class="btn-toggle" [class.activo-rojo]="!form.acuseRecibido" (click)="form.acuseRecibido = false">❌
+            <i class="fa-solid fa-circle-xmark"></i>
+            No</button>
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Novedad</label>
+        <textarea [(ngModel)]="form.novedad" placeholder="Describa cualquier novedad o incidencia..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar" (click)="guardar()">
+        <i class="fa-solid" [ngClass]="editando ? 'fa-floppy-disk' : 'fa-file-circle-plus'"></i>
+        {{ editando ? 'Guardar cambios' : 'Crear registro' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" *ngIf="mostrarDetalle">
+  <div class="modal modal-grande">
+
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid fa-route"></i>
+        Detalle — {{ registroSeleccionado?.facturaRemision }}
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+    </div>
+
+    <div class="detalle-grid">
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-file-invoice"></i>
+          Factura/Remisión</span><strong>{{ registroSeleccionado?.facturaRemision
+          }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-user"></i>
+          Cliente</span><strong>{{ registroSeleccionado?.cliente }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-id-card"></i>
+          Conductor</span><strong>{{ registroSeleccionado?.conductor }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-truck"></i>
+          Vehículo</span><strong>{{ registroSeleccionado?.vehiculo || '-' }}</strong>
+      </div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-building"></i>
+          Transportadora</span><strong>{{ registroSeleccionado?.transportadora || '-'
+          }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-route"></i>
+          Guía</span><strong>{{ registroSeleccionado?.guia || '-' }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-weight-hanging"></i>
+          Peso</span><strong>{{ registroSeleccionado?.pesoKilos ?
+          registroSeleccionado.pesoKilos + ' kg' : '-' }}</strong></div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-money-bill-wave"></i>
+          Valor flete</span><strong>{{ registroSeleccionado?.valorFlete ? '$' +
+          (registroSeleccionado.valorFlete | number:'1.0-0') : '-' }}</strong></div>
+      <div class="detalle-item">
+        <span>
+          <i class="fa-solid fa-arrow-rotate-right"></i>
+          Estado</span>
+        <strong><span [class]="getBadgeEstado(registroSeleccionado?.estado)">{{
+            getLabelEstado(registroSeleccionado?.estado) }}</span></strong>
+      </div>
+      <div class="detalle-item">
+        <span><i class="fa-solid fa-envelope-open-text"></i> Factura entregada</span>
+        <strong>
+          <span class="badge-entregada" *ngIf="registroSeleccionado?.facturaEntregada">
+            <i class="fa-solid fa-circle-check"></i>
+            Entregada</span>
+          <span class="badge-no-entregada" *ngIf="!registroSeleccionado?.facturaEntregada">
+            <i class="fa-solid fa-circle-xmark"></i>
+            Pendiente</span>
+        </strong>
+      </div>
+
+      <div class="detalle-item">
+        <span><i class="fa-solid fa-file-signature"></i> Acuse</span>
+        <strong>
+          <span class="badge-si" *ngIf="registroSeleccionado?.ajusteRecibido">
+            <i class="fa-solid fa-circle-check"></i>
+            Sí</span>
+          <span class="badge-no" *ngIf="!registroSeleccionado?.ajusteRecibido">
+            <i class="fa-solid fa-circle-xmark"></i>
+            No</span>
+        </strong>
+      </div>
+      <div class="detalle-item"><span>
+          <i class="fa-solid fa-calendar-days"></i>
+          Fecha entrega</span><strong>{{ registroSeleccionado?.fechaEntrega ?
+          (registroSeleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
+      <div class="detalle-item full" *ngIf="registroSeleccionado?.novedad">
+        <span>
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Novedad</span>
+        <strong>{{ registroSeleccionado?.novedad }}</strong>
+      </div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="notas-seccion">
+      <div class="notas-header">
+        <h3>
+          <i class="fa-solid fa-note-sticky"></i>
+          Notas
+        </h3>
+        <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevaNota()">
+          <i class="fa-solid fa-plus"></i>
+          Agregar nota</button>
+      </div>
+
+      <div class="vacio-notas" *ngIf="notas.length === 0">
+        <i class="fa-regular fa-folder-open"></i>
+        Sin notas registradas
+      </div>
+
+      <div class="nota-card" *ngFor="let n of notas" [class.nota-entregada]="n.facturaEntregada"
+        [class.nota-pendiente]="!n.facturaEntregada">
+
+        <div class="nota-header">
+          <div class="nota-info">
+            <span class="nota-numero">
+              <i class="fa-solid fa-note-sticky"></i>
+              Nota #{{ n.numeroNota }}</span>
+            <span class="nota-fecha">
+              <i class="fa-regular fa-calendar"></i>
+              {{ n.fecha | date:'short' }}</span>
+          </div>
+          <div class="nota-acciones">
+            <span class="badge-entregada" *ngIf="n.facturaEntregada">
+              <i class="fa-solid fa-circle-check"></i>
+              Entregada</span>
+            <span class="badge-no-entregada" *ngIf="!n.facturaEntregada">
+              <i class="fa-solid fa-circle-xmark"></i>
+              Pendiente</span>
+            <button class="btn-editar" *ngIf="puedeEditar" (click)="editarNota(n)">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminarNota(n.id)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="nota-datos">
+          <span><strong>Conductor:</strong> {{ n.conductor }}</span>
+          <span *ngIf="n.cliente"><strong>Cliente:</strong> {{ n.cliente }}</span>
+          <span *ngIf="n.observacion"><strong>Observación:</strong> {{ n.observacion }}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="cerrarDetalle()">Cerrar</button>
+      <button class="btn-editar" *ngIf="puedeEditar" (click)="editar(registroSeleccionado); cerrarDetalle()">
+        <i class="fa-solid fa-pen-to-square"></i>
+        Editar registro
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL NOTA -->
+<div class="modal-overlay" *ngIf="mostrarNota">
+  <div class="modal modal-pequeno">
+
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid fa-pen-to-square"></i>
+        {{ editandoNota ? 'Editar' : 'Nueva' }} Nota
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarNota()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-hashtag"></i>
+          Número de Nota *</label>
+        <input type="text" [(ngModel)]="formNota.numeroNota" placeholder="Ej: N-001">
+      </div>
+      <div class="form-group">
+        <i class="fa-solid fa-truck"></i>
+        <label>
+          Conductor *</label>
+        <input type="text" [(ngModel)]="formNota.conductor" placeholder="Nombre del conductor">
+      </div>
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-user"></i>
+          Cliente <span class="opcional">(opcional)</span></label>
+        <input type="text" [(ngModel)]="formNota.cliente" placeholder="Nombre del cliente">
+      </div>
+      <div class="form-group">
+        <label>
+          <i class="fa-solid fa-file-invoice"></i>
+          Factura entregada</label>
+        <div class="toggle-group">
+          <button class="btn-toggle" [class.activo-verde]="formNota.facturaEntregada"
+            (click)="formNota.facturaEntregada = true">
+            <i class="fa-solid fa-circle-check"></i>
+            Entregada</button>
+          <button class="btn-toggle" [class.activo-rojo]="!formNota.facturaEntregada"
+            (click)="formNota.facturaEntregada = false">
+            <i class="fa-solid fa-circle-xmark"></i>
+            Pendiente</button>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>
+          <i class="fa-solid fa-comment"></i>
+          Observación <span class="opcional">(opcional)</span></label>
+        <textarea [(ngModel)]="formNota.observacion" placeholder="Observaciones adicionales..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-cancelar" (click)="cerrarNota()">Cancelar</button>
+      <button class="btn-guardar" (click)="guardarNota()">
+        <i class="fa-solid fa-floppy-disk"></i>
+        {{ editandoNota ? 'Guardar cambios' : 'Agregar nota' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- PAGINACIÓN -->
+<div class="paginacion" *ngIf="totalPaginas > 1">
+  <button class="btn-pag" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+    <i class="fa-solid fa-chevron-left"></i> Anterior
+  </button>
+  <div class="pag-info">
+    <span class="pag-actual">{{ paginaActual }}</span>
+    <span class="pag-sep">de</span>
+    <span class="pag-total">{{ totalPaginas }}</span>
+    <span class="pag-registros">· {{ totalRegistros }} registros</span>
+  </div>
+  <button class="btn-pag" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+    Siguiente <i class="fa-solid fa-chevron-right"></i>
+  </button>
+</div>

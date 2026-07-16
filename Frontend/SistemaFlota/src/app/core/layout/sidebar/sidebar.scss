@@ -1,0 +1,213 @@
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: #252525;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, .25);
+    transition: transform .3s;
+}
+
+.sidebar-header {
+    height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.logo-empresa {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}
+
+.logo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #7ed321;
+    text-transform: uppercase;
+}
+
+.logo i {
+    margin-right: 8px;
+}
+
+.logo-con-img {
+    font-size: 15px;
+    color: white;
+}
+
+.btn-cerrar-sidebar {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.btn-cerrar-sidebar:hover {
+    color: #7ed321;
+    transform: rotate(90deg);
+}
+
+nav {
+    flex: 1;
+    padding: 20px 12px;
+    overflow-y: auto;
+}
+
+nav button {
+    width: 100%;
+    height: 48px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #ddd;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0 18px;
+    transition: .3s;
+}
+
+nav button i {
+    width: 22px;
+    font-size: 18px;
+}
+
+/* Hover */
+nav button:hover {
+    background: rgba(126, 211, 33, .15);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* Activo */
+nav button.activo {
+    background: #7ed321;
+    color: #252525;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(126, 211, 33, .35);
+}
+
+nav button.activo i {
+    color: #252525;
+}
+
+.flotachat-btn-container {
+    margin-top: auto;
+    padding: 15px 0;
+}
+
+.flotachat-btn {
+    height: 45px;
+    margin: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #128C7E;
+    color: white;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.flotachat-btn:hover {
+    background: #0ca58f;
+    transform: translateY(-3px);
+}
+
+.sidebar-footer {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    background: #1e1e1e;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+.usuario-avatar i {
+    font-size: 42px;
+    color: #7ed321;
+}
+
+.usuario-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.usuario-nombre {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+
+.usuario-rol {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #bbb;
+}
+
+.usuario-rol i {
+    color: #7ed321;
+    margin-right: 5px;
+}
+
+nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+nav::-webkit-scrollbar-thumb {
+    background: #7ed321;
+    border-radius: 10px;
+}
+
+.sidebar-overlay {
+
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 999;
+
+}
+
+@media(max-width:768px) {
+
+    .sidebar {
+        transform: translateX(-100%);
+        margin-top: 55px;
+    }
+
+    .sidebar-overlay.activo {
+
+        display: block;
+
+    }
+
+    .sidebar.abierto {
+        transform: translateX(0);
+    }
+
+}

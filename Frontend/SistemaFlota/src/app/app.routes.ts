@@ -1,48 +1,81 @@
-import { Routes }
-from '@angular/router';
-
-import { authGuard }
-from './auth.guard';
+import { Routes } from '@angular/router';
+import { Layout } from './core/layout/layout';
 
 export const routes: Routes = [
 
   // LOGIN
-
   {
-    path: 'login',
-
+    path: '',
     loadComponent: () =>
-
-      import('./componentes/login/login')
-      .then(
-        m => m.LoginComponent
-      )
+      import('./features/login/login')
+        .then(c => c.LoginComponent)
   },
 
-  // CHECKLIST
-
   {
-    path: 'checklist-editor',
-
-    canActivate: [
-      authGuard
-    ],
-
-    loadComponent: () =>
-
-      import(
-        './componentes/checklist-editor/checklist-editor'
-      ).then(
-        m => m.ChecklistEditorComponent
-      )
+    path: 'inicio',
+    loadChildren: () =>
+      import('./features/inicio/inicio.routes')
+        .then(r => r.INICIO_ROUTES)
   },
 
-  // REDIRECT
+
+  // SISTEMA CON SIDEBAR
+  {
+    path: '',
+    component: Layout,
+    children: [
+
+      {
+        path: 'flota',
+        loadChildren: () =>
+          import('./features/flota/flota.routes')
+            .then(r => r.FLOTA_ROUTES)
+      },
+
+
+      {
+        path: 'rrhh',
+        loadChildren: () =>
+          import('./features/rrhh/rrhh.routes')
+            .then(r => r.RRHH_ROUTES)
+      },
+
+
+      {
+        path: 'calidad',
+        loadChildren: () =>
+          import('./features/calidad/calidad.routes')
+            .then(r => r.CALIDAD_ROUTES)
+      },
+
+      {
+        path: 'control-envios',
+        loadChildren: () =>
+          import('./features/control-envios/control-envios.routes')
+            .then(r => r.CONTROL_ENVIOS_ROUTES)
+      },
+
+      {
+        path: 'reportes',
+        loadChildren: () =>
+          import('./features/reportes/reportes.routes')
+            .then(r => r.REPORTES_ROUTES)
+      },
+
+      {
+        path: 'configuracion',
+        loadChildren: () =>
+          import('./features/configuracion/configuracion.routes')
+            .then(r => r.CONFIGURACION_ROUTES)
+      }
+
+    ]
+  },
+
 
   {
     path: '**',
-
-    redirectTo: 'login'
+    redirectTo: ''
   }
 
 ];

@@ -1,0 +1,72 @@
+<header class="topbar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+
+            <i class="fa-solid fa-layer-group"></i>
+
+        </div>
+
+        <div>
+
+            <h2>Sistema Empresarial</h2>
+
+            <span>ERP Corporativo</span>
+
+        </div>
+
+    </div>
+
+    <div class="search">
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        <input type="text" placeholder="Buscar módulos...">
+
+    </div>
+
+    <div class="acciones">
+
+        <button class="accion">
+
+            <i class="fa-regular fa-calendar"></i>
+
+        </button>
+
+        <button class="accion">
+
+            <i class="fa-regular fa-envelope"></i>
+
+            <span>3</span>
+
+        </button>
+
+        <button class="accion">
+
+            <i class="fa-regular fa-bell"></i>
+
+            <span>7</span>
+
+        </button>
+
+        <div class="usuario">
+
+            <div class="avatar">
+                {{ usuario.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="datos">
+                <strong>{{ usuario }}</strong>
+                <small>{{ rol }}</small>
+            </div>
+
+            <button class="btn-salir" (click)="cerrarSesion()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+
+        </div>
+
+    </div>
+
+</header>

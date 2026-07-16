@@ -1,0 +1,77 @@
+<!-- BIENVENIDA POST-LOGIN  -->
+<div class="bienvenida-overlay" *ngIf="mostrarBienvenida">
+  <div class="bienvenida-card">
+    <div class="bienvenida-logo" *ngIf="logoUrl">
+      <img [src]="logoUrl" alt="Logo empresa">
+    </div>
+    <div class="bienvenida-icono" *ngIf="!logoUrl">
+      <i class="fa-solid fa-truck"></i>
+    </div>
+    <h2 class="bienvenida-empresa">{{ nombreEmpresa }}</h2>
+    <p class="bienvenida-saludo">¡Bienvenido, <strong>{{ nombreUsuario }}</strong>!</p>
+    <div class="bienvenida-loader">
+      <div class="loader-bar"></div>
+    </div>
+    <p class="bienvenida-cargando">Cargando el sistema...</p>
+  </div>
+</div>
+
+<div class="login-container" *ngIf="!mostrarBienvenida">
+
+  <!-- Fondo -->
+  <img src="assets/images/loginfondo.png" class="login-bg" alt="Fondo Login">
+
+  <div class="login-card">
+
+    <!-- Logo o ícono -->
+    <div class="login-logo" *ngIf="logoUrl">
+      <img [src]="logoUrl" alt="Logo">
+    </div>
+
+    <div class="login-icono" *ngIf="!logoUrl">
+      <i class="fa-solid fa-truck"></i>
+    </div>
+
+    <h2>{{ nombreEmpresa }}</h2>
+    <p class="subtitle">Iniciar sesión</p>
+
+    <!-- Error -->
+    <div class="error-msg" *ngIf="error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      {{ error }}
+    </div>
+
+    <div class="input-group">
+      <i class="fa-solid fa-user"></i>
+      <input [(ngModel)]="username" placeholder="Usuario" (keyup.enter)="iniciarSesion()" [disabled]="cargando">
+    </div>
+
+    <div class="input-group">
+      <i class="fa-solid fa-lock"></i>
+
+      <input [(ngModel)]="password" [type]="mostrarPassword ? 'text' : 'password'" placeholder="Contraseña"
+        (keyup.enter)="iniciarSesion()" [disabled]="cargando">
+
+      <button class="btn-ojo" type="button" (click)="mostrarPassword = !mostrarPassword" tabindex="-1">
+
+        <i class="fa-solid fa-{{ mostrarPassword ? 'eye-slash' : 'eye' }}"></i>
+
+      </button>
+    </div>
+
+    <button (click)="iniciarSesion()" [disabled]="cargando">
+
+      <span *ngIf="!cargando">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        Ingresar
+      </span>
+
+      <span *ngIf="cargando">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Verificando...
+      </span>
+
+    </button>
+
+  </div>
+</div>

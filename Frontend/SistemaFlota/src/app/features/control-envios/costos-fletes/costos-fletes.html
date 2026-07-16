@@ -1,0 +1,204 @@
+<div class="contenedor">
+  <div class="header">
+    <div>
+      <h1>
+        <i class="fa-solid fa-money-bill-trend-up"></i>
+        Costos de flete</h1>
+      <p>Relación de gastos por viaje</p>
+    </div>
+    <button class="btn-agregar" *ngIf="vista === 'lista'" (click)="nuevo()">+ Nuevo registro</button>
+  </div>
+
+  <!-- LISTA -->
+  <ng-container *ngIf="vista === 'lista'">
+    <div class="stats-grid">
+      <div class="stat-card azul">
+        <span class="stat-label">Total gastos</span>
+        <span class="stat-valor">${{ totalGastosFiltrados | number:'1.0-0' }}</span>
+      </div>
+      <div class="stat-card amarillo">
+        <span class="stat-label">Pendientes</span>
+        <span class="stat-valor warning">{{ pendientes }}</span>
+      </div>
+      <div class="stat-card verde">
+        <span class="stat-label">Verificados</span>
+        <span class="stat-valor success">{{ verificados }}</span>
+      </div>
+      <div class="stat-card cyan">
+        <span class="stat-label">Promedio por kilo</span>
+        <span class="stat-valor">${{ promedioPorKilo | number:'1.0-2' }}</span>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
+      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+      <div class="fg"><label>Conductor</label><input type="text" [(ngModel)]="filtroConductor" placeholder="Nombre"></div>
+      <div class="fg"><label>Ciudad</label><input type="text" [(ngModel)]="filtroCiudad" placeholder="Destino"></div>
+      <div class="fg">
+        <label>Estado</label>
+        <select [(ngModel)]="filtroEstado">
+          <option value="">Todos</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Verificado">Verificado</option>
+        </select>
+      </div>
+      <button class="btn-filtrar" (click)="cargar()">Filtrar</button>
+    </div>
+
+    <div class="lista" *ngIf="registros.length > 0">
+      <div class="card-registro" *ngFor="let r of registros" [class.verificado]="r.estado === 'Verificado'">
+        <div class="reg-header">
+          <div class="reg-titulo">
+            <span class="aut-badge">#AUT-{{ r.autorizacionId }}</span>
+            <span class="badge-pendiente" *ngIf="r.estado === 'Pendiente'">Pendiente</span>
+            <span class="badge-verificado" *ngIf="r.estado === 'Verificado'">✓ Verificado</span>
+          </div>
+          <span class="fecha">{{ r.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="reg-info">
+          <div><span class="info-label">Conductor</span><span>{{ r.autorizacion?.conductor }}</span></div>
+          <div><span class="info-label">Placa</span><span>{{ r.autorizacion?.placa }}</span></div>
+          <div><span class="info-label">Destino</span><span>{{ r.autorizacion?.ciudadDestino }}</span></div>
+          <div><span class="info-label">Kilos</span><span>{{ r.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</span></div>
+          <div><span class="info-label">Total gastos</span><span class="total-valor">${{ r.total | number:'1.0-0' }}</span></div>
+          <div><span class="info-label">$/kg</span><span class="total-valor">${{ (r.total / (r.autorizacion?.kilosTransportados || 1)) | number:'1.0-2' }}</span></div>
+        </div>
+        <div class="reg-acciones">
+          <button class="btn-ver" (click)="ver(r)">👁 Ver</button>
+          <button class="btn-editar" *ngIf="r.estado === 'Pendiente'" (click)="editar(r)">✏ Editar</button>
+          <button class="btn-pdf" (click)="exportarPDF(r)">PDF</button>
+          <button class="btn-excel" (click)="exportarExcel()">Excel</button>
+          <button class="btn-verificar" *ngIf="puedeVerificar && r.estado === 'Pendiente'" (click)="abrirVerificar(r)">✓ Verificar</button>
+        </div>
+      </div>
+    </div>
+    <div class="vacio" *ngIf="registros.length === 0">
+      <p>No hay registros. Cree uno nuevo.</p>
+    </div>
+  </ng-container>
+
+  <!-- NUEVO / EDITAR -->
+  <ng-container *ngIf="vista === 'nuevo' || vista === 'editar'">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>Autorización del viaje</h3>
+        <div class="fg">
+          <label>Seleccione autorización *</label>
+          <select [(ngModel)]="form.autorizacionId" (change)="seleccionarAutorizacion()">
+            <option [ngValue]="null">-- Seleccione --</option>
+            <option *ngFor="let a of autorizaciones" [ngValue]="a.id">#{{ a.id }} — {{ a.conductor }} — {{ a.ciudadDestino }}</option>
+          </select>
+        </div>
+        <div class="datos-aut" *ngIf="autorizacionSeleccionada">
+          <div><span class="info-label">Conductor</span><strong>{{ autorizacionSeleccionada.conductor }}</strong></div>
+          <div><span class="info-label">Placa</span><strong>{{ autorizacionSeleccionada.placa }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ autorizacionSeleccionada.ciudadDestino }}</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ autorizacionSeleccionada.kilosTransportados | number:'1.0-0' }} kg</strong></div>
+          <div><span class="info-label">Clientes</span><strong>{{ autorizacionSeleccionada.clientesEntregados }}</strong></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Gastos del viaje</h3>
+        <div class="gastos-lista">
+          <div class="gasto-row"><label>Peajes</label><input type="number" [(ngModel)]="form.peajes" min="0"></div>
+          <div class="gasto-row"><label>Combustible</label><input type="number" [(ngModel)]="form.combustible" min="0"></div>
+          <div class="gasto-row"><label>Parqueos</label><input type="number" [(ngModel)]="form.parqueos" min="0"></div>
+          <div class="gasto-row"><label>Descargue Mcia</label><input type="number" [(ngModel)]="form.descarguesMcia" min="0"></div>
+          <div class="gasto-row"><label>Cargue materiales</label><input type="number" [(ngModel)]="form.cargueMateriales" min="0"></div>
+          <div class="gasto-row"><label>Alimentación</label><input type="number" [(ngModel)]="form.alimentacion" min="0"></div>
+          <div class="gasto-row"><label>Hospedaje</label><input type="number" [(ngModel)]="form.hospedaje" min="0"></div>
+          <div class="gasto-row"><label>Varios</label><input type="number" [(ngModel)]="form.varios" min="0"></div>
+        </div>
+        <div class="total-box">
+          <span>Total gastos</span>
+          <span>${{ total | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Observaciones</h3>
+        <textarea [(ngModel)]="form.observaciones" rows="3" placeholder="Observaciones del viaje..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" (click)="vista === 'nuevo' ? guardar() : guardarEdicion()">Guardar registro</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VER -->
+  <ng-container *ngIf="vista === 'ver' && registroSeleccionado">
+    <div class="form-card">
+      <div class="form-section">
+        <div class="ver-header">
+          <h3>Autorización #{{ registroSeleccionado.autorizacionId }}</h3>
+          <span class="badge-verificado" *ngIf="registroSeleccionado.estado === 'Verificado'">✓ Verificado por {{ registroSeleccionado.verificadoPor }}</span>
+          <span class="badge-pendiente" *ngIf="registroSeleccionado.estado === 'Pendiente'">Pendiente</span>
+        </div>
+        <div class="datos-aut">
+          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
+          <div><span class="info-label">Placa</span><strong>{{ registroSeleccionado.autorizacion?.placa }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ registroSeleccionado.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</strong></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Gastos</h3>
+        <div class="gastos-lista">
+          <div class="gasto-row ver"><span>Peajes</span><span>${{ registroSeleccionado.peajes | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Combustible</span><span>${{ registroSeleccionado.combustible | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Parqueos</span><span>${{ registroSeleccionado.parqueos | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Descargue Mcia</span><span>${{ registroSeleccionado.descarguesMcia | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Cargue materiales</span><span>${{ registroSeleccionado.cargueMateriales | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Alimentación</span><span>${{ registroSeleccionado.alimentacion | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Hospedaje</span><span>${{ registroSeleccionado.hospedaje | number:'1.0-0' }}</span></div>
+          <div class="gasto-row ver"><span>Varios</span><span>${{ registroSeleccionado.varios | number:'1.0-0' }}</span></div>
+        </div>
+        <div class="total-box">
+          <span>Total</span>
+          <span>${{ registroSeleccionado.total | number:'1.0-0' }}</span>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Volver</button>
+        <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)">Exportar PDF</button>
+        <button class="btn-verificar" *ngIf="puedeVerificar && registroSeleccionado.estado === 'Pendiente'" (click)="abrirVerificar(registroSeleccionado)">✓ Verificar</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VERIFICAR -->
+  <ng-container *ngIf="vista === 'verificar' && registroSeleccionado">
+    <div class="form-card">
+      <div class="form-section">
+        <h3>Verificar registro #{{ registroSeleccionado.autorizacionId }}</h3>
+        <div class="datos-aut">
+          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
+          <div><span class="info-label">Total gastos</span><strong>${{ registroSeleccionado.total | number:'1.0-0' }}</strong></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>Firma de verificación</h3>
+        <div class="fg">
+          <label>Nombre verificador</label>
+          <input type="text" [(ngModel)]="nombreVerificador">
+        </div>
+        <div class="fg" style="margin-top:12px">
+          <label>Firma digital</label>
+          <canvas id="firmaVerifica" width="400" height="120"
+            style="border:1.5px solid #ddd;border-radius:10px;display:block;margin-top:6px;cursor:crosshair;background:white;touch-action:none;width:100%">
+          </canvas>
+          <button type="button" (click)="limpiarFirma()" style="margin-top:6px;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;color:#666">Limpiar firma</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" (click)="confirmarVerificacion()">✓ Confirmar verificación</button>
+      </div>
+    </div>
+  </ng-container>
+</div>

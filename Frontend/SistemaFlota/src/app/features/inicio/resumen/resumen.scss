@@ -1,0 +1,136 @@
+.resumen {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    margin-top: 10px;
+}
+
+.card{
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid #edf2f7;
+    box-shadow: 0 8px 24px rgba(15,23,42,.08);
+    transition: .3s;
+}
+
+.card:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(15,23,42,.12);
+}
+
+/* Primera ola */
+.card::before{
+    content:"";
+    position:absolute;
+    right:-15px;
+    bottom:-8px;
+    width:150px;
+    height:70px;
+    opacity:.18;
+    clip-path: ellipse(75% 100% at 100% 100%);
+}
+
+/* Segunda ola */
+.card::after{
+    content:"";
+    position:absolute;
+    right:20px;
+    bottom:-8px;
+    width:110px;
+    height:55px;
+    opacity:.28;
+    clip-path: ellipse(75% 100% at 100% 100%);
+}
+
+.icono {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.85rem;
+    color: #fff;
+    z-index: 2;
+}
+
+.empleados .icono {
+    background: #2563eb;
+}
+
+.pedidos .icono {
+    background: #16a34a;
+}
+
+.vehiculos .icono {
+    background: #ea580c;
+}
+
+.alertas .icono {
+    background: #dc2626;
+}
+
+/*========================*/
+/* Ondas de colores */
+/*========================*/
+
+.empleados::before,
+.empleados::after {
+    background: #2563eb;
+}
+
+.pedidos::before,
+.pedidos::after {
+    background: #16a34a;
+}
+
+.vehiculos::before,
+.vehiculos::after {
+    background: #ea580c;
+}
+
+.alertas::before,
+.alertas::after {
+    background: #dc2626;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+}
+
+.titulo {
+    font-size: 1.1rem;
+    opacity: .85;
+}
+
+.info h2 {
+    font-size: 2.2rem;
+    margin: 8px 0;
+    font-weight: 700;
+}
+
+.info small {
+    opacity: .75;
+    font-size: .95rem;
+}
+
+@media (max-width:1100px) {
+    .resumen {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width:700px) {
+    .resumen {
+        grid-template-columns: 1fr;
+    }
+}

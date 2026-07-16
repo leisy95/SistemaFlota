@@ -1,0 +1,255 @@
+:host {
+    display: block;
+    min-height: 100vh;
+}
+
+.fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+.overlay {
+
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .12);
+    z-index: -1;
+}
+
+.marca-agua {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+
+    transform: translateY(-60px);
+}
+
+.aniversario {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+
+    transform: translateY(-60px);
+}
+
+.logo-text {
+    margin: 0;
+    font-size: 155px;
+    font-weight: 800;
+    letter-spacing: -4px;
+    text-transform: lowercase;
+    position: static;
+}
+
+.marca-agua strong {
+    display: block;
+    margin-top: -20px;
+    font-size: 32px;
+    letter-spacing: 4px;
+    color: var(--gris-medio);
+}
+
+.geco {
+    color: rgba(133, 200, 30, .25);
+}
+
+.bags {
+    color: rgba(153, 150, 150, 0.35);
+}
+
+.contenido {
+    position: relative;
+    z-index: 10;
+    padding: 40px 60px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Ocultar en escritorio */
+.accesos-rapidos {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+
+    .contenido {
+        padding: 40px;
+    }
+
+    .logo-text {
+        font-size: 110px;
+        letter-spacing: -2px;
+    }
+
+    .marca-agua strong {
+        font-size: 24px;
+        letter-spacing: 3px;
+    }
+
+    .marca-agua,
+    .aniversario {
+        transform: translateY(-30px);
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .contenido {
+        padding: 20px 16px;
+    }
+
+    .accesos-rapidos {
+        display: block;
+        background: rgba(255, 255, 255, .96);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, .10);
+        border: 1px solid rgba(255, 255, 255, .8);
+        backdrop-filter: blur(18px);
+        margin-bottom: 20px;
+    }
+
+    .titulo-accesos {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .titulo-accesos i {
+        color: #2563eb;
+        font-size: 22px;
+    }
+
+    .titulo-accesos h2 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .lista-accesos {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .acceso {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #f4f7fb;
+        border: 1px solid #e4e7ec;
+        border-radius: 16px;
+        padding: 8px 10px;
+        cursor: pointer;
+        transition: .25s;
+    }
+
+    .acceso:hover {
+        background: #eef4ff;
+        transform: translateX(4px);
+    }
+
+    .acceso:active {
+        transform: scale(.98);
+    }
+
+    .acceso i {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--verde-oscuro);
+        font-size: 18px;
+    }
+
+    .acceso span {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .logo-text {
+        font-size: 70px;
+        letter-spacing: -1px;
+        text-align: center;
+    }
+
+    .marca-agua strong {
+        margin-top: -10px;
+        font-size: 18px;
+        letter-spacing: 2px;
+        text-align: center;
+    }
+
+    .marca-agua,
+    .aniversario {
+        transform: translateY(0);
+    }
+
+    app-modulos {
+        order: 1;
+    }
+
+    app-resumen {
+        order: 2;
+    }
+
+    app-actividades {
+        order: 3;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .logo-text {
+        font-size: 48px;
+        letter-spacing: 0;
+    }
+
+    .marca-agua strong {
+        margin-top: 0;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+
+    .overlay {
+        background: rgba(0, 0, 0, .18);
+    }
+
+    app-modulos {
+        order: 1;
+    }
+
+    app-resumen {
+        order: 2;
+    }
+
+    app-actividades {
+        order: 3;
+    }
+
+}

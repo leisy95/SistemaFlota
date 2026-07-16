@@ -1,0 +1,200 @@
+<section class="modulos-container">
+    <div class="titulo-seccion">
+
+        <h2>Módulos</h2>
+        <span>Selecciona un módulo para comenzar a trabajar</span>
+
+    </div>
+
+    <div class="modulos">
+
+        <div class="card-link" (click)="navegarModulo('/rrhh')">
+            <div class="card">
+
+                <div class="barra azul"></div>
+
+                <div class="icono azul">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+
+                <h3>Recursos Humanos</h3>
+
+                <p>
+                    Empleados, vacaciones, permisos, SST y bienestar.
+                </p>
+
+                <div class="footer">
+
+                    <span>8 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+        <a href="https://gecobagsci.com/login" class="card-link">
+
+            <div class="card">
+
+                <div class="barra verde"></div>
+
+                <div class="icono verde">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+
+                <h3>Inventario</h3>
+
+                <p>
+                    Productos, almacenes, entradas y salidas.
+                </p>
+
+                <div class="footer">
+
+                    <span>5 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+
+        </a>
+
+        <div div class="card-link" (click)="navegarModulo('/control-envios')">
+            <div class="card">
+
+                <div class="barra naranja"></div>
+
+                <div class="icono naranja">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+
+                <h3>Control envios</h3>
+
+                <p>
+                    Gestión de pedidos, despachos y entregas.
+                </p>
+
+                <div class="footer">
+
+                    <span>4 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-link vehiculos" (click)="navegarModulo('/flota')">
+            <div class="card">
+
+                <div class="barra morado"></div>
+
+                <div class="icono morado">
+                    <i class="fa-solid fa-truck"></i>
+                </div>
+
+                <h3>Vehículos</h3>
+
+                <p>
+                    Flota, inspecciones y mantenimientos.
+                </p>
+
+                <div class="footer">
+
+                    <span>7 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-link" (click)="navegarModulo('/calidad')">
+            <div class="card">
+
+                <div class="barra cyan"></div>
+
+                <div class="icono cyan">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <h3>Calidad</h3>
+
+                <p>
+                    Indicadores, auditorías y procesos.
+                </p>
+
+                <div class="footer">
+
+                    <span>6 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-link" (click)="navegarModulo('/reportes')">
+            <div class="card">
+
+                <div class="barra cyan"></div>
+
+                <div class="icono cyan">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+
+                <h3>Reportes</h3>
+
+                <p>
+                    Genera reportes y analisis para tomar decisiones.
+                </p>
+
+                <div class="footer">
+
+                    <span>6 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-link" (click)="navegarModulo('/configuracion')">
+            <div class="card">
+
+                <div class="barra gris"></div>
+
+                <div class="icono gris">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+
+                <h3>Configuración</h3>
+
+                <p>
+                    Parámetros generales del sistema.
+                </p>
+
+                <div class="footer">
+
+                    <span>3 Submódulos</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<app-dialog [visible]="dialogVisible" [titulo]="dialogTitulo" [mensaje]="dialogMensaje" [tipo]="dialogTipo"
+    (cerrar)="cerrarDialog()">
+</app-dialog>

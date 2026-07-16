@@ -1,0 +1,17 @@
+<div class="layout">
+
+    <app-sidebar [abierto]="sidebarAbierto" (cerrar)="cerrarSidebar()">
+    </app-sidebar>
+
+    <app-topbar (toggleSidebar)="toggleSidebar()">
+    </app-topbar>
+
+    <div class="main">
+        <main class="content">
+            <div class="router-container">
+                <router-outlet #outlet="outlet"></router-outlet>
+            </div>
+        </main>
+    </div>
+
+</div>

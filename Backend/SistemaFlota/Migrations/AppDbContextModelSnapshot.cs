@@ -1498,6 +1498,9 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PasswordConductores")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
 
@@ -1525,6 +1528,9 @@ namespace SistemaFlota.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    b.Property<bool>("EsInicio")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Modulo")
                         .IsRequired()

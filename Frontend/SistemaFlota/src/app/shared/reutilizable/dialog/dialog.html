@@ -1,0 +1,33 @@
+<div class="dialog-backdrop" *ngIf="visible">
+
+    <div class="dialog">
+
+        <div class="icono" [ngClass]="tipo">
+
+            <i *ngIf="tipo === 'success'" class="fa-solid fa-circle-check">
+            </i>
+
+            <i *ngIf="tipo === 'warning'" class="fa-solid fa-triangle-exclamation">
+            </i>
+
+            <i *ngIf="tipo === 'error'" class="fa-solid fa-circle-xmark">
+            </i>
+
+            <i *ngIf="tipo === 'info'" class="fa-solid fa-circle-info">
+            </i>
+
+        </div>
+
+        <h2>{{ titulo }}</h2>
+
+        <p>{{ mensaje }}</p>
+
+        <button class="btn" (click)="cerrarDialog()">
+
+            {{ textoBoton }}
+
+        </button>
+
+    </div>
+
+</div>

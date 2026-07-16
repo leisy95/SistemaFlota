@@ -1,0 +1,60 @@
+<aside class="sidebar" [class.abierto]="abierto">
+
+    <div class="sidebar-header">
+
+        <div class="logo-empresa" (click)="irAlInicio()">
+
+            <img *ngIf="empresaLogo" [src]="empresaLogo" alt="Logo" class="logo-img">
+            <h2 class="logo" *ngIf="!empresaLogo">
+
+                <i class="fa-solid fa-truck-fast"></i>
+
+                {{ empresaNombre }}
+
+            </h2>
+            <h2 class="logo logo-con-img" *ngIf="empresaLogo">
+
+                {{ empresaNombre }}
+
+            </h2>
+
+        </div>
+    </div>
+    <nav>
+
+        <button *ngFor="let modulo of modulosVisibles" (click)="cambiarModulo(modulo.ruta)"
+            [class.activo]="moduloActivo === modulo.ruta"> <i [class]="modulo.icon"></i> <span>
+                {{ modulo.label }}
+            </span> </button>
+        <div class="flotachat-btn-container">
+
+            <a href="https://chat.gecobagsci.com" target="_blank" class="flotachat-btn"> <i
+                    class="fa-solid fa-comments"></i> <span>
+                    FlotaChat
+                </span> </a>
+
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="usuario-avatar">
+
+            <i class="fa-solid fa-circle-user"></i>
+
+        </div>
+        <div class="usuario-info"> <span class="usuario-nombre">
+
+                {{ usuario }}
+
+            </span> <span class="usuario-rol">
+
+                <i class="fa-solid fa-shield-halved"></i>
+
+                {{ rol }}
+
+            </span>
+        </div>
+    </div>
+</aside>
+
+<div class="sidebar-overlay" [class.activo]="abierto" (click)="cerrar.emit()">
+</div>
