@@ -243,6 +243,23 @@ namespace SistemaFlota
             };
 
             _context.NotasTrazabilidad.Add(nota);
+
+            var registroNCE = new TrazabilidadFactura
+            {
+                FechaRegistro = DateTime.Now,
+                AutorizacionId = trazabilidad.AutorizacionId,
+                FacturaRemision = "NCE-" + dto.NumeroNota.Replace("NCE ", "").Replace("NCE-", "").Trim(),
+                Cliente = dto.Cliente ?? trazabilidad.Cliente,
+                Conductor = dto.Conductor ?? trazabilidad.Conductor,
+                Transportadora = trazabilidad.Transportadora,
+                Vehiculo = trazabilidad.Vehiculo,
+                Estado = "Pendiente",
+                AjusteRecibido = false,
+                FacturaEntregada = dto.FacturaEntregada,
+                Novedad = dto.Observacion
+            };
+            _context.TrazabilidadFacturas.Add(registroNCE);
+
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
