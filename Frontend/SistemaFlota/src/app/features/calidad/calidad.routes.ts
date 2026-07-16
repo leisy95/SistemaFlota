@@ -12,7 +12,7 @@ export const CALIDAD_ROUTES: Routes = [
         path: 'calidad-cyreles',
         loadComponent: () =>
             import('./Cyreles/cyreles.component')
-            .then(c => c.CyrelesComponent),
+                .then(c => c.CyrelesComponent),
         data: { animation: 'calidad-cyreles' }
     },
 
@@ -20,7 +20,7 @@ export const CALIDAD_ROUTES: Routes = [
         path: 'calidad-formatos',
         loadComponent: () =>
             import('./formato-fgc008/formato-fgc008')
-            .then(c => c.FormatoFGC008Component),
+                .then(c => c.FormatoFGC008Component),
         data: { animation: 'calidad-formatos' }
     },
 ];

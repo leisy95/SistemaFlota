@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 export const CONTROL_ENVIOS_ROUTES: Routes = [
 
     {
@@ -7,7 +6,9 @@ export const CONTROL_ENVIOS_ROUTES: Routes = [
         loadComponent: () =>
             import('./pedidos/pedidos')
                 .then(c => c.PedidosComponent),
-        data: { animation: 'pedidos' }
+        data: {
+            animation: 'pedidos',
+        }
     },
 
     {

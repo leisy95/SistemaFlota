@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { Dialog } from '../../../shared/reutilizable/dialog/dialog';
+import { MENU_MODULOS } from '../../../core/menu.config';
 
 @Component({
   selector: 'app-modulos',
@@ -47,59 +48,79 @@ export class Modulos {
     switch (ruta) {
 
       case '/flota':
+
         nombreModulo = 'Flota';
+
+        const modulosFlota = MENU_MODULOS
+          .filter(m => m.modulo === 'flota')
+          .map(m => m.key);
+
         permitido = this.permisos.some(p =>
-          [
-            'inspecciones',
-            'conductores',
-            'vehiculos',
-            'reporte-ruta',
-            'autorizaciones',
-            'documentos',
-            'mantenimiento',
-            'checklist',
-            'historial'
-          ].includes(p.modulo) && p.puedeVer);
+          p.puedeVer && modulosFlota.includes(p.modulo)
+        );
+
+        if (permitido) {
+
+          const inicio = this.permisos.find(p =>
+            p.puedeVer && p.esInicio
+          );
+
+          if (inicio) {
+            this.router.navigate(['/flota', inicio.modulo]);
+            return;
+          }
+
+          const primero = this.permisos.find(p =>
+            p.puedeVer && modulosFlota.includes(p.modulo)
+          );
+
+          if (primero) {
+            this.router.navigate(['/flota', primero.modulo]);
+            return;
+          }
+        }
+
         break;
 
       case '/rrhh':
         nombreModulo = 'Recursos Humanos';
         permitido = this.permisos.some(p =>
-          p.modulo === 'rrhh-seguimientos' && p.puedeVer);
+          p.puedeVer &&
+          MENU_MODULOS.some(m => m.modulo === 'rrhh' && m.key === p.modulo)
+        );
         break;
 
       case '/calidad':
         nombreModulo = 'Calidad';
         permitido = this.permisos.some(p =>
-          p.modulo.startsWith('calidad-') && p.puedeVer);
+          p.puedeVer &&
+          MENU_MODULOS.some(m => m.modulo === 'calidad' && m.key === p.modulo)
+        );
         break;
 
       case '/control-envios':
         nombreModulo = 'Control de Envíos';
         permitido = this.permisos.some(p =>
-          [
-            'trazabilidad',
-            'pedidos',
-            'costos-flete'
-          ].includes(p.modulo) && p.puedeVer);
+          p.puedeVer &&
+          MENU_MODULOS.some(m => m.modulo === 'control-envios' && m.key === p.modulo)
+        );
         break;
 
       case '/reportes':
         nombreModulo = 'Reportes';
         permitido = this.permisos.some(p =>
-          p.modulo === 'auditoria' && p.puedeVer);
+          p.puedeVer &&
+          MENU_MODULOS.some(m => m.modulo === 'reportes' && m.key === p.modulo)
+        );
         break;
 
       case '/configuracion':
         nombreModulo = 'Configuración';
         permitido = this.permisos.some(p =>
-          [
-            'configuracion',
-            'usuarios',
-            'contactos'
-          ].includes(p.modulo) && p.puedeVer);
+          p.puedeVer &&
+          MENU_MODULOS.some(m => m.modulo === 'configuracion' && m.key === p.modulo)
+        );
         break;
-
     }
 
     if (!permitido) {

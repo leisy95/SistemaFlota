@@ -4,10 +4,12 @@ export const FLOTA_ROUTES: Routes = [
 
     {
         path: '',
+        data: {
+            animation: 'dashboard',
+        },
         loadComponent: () =>
             import('./dashboard/dashboard')
-                .then(c => c.DashboardComponent),
-        data: { animation: 'dashboard' }
+                .then(c => c.DashboardComponent)
     },
     {
         path: 'dashboard',
@@ -66,7 +68,7 @@ export const FLOTA_ROUTES: Routes = [
                 .then(c => c.CambioRutaComponent),
         data: { animation: 'cambio-ruta' }
     },
-     {
+    {
         path: 'solicitud-taller',
         loadComponent: () =>
             import('./solicitud-taller/solicitud-taller')

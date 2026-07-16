@@ -7,15 +7,19 @@ export const CONFIGURACION_ROUTES: Routes = [
         loadComponent: () =>
             import('./configuracion-empresa/configuracion-empresa')
                 .then(c => c.ConfiguracionEmpresaComponent),
-        data: { animation: 'configuracion' }
+        data: {
+            animation: 'configuracion',
+        }
     },
 
-     {
+    {
         path: 'configuracion',
         loadComponent: () =>
             import('./configuracion-empresa/configuracion-empresa')
                 .then(c => c.ConfiguracionEmpresaComponent),
-        data: { animation: 'configuracion' }
+        data: {
+            animation: 'configuracion'
+        }
     },
 
     {
@@ -26,7 +30,7 @@ export const CONFIGURACION_ROUTES: Routes = [
         data: { animation: 'configuracion' }
     },
 
-     {
+    {
         path: 'contactos-notificacion',
         loadComponent: () =>
             import('./contactos-notificacion/contactos-notificacion')

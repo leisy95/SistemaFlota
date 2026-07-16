@@ -38,8 +38,6 @@ export class Sidebar implements OnInit {
   ngOnInit(): void {
     const sesion = this.authService.obtenerUsuarioActual();
 
-    console.log(sesion);
-
     if (sesion) {
       this.usuario = sesion.username;
       this.rol = sesion.rol;
@@ -87,23 +85,21 @@ export class Sidebar implements OnInit {
 
   private obtenerMenuPorModulo(modulo: string) {
 
-  if (this.rol === 'Admin') {
-    return MENU_MODULOS.filter(x => x.modulo === modulo);
+    if (this.rol === 'Admin') {
+      return MENU_MODULOS.filter(x => x.modulo === modulo);
+    }
+
+    const menu = MENU_MODULOS
+      .filter(x => x.modulo === modulo)
+      .filter(menu =>
+        this.permisos.some(p =>
+          p.modulo === menu.key &&
+          p.puedeVer
+        )
+      );
+
+    return menu;
   }
-
-  const menu = MENU_MODULOS
-    .filter(x => x.modulo === modulo)
-    .filter(menu =>
-      this.permisos.some(p =>
-        p.modulo === menu.key &&
-        p.puedeVer
-      )
-    );
-
-  console.log('Menú filtrado:', menu);
-
-  return menu;
-}
 
   // Para mostrar el menu lateral
   filtrarMenu(): void {

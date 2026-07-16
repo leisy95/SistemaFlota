@@ -25,13 +25,6 @@
 
             <div class="lista-accesos">
 
-                <div class="acceso" *ngIf="tienePermiso('conductores')" (click)="irConductores()">
-
-                    <i class="fa-solid fa-id-card"></i>
-                    <span>Conductores</span>
-
-                </div>
-
                 <div class="acceso" *ngIf="tienePermiso('autorizaciones')" (click)="irConfirmarSalida()">
 
                     <i class="fa-solid fa-truck-fast"></i>

@@ -109,8 +109,6 @@ export class LoginComponent implements OnInit {
             permisos: res.permisos ?? []
           });
 
-          console.log('Después de cargar:', this.permisosService);
-
           this.nombreUsuario = res.username;
           this.mostrarBienvenida = true;
           this.cargando = false;

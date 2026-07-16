@@ -7,7 +7,9 @@ export const RRHH_ROUTES: Routes = [
         loadComponent: () =>
             import('./seguimientos-rrhh/seguimientos-rrhh.component')
                 .then(c => c.SeguimientosRrhhComponent),
-        data: { animation: 'seguimientos-rrhh' }
+        data: {
+            animation: 'seguimientos-rrhh',
+        }
     },
     {
         path: 'rrhh-seguimientos',

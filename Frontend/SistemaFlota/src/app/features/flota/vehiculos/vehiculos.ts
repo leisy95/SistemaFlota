@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule }  from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
-import { VehiculosService }      from '../../../core/services/vehiculos.service';
-import { ConductoresService }    from '../../../core/services/conductores.service';
-import { TiposVehiculoService }  from '../../../core/services/tipos-vehiculo.service';
-import { PermisosService }       from '../../../core/services/permisos.service';
-import { Vehiculo }              from '../../../core/models/vehiculo.model';
-import { environment }           from '../../../../environments/environment';
+import { VehiculosService } from '../../../core/services/vehiculos.service';
+import { ConductoresService } from '../../../core/services/conductores.service';
+import { TiposVehiculoService } from '../../../core/services/tipos-vehiculo.service';
+import { PermisosService } from '../../../core/services/permisos.service';
+import { Vehiculo } from '../../../core/models/vehiculo.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-vehiculos',
@@ -18,15 +18,15 @@ import { environment }           from '../../../../environments/environment';
 })
 export class VehiculosComponent implements OnInit {
 
-  vehiculos:            Vehiculo[] = [];
-  conductores:          any[]      = [];
-  tiposVehiculo:        any[]      = [];
-  mostrarModal        = false;
-  vehiculoSeleccionado: any        = null;
-  modoEdicion         = false;
-  textoBusqueda       = '';
-  paginaActual        = 1;
-  itemsPorPagina      = 5;
+  vehiculos: Vehiculo[] = [];
+  conductores: any[] = [];
+  tiposVehiculo: any[] = [];
+  mostrarModal = false;
+  vehiculoSeleccionado: any = null;
+  modoEdicion = false;
+  textoBusqueda = '';
+  paginaActual = 1;
+  itemsPorPagina = 5;
   archivoSeleccionado: File | null = null;
 
   fotosUrl = environment.fotosUrl + '/vehiculos';
@@ -37,15 +37,15 @@ export class VehiculosComponent implements OnInit {
     conductorId: 0, tipoVehiculoId: 0, tenencia: ''
   };
 
-  get puedeCrear():    boolean { return this.permisosService.puedeCrear('vehiculos'); }
-  get puedeEditar():   boolean { return this.permisosService.puedeEditar('vehiculos'); }
+  get puedeCrear(): boolean { return this.permisosService.puedeCrear('vehiculos'); }
+  get puedeEditar(): boolean { return this.permisosService.puedeEditar('vehiculos'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('vehiculos'); }
 
   constructor(
-    private vehiculosService:     VehiculosService,
-    private conductoresService:   ConductoresService,
+    private vehiculosService: VehiculosService,
+    private conductoresService: ConductoresService,
     private tiposVehiculoService: TiposVehiculoService,
-    private permisosService:      PermisosService
+    private permisosService: PermisosService
   ) {
     console.log('Vehiculos:', permisosService);
   }
@@ -58,22 +58,22 @@ export class VehiculosComponent implements OnInit {
 
   obtenerVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
-      next:  (data) => this.vehiculos = data,
-      error: (err)  => console.error(err)
+      next: (data) => this.vehiculos = data,
+      error: (err) => console.error(err)
     });
   }
 
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
-      next:  (data) => this.conductores = data,
-      error: (err)  => console.error(err)
+      next: (data) => this.conductores = data,
+      error: (err) => console.error(err)
     });
   }
 
   obtenerTipos() {
     this.tiposVehiculoService.obtenerTipos().subscribe({
-      next:  (data) => this.tiposVehiculo = data,
-      error: (err)  => console.error(err)
+      next: (data) => this.tiposVehiculo = data,
+      error: (err) => console.error(err)
     });
   }
 
@@ -88,24 +88,24 @@ export class VehiculosComponent implements OnInit {
       modeloAnio: 2024, color: '', estado: 'Activo',
       conductorId: 0, tipoVehiculoId: 0, tenencia: ''
     };
-    this.archivoSeleccionado  = null;
+    this.archivoSeleccionado = null;
     this.vehiculoSeleccionado = null;
-    this.mostrarModal         = true;
+    this.mostrarModal = true;
   }
 
   editar(vehiculo: any) {
     this.modoEdicion = true;
     this.nuevo = {
-      id:             vehiculo.id,
-      placa:          vehiculo.placa,
-      marca:          vehiculo.marca,
-      modelo:         vehiculo.modelo,
-      modeloAnio:     vehiculo.modeloAnio ?? vehiculo.año,
-      color:          vehiculo.color,
-      estado:         vehiculo.estado,
-      conductorId:    vehiculo.conductorId    ?? 0,
+      id: vehiculo.id,
+      placa: vehiculo.placa,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      modeloAnio: vehiculo.modeloAnio ?? vehiculo.año,
+      color: vehiculo.color,
+      estado: vehiculo.estado,
+      conductorId: vehiculo.conductorId ?? 0,
       tipoVehiculoId: vehiculo.tipoVehiculoId ?? 0,
-      tenencia:       vehiculo.tenencia ?? ''
+      tenencia: vehiculo.tenencia ?? ''
     };
     this.mostrarModal = true;
   }
@@ -118,8 +118,8 @@ export class VehiculosComponent implements OnInit {
   }
 
   guardar() {
-    if (!this.nuevo.placa)  { Swal.fire({ icon: 'warning', title: 'Ingrese la placa' });  return; }
-    if (!this.nuevo.marca)  { Swal.fire({ icon: 'warning', title: 'Ingrese la marca' });  return; }
+    if (!this.nuevo.placa) { Swal.fire({ icon: 'warning', title: 'Ingrese la placa' }); return; }
+    if (!this.nuevo.marca) { Swal.fire({ icon: 'warning', title: 'Ingrese la marca' }); return; }
     if (this.nuevo.tipoVehiculoId === 0) {
       Swal.fire({ icon: 'warning', title: 'Seleccione el tipo de vehículo' }); return;
     }
@@ -128,13 +128,13 @@ export class VehiculosComponent implements OnInit {
     }
 
     const formData = new FormData();
-    formData.append('Placa',          this.nuevo.placa);
-    formData.append('Marca',          this.nuevo.marca);
-    formData.append('Modelo',         this.nuevo.modelo);
-    formData.append('Año',            this.nuevo.modeloAnio.toString());
-    formData.append('Color',          this.nuevo.color);
-    formData.append('Estado',         this.nuevo.estado);
-    formData.append('ConductorId',    this.nuevo.conductorId.toString());
+    formData.append('Placa', this.nuevo.placa);
+    formData.append('Marca', this.nuevo.marca);
+    formData.append('Modelo', this.nuevo.modelo);
+    formData.append('Año', this.nuevo.modeloAnio.toString());
+    formData.append('Color', this.nuevo.color);
+    formData.append('Estado', this.nuevo.estado);
+    formData.append('ConductorId', this.nuevo.conductorId.toString());
     formData.append('TipoVehiculoId', this.nuevo.tipoVehiculoId.toString());
     if (this.nuevo.tenencia) formData.append('Tenencia', this.nuevo.tenencia);
     if (this.archivoSeleccionado)
@@ -182,8 +182,8 @@ export class VehiculosComponent implements OnInit {
   get vehiculosFiltrados() {
     const q = this.textoBusqueda.toLowerCase();
     return this.vehiculos.filter(v =>
-      v.placa?.toLowerCase().includes(q)  ||
-      v.marca?.toLowerCase().includes(q)  ||
+      v.placa?.toLowerCase().includes(q) ||
+      v.marca?.toLowerCase().includes(q) ||
       v.modelo?.toLowerCase().includes(q) ||
       v.color?.toLowerCase().includes(q)
     );
