@@ -27,9 +27,7 @@ namespace SistemaFlota
             _context = context;
         }
 
-        // =========================
         // GET
-        // =========================
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
