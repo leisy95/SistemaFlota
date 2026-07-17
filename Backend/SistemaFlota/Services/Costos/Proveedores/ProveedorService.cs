@@ -201,5 +201,10 @@ namespace SistemaFlota.Services.Costos.Proveedores
         {
             throw new NotImplementedException();
         }
+
+        public Task<ProveedorPaginadoDto> ObtenerAsync(string? search, int page, int pageSize)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -4,7 +4,13 @@ namespace SistemaFlota.Services.Costos.Proveedores
 {
     public interface IProveedorService
     {
-        Task<ProveedorPaginadoDto> ObtenerAsync(string? search, int page, int pageSize);
+        Task<ProveedorPaginadoDto> ObtenerAsync(
+            string? search,
+            string? estado,
+            string? orden,
+            int page,
+            int pageSize
+        );
 
         Task<ProveedorDto?> ObtenerPorIdAsync(int id);
 
