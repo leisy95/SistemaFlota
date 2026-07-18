@@ -92,6 +92,9 @@ namespace SistemaFlota
                     await EjecutarSiToca($"seguimiento_sabado_{h}", horaActual, horaObjetivo, EnviarSeguimientoSabadoAsync);
                 }
             }
+
+            // ── Reintento y escalamiento (corre siempre, cada minuto) ────────
+            await RevisarEscalamientoAsync();
         }
 
         // Ejecuta la acción solo si la hora actual coincide (±1 min) con la hora objetivo
@@ -150,8 +153,13 @@ namespace SistemaFlota
                 }
                 var mensaje = $"⚠️ RECORDATORIO AUTORIZACIÓN\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma si ya terminaste tu ruta o sigues en camino.";
                 await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+
+                a.FechaUltimoRecordatorio = DateTime.Now;
+                a.IntentosRecordatorio = 1;
+                a.Escalado = false;
             }
 
+            await db.SaveChangesAsync();
             _logger.LogInformation("✅ Recordatorio fin de ruta enviado a {Cantidad} autorizaciones activas", activas.Count);
         }
 
@@ -200,6 +208,59 @@ namespace SistemaFlota
             }
 
             _logger.LogInformation("✅ Seguimiento suave sábado enviado a {Cantidad} autorizaciones", activas.Count);
+        }
+
+        // ── Si no responde en 15 min: reintenta una vez; si sigue sin responder, escala ──
+        private async Task RevisarEscalamientoAsync()
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var candidatas = await db.Autorizaciones
+                .Include(a => a.Conductor)
+                .Where(a => a.Estado == "Autorizado"
+                         && a.EstadoLlegada == null
+                         && a.FechaUltimoRecordatorio != null
+                         && !a.Escalado)
+                .ToListAsync();
+
+            foreach (var a in candidatas)
+            {
+                var minutosSinResponder = (DateTime.Now - a.FechaUltimoRecordatorio!.Value).TotalMinutes;
+                if (minutosSinResponder < 15) continue;
+
+                if (a.IntentosRecordatorio == 1)
+                {
+                    // Reintento
+                    if (a.Conductor != null && !string.IsNullOrWhiteSpace(a.Conductor.Telefono))
+                    {
+                        var mensaje = $"⚠️ RECORDATORIO (reintento)\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nNo hemos recibido tu respuesta. Por favor confirma tu estado.";
+                        await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+                    }
+                    a.FechaUltimoRecordatorio = DateTime.Now;
+                    a.IntentosRecordatorio = 2;
+                    _logger.LogInformation("🔁 Reintento enviado — Autorización #{Id}", a.Id);
+                }
+                else
+                {
+                    // Escala a supervisores
+                    var contactos = await db.ContactosNotificacion
+                        .Where(c => c.Activo && c.RecibeIncidentes)
+                        .Select(c => c.NumeroWhatsApp)
+                        .ToListAsync();
+
+                    if (contactos.Any())
+                    {
+                        var mensajeEscalado = $"🔴 CONDUCTOR SIN RESPUESTA\n\nConductor: {a.Conductor?.Nombre ?? "-"}\nDestino: {a.DestinoCompleto}\nAutorización #{a.Id}\n\nNo ha respondido en más de 30 minutos. Por favor verificar.";
+                        await _flotaChat.EnviarAMultiplesAsync(contactos, mensajeEscalado);
+                    }
+
+                    a.Escalado = true;
+                    _logger.LogWarning("🔴 Autorización #{Id} ESCALADA — sin respuesta del conductor", a.Id);
+                }
+            }
+
+            await db.SaveChangesAsync();
         }
     }
 }
