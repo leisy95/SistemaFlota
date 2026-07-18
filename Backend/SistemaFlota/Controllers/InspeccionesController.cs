@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using System.Security.Claims;
+using SistemaFlota.DTOs;
 
 namespace SistemaFlota
 {
@@ -258,14 +259,17 @@ namespace SistemaFlota
                         $"• {string.Join("\n• ", itemsNoConformes)}";
 
                 var numerosGrupo = await _context.ContactosNotificacion
-                    .Where(c => c.Activo && c.RecibeIncidentes)
+                    .Where(c => c.Activo && c.RecibeInspecciones)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                try {
+                try
+                {
                     await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
                     inspeccion.WhatsAppEnviado = true;
-                } catch {
+                }
+                catch
+                {
                     inspeccion.WhatsAppEnviado = false;
                 }
                 await _context.SaveChangesAsync();
@@ -303,13 +307,5 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
-    }
-
-    public class ChecklistGuardar
-    {
-        public int? id { get; set; }
-        public string? estado { get; set; }
-        public string? observacion { get; set; }
-        public string? descripcion { get; set; }
     }
 }

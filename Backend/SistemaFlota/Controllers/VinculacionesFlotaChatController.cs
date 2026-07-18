@@ -109,6 +109,26 @@ namespace SistemaFlota.Controllers
             }
         }
 
+        // ── GET: lista completa de Conductores o Contactos (para el <select>) ──
+        [HttpGet("entidades")]
+        public async Task<IActionResult> GetEntidades([FromQuery] string tipo = "Conductor")
+        {
+            if (tipo == "Conductor")
+            {
+                var conductores = await _context.Conductores
+                    .Select(c => new { c.Id, c.Nombre, c.Telefono })
+                    .ToListAsync();
+                return Ok(conductores);
+            }
+            else
+            {
+                var contactos = await _context.ContactosNotificacion
+                    .Select(c => new { c.Id, c.Nombre, Telefono = c.NumeroWhatsApp })
+                    .ToListAsync();
+                return Ok(contactos);
+            }
+        }
+
         // ── POST: crear vinculación ─────────────────────────────────────────
         [HttpPost]
         public async Task<IActionResult> Crear([FromBody] CrearVinculacionDto dto)
