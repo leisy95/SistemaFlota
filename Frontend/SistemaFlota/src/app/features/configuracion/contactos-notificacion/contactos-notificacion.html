@@ -2,16 +2,16 @@
 
   <div class="header">
     <div>
-      <h1>📱 Contactos de Notificación</h1>
+      <h1><i class="fa-solid fa-mobile-screen-button"></i> Contactos de Notificación</h1>
       <p class="subtitulo">Números WhatsApp que reciben alertas del sistema</p>
     </div>
     <button class="btn-agregar" *ngIf="puedeCrear" (click)="agregarContacto()">
-      + Nuevo Contacto
+      <i class="fa-solid fa-plus"></i> Nuevo Contacto
     </button>
   </div>
 
   <div class="aviso-info">
-    💡 Configura qué contactos reciben alertas de incidentes y/o pedidos urgentes.
+    <i class="fa-solid fa-circle-info"></i> Configura qué contactos reciben alertas de incidentes, pedidos e inspecciones.
   </div>
 
   <!-- TABLA -->
@@ -19,8 +19,14 @@
     <table>
       <thead>
         <tr>
-          <th>Nombre</th><th>Área</th><th>WhatsApp</th>
-          <th>Incidentes</th><th>Pedidos</th><th>Estado</th><th>Acciones</th>
+          <th>Nombre</th>
+          <th>Área</th>
+          <th>WhatsApp</th>
+          <th>Incidentes</th>
+          <th>Pedidos</th>
+          <th>Inspecciones</th>
+          <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -30,12 +36,20 @@
           <td data-label="WhatsApp"><span class="numero">+{{ c.numeroWhatsApp }}</span></td>
           <td data-label="Incidentes">
             <span [class]="c.recibeIncidentes ? 'si' : 'no'">
-              {{ c.recibeIncidentes ? '✅ Sí' : '❌ No' }}
+              <i class="fa-solid" [class.fa-check]="c.recibeIncidentes" [class.fa-xmark]="!c.recibeIncidentes"></i>
+              {{ c.recibeIncidentes ? 'Sí' : 'No' }}
             </span>
           </td>
           <td data-label="Pedidos">
             <span [class]="c.recibePedidos ? 'si' : 'no'">
-              {{ c.recibePedidos ? '✅ Sí' : '❌ No' }}
+              <i class="fa-solid" [class.fa-check]="c.recibePedidos" [class.fa-xmark]="!c.recibePedidos"></i>
+              {{ c.recibePedidos ? 'Sí' : 'No' }}
+            </span>
+          </td>
+          <td data-label="Inspecciones">
+            <span [class]="c.recibeInspecciones ? 'si' : 'no'">
+              <i class="fa-solid" [class.fa-check]="c.recibeInspecciones" [class.fa-xmark]="!c.recibeInspecciones"></i>
+              {{ c.recibeInspecciones ? 'Sí' : 'No' }}
             </span>
           </td>
           <td data-label="Estado">
@@ -45,12 +59,18 @@
           </td>
           <td data-label="Acciones">
             <div class="btn-acciones">
-              <button class="btn-probar"   (click)="probarWhatsApp(c)">📱 Probar</button>
-              <button class="btn-editar"   *ngIf="puedeEditar"   (click)="editarContacto(c)">✏️</button>
-              <button class="btn-estado"   *ngIf="puedeEditar"   (click)="cambiarEstado(c)">
-                {{ c.activo ? '🔴' : '🟢' }}
+              <button class="btn-probar" (click)="probarWhatsApp(c)">
+                <i class="fa-solid fa-mobile-screen-button"></i> Probar
               </button>
-              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminarContacto(c.id)">🗑️</button>
+              <button class="btn-editar" *ngIf="puedeEditar" (click)="editarContacto(c)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-estado" *ngIf="puedeEditar" (click)="cambiarEstado(c)">
+                <i class="fa-solid" [class.fa-circle-xmark]="c.activo" [class.fa-circle-check]="!c.activo"></i>
+              </button>
+              <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminarContacto(c.id)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -59,10 +79,10 @@
   </div>
 
   <div class="vacio" *ngIf="contactos.length === 0">
-    <p>📱 No hay contactos registrados</p>
+    <p><i class="fa-solid fa-mobile-screen-button"></i> No hay contactos registrados</p>
     <small>Agrega los números de WhatsApp del equipo de operaciones</small>
     <button class="btn-agregar" *ngIf="puedeCrear" (click)="agregarContacto()">
-      + Agregar primer contacto
+      <i class="fa-solid fa-plus"></i> Agregar primer contacto
     </button>
   </div>
 
@@ -73,17 +93,20 @@
   <div class="modal">
 
     <div class="modal-header">
-      <h2>{{ editando ? '✏️ Editar Contacto' : '📱 Nuevo Contacto' }}</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      <h2>
+        <i class="fa-solid" [class.fa-pen]="editando" [class.fa-mobile-screen-button]="!editando"></i>
+        {{ editando ? 'Editar Contacto' : 'Nuevo Contacto' }}
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="form-group">
-      <label>👤 Nombre completo *</label>
+      <label><i class="fa-solid fa-user"></i> Nombre completo *</label>
       <input type="text" [(ngModel)]="nuevoContacto.nombre" placeholder="Ej: Juan Pérez">
     </div>
 
     <div class="form-group">
-      <label>🏢 Área *</label>
+      <label><i class="fa-solid fa-building"></i> Área *</label>
       <select [(ngModel)]="nuevoContacto.area">
         <option value="">Seleccione el área</option>
         <option *ngFor="let a of areas" [value]="a">{{ a }}</option>
@@ -91,32 +114,35 @@
     </div>
 
     <div class="form-group">
-      <label>📱 Número WhatsApp *</label>
-      <input type="tel" [(ngModel)]="nuevoContacto.numeroWhatsApp"
-        placeholder="Ej: 573001234567">
+      <label><i class="fa-solid fa-mobile-screen-button"></i> Número WhatsApp *</label>
+      <input type="tel" [(ngModel)]="nuevoContacto.numeroWhatsApp" placeholder="Ej: 573001234567">
       <small>Incluya código de país sin + ni espacios. Colombia: 57 + número. Ej: 573001234567</small>
     </div>
 
     <div class="checks-grupo">
       <div class="form-check">
-        <label class="check-label"
-          (click)="nuevoContacto.recibeIncidentes = !nuevoContacto.recibeIncidentes">
-          <span class="check-icon">{{ nuevoContacto.recibeIncidentes ? '✅' : '⬜' }}</span>
+        <label class="check-label" (click)="nuevoContacto.recibeIncidentes = !nuevoContacto.recibeIncidentes">
+          <i class="fa-solid" [class.fa-square-check]="nuevoContacto.recibeIncidentes" [class.fa-square]="!nuevoContacto.recibeIncidentes"></i>
           Recibe notificaciones de incidentes en ruta
         </label>
       </div>
       <div class="form-check">
-        <label class="check-label"
-          (click)="nuevoContacto.recibePedidos = !nuevoContacto.recibePedidos">
-          <span class="check-icon">{{ nuevoContacto.recibePedidos ? '✅' : '⬜' }}</span>
-          Recibe notificaciones de pedidos SOS/Urgentes
+        <label class="check-label" (click)="nuevoContacto.recibePedidos = !nuevoContacto.recibePedidos">
+          <i class="fa-solid" [class.fa-square-check]="nuevoContacto.recibePedidos" [class.fa-square]="!nuevoContacto.recibePedidos"></i>
+          Recibe notificaciones de pedidos
+        </label>
+      </div>
+      <div class="form-check">
+        <label class="check-label" (click)="nuevoContacto.recibeInspecciones = !nuevoContacto.recibeInspecciones">
+          <i class="fa-solid" [class.fa-square-check]="nuevoContacto.recibeInspecciones" [class.fa-square]="!nuevoContacto.recibeInspecciones"></i>
+          Recibe notificaciones de inspecciones vehiculares
         </label>
       </div>
     </div>
 
     <div class="modal-botones">
       <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-guardar"  (click)="guardarContacto()">
+      <button class="btn-guardar" (click)="guardarContacto()">
         {{ editando ? 'Guardar cambios' : 'Agregar contacto' }}
       </button>
     </div>

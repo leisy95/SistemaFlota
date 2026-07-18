@@ -20,9 +20,8 @@ export class ContactosNotificacionComponent implements OnInit {
 
   nuevoContacto = {
     nombre: '', area: '', numeroWhatsApp: '',
-    activo: true, recibeIncidentes: true, recibePedidos: false
+    activo: true, recibeIncidentes: true, recibePedidos: false, recibeInspecciones: false
   };
-
   readonly areas = ['Operaciones','RRHH','Gerencia','Mantenimiento','Logística','Bodega','Otro'];
 
   get puedeCrear():    boolean { return this.permisosService.puedeCrear('contactos-notificacion'); }
@@ -47,7 +46,7 @@ export class ContactosNotificacionComponent implements OnInit {
     this.editando = false; this.editandoId = null;
     this.nuevoContacto = {
       nombre: '', area: '', numeroWhatsApp: '',
-      activo: true, recibeIncidentes: true, recibePedidos: false
+      activo: true, recibeIncidentes: true, recibePedidos: false, recibeInspecciones: false
     };
     this.mostrarModal = true;
   }
@@ -72,12 +71,13 @@ export class ContactosNotificacionComponent implements OnInit {
   editarContacto(contacto: any) {
     this.editando = true; this.editandoId = contacto.id;
     this.nuevoContacto = {
-      nombre:           contacto.nombre,
-      area:             contacto.area,
-      numeroWhatsApp:   contacto.numeroWhatsApp,
-      activo:           contacto.activo,
-      recibeIncidentes: contacto.recibeIncidentes,
-      recibePedidos:    contacto.recibePedidos ?? false
+      nombre:              contacto.nombre,
+      area:                contacto.area,
+      numeroWhatsApp:      contacto.numeroWhatsApp,
+      activo:              contacto.activo,
+      recibeIncidentes:    contacto.recibeIncidentes,
+      recibePedidos:       contacto.recibePedidos ?? false,
+      recibeInspecciones:  contacto.recibeInspecciones ?? false
     };
     this.mostrarModal = true;
   }

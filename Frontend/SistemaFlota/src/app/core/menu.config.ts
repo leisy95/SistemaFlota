@@ -215,6 +215,14 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
+        key: 'vinculaciones-flotachat',
+        label: 'Vincular FlotaChat',
+        icon: 'fa-solid fa-link',
+        ruta: '/configuracion/vinculaciones-flotachat',
+        modulo: 'configuracion'
+    },
+
+    {
         key: 'usuarios',
         label: 'Usuarios',
         icon: 'fa-solid fa-file-lines',
