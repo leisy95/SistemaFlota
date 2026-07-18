@@ -47,7 +47,7 @@ namespace SistemaFlota
         public DbSet<FormatoFGC008> FormatosFGC008 { get; set; }
         public DbSet<NumeroEmergencia> NumerosEmergencia { get; set; }
         public DbSet<CosteFlete> CostosFletes { get; set; }
-
-        //public DbSet<CosteFlete> CostosFletes { get; set; }
+        public DbSet<VinculacionFlotaChat> VinculacionesFlotaChat { get; set; }
     }
 }
+    
