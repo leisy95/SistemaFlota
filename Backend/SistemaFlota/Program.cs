@@ -83,6 +83,8 @@ builder.Services.AddScoped<AuditoriaService>();
 // ── TWILIO ────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<ITwilioService, FlotaChatService>();
 
+builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
+
 // ── Zona horaria Colombia UTC-5 ───────────────────────────────────────────────
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 

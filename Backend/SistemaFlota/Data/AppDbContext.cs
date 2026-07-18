@@ -48,6 +48,6 @@ namespace SistemaFlota
         public DbSet<NumeroEmergencia> NumerosEmergencia { get; set; }
         public DbSet<CosteFlete> CostosFletes { get; set; }
         public DbSet<VinculacionFlotaChat> VinculacionesFlotaChat { get; set; }
+        public DbSet<RespuestaFlotaChat> RespuestasFlotaChat { get; set; }
     }
 }
-    
