@@ -15,6 +15,7 @@ namespace SistemaFlota
         private static readonly TimeSpan HoraPausaTarde = new(16, 0, 0);
         private static readonly TimeSpan HoraRecordatorioTarde = new(17, 50, 0);
         private static readonly TimeSpan HoraVencimientoTarde = new(18, 0, 0);
+        private static readonly TimeSpan HoraResumenDiario = new(18, 30, 0);
 
         // Marca de la última acción ejecutada hoy, para no repetir en el mismo minuto
         private DateTime _ultimaFechaProcesada = DateTime.MinValue;
@@ -81,6 +82,7 @@ namespace SistemaFlota
             {
                 await EjecutarSiToca("vencimiento_12", horaActual, HoraVencimientoManana, ProcesarVencimientoAsync);
                 await EjecutarSiToca("vencimiento_18", horaActual, HoraVencimientoTarde, ProcesarVencimientoAsync);
+                await EjecutarSiToca("resumen_diario", horaActual, HoraResumenDiario, EnviarResumenDiarioAsync);
             }
 
             // ── Sábado: seguimiento suave cada hora desde la 1pm hasta las 8pm ─
@@ -188,7 +190,40 @@ namespace SistemaFlota
             await db.SaveChangesAsync();
             _logger.LogInformation("🔴 {Cantidad} autorizaciones marcadas como vencidas", activas.Count);
         }
+        // ── Resumen diario: estadísticas del día a los Contactos de Notificación ──
+        private async Task EnviarResumenDiarioAsync()
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            var hoy = DateTime.Now.Date;
+            var autorizacionesHoy = await db.Autorizaciones
+                .Where(a => a.FechaCreacion.Date == hoy)
+                .ToListAsync();
+
+            var total = autorizacionesHoy.Count;
+            var completadas = autorizacionesHoy.Count(a => a.EstadoLlegada == "ReportadaLlegada" || a.EstadoLlegada == "Completada");
+            var vencidas = autorizacionesHoy.Count(a => a.EstadoLlegada == "Vencido");
+            var conNovedad = autorizacionesHoy.Count(a => !string.IsNullOrWhiteSpace(a.NovedadesViaje));
+            var enCurso = autorizacionesHoy.Count(a => a.Estado == "Autorizado" && a.EstadoLlegada == null);
+
+            var mensaje = $"📊 RESUMEN DEL DÍA — {hoy:dd/MM/yyyy}\n\n" +
+                          $"Total autorizaciones: {total}\n" +
+                          $"✅ Completadas: {completadas}\n" +
+                          $"🔴 Vencidas: {vencidas}\n" +
+                          $"⚠️ Con novedad: {conNovedad}\n" +
+                          $"🚚 Aún en curso: {enCurso}";
+
+            var contactos = await db.ContactosNotificacion
+                .Where(c => c.Activo && c.RecibeIncidentes)
+                .Select(c => c.NumeroWhatsApp)
+                .ToListAsync();
+
+            if (contactos.Any())
+                await _flotaChat.EnviarAMultiplesAsync(contactos, mensaje);
+
+            _logger.LogInformation("📊 Resumen diario enviado — Total: {Total}, Completadas: {Completadas}, Vencidas: {Vencidas}", total, completadas, vencidas);
+        }
         // ── Sábado: seguimiento suave, sin marcar vencido ────────────────────
         private async Task EnviarSeguimientoSabadoAsync()
         {
