@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using SistemaFlota.DTOs;
 
 namespace SistemaFlota.Controllers
 {
@@ -10,10 +11,12 @@ namespace SistemaFlota.Controllers
     public class VinculacionesFlotaChatController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _config;
 
-        public VinculacionesFlotaChatController(AppDbContext context)
+        public VinculacionesFlotaChatController(AppDbContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         // ── GET: listar vinculaciones existentes por tipo ──────────────────
@@ -43,6 +46,67 @@ namespace SistemaFlota.Controllers
                 .ToListAsync();
 
             return Ok(conductores);
+        }
+
+        // ── GET: usuarios de FlotaChat pendientes, con sugerencia de match ──
+        [HttpGet("usuarios-flotachat-pendientes")]
+        public async Task<IActionResult> GetUsuariosFlotaChatPendientes([FromQuery] string tipo = "Conductor")
+        {
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Add("X-Api-Key",
+                _config["FlotaChat:ApiKey"] ?? "FlotaChat_API_Key_2026_Seguro_XYZ789");
+
+            var apiUrl = _config["FlotaChat:ApiUrl"] ?? "https://apichat.gecobagsci.com";
+            var response = await http.GetAsync($"{apiUrl}/api/Externo/usuarios");
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode(502, new { mensaje = "No se pudo conectar con FlotaChat" });
+
+            var json = await response.Content.ReadAsStringAsync();
+            var usuarios = System.Text.Json.JsonSerializer.Deserialize<List<UsuarioFlotaChatDto>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+
+            var yaVinculados = await _context.VinculacionesFlotaChat
+                .Where(v => v.TipoEntidad == tipo)
+                .Select(v => v.FlotaChatUsuarioId)
+                .ToListAsync();
+
+            // Filtra por rol: conductores para "Conductor", cualquier otro rol para "ContactoNotificacion"
+            var rolBuscado = tipo == "Conductor" ? "conductor" : null;
+            var pendientes = usuarios
+                .Where(u => (rolBuscado == null || u.Rol == rolBuscado) && !yaVinculados.Contains(u.Id))
+                .ToList();
+
+            if (tipo == "Conductor")
+            {
+                var conductoresSistema = await _context.Conductores
+                    .Select(c => new { c.Id, c.Nombre, c.Telefono })
+                    .ToListAsync();
+
+                var resultadoConductores = pendientes.Select(u => new
+                {
+                    u.Id,
+                    u.Nombre,
+                    u.Celular,
+                    Sugerencia = conductoresSistema.FirstOrDefault(c => c.Telefono == u.Celular)
+                });
+                return Ok(resultadoConductores);
+            }
+            else
+            {
+                var contactosSistema = await _context.ContactosNotificacion
+                    .Select(c => new { c.Id, c.Nombre, c.NumeroWhatsApp })
+                    .ToListAsync();
+
+                var resultadoContactos = pendientes.Select(u => new
+                {
+                    u.Id,
+                    u.Nombre,
+                    u.Celular,
+                    Sugerencia = contactosSistema.FirstOrDefault(c => c.NumeroWhatsApp == u.Celular)
+                });
+                return Ok(resultadoContactos);
+            }
         }
 
         // ── POST: crear vinculación ─────────────────────────────────────────
@@ -82,7 +146,6 @@ namespace SistemaFlota.Controllers
         }
 
         // ── Helper interno: buscar Conductor por FlotaChatUsuarioId ─────────
-        // (lo usará el webhook y el BackgroundService más adelante)
         public static async Task<int?> ObtenerConductorId(AppDbContext context, int flotaChatUsuarioId)
         {
             var vinculacion = await context.VinculacionesFlotaChat
@@ -90,11 +153,4 @@ namespace SistemaFlota.Controllers
             return vinculacion?.EntidadId;
         }
     }
-
-    public record CrearVinculacionDto(
-        int FlotaChatUsuarioId,
-        string TipoEntidad,
-        int EntidadId,
-        string? Telefono
-    );
 }
