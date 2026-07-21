@@ -13,32 +13,32 @@ import { PermisosService } from '../../../core/services/permisos.service';
 })
 export class ContactosNotificacionComponent implements OnInit {
 
-  contactos:    any[] = [];
-  mostrarModal  = false;
-  editando      = false;
-  editandoId:   number | null = null;
+  contactos: any[] = [];
+  mostrarModal = false;
+  editando = false;
+  editandoId: number | null = null;
 
   nuevoContacto = {
     nombre: '', area: '', numeroWhatsApp: '',
     activo: true, recibeIncidentes: true, recibePedidos: false, recibeInspecciones: false
   };
-  readonly areas = ['Operaciones','RRHH','Gerencia','Mantenimiento','Logística','Bodega','Otro'];
+  readonly areas = ['Operaciones', 'RRHH', 'Gerencia', 'Mantenimiento', 'Logística', 'Bodega', 'Otro'];
 
-  get puedeCrear():    boolean { return this.permisosService.puedeCrear('contactos-notificacion'); }
-  get puedeEditar():   boolean { return this.permisosService.puedeEditar('contactos-notificacion'); }
+  get puedeCrear(): boolean { return this.permisosService.puedeCrear('contactos-notificacion'); }
+  get puedeEditar(): boolean { return this.permisosService.puedeEditar('contactos-notificacion'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('contactos-notificacion'); }
 
   constructor(
     private contactosService: ContactosService,
-    private permisosService:  PermisosService
-  ) {}
+    private permisosService: PermisosService
+  ) { }
 
   ngOnInit(): void { this.cargarContactos(); }
 
   cargarContactos() {
     this.contactosService.obtenerContactos().subscribe({
       next: (data) => this.contactos = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -52,8 +52,8 @@ export class ContactosNotificacionComponent implements OnInit {
   }
 
   guardarContacto() {
-    if (!this.nuevoContacto.nombre)         { alert('Ingrese el nombre');          return; }
-    if (!this.nuevoContacto.area)           { alert('Seleccione el área');         return; }
+    if (!this.nuevoContacto.nombre) { alert('Ingrese el nombre'); return; }
+    if (!this.nuevoContacto.area) { alert('Seleccione el área'); return; }
     if (!this.nuevoContacto.numeroWhatsApp) { alert('Ingrese el número WhatsApp'); return; }
 
     this.nuevoContacto.numeroWhatsApp = this.nuevoContacto.numeroWhatsApp.replace(/\D/g, '');
@@ -71,13 +71,13 @@ export class ContactosNotificacionComponent implements OnInit {
   editarContacto(contacto: any) {
     this.editando = true; this.editandoId = contacto.id;
     this.nuevoContacto = {
-      nombre:              contacto.nombre,
-      area:                contacto.area,
-      numeroWhatsApp:      contacto.numeroWhatsApp,
-      activo:              contacto.activo,
-      recibeIncidentes:    contacto.recibeIncidentes,
-      recibePedidos:       contacto.recibePedidos ?? false,
-      recibeInspecciones:  contacto.recibeInspecciones ?? false
+      nombre: contacto.nombre,
+      area: contacto.area,
+      numeroWhatsApp: contacto.numeroWhatsApp,
+      activo: contacto.activo,
+      recibeIncidentes: contacto.recibeIncidentes,
+      recibePedidos: contacto.recibePedidos ?? false,
+      recibeInspecciones: contacto.recibeInspecciones ?? false
     };
     this.mostrarModal = true;
   }
