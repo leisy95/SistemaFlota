@@ -37,8 +37,8 @@
             <div class="grid2">
 
                 <div class="campo">
-                    <label>Materia Prima</label>
-                    <input type="text" name="materiaPrima" [(ngModel)]="material.materiaPrima"
+                    <label>Nombre Material</label>
+                    <input type="text" name="nombreMaterial" [(ngModel)]="material.nombreMaterial"
                         placeholder="Ej: Polietileno de Baja Densidad">
                 </div>
 
@@ -47,9 +47,9 @@
 
                     <select name="densidad" [(ngModel)]="material.densidad">
 
-                        <option>PEBD</option>
-                        <option>PEAD</option>
-                        <option>PP</option>
+                        <option>Baja</option>
+                        <option>Alta</option>
+                        <option>Otro</option>
 
                     </select>
                 </div>
@@ -83,9 +83,9 @@
             <div class="grid2">
 
                 <div class="campo">
-                    <label>Línea de Producción</label>
+                    <label>Tipo</label>
 
-                    <input type="text" name="lineaProduccion" [(ngModel)]="material.lineaProduccion">
+                    <input type="text" name="tipoProduccion" [(ngModel)]="material.tipoProduccion">
                 </div>
 
                 <!-- NUEVO -->
@@ -103,19 +103,6 @@
                     <label>Precio Base/KG (COP)</label>
 
                     <input type="number" name="precioBaseKg" [(ngModel)]="material.precioBaseKg">
-                </div>
-
-                <div class="campo">
-                    <label>Bultos</label>
-
-                    <input type="number" name="bultos" [(ngModel)]="material.bultos">
-                </div>
-
-                <div class="campo">
-                    <label>Cantidad (KG)</label>
-
-                    <input type="number" name="cantidadKg" [(ngModel)]="material.cantidadKg"><input type="number"
-                        placeholder="0">
                 </div>
             </div>
 

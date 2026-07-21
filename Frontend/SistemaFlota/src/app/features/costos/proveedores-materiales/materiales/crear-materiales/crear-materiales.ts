@@ -33,16 +33,14 @@ export class CrearMateriales implements OnInit {
 
   material: Material = {
     idProveedor: 0,
-    materiaPrima: '',
+    nombreMaterial: '',
     descripcionCompra: '',
     densidad: '',
     categoria: '',
     color: '',
-    lineaProduccion: '',
+    tipoProduccion: '',
     unidad: '',
     precioBaseKg: 0,
-    bultos: 0,
-    cantidadKg: 0,
     activo: true
   };
 
