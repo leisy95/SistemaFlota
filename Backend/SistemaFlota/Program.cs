@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaFlota;
+using SistemaFlota.Services.Costos.Materiales;
 using SistemaFlota.Services.Costos.Proveedores;
 using System.Text;
 
@@ -19,7 +20,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
+// CORS 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
@@ -61,7 +62,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 Console.WriteLine($">>> ENV: {builder.Environment.EnvironmentName}");
 Console.WriteLine($">>> CONN: {connectionString}");
 
-// ── MySQL con versión fija — evita AutoDetect en Railway ──────────────────────
+// ── MySQL con versión fija — evita AutoDetect en Railway
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
@@ -80,6 +81,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Servicios
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
+builder.Services.AddScoped<IMaterialesService, MaterialService>();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 

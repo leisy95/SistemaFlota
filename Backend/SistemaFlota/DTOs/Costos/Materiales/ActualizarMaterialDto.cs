@@ -1,23 +1,15 @@
-﻿using SistemaFlota.Models.Proveedores;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace SistemaFlota.Models.Prov_Materiales.Materiales
+namespace SistemaFlota.DTOs.Costos.Materiales
 {
-    public class Material
+    public class ActualizarMaterialDto
     {
-        [Key]
-        public int IdMaterial { get; set; }
-
         [Required]
         public int IdProveedor { get; set; }
 
-        [ForeignKey(nameof(IdProveedor))]
-        public Proveedor? Proveedor { get; set; }
-
         [Required]
         [StringLength(150)]
-        public string NombreMaterial { get; set; } = string.Empty;
+        public string NombreMaterial{ get; set; } = string.Empty;
 
         [StringLength(250)]
         public string? DescripcionCompra { get; set; }
@@ -40,15 +32,9 @@ namespace SistemaFlota.Models.Prov_Materiales.Materiales
         [StringLength(20)]
         public string Unidad { get; set; } = string.Empty;
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Range(0, double.MaxValue)]
         public decimal PrecioBaseKg { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-
-        public bool Activo { get; set; } = true;
-
-        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
-
-        public DateTime? FechaActualizacion { get; set; }
+        public bool Activo { get; set; }
     }
 }

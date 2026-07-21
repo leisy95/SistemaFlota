@@ -46,20 +46,22 @@ namespace SistemaFlota.Migrations
                     IdMaterial = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     IdProveedor = table.Column<int>(type: "int", nullable: false),
-                    MateriaPrima = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                    NombreMaterial = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DescripcionCompra = table.Column<string>(type: "varchar(250)", maxLength: 250, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Densidad = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Calidad = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    Categoria = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Color = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    LineaProduccion = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                    TipoProduccion = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Unidad = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PrecioBaseKg = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Bultos = table.Column<int>(type: "int", nullable: false),
-                    CantidadKg = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Activo = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Activo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FechaActualizacion = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },

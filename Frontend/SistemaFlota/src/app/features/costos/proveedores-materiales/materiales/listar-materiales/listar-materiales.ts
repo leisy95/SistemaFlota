@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { CrearMateriales } from '../crear-materiales/crear-materiales';
+import { Material } from '../../../../../core/models/materiales/material.models';
+import { MaterialService } from '../../../../../core/services/costos/materiales/materiales.service';
+import { ProveedorFiltro } from '../../../../../core/models/materiales/filtros-material.models';
 
 @Component({
   selector: 'app-listar-materiales',
@@ -18,62 +21,101 @@ import { CrearMateriales } from '../crear-materiales/crear-materiales';
 export class ListarMateriales {
 
   buscar = '';
+  estado = '';
+  orden = '';
 
-  materiales = [
-    {
-      codigo: 'R0001',
-      proveedor: 'Plásticos del Norte',
-      material: 'Polietileno',
-      descripcion: 'Dow DFDA-1737 - Soplado',
-      densidad: 'PEBD',
-      categoria: 'MP Original',
-      tipo: 'Almacenable',
-      color: 'Natural',
-      linea: 'Línea A',
-      precio: 48500,
-      bultos: 50,
-      Unidad: 'Kilogramos',
-      cantidad: 1250,
-      fecha: '14/07/2026'
-    },
-    {
-      codigo: 'R0002',
-      proveedor: 'Gecobags',
-      material: 'Polipropileno',
-      descripcion: 'Fea DFDA-1737 - Arrugado',
-      densidad: 'PEAD',
-      categoria: 'MP Original',
-      tipo: 'Almacenable',
-      color: 'Negro',
-      linea: 'Línea B',
-      precio: 39200,
-      bultos: 35,
-      Unidad: 'Kilogramos',
-      cantidad: 980,
-      fecha: '13/07/2026'
-    },
-    {
-      codigo: 'R0003',
-      proveedor: 'Resinplas',
-      material: 'PVC',
-      descripcion: 'Gae DFDA-1737 - Liso',
-      densidad: 'PVC',
-      categoria: 'MP Post-Industrial',
-      tipo: 'Consumible',
-      color: 'Blanco',
-      linea: 'Línea C',
-      precio: 52800,
-      bultos: 40,
-      Unidad: 'Kilogramos',
-      cantidad: 1500,
-      fecha: '12/07/2026'
-    }
-  ];
+  pagina = 1;
+  tamanoPagina = 10;
+
+  totalRegistros = 0;
+  totalPagina = 0;
+  materiales: Material[] = [];
+
+  // filtros
+  proveedor = '';
+  proveedores: ProveedorFiltro[] = [];
+
+  color = '';
+  colores: string[] = [];
 
   constructor(
     private toastr: ToastrService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private materialService: MaterialService
   ) { }
+
+  ngOnInit(): void {
+
+    this.obtenerMateriales();
+    this.cargarFiltros();
+  }
+
+  cargarFiltros(): void {
+
+    this.materialService.obtenerFiltros().subscribe({
+
+      next: (respuesta) => {
+        this.proveedores = respuesta.proveedores;
+        this.colores = respuesta.colores;
+      },
+
+      error: () => {
+        this.toastr.error(
+          'No fue posible cargar los filtros',
+          'Error'
+        );
+      }
+
+    });
+
+  }
+
+  obtenerMateriales(): void {
+
+    this.materialService.obtener(
+      this.buscar,
+      this.estado,
+      this.orden,
+      this.proveedor,
+      this.color,
+      this.pagina,
+      this.tamanoPagina
+    )
+      .subscribe({
+
+        next: (respuesta) => {
+          this.materiales = respuesta.datos;
+          this.totalRegistros = respuesta.totalRegistros;
+          this.totalPagina = respuesta.totalPaginas;
+        },
+
+        error: () => {
+          this.toastr.error(
+            'No fue posible cargar los materiales',
+            'Error'
+          );
+        }
+      });
+  }
+
+  filtrar(): void {
+    this.pagina = 1;
+    this.obtenerMateriales();
+  }
+
+  paginaAnterior(): void {
+    if (this.pagina > 1) {
+      this.pagina--;
+      this.obtenerMateriales();
+    }
+  }
+
+  paginaSiguiente(): void {
+    if (this.pagina < this.totalPagina) {
+      this.pagina++;
+      this.obtenerMateriales();
+    }
+  }
 
   nuevoMaterial(): void {
     const dialogRef = this.dialog.open(CrearMateriales, {
@@ -88,11 +130,34 @@ export class ListarMateriales {
     });
   }
 
-  editar(material: any): void {
-    this.dialog.open(CrearMateriales, {
-      width: '700px',
-      data: material
+  editar(item: Material): void {
+
+    this.materialService.obtenerPorId(item.idMaterial!).subscribe({
+
+      next: (material) => {
+
+        const dialogRef = this.dialog.open(CrearMateriales, {
+          width: '700px',
+          disableClose: true,
+          data: material
+        });
+
+        dialogRef.afterClosed().subscribe(resultado => {
+
+          if (resultado) {
+            this.obtenerMateriales();
+          }
+        });
+      },
+
+      error: () => {
+        this.toastr.error(
+          'No fue posible cargar el material.',
+          'Error'
+        );
+      }
     });
+
   }
 
   eliminar(material: any): void {

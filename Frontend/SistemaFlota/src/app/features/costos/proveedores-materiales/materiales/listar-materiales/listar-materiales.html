@@ -32,31 +32,43 @@
                 <div class="inputIcon">
                     <i class="fa-solid fa-magnifying-glass"></i>
 
-                    <input type="text" placeholder="Material, proveedor..." [(ngModel)]="buscar">
+                    <input placeholder="Material, proveedor..." [(ngModel)]="buscar" (ngModelChange)="filtrar()">
                 </div>
             </div>
 
             <div>
                 <label>Proveedor</label>
 
-                <select>
-                    <option>Todos</option>
+                <select [(ngModel)]="proveedor" (ngModelChange)="filtrar()">
+                    <option value="">Todos</option>
+
+                    <option *ngFor="let p of proveedores" [value]="p.idProveedor">
+                        {{ p.nombre }}
+                    </option>
                 </select>
             </div>
 
             <div>
                 <label>Densidad</label>
 
-                <select>
-                    <option>Todos</option>
+                <select [(ngModel)]="estado" (ngModelChange)="filtrar()">
+
+                    <option value="">Todos</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+
                 </select>
             </div>
 
             <div>
                 <label>Color</label>
 
-                <select>
-                    <option>Todos</option>
+                <select [(ngModel)]="color" (ngModelChange)="filtrar()">
+                    <option value="">Todos</option>
+
+                    <option *ngFor="let c of colores" [value]="c">
+                        {{ c }}
+                    </option>
                 </select>
             </div>
 
@@ -71,16 +83,14 @@
                 <tr>
                     <th>Codigo</th>
                     <th>Proveedor</th>
-                    <th>Materia Prima</th>
+                    <th>Nombre Material</th>
                     <th>Descripcion Compra</th>
                     <th>Densidad</th>
                     <th>Categoria</th>
                     <th>Color</th>
-                    <th>Línea</th>
+                    <th>Tipo</th>
                     <th>Precio</th>
-                    <th>Bultos</th>
                     <th>Unidad</th>
-                    <th>Cantidad</th>
                     <th>Estado</th>
                     <th>Fecha</th>
                     <th>Acciones</th>
@@ -90,10 +100,10 @@
             <tbody>
 
                 <tr *ngFor="let item of materiales">
-                    <td>{{ item.codigo }}</td>
+                    <td>{{ item.idMaterial }}</td>
                     <td>{{ item.proveedor }}</td>
-                    <td>{{ item.material }}</td>
-                    <td>{{ item.descripcion }}</td>
+                    <td>{{ item.materiaPrima }}</td>
+                    <td>{{item.descripcionCompra}}</td>
                     <td>
                         <span class="badge">
                             {{ item.densidad }}
@@ -101,18 +111,19 @@
                     </td>
                     <td>{{ item.categoria }}</td>
                     <td>{{ item.color }}</td>
-                    <td>{{ item.linea }}</td>
-                    <td>{{ item.precio | currency }}</td>
-                    <td>{{ item.bultos }}</td>
-                    <td>{{ item.Unidad }}</td>
-                    <td>{{ item.cantidad }}</td>
+                    <td>{{ item.lineaProduccion }}</td>
+                    <td>{{item.precioBaseKg | currency}}</td>
+                    <td>{{ item.unidad }}</td>
                     <td>
-                        <span class="activo">
-                            <i class="fa-solid fa-circle-check"></i>
+                        <span *ngIf="item.activo" class="activo">
                             Activo
                         </span>
+
+                        <span *ngIf="!item.activo" class="inactivo">
+                            Inactivo
+                        </span>
                     </td>
-                    <td>{{ item.fecha }}</td>
+                    <td>{{item.fechaCreacion | date:'dd/MM/yyyy'}}</td>
 
                     <td class="acciones">
                         <button class="btn-editar" (click)="editar(item)">
@@ -128,5 +139,28 @@
             </tbody>
 
         </table>
+
+        <div class="paginacion">
+
+            <div class="info">
+                Mostrando
+                {{ materiales.length }}
+                de
+                {{ totalRegistros }}
+                Materiales
+            </div>
+
+            <div class="controles">
+                <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="pagina === 1">
+                    Anterior
+                </button>
+                <span>
+                    Página {{ pagina }} de {{ totalPagina }}
+                </span>
+                <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="pagina === totalPagina">
+                    Siguiente
+                </button>
+            </div>
+        </div>
     </div>
 </div>

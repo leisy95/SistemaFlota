@@ -1,81 +1,140 @@
 <div class="overlay">
     <div class="modal">
+
         <!-- Header -->
         <div class="modal-header">
             <div>
-                <h2>Nuevo Material</h2>
-                <p>Complete la información del material</p>
+                <h2>{{ data ? 'Editar Material' : 'Nuevo Material' }}</h2>
+                <p>{{ data ? 'Actualice la información del material' : 'Complete la información del material' }}</p>
             </div>
+
             <button class="cerrar" (click)="cerrar()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+
         <!-- Formulario -->
-        <form>
+        <form (ngSubmit)="guardar()">
+
             <div class="campo ancho">
                 <label>Proveedor</label>
-                <select>
-                    <option>Seleccione proveedor</option>
+
+                <select name="idProveedor" [(ngModel)]="material.idProveedor">
+
+                    <option [ngValue]="0">
+                        Seleccione proveedor
+                    </option>
+
+                    <option *ngFor="let item of proveedores" [ngValue]="item.idProveedor">
+
+                        {{ item.nombre }}
+
+                    </option>
+
                 </select>
             </div>
+
             <div class="grid2">
+
                 <div class="campo">
                     <label>Materia Prima</label>
-                    <input type="text" placeholder="Ej: Polietileno de Baja Densidad">
+                    <input type="text" name="materiaPrima" [(ngModel)]="material.materiaPrima"
+                        placeholder="Ej: Polietileno de Baja Densidad">
                 </div>
+
                 <div class="campo">
                     <label>Densidad</label>
-                    <select>
+
+                    <select name="densidad" [(ngModel)]="material.densidad">
+
                         <option>PEBD</option>
                         <option>PEAD</option>
                         <option>PP</option>
+
                     </select>
                 </div>
+
             </div>
+
+            <!-- NUEVO -->
+            <div class="campo ancho">
+                <label>Descripción Compra</label>
+
+                <textarea name="descripcionCompra" [(ngModel)]="material.descripcionCompra" rows="3">
+                </textarea>
+            </div>
+
             <div class="grid2">
+
                 <div class="campo">
-                    <label>Calidad</label>
-                    <select>
-                        <option>Original</option>
-                        <option>Reciclado</option>
-                    </select>
+                    <label>Categoría</label>
+
+                    <input type="text" name="categoria" [(ngModel)]="material.categoria">
                 </div>
+
                 <div class="campo">
                     <label>Color</label>
-                    <input type="text" placeholder="Ej: Natural, Negro, Blanco">
+
+                    <input type="text" name="color" [(ngModel)]="material.color">
                 </div>
+
             </div>
-            <div class="campo ancho">
-                <label>Línea de Producción</label>
-                <input type="text" placeholder="Ej: Línea A, Línea B">
+
+            <div class="grid2">
+
+                <div class="campo">
+                    <label>Línea de Producción</label>
+
+                    <input type="text" name="lineaProduccion" [(ngModel)]="material.lineaProduccion">
+                </div>
+
+                <!-- NUEVO -->
+                <div class="campo">
+                    <label>Unidad</label>
+
+                    <input type="text" name="unidad" [(ngModel)]="material.unidad">
+                </div>
+
             </div>
+
             <div class="grid3">
+
                 <div class="campo">
                     <label>Precio Base/KG (COP)</label>
-                    <input type="number" placeholder="0.00">
+
+                    <input type="number" name="precioBaseKg" [(ngModel)]="material.precioBaseKg">
                 </div>
+
                 <div class="campo">
                     <label>Bultos</label>
-                    <input type="number" placeholder="0">
+
+                    <input type="number" name="bultos" [(ngModel)]="material.bultos">
                 </div>
+
                 <div class="campo">
                     <label>Cantidad (KG)</label>
-                    <input type="number" placeholder="0">
+
+                    <input type="number" name="cantidadKg" [(ngModel)]="material.cantidadKg"><input type="number"
+                        placeholder="0">
                 </div>
             </div>
+
             <div class="campo ancho">
+
                 <label>Estado</label>
-                <select>
-                    <option>Activo</option>
-                    <option>Inactivo</option>
+                <select name="activo" [(ngModel)]="material.activo">
+                    <option [ngValue]="true">Activo</option>
+                    <option [ngValue]="false">Inactivo</option>
                 </select>
             </div>
+
             <div class="botones">
                 <button class="btn-cancelar" (click)="cerrar()" type="button">
                     Cancelar
                 </button>
+
                 <button type="submit" class="guardar">
-                    Guardar
+                    {{ data ? 'Actualizar' : 'Guardar' }}
                 </button>
             </div>
         </form>

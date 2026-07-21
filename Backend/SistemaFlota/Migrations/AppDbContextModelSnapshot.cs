@@ -1102,19 +1102,13 @@ namespace SistemaFlota.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<decimal>("Activo")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Bultos")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Calidad")
+                    b.Property<string>("Categoria")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
-
-                    b.Property<decimal>("CantidadKg")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Color")
                         .HasMaxLength(100)
@@ -1125,6 +1119,10 @@ namespace SistemaFlota.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("DescripcionCompra")
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("datetime(6)");
 
@@ -1134,17 +1132,22 @@ namespace SistemaFlota.Migrations
                     b.Property<int>("IdProveedor")
                         .HasColumnType("int");
 
-                    b.Property<string>("LineaProduccion")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("MateriaPrima")
+                    b.Property<string>("NombreMaterial")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)");
 
                     b.Property<decimal>("PrecioBaseKg")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TipoProduccion")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Unidad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.HasKey("IdMaterial");
 

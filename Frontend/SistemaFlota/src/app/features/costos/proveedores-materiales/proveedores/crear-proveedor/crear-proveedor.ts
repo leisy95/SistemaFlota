@@ -32,12 +32,7 @@ export class CrearProveedor {
     private dialogRef: MatDialogRef<CrearProveedor>,
     @Inject(MAT_DIALOG_DATA) public data: Proveedor | null
 
-  ) {
-    if (this.data) {
-      this.proveedor = { ...this.data };
-      console.log(this.proveedor);
-    }
-  }
+  ) { }
 
   cerrar(): void {
     this.dialogRef.close();

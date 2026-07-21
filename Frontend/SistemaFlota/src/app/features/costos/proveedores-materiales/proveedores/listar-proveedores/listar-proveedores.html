@@ -10,7 +10,7 @@
         <div class="filtros-header">
             <h2>Filtros de Búsqueda</h2>
 
-            <button class="btn-limpiar">
+            <button class="btn-limpiar" (click)="limpiarFiltros()">
                 <i class="fa-solid fa-filter"></i>
                 Limpiar Filtros
             </button>
@@ -23,36 +23,28 @@
 
                 <div class="input-icon">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Código, nombre o descripción..." [(ngModel)]="buscar">
+                    <input type="text" placeholder="Código, nombre o descripción..." [(ngModel)]="buscar"
+                        (ngModelChange)="filtrar()">
                 </div>
-            </div>
-
-            <div class="campo">
-                <label>Filtrar por Proveedor</label>
-
-                <select [(ngModel)]="proveedorSeleccionado">
-                    <option value="">Todos los Proveedores</option>
-
-                    <option *ngFor="let item of proveedores" [value]="item">
-                        {{item.nombre}}
-                    </option>
-                </select>
             </div>
 
             <div class="campo">
                 <label>Estado</label>
 
-                <select [(ngModel)]="estado">
+                <select [(ngModel)]="estado" (ngModelChange)="filtrar()">
+
                     <option value="">Todos</option>
                     <option value="Activo">Activo</option>
                     <option value="Inactivo">Inactivo</option>
+
                 </select>
             </div>
 
             <div class="campo">
                 <label>Ordenar</label>
 
-                <select [(ngModel)]="orden">
+                <select [(ngModel)]="orden" (ngModelChange)="filtrar()">
+                    <option value="" disabled>Seleccione un orden</option>
                     <option value="nombre">Nombre</option>
                     <option value="nit">NIT</option>
                     <option value="contacto">Contacto</option>
@@ -80,7 +72,7 @@
             </button>
         </div>
 
-        <table>
+        <table class="tabla">
             <thead>
                 <tr>
                     <th>Proveedor</th>
@@ -113,6 +105,29 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="paginacion">
+
+            <div class="info">
+                Mostrando
+                {{ proveedores.length }}
+                de
+                {{ totalRegistros }}
+                proveedores
+            </div>
+
+            <div class="controles">
+                <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="pagina === 1">
+                    Anterior
+                </button>
+                <span>
+                    Página {{ pagina }} de {{ totalPagina }}
+                </span>
+                <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="pagina === totalPagina">
+                    Siguiente
+                </button>
+            </div>
+        </div>
 
     </div>
 </div>

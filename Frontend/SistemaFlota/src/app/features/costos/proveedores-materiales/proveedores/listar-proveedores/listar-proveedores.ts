@@ -24,11 +24,13 @@ export class ListarProveedores implements OnInit {
   estado = '';
   orden = '';
 
-  proveedores: Proveedor[] = [];
-
   pagina = 1;
   tamanoPagina = 10;
+
   totalRegistros = 0;
+  totalPagina = 0;
+
+  proveedores: Proveedor[] = [];
 
   constructor(
     private toastr: ToastrService,
@@ -37,6 +39,22 @@ export class ListarProveedores implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.obtenerProveedores();
+  }
+
+  filtrar(): void {
+    this.pagina = 1;
+    this.obtenerProveedores();
+  }
+
+  limpiarFiltros(): void {
+    this.buscar = '';
+    this.estado = '';
+    this.orden = '';
+    this.proveedorSeleccionado = '';
+
+    this.pagina = 1;
+
     this.obtenerProveedores();
   }
 
@@ -54,6 +72,7 @@ export class ListarProveedores implements OnInit {
         next: (respuesta) => {
           this.proveedores = respuesta.datos;
           this.totalRegistros = respuesta.totalRegistros;
+          this.totalPagina = respuesta.totalPaginas;
         },
 
         error: () => {
@@ -63,6 +82,21 @@ export class ListarProveedores implements OnInit {
           );
         }
       });
+  }
+
+  // Paginacion
+  paginaAnterior(): void {
+    if (this.pagina > 1) {
+      this.pagina--;
+      this.obtenerProveedores();
+    }
+  }
+
+  paginaSiguiente(): void {
+    if (this.pagina < this.totalPagina) {
+      this.pagina++;
+      this.obtenerProveedores();
+    }
   }
 
   nuevoProveedor(): void {
