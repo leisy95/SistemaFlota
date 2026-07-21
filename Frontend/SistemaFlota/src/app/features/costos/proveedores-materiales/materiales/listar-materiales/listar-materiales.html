@@ -102,7 +102,7 @@
                 <tr *ngFor="let item of materiales">
                     <td>{{ item.idMaterial }}</td>
                     <td>{{ item.proveedor }}</td>
-                    <td>{{ item.materiaPrima }}</td>
+                    <td>{{ item.nombreMaterial }}</td>
                     <td>{{item.descripcionCompra}}</td>
                     <td>
                         <span class="badge">
@@ -111,7 +111,7 @@
                     </td>
                     <td>{{ item.categoria }}</td>
                     <td>{{ item.color }}</td>
-                    <td>{{ item.lineaProduccion }}</td>
+                    <td>{{ item.tipoProduccion }}</td>
                     <td>{{item.precioBaseKg | currency}}</td>
                     <td>{{ item.unidad }}</td>
                     <td>
