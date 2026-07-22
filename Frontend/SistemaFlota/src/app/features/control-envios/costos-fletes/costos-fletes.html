@@ -57,12 +57,12 @@
           <span class="fecha">{{ r.fechaRegistro | date:'dd/MM/yyyy' }}</span>
         </div>
         <div class="reg-info">
-          <div><span class="info-label">Conductor</span><span>{{ r.autorizacion?.conductor }}</span></div>
-          <div><span class="info-label">Placa</span><span>{{ r.autorizacion?.placa }}</span></div>
-          <div><span class="info-label">Destino</span><span>{{ r.autorizacion?.ciudadDestino }}</span></div>
-          <div><span class="info-label">Kilos</span><span>{{ r.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</span></div>
+          <div><span class="info-label">Conductor</span><span>{{ r.autorizacion?.conductor?.nombre }}</span></div>
+          <div><span class="info-label">Placa</span><span>{{ r.autorizacion?.vehiculo?.placa }}</span></div>
+          <div><span class="info-label">Destino</span><span>{{ r.autorizacion?.destinoCompleto }}</span></div>
+          <div><span class="info-label">Kilos</span><span>{{ r.autorizacion?.pesoKilos | number:'1.0-0' }} kg</span></div>
           <div><span class="info-label">Total gastos</span><span class="total-valor">${{ r.total | number:'1.0-0' }}</span></div>
-          <div><span class="info-label">$/kg</span><span class="total-valor">${{ (r.total / (r.autorizacion?.kilosTransportados || 1)) | number:'1.0-2' }}</span></div>
+          <div><span class="info-label">$/kg</span><span class="total-valor">${{ (r.total / (r.autorizacion?.pesoKilos || 1)) | number:'1.0-2' }}</span></div>
         </div>
         <div class="reg-acciones">
           <button class="btn-ver" (click)="ver(r)">👁 Ver</button>
@@ -87,15 +87,15 @@
           <label>Seleccione autorización *</label>
           <select [(ngModel)]="form.autorizacionId" (change)="seleccionarAutorizacion()">
             <option [ngValue]="null">-- Seleccione --</option>
-            <option *ngFor="let a of autorizaciones" [ngValue]="a.id">#{{ a.id }} — {{ a.conductor }} — {{ a.ciudadDestino }}</option>
+            <option *ngFor="let a of autorizaciones" [ngValue]="a.id">#{{ a.id }} — {{ a.conductor?.nombre }} — {{ a.destinoCompleto }}</option>
           </select>
         </div>
         <div class="datos-aut" *ngIf="autorizacionSeleccionada">
-          <div><span class="info-label">Conductor</span><strong>{{ autorizacionSeleccionada.conductor }}</strong></div>
-          <div><span class="info-label">Placa</span><strong>{{ autorizacionSeleccionada.placa }}</strong></div>
-          <div><span class="info-label">Destino</span><strong>{{ autorizacionSeleccionada.ciudadDestino }}</strong></div>
-          <div><span class="info-label">Kilos</span><strong>{{ autorizacionSeleccionada.kilosTransportados | number:'1.0-0' }} kg</strong></div>
-          <div><span class="info-label">Clientes</span><strong>{{ autorizacionSeleccionada.clientesEntregados }}</strong></div>
+          <div><span class="info-label">Conductor</span><strong>{{ autorizacionSeleccionada.conductor?.nombre }}</strong></div>
+          <div><span class="info-label">Placa</span><strong>{{ autorizacionSeleccionada.vehiculo?.placa }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ autorizacionSeleccionada.destinoCompleto }}</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ autorizacionSeleccionada.pesoKilos | number:'1.0-0' }} kg</strong></div>
+          <div><span class="info-label">Clientes</span><strong>{{ autorizacionSeleccionada.cantidadClientes }}</strong></div>
         </div>
       </div>
 
@@ -139,10 +139,10 @@
           <span class="badge-pendiente" *ngIf="registroSeleccionado.estado === 'Pendiente'">Pendiente</span>
         </div>
         <div class="datos-aut">
-          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
-          <div><span class="info-label">Placa</span><strong>{{ registroSeleccionado.autorizacion?.placa }}</strong></div>
-          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
-          <div><span class="info-label">Kilos</span><strong>{{ registroSeleccionado.autorizacion?.kilosTransportados | number:'1.0-0' }} kg</strong></div>
+          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor?.nombre }}</strong></div>
+          <div><span class="info-label">Placa</span><strong>{{ registroSeleccionado.autorizacion?.vehiculo?.placa }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.destinoCompleto }}</strong></div>
+          <div><span class="info-label">Kilos</span><strong>{{ registroSeleccionado.autorizacion?.pesoKilos | number:'1.0-0' }} kg</strong></div>
         </div>
       </div>
       <div class="form-section">
@@ -176,8 +176,8 @@
       <div class="form-section">
         <h3>Verificar registro #{{ registroSeleccionado.autorizacionId }}</h3>
         <div class="datos-aut">
-          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor }}</strong></div>
-          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.ciudadDestino }}</strong></div>
+          <div><span class="info-label">Conductor</span><strong>{{ registroSeleccionado.autorizacion?.conductor?.nombre }}</strong></div>
+          <div><span class="info-label">Destino</span><strong>{{ registroSeleccionado.autorizacion?.destinoCompleto }}</strong></div>
           <div><span class="info-label">Total gastos</span><strong>${{ registroSeleccionado.total | number:'1.0-0' }}</strong></div>
         </div>
       </div>
