@@ -21,8 +21,10 @@ namespace SistemaFlota.Controllers
         private bool SecretoValido()
         {
             var secretoEsperado = _config["FlotaChat:WebhookSecreto"];
+            if (string.IsNullOrEmpty(secretoEsperado))
+                return false; // sin secreto configurado, rechaza todo por seguridad
+
             var secretoRecibido = Request.Headers["X-Webhook-Secret"].ToString();
-            if (string.IsNullOrEmpty(secretoEsperado)) return true;
             return !string.IsNullOrEmpty(secretoRecibido) && secretoRecibido == secretoEsperado;
         }
 
