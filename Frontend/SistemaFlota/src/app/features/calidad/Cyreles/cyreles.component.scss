@@ -729,3 +729,261 @@
     }
   }
 }
+// Búsqueda global de contenido dentro de los cajones
+.cy-resultados-globales {
+  margin-top: 4px;
+}
+
+.cy-resultados-titulo {
+  font-size: 0.95rem;
+  color: var(--gris-oscuro);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i { color: var(--color-primario, #15803d); }
+}
+
+.cy-resultado-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--verde-oscuro);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+  color: var(--gris-oscuro);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--color-primario, #15803d);
+    transform: translateX(4px);
+  }
+
+  .cy-registro-foto, .cy-registro-sin-foto {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  }
+
+  .cy-registro-sin-foto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    i { font-size: 20px; color: var(--verde-oscuro); }
+  }
+}
+
+.cy-resultado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong { font-size: 1rem; color: var(--gris-oscuro); }
+}
+// ═══════════ Galería de fotos en Detalle ═══════════
+.cy-detalle-galeria {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cy-detalle-foto-principal {
+  position: relative;
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    background: var(--gris-oscuro);
+    display: block;
+  }
+
+  .cy-ampliar-hint {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.2s;
+  }
+
+  &:hover .cy-ampliar-hint { opacity: 1; }
+}
+
+.cy-detalle-miniaturas {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+}
+
+.cy-miniatura {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: 0.2s;
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  &:hover { border-color: var(--color-primario, #15803d); transform: scale(1.05); }
+}
+
+// ═══════════ Badge de "varias fotos" en la tarjeta ═══════════
+.cy-registro-foto {
+  position: relative;
+}
+
+.cy-badge-multiple {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// ═══════════ Grid de previews en el formulario ═══════════
+.cy-fotos-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cy-foto-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.cy-btn-quitar-foto {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: 0.2s;
+
+  &:hover { background: #dc2626; transform: scale(1.1); }
+}
+
+.cy-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.cy-lightbox-img {
+  max-width: 95vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.cy-lightbox-cerrar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.2); }
+}
+
+.cy-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.25); }
+}
+
+.cy-lightbox-prev { left: 20px; }
+.cy-lightbox-next { right: 20px; }
+
+.cy-lightbox-contador {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+@media (max-width: 600px) {
+  .cy-lightbox-nav { width: 40px; height: 40px; font-size: 16px; }
+  .cy-lightbox-prev { left: 8px; }
+  .cy-lightbox-next { right: 8px; }
+  .cy-lightbox-overlay { padding: 10px; }
+}

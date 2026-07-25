@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+using SistemaFlota.DTOs;
 using System.Security.Claims;
 
 namespace SistemaFlota.Controllers
@@ -74,15 +75,18 @@ namespace SistemaFlota.Controllers
         {
             var cajon = await _context.Cajones
                 .Include(c => c.Registros)
+                    .ThenInclude(r => r.Fotos)
                 .FirstOrDefaultAsync(c => c.Id == id);
             if (cajon == null) return NotFound();
-            foreach (var r in cajon.Registros) EliminarFoto(r.Foto);
+            foreach (var r in cajon.Registros)
+            {
+                EliminarFoto(r.Foto);
+                foreach (var f in r.Fotos) EliminarFoto(f.NombreArchivo);
+            }
             _context.Cajones.Remove(cajon);
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
-
 
         // GET api/cyreles/registros 
         [HttpGet("registros")]
@@ -93,6 +97,7 @@ namespace SistemaFlota.Controllers
         {
             var query = _context.CyreleRegistros
                 .Include(r => r.Cajon)
+                .Include(r => r.Fotos)
                 .AsNoTracking()
                 .AsQueryable();
 
@@ -108,6 +113,7 @@ namespace SistemaFlota.Controllers
                     r.CajonId,
                     r.Nombre,
                     r.Foto,
+                    Fotos = r.Fotos.OrderBy(f => f.Orden).Select(f => f.NombreArchivo).ToList(),
                     r.FechaCreacion,
                     r.CreadoPor,
                     CajonNumero = r.Cajon!.Numero,
@@ -124,6 +130,7 @@ namespace SistemaFlota.Controllers
         {
             var r = await _context.CyreleRegistros
                 .Include(r => r.Cajon)
+                .Include(r => r.Fotos)
                 .FirstOrDefaultAsync(r => r.Id == id);
             if (r == null) return NotFound();
             return Ok(new
@@ -132,6 +139,7 @@ namespace SistemaFlota.Controllers
                 r.CajonId,
                 r.Nombre,
                 r.Foto,
+                Fotos = r.Fotos.OrderBy(f => f.Orden).Select(f => f.NombreArchivo).ToList(),
                 r.FechaCreacion,
                 r.CreadoPor,
                 CajonNumero = r.Cajon!.Numero,
@@ -152,11 +160,29 @@ namespace SistemaFlota.Controllers
                 FechaCreacion = DateTime.Now
             };
 
-            if (dto.Foto != null && dto.Foto.Length > 0)
-                registro.Foto = await GuardarFoto(dto.Foto);
-
             _context.CyreleRegistros.Add(registro);
             await _context.SaveChangesAsync();
+
+            if (dto.Fotos != null && dto.Fotos.Count > 0)
+            {
+                int orden = 0;
+                foreach (var foto in dto.Fotos)
+                {
+                    if (foto.Length == 0) continue;
+                    var nombreArchivo = await GuardarFoto(foto);
+                    _context.CyreleFotos.Add(new CyreleFoto
+                    {
+                        CyreleRegistroId = registro.Id,
+                        NombreArchivo = nombreArchivo,
+                        Orden = orden++
+                    });
+                }
+                registro.Foto = (await _context.CyreleFotos
+                    .Where(f => f.CyreleRegistroId == registro.Id)
+                    .OrderBy(f => f.Orden)
+                    .FirstOrDefaultAsync())?.NombreArchivo;
+                await _context.SaveChangesAsync();
+            }
 
             return Ok(registro);
         }
@@ -164,44 +190,78 @@ namespace SistemaFlota.Controllers
         // PUT api/cyreles/registros/{id} 
         [HttpPut("registros/{id}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> EditarRegistro(
-            int id,
-            [FromForm] RegistroDto dto)
+        public async Task<IActionResult> EditarRegistro(int id, [FromForm] RegistroDto dto)
         {
-            var registro = await _context.CyreleRegistros.FindAsync(id);
+            var registro = await _context.CyreleRegistros
+                .Include(r => r.Fotos)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (registro == null)
-                return NotFound();
+            if (registro == null) return NotFound();
 
             registro.CajonId = dto.CajonId;
             registro.Nombre = dto.Nombre;
             registro.ModificadoPor = GetUserId();
             registro.FechaModificacion = DateTime.Now;
 
-            if (dto.Foto != null && dto.Foto.Length > 0)
+            if (dto.Fotos != null && dto.Fotos.Count > 0)
             {
-                EliminarFoto(registro.Foto);
-                registro.Foto = await GuardarFoto(dto.Foto);
+                int orden = registro.Fotos.Count > 0 ? registro.Fotos.Max(f => f.Orden) + 1 : 0;
+                foreach (var foto in dto.Fotos)
+                {
+                    if (foto.Length == 0) continue;
+                    var nombreArchivo = await GuardarFoto(foto);
+                    _context.CyreleFotos.Add(new CyreleFoto
+                    {
+                        CyreleRegistroId = registro.Id,
+                        NombreArchivo = nombreArchivo,
+                        Orden = orden++
+                    });
+                }
+                if (string.IsNullOrEmpty(registro.Foto))
+                {
+                    await _context.SaveChangesAsync();
+                    registro.Foto = (await _context.CyreleFotos
+                        .Where(f => f.CyreleRegistroId == registro.Id)
+                        .OrderBy(f => f.Orden)
+                        .FirstOrDefaultAsync())?.NombreArchivo;
+                }
             }
 
             await _context.SaveChangesAsync();
-
             return Ok(registro);
         }
 
-        //  DELETE api/cyreles/registros/{id}
+        // DELETE api/cyreles/registros/{id}/fotos/{fotoId}
+        [HttpDelete("registros/{id}/fotos/{fotoId}")]
+        public async Task<IActionResult> EliminarFotoDeRegistro(int id, int fotoId)
+        {
+            var foto = await _context.CyreleFotos
+                .FirstOrDefaultAsync(f => f.Id == fotoId && f.CyreleRegistroId == id);
+            if (foto == null) return NotFound();
+
+            EliminarFoto(foto.NombreArchivo);
+            _context.CyreleFotos.Remove(foto);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE api/cyreles/registros/{id}
         [HttpDelete("registros/{id}")]
         public async Task<IActionResult> EliminarRegistro(int id)
         {
-            var registro = await _context.CyreleRegistros.FindAsync(id);
+            var registro = await _context.CyreleRegistros
+                .Include(r => r.Fotos)
+                .FirstOrDefaultAsync(r => r.Id == id);
             if (registro == null) return NotFound();
+
             EliminarFoto(registro.Foto);
+            foreach (var f in registro.Fotos) EliminarFoto(f.NombreArchivo);
+
             _context.CyreleRegistros.Remove(registro);
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
-      
         private async Task<string> GuardarFoto(IFormFile foto)
         {
             var carpeta = Path.Combine(_env.WebRootPath, "cyreles");
@@ -219,19 +279,5 @@ namespace SistemaFlota.Controllers
             var ruta = Path.Combine(_env.WebRootPath, "cyreles", nombreArchivo);
             if (System.IO.File.Exists(ruta)) System.IO.File.Delete(ruta);
         }
-    }
-
-    //  DTOs
-    public class CajonDto
-    {
-        public int Numero { get; set; }
-        public string? Descripcion { get; set; }
-    }
-
-    public class RegistroDto
-    {
-        public int CajonId { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public IFormFile? Foto { get; set; }
     }
 }

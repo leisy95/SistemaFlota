@@ -43,6 +43,7 @@ namespace SistemaFlota
 
         public DbSet<Cajon> Cajones { get; set; }
         public DbSet<CyreleRegistro> CyreleRegistros { get; set; }
+        public DbSet<CyreleFoto> CyreleFotos { get; set; }
         public DbSet<InventarioRuta> InventarioRutas { get; set; }
         public DbSet<FormatoFGC008> FormatosFGC008 { get; set; }
         public DbSet<NumeroEmergencia> NumerosEmergencia { get; set; }

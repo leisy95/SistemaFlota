@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace SistemaFlota.Models
 {
     [Table("Cajones")]
@@ -20,13 +19,27 @@ namespace SistemaFlota.Models
         [Key] public int Id { get; set; }
         [Required] public int CajonId { get; set; }
         [Required][MaxLength(200)] public string Nombre { get; set; } = string.Empty;
-        [MaxLength(255)] public string? Foto { get; set; }
+        [MaxLength(255)] public string? Foto { get; set; } // se mantiene para compatibilidad con registros viejos
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         public int CreadoPor { get; set; }
         public int? ModificadoPor { get; set; }
         public DateTime? FechaModificacion { get; set; }
-
         [ForeignKey("CajonId")]
         public Cajon? Cajon { get; set; }
+
+        public ICollection<CyreleFoto> Fotos { get; set; } = new List<CyreleFoto>();
+    }
+
+    [Table("CyreleFotos")]
+    public class CyreleFoto
+    {
+        [Key] public int Id { get; set; }
+        [Required] public int CyreleRegistroId { get; set; }
+        [Required][MaxLength(255)] public string NombreArchivo { get; set; } = string.Empty;
+        public int Orden { get; set; } = 0;
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
+        [ForeignKey("CyreleRegistroId")]
+        public CyreleRegistro? Registro { get; set; }
     }
 }
