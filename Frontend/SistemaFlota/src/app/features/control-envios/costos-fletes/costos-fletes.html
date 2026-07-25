@@ -55,7 +55,10 @@
           <option value="Verificado">Verificado</option>
         </select>
       </div>
-      <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+     <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+      <button class="btn-reporte" [disabled]="registros.length === 0" (click)="exportarReporteCompleto()">
+        <i class="fa-solid fa-file-pdf"></i> Exportar reporte
+      </button>
     </div>
 
     <div class="tabla-container" *ngIf="registros.length > 0">

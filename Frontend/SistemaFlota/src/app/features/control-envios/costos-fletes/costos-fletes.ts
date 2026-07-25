@@ -34,6 +34,98 @@ export class CostosFleteComponent implements OnInit {
     observaciones: ''
   };
 
+  exportarReporteCompleto() {
+    if (this.registros.length === 0) { alert('No hay registros para exportar'); return; }
+
+    const doc = new jsPDF('l', 'mm', 'letter');
+    const VERDE: [number,number,number] = [26,127,90];
+    const W = 279; const M = 10;
+
+    // ── Encabezado ──
+    doc.setFillColor(...VERDE); doc.rect(M, M, W-M*2, 16, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('REPORTE CONSOLIDADO DE COSTOS DE FLETE', W/2, M+10, {align:'center'});
+
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    let y = M + 24;
+
+    // ── Filtros aplicados ──
+    const filtrosTexto: string[] = [];
+    if (this.filtroDesde) filtrosTexto.push(`Desde: ${this.filtroDesde}`);
+    if (this.filtroHasta) filtrosTexto.push(`Hasta: ${this.filtroHasta}`);
+    if (this.filtroConductor) filtrosTexto.push(`Conductor: ${this.filtroConductor}`);
+    if (this.filtroCiudad) filtrosTexto.push(`Ciudad: ${this.filtroCiudad}`);
+    if (this.filtroEstado) filtrosTexto.push(`Estado: ${this.filtroEstado}`);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text('Filtros aplicados: ', M, y);
+    doc.setFont('helvetica','normal');
+    doc.text(filtrosTexto.length ? filtrosTexto.join('  |  ') : 'Ninguno (todos los registros)', M + 32, y);
+    doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, W - M, y, { align: 'right' });
+    y += 8;
+
+    // ── Resumen ──
+    autoTable(doc, {
+      startY: y,
+      head: [['Total registros', 'Total gastos', 'Pendientes', 'Verificados', 'Promedio $/kg']],
+      body: [[
+        this.registros.length.toString(),
+        '$' + this.totalGastosFiltrados.toLocaleString('es-CO'),
+        this.pendientes.toString(),
+        this.verificados.toString(),
+        '$' + this.promedioPorKilo.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      ]],
+      headStyles: { fillColor: VERDE, halign: 'center' },
+      bodyStyles: { halign: 'center', fontStyle: 'bold', fontSize: 11 },
+      margin: { left: M, right: M }
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // ── Detalle completo ──
+    const filas = this.registros.map(r => {
+      const aut = r.autorizacion;
+      const kilos = aut?.pesoKilos || 0;
+      const porKilo = kilos > 0 ? r.total / kilos : 0;
+      return [
+        '#' + r.autorizacionId,
+        aut?.conductor?.nombre ?? '-',
+        aut?.vehiculo?.placa ?? '-',
+        aut?.destinoCompleto ?? '-',
+        new Date(r.fechaRegistro).toLocaleDateString('es-CO'),
+        kilos.toLocaleString('es-CO') + ' kg',
+        '$' + (r.peajes || 0).toLocaleString('es-CO'),
+        '$' + (r.combustible || 0).toLocaleString('es-CO'),
+        '$' + (r.parqueos || 0).toLocaleString('es-CO'),
+        '$' + (r.descarguesMcia || 0).toLocaleString('es-CO'),
+        '$' + (r.cargueMateriales || 0).toLocaleString('es-CO'),
+        '$' + (r.alimentacion || 0).toLocaleString('es-CO'),
+        '$' + (r.hospedaje || 0).toLocaleString('es-CO'),
+        '$' + (r.varios || 0).toLocaleString('es-CO'),
+        '$' + (r.total || 0).toLocaleString('es-CO'),
+        '$' + porKilo.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        r.estado
+      ];
+    });
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Aut.', 'Conductor', 'Placa', 'Destino', 'Fecha', 'Kilos', 'Peajes', 'Combust.', 'Parqueos', 'Descargue', 'Cargue', 'Aliment.', 'Hospedaje', 'Varios', 'Total', '$/kg', 'Estado']],
+      body: filas,
+      headStyles: { fillColor: VERDE, fontSize: 7 },
+      bodyStyles: { fontSize: 7 },
+      margin: { left: M, right: M },
+      didParseCell: (data) => {
+        if (data.column.index === 16 && data.cell.section === 'body') {
+          const estado = data.cell.raw as string;
+          if (estado === 'Verificado') { data.cell.styles.textColor = [22, 101, 52]; data.cell.styles.fontStyle = 'bold'; }
+          else { data.cell.styles.textColor = [146, 64, 14]; }
+        }
+      }
+    });
+
+    doc.save('Reporte_CostosFlete_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  }
+
   autorizacionSeleccionada: any = null;
   firmaDataUrl: string | null = null;
   nombreVerificador = '';
@@ -64,7 +156,7 @@ export class CostosFleteComponent implements OnInit {
   }
 
   get totalKilosFiltrados(): number {
-    return this.registros.reduce((s, r) => s + (r.autorizacion?.kilosTransportados || 0), 0);
+    return this.registros.reduce((s, r) => s + (r.autorizacion?.pesoKilos || 0), 0);
   }
 
   get promedioPorKilo(): number {
@@ -204,12 +296,12 @@ export class CostosFleteComponent implements OnInit {
       startY: y,
       head: [['Campo','Valor']],
       body: [
-        ['Conductor', aut?.conductor ?? ''],
-        ['Placa', aut?.placa ?? ''],
-        ['Ciudad destino', aut?.ciudadDestino ?? ''],
+        ['Conductor', aut?.conductor?.nombre ?? ''],
+        ['Placa', aut?.vehiculo?.placa ?? ''],
+        ['Ciudad destino', aut?.destinoCompleto ?? ''],
         ['Fecha', new Date(r.fechaRegistro).toLocaleDateString('es-CO')],
-        ['Kilos transportados', (aut?.kilosTransportados ?? 0).toLocaleString('es-CO') + ' kg'],
-        ['Clientes entregados', aut?.clientesEntregados ?? ''],
+        ['Kilos transportados', (aut?.pesoKilos ?? 0).toLocaleString('es-CO') + ' kg'],
+        ['Clientes entregados', aut?.cantidadClientes ?? ''],
       ],
       headStyles: {fillColor: VERDE},
       margin: {left: M, right: M}
@@ -257,11 +349,11 @@ export class CostosFleteComponent implements OnInit {
   exportarExcel() {
     const data = this.registros.map(r => ({
       'Autorización': r.autorizacionId,
-      'Conductor': r.autorizacion?.conductor ?? '',
-      'Placa': r.autorizacion?.placa ?? '',
-      'Destino': r.autorizacion?.ciudadDestino ?? '',
+      'Conductor': r.autorizacion?.conductor?.nombre ?? '',
+      'Placa': r.autorizacion?.vehiculo?.placa ?? '',
+      'Destino': r.autorizacion?.destinoCompleto ?? '',
       'Fecha': new Date(r.fechaRegistro).toLocaleDateString('es-CO'),
-      'Kilos': r.autorizacion?.kilosTransportados ?? 0,
+      'Kilos': r.autorizacion?.pesoKilos ?? 0,
       'Peajes': r.peajes,
       'Combustible': r.combustible,
       'Parqueos': r.parqueos,
