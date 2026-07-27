@@ -50,5 +50,6 @@ namespace SistemaFlota
         public DbSet<CosteFlete> CostosFletes { get; set; }
         public DbSet<VinculacionFlotaChat> VinculacionesFlotaChat { get; set; }
         public DbSet<RespuestaFlotaChat> RespuestasFlotaChat { get; set; }
+        public DbSet<OrdenProduccionExterna> OrdenesProduccionExternas { get; set; }
     }
 }

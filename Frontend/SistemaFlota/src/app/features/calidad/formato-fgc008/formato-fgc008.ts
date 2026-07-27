@@ -418,4 +418,25 @@ export class FormatoFGC008Component implements OnInit {
     doc.text('FIN DEL DOCUMENTO', W/2, y+4, {align:'center'});
     doc.save('F-GC-008_'+new Date().toISOString().slice(0,10)+'.pdf');
   }
+  // ── Lightbox de foto ampliada ──
+  fotoAmpliada: string | null = null;
+
+  abrirFotoAmpliada(url: string) {
+    this.fotoAmpliada = url;
+  }
+
+  cerrarFotoAmpliada() {
+    this.fotoAmpliada = null;
+  }
+
+  // ── Estadísticas de resumen ──
+  get totalRegistros(): number { return this.registros.length; }
+  get conDefectos(): number { return this.registros.filter(r => r.defectosSI).length; }
+  get pendientesDespacho(): number { return this.registros.filter(r => !r.despachado).length; }
+  get porcentajeCompletado(): number {
+    if (this.registros.length === 0) return 0;
+    const totalOP = this.registros.reduce((s, r) => s + (r.cantidadOP || 0), 0);
+    const totalReal = this.registros.reduce((s, r) => s + (r.cantidadReal || 0), 0);
+    return totalOP === 0 ? 0 : Math.round((totalReal / totalOP) * 100);
+  }
 }
