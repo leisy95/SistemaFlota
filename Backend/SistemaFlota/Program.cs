@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using SistemaFlota;
+using SistemaFlota.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +107,66 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
    db.Database.Migrate();
+
+
+    // ── Semilla: Tipos de Formato de Calidad ──────────────────────────────
+    if (!db.Set<TipoFormatoCalidad>().Any())
+    {
+        var extrusion = new TipoFormatoCalidad { Codigo = "F-GC-004", Nombre = "Extrusión", TieneVariablesCriticas = true };
+        var impresion = new TipoFormatoCalidad { Codigo = "F-GC-005", Nombre = "Impresión", TieneVariablesCriticas = false };
+        var sellado = new TipoFormatoCalidad { Codigo = "F-GC-006", Nombre = "Sellado", TieneVariablesCriticas = false };
+        var precorte = new TipoFormatoCalidad { Codigo = "F-GC-007", Nombre = "Precorte", TieneVariablesCriticas = false };
+
+        db.Set<TipoFormatoCalidad>().AddRange(extrusion, impresion, sellado, precorte);
+        db.SaveChanges();
+
+        var caracteristicas = new List<CaracteristicaFormato>
+    {
+        // Extrusión (F-GC-004)
+        new() { TipoFormatoId = extrusion.Id, Orden = 1, Descripcion = "Medida de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 2, Descripcion = "Calibre de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 3, Descripcion = "Apariencia de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 4, Descripcion = "Resistencia de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 5, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 6, Descripcion = "Bobinado del rollo" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 7, Descripcion = "Medida/Alineación Fuelles" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 8, Descripcion = "Grafilado" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 9, Descripcion = "Sellado en Película" },
+
+        // Impresión (F-GC-005)
+        new() { TipoFormatoId = impresion.Id, Orden = 1, Descripcion = "Medida de la Película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 2, Descripcion = "Calibre de la Película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 4, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = impresion.Id, Orden = 5, Descripcion = "Referencia de Impresión" },
+        new() { TipoFormatoId = impresion.Id, Orden = 6, Descripcion = "Registros de Impresión" },
+        new() { TipoFormatoId = impresion.Id, Orden = 7, Descripcion = "Bobinado del Rollo" },
+
+        // Sellado (F-GC-006)
+        new() { TipoFormatoId = sellado.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
+        new() { TipoFormatoId = sellado.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
+        new() { TipoFormatoId = sellado.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        new() { TipoFormatoId = sellado.Id, Orden = 4, Descripcion = "Resistencia del Sellado" },
+        new() { TipoFormatoId = sellado.Id, Orden = 5, Descripcion = "Línea de Sellado" },
+        new() { TipoFormatoId = sellado.Id, Orden = 6, Descripcion = "Medida/Alineación fuelles" },
+        new() { TipoFormatoId = sellado.Id, Orden = 7, Descripcion = "Perforaciones" },
+        new() { TipoFormatoId = sellado.Id, Orden = 8, Descripcion = "Troquel/Manija" },
+
+        // Precorte (F-GC-007)
+        new() { TipoFormatoId = precorte.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
+        new() { TipoFormatoId = precorte.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
+        new() { TipoFormatoId = precorte.Id, Orden = 3, Descripcion = "Resistencia del Sellado" },
+        new() { TipoFormatoId = precorte.Id, Orden = 4, Descripcion = "Línea de Sellado" },
+        new() { TipoFormatoId = precorte.Id, Orden = 5, Descripcion = "Línea de Precorte" },
+        new() { TipoFormatoId = precorte.Id, Orden = 6, Descripcion = "Troquel" },
+        new() { TipoFormatoId = precorte.Id, Orden = 7, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = precorte.Id, Orden = 8, Descripcion = "Bobinado del Rollo" },
+    };
+
+        db.Set<CaracteristicaFormato>().AddRange(caracteristicas);
+        db.SaveChanges();
+        Console.WriteLine("✅ Tipos de Formato de Calidad precargados");
+    }
 
     try
     {

@@ -51,5 +51,8 @@ namespace SistemaFlota
         public DbSet<VinculacionFlotaChat> VinculacionesFlotaChat { get; set; }
         public DbSet<RespuestaFlotaChat> RespuestasFlotaChat { get; set; }
         public DbSet<OrdenProduccionExterna> OrdenesProduccionExternas { get; set; }
+        public DbSet<TipoFormatoCalidad> TiposFormatoCalidad { get; set; }
+        public DbSet<CaracteristicaFormato> CaracteristicasFormato { get; set; }
+        public DbSet<RegistroFormatoCalidad> RegistrosFormatoCalidad { get; set; }
     }
 }

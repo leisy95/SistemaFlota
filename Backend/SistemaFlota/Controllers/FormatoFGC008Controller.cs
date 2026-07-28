@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -74,6 +74,7 @@ namespace SistemaFlota
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromForm] FormatoFGC008Dto dto, IFormFile? foto)
         {
+            Console.WriteLine($"🔍 DIAGNOSTICO - FirmaDigital recibida: {(string.IsNullOrEmpty(dto.FirmaDigital) ? "VACIA/NULL" : $"SI, largo={dto.FirmaDigital.Length}")}");
             var r = await _context.FormatosFGC008.FindAsync(id);
             if (r == null) return NotFound();
             r.OrdenProduccion = dto.OrdenProduccion;
