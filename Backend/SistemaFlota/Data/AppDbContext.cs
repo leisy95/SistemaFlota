@@ -54,5 +54,6 @@ namespace SistemaFlota
         public DbSet<TipoFormatoCalidad> TiposFormatoCalidad { get; set; }
         public DbSet<CaracteristicaFormato> CaracteristicasFormato { get; set; }
         public DbSet<RegistroFormatoCalidad> RegistrosFormatoCalidad { get; set; }
+        public DbSet<OpcionFormulario> OpcionesFormulario { get; set; }
     }
 }

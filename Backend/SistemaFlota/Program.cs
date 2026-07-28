@@ -168,6 +168,36 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("✅ Tipos de Formato de Calidad precargados");
     }
 
+    // ── Semilla: Opciones de Formulario (Máquina, Corona, Molde, Operario) ──
+    if (!db.Set<OpcionFormulario>().Any())
+    {
+            var opciones = new List<OpcionFormulario>();
+
+            // Operarios (aplica a TODOS los formatos: TipoFormatoId = null)
+            var operarios = new[] { "Mauricio Figueroa", "Dario Ossa", "Asmed Cano", "Jhon Jairo Montes" };
+            for (int i = 0; i < operarios.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Operario", TipoFormatoId = null, Valor = operarios[i], Orden = i });
+
+            // Máquina (por ahora, aplica a todos — se puede diferenciar por formato después desde la pantalla de admin)
+            var maquinas = new[] { "Coextrusora 50", "Coextrusora 40", "Extrusora 60", "50.3", "50.1", "47.4", "47.3" };
+            for (int i = 0; i < maquinas.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Maquina", TipoFormatoId = null, Valor = maquinas[i], Orden = i });
+
+            // Corona (aplica a todos)
+            var coronas = new[] { "Alta", "Baja" };
+            for (int i = 0; i < coronas.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Corona", TipoFormatoId = null, Valor = coronas[i], Orden = i });
+
+            // Molde (aplica a todos)
+            var moldes = new[] { "75 mm", "55 mm", "40 mm", "45 mm", "60 mm", "80 mm", "90 mm", "5.5 pulg", "4 pulg", "2 pulg", "8 pulg", "6 pulg", "11.5 pulg", "7 pulg", "5 pulg" };
+            for (int i = 0; i < moldes.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Molde", TipoFormatoId = null, Valor = moldes[i], Orden = i });
+
+            db.Set<OpcionFormulario>().AddRange(opciones);
+            db.SaveChanges();
+            Console.WriteLine("✅ Opciones de Formulario precargadas");
+        }
+
     try
     {
 

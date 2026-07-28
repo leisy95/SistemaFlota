@@ -145,10 +145,42 @@ export const MENU_MODULOS: MenuItem[] = [
     //  CALIDAD
 
     {
-        key: 'calidad-cyreles',
-        label: 'Cyreles',
-        icon: 'fa-solid fa-box-open',
-        ruta: '/calidad/calidad-cyreles',
+        key: 'calidad-formatos',
+        label: 'Formatos',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/calidad/calidad-formatos',
+        modulo: 'calidad'
+    },
+
+    {
+        key: 'calidad-extrusion',
+        label: 'Extrusión',
+        icon: 'fa-solid fa-industry',
+        ruta: '/calidad/extrusion',
+        modulo: 'calidad'
+    },
+
+    {
+        key: 'calidad-impresion',
+        label: 'Impresión',
+        icon: 'fa-solid fa-print',
+        ruta: '/calidad/impresion',
+        modulo: 'calidad'
+    },
+
+    {
+        key: 'calidad-sellado',
+        label: 'Sellado',
+        icon: 'fa-solid fa-stamp',
+        ruta: '/calidad/sellado',
+        modulo: 'calidad'
+    },
+
+    {
+        key: 'calidad-precorte',
+        label: 'Precorte',
+        icon: 'fa-solid fa-scissors',
+        ruta: '/calidad/precorte',
         modulo: 'calidad'
     },
 

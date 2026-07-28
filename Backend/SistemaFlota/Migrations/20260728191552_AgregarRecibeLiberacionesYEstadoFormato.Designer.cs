@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaFlota;
 
@@ -10,9 +11,11 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728191552_AgregarRecibeLiberacionesYEstadoFormato")]
+    partial class AgregarRecibeLiberacionesYEstadoFormato
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1171,38 +1174,6 @@ namespace SistemaFlota.Migrations
                     b.ToTable("CyreleRegistros");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Categoria")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TipoFormatoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Valor")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TipoFormatoId");
-
-                    b.ToTable("OpcionesFormulario");
-                });
-
             modelBuilder.Entity("SistemaFlota.Models.OrdenProduccionExterna", b =>
                 {
                     b.Property<int>("Id")
@@ -2128,15 +2099,6 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("Cajon");
-                });
-
-            modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
-                {
-                    b.HasOne("SistemaFlota.Models.TipoFormatoCalidad", "TipoFormato")
-                        .WithMany()
-                        .HasForeignKey("TipoFormatoId");
-
-                    b.Navigation("TipoFormato");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.RegistroFormatoCalidad", b =>

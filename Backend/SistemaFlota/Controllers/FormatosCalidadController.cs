@@ -14,11 +14,13 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ITwilioService _twilio;
 
-        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria)
+        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria, ITwilioService twilio)
         {
             _context = context;
             _auditoria = auditoria;
+            _twilio = twilio;
         }
 
         private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
@@ -75,7 +77,7 @@ namespace SistemaFlota
             return Ok(lista);
         }
 
-        // POST api/FormatosCalidad/registros
+        // POST api/FormatosCalidad/registros — el operario crea el registro (sin liberar aún)
         [HttpPost("registros")]
         public async Task<IActionResult> Post([FromBody] RegistroFormatoCalidadDto dto)
         {
@@ -90,10 +92,7 @@ namespace SistemaFlota
                 Maquina = dto.Maquina,
                 VariablesCriticasJson = dto.VariablesCriticasJson,
                 ResultadosJson = dto.ResultadosJson,
-                PuedeLiberarse = dto.PuedeLiberarse,
-                ExplicacionNoLiberado = dto.ExplicacionNoLiberado,
-                FirmaDigital = dto.FirmaDigital,
-                CargoFirma = dto.CargoFirma,
+                Estado = "PendienteLiberacion",
                 RevisadoPor = GetUsuario(),
                 FechaRevision = DateTime.Now
             };
@@ -104,10 +103,28 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Crear", "FormatosCalidad",
                 $"Registro OP: {dto.OrdenProduccion} - Tipo: {dto.TipoFormatoId}", registro.Id);
 
+            // ── Notificar a los contactos que reciben avisos de liberación ──
+            var tipo = await _context.TiposFormatoCalidad.FindAsync(dto.TipoFormatoId);
+            var contactos = await _context.ContactosNotificacion
+                .Where(c => c.Activo && c.RecibeLiberaciones)
+                .Select(c => c.NumeroWhatsApp)
+                .ToListAsync();
+
+            if (contactos.Any())
+            {
+                var mensaje = $"📋 *PENDIENTE DE LIBERACIÓN*\n\n" +
+                              $"Formato: {tipo?.Nombre} ({tipo?.Codigo})\n" +
+                              $"Orden: {dto.OrdenProduccion}\n" +
+                              $"Cliente: {dto.Cliente ?? "-"}\n" +
+                              $"Registrado por: {GetUsuario()}\n\n" +
+                              $"Por favor revisa y libera el producto en el sistema.";
+                await _twilio.EnviarAMultiplesAsync(contactos, mensaje);
+            }
+
             return Ok(registro);
         }
 
-        // PUT api/FormatosCalidad/registros/{id}
+        // PUT api/FormatosCalidad/registros/{id} — edición general (antes de liberar)
         [HttpPut("registros/{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] RegistroFormatoCalidadDto dto)
         {
@@ -122,12 +139,29 @@ namespace SistemaFlota
             r.Maquina = dto.Maquina;
             r.VariablesCriticasJson = dto.VariablesCriticasJson;
             r.ResultadosJson = dto.ResultadosJson;
+
+            await _context.SaveChangesAsync();
+            return Ok(r);
+        }
+
+        // PUT api/FormatosCalidad/registros/{id}/liberar — completa la liberación
+        [HttpPut("registros/{id}/liberar")]
+        public async Task<IActionResult> Liberar(int id, [FromBody] LiberarFormatoDto dto)
+        {
+            var r = await _context.RegistrosFormatoCalidad.FindAsync(id);
+            if (r == null) return NotFound();
+
             r.PuedeLiberarse = dto.PuedeLiberarse;
             r.ExplicacionNoLiberado = dto.ExplicacionNoLiberado;
             r.FirmaDigital = dto.FirmaDigital;
             r.CargoFirma = dto.CargoFirma;
+            r.Estado = "Liberado";
 
             await _context.SaveChangesAsync();
+
+            await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Liberar", "FormatosCalidad",
+                $"Liberación OP: {r.OrdenProduccion} - Resultado: {(dto.PuedeLiberarse == true ? "SI" : "NO")}", r.Id);
+
             return Ok(r);
         }
 

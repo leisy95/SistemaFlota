@@ -16,4 +16,12 @@
         public string? FirmaDigital { get; set; }
         public string? CargoFirma { get; set; }
     }
+
+    public class LiberarFormatoDto
+    {
+        public bool? PuedeLiberarse { get; set; }
+        public string? ExplicacionNoLiberado { get; set; }
+        public string? FirmaDigital { get; set; }
+        public string? CargoFirma { get; set; }
+    }
 }

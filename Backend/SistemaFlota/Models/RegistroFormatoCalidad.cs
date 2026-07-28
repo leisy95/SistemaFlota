@@ -20,8 +20,9 @@ namespace SistemaFlota.Models
 
         // Lista de resultados por característica: [{caracteristicaId, cumplePorcentaje, noCumplePorcentaje, na, observacion}]
         public string ResultadosJson { get; set; } = "[]";
-
+        public string Estado { get; set; } = "PendienteLiberacion"; 
         public bool? PuedeLiberarse { get; set; }
+
         public string? ExplicacionNoLiberado { get; set; }
 
         public string? FirmaDigital { get; set; }

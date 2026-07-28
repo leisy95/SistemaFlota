@@ -1,0 +1,241 @@
+<div class="contenedor">
+  <div class="header">
+    <div>
+      <h1>{{ tipoFormato?.nombre }}</h1>
+      <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
+    </div>
+    <button class="btn-nuevo" *ngIf="puedeCrear && vista === 'lista'" (click)="nuevo()">
+      <i class="fa-solid fa-plus"></i> Nuevo Registro
+    </button>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <ng-container *ngIf="vista === 'lista'">
+    <div class="filtros">
+      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
+      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+      <div class="fg"><label>Orden de producción</label><input type="text" [(ngModel)]="filtroOP" placeholder="Ej: 22310"></div>
+      <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+      <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+    </div>
+
+    <div class="cargando" *ngIf="cargando"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+
+    <div class="tabla-container" *ngIf="!cargando && registros.length > 0">
+      <table>
+        <thead>
+          <tr>
+           <th>Orden</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Revisado por</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of registros">
+            <td data-label="Orden"><span class="op-badge">{{ r.ordenProduccion }}</span></td>
+            <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td data-label="Cliente">{{ r.cliente || '-' }}</td>
+           <td data-label="Estado">
+              <span class="estado" [class.pendiente]="r.estado === 'PendienteLiberacion'" [class.ok]="r.estado === 'Liberado'">
+                {{ r.estado === 'PendienteLiberacion' ? 'Pendiente' : 'Liberado' }}
+              </span>
+            </td>
+            <td data-label="Revisado por">{{ r.revisadoPor }}</td>
+            <td data-label="Acciones">
+              <div class="btn-acciones">
+                <button class="btn-ver" (click)="ver(r)"><i class="fa-solid fa-eye"></i></button>
+                <button class="btn-editar" *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="editar(r)"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-liberar" *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="abrirLiberar(r)" title="Liberar"><i class="fa-solid fa-check-double"></i></button>
+                <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="vacio" *ngIf="!cargando && registros.length === 0">
+      <p><i class="fa-solid fa-inbox"></i> No hay registros</p>
+    </div>
+  </ng-container>
+
+  <!-- VISTA NUEVO / EDITAR -->
+  <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
+    <div class="form-card">
+
+      <div class="form-section">
+        <h3><i class="fa-solid fa-file-signature"></i> Datos generales</h3>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Orden de producción *</label>
+            <input type="text" [(ngModel)]="form.ordenProduccion" placeholder="Ej: 22310" (blur)="buscarOP()">
+          </div>
+          <div class="fg"><label>Operarios</label><input type="text" [(ngModel)]="form.operarios"></div>
+          <div class="fg"><label>Hora</label><input type="text" [(ngModel)]="form.hora" placeholder="Ej: 08:30 AM"></div>
+          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="form.maquina"></div>
+        </div>
+        <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
+          <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
+          <div class="op-info-grid">
+            <div><label>Cliente</label><strong>{{ clienteDetectado }}</strong></div>
+            <div><label>Referencia</label><strong>{{ referenciaDetectada || '-' }}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VARIABLES CRÍTICAS: solo Extrusión -->
+      <div class="form-section" *ngIf="tipoFormato?.tieneVariablesCriticas">
+        <h3><i class="fa-solid fa-gauge"></i> Variables Críticas</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Corona</label><input type="text" [(ngModel)]="variablesCriticas.corona"></div>
+          <div class="fg"><label>Molde</label><input type="text" [(ngModel)]="variablesCriticas.molde"></div>
+        </div>
+
+        <div class="form-section">
+        <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
+        <p class="nota-verificacion">Las verificaciones se registran cada 10% del avance en la ejecución de la orden de producción y una al final.</p>
+
+        <div class="tabla-verificacion-container">
+          <table class="tabla-verificacion">
+            <thead>
+              <tr>
+                <th rowspan="2">Característica a Verificar</th>
+                <th colspan="2">Cumple (%)</th>
+                <th colspan="2">No Cumple (%)</th>
+                <th rowspan="2">N/A</th>
+                <th rowspan="2">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of caracteristicas">
+                <td class="col-descripcion">{{ c.descripcion }}</td>
+                <td class="col-porcentaje">
+                  <select [(ngModel)]="resultados[c.id].cumple" [disabled]="resultados[c.id].na">
+                    <option [ngValue]="null">--</option>
+                    <option *ngFor="let p of [10,20,30,40,50,60,70,80,90,100]" [ngValue]="p">{{ p }}%</option>
+                  </select>
+                </td>
+                <td></td>
+                <td class="col-porcentaje">
+                  <select [(ngModel)]="resultados[c.id].noCumple" [disabled]="resultados[c.id].na">
+                    <option [ngValue]="null">--</option>
+                    <option *ngFor="let p of [10,20,30,40,50,60,70,80,90,100]" [ngValue]="p">{{ p }}%</option>
+                  </select>
+                </td>
+                <td></td>
+                <td class="col-na">
+                  <input type="checkbox" [(ngModel)]="resultados[c.id].na">
+                </td>
+                <td class="col-obs">
+                  <input type="text" [(ngModel)]="resultados[c.id].observacion" placeholder="Observación...">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+        <h4>Temperaturas Máquina (°C)</h4>
+        <div class="grid-6">
+          <div class="fg"><label>Zona 1</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona1"></div>
+          <div class="fg"><label>Zona 2</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona2"></div>
+          <div class="fg"><label>Zona 3</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona3"></div>
+          <div class="fg"><label>Zona 4</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona4"></div>
+          <div class="fg"><label>Zona 5</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona5"></div>
+          <div class="fg"><label>Zona 6</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona6"></div>
+        </div>
+        <h4>Velocidades Máquina (Hz)</h4>
+        <div class="form-grid">
+          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.maquina"></div>
+          <div class="fg"><label>Halador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.halador"></div>
+          <div class="fg"><label>Bobinador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.bobinador"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fg"><label>Aire (H)</label><input type="text" [(ngModel)]="variablesCriticas.aire"></div>
+          <div class="fg"><label>Amperaje (A)</label><input type="text" [(ngModel)]="variablesCriticas.amperaje"></div>
+          <div class="fg"><label>Altura Burbuja (Cm)</label><input type="text" [(ngModel)]="variablesCriticas.alturaBurbuja"></div>
+          <div class="fg"><label>Producción (Kg/h)</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
+        </div>
+      </div>
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-check-double"></i> ¿El producto puede ser liberado?</h3>
+        <p class="nota-verificacion">Este apartado es diligenciado por el Jefe de producción o Asistente de calidad y producción.</p>
+        <div class="si-no-btn">
+          <button [class.activo-si]="form.puedeLiberarse === true" (click)="form.puedeLiberarse = true">SI</button>
+          <button [class.activo-no]="form.puedeLiberarse === false" (click)="form.puedeLiberarse = false">NO</button>
+        </div>
+        <div class="fg" *ngIf="form.puedeLiberarse === false" style="margin-top:12px">
+          <label>Si la respuesta es NO, explique ¿Por qué?</label>
+          <textarea [(ngModel)]="form.explicacionNoLiberado" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-signature"></i> Firma y Cargo</h3>
+        <div class="revisado-info"><span>Revisado por: <strong>{{ usuario }}</strong></span></div>
+        <div class="fg" style="margin-top:10px">
+          <label>Cargo de quien hace la liberación</label>
+          <input type="text" [(ngModel)]="form.cargoFirma" placeholder="Ej: Jefe de Producción">
+        </div>
+        <div class="fg" style="margin-top:10px">
+          <label>Firma de quien hace la liberación</label>
+          <canvas id="firmaCanvasGenerico" width="340" height="100" class="canvas-firma"></canvas>
+          <button type="button" (click)="limpiarFirma()" class="btn-limpiar-firma">Limpiar firma</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-cancelar" (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" *ngIf="vista !== 'liberar'" (click)="guardar()"><i class="fa-solid fa-floppy-disk"></i> Guardar registro</button>
+        <button class="btn-guardar" *ngIf="vista === 'liberar'" (click)="guardarLiberacion()"><i class="fa-solid fa-check-double"></i> Confirmar liberación</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VISTA VER -->
+  <ng-container *ngIf="vista === 'ver' && registroSeleccionado">
+    <div class="form-card">
+      <div class="form-section">
+        <div class="ver-header">
+          <h3>Detalle — {{ registroSeleccionado.ordenProduccion }}</h3>
+          <small>{{ registroSeleccionado.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+        <div class="detalle-grid">
+          <div class="detalle-item"><span class="det-label">Cliente</span><span>{{ registroSeleccionado.cliente || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Referencia</span><span>{{ registroSeleccionado.referencia || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Operarios</span><span>{{ registroSeleccionado.operarios || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Máquina</span><span>{{ registroSeleccionado.maquina || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">¿Liberado?</span>
+            <span [class.ok]="registroSeleccionado.puedeLiberarse === true" [class.no]="registroSeleccionado.puedeLiberarse === false">
+              {{ registroSeleccionado.puedeLiberarse === true ? 'SI' : (registroSeleccionado.puedeLiberarse === false ? 'NO' : '-') }}
+            </span>
+          </div>
+          <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{ registroSeleccionado.revisadoPor }}</span></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Resultados de verificación</h3>
+        <div class="tabla-verificacion-container">
+          <table class="tabla-verificacion">
+            <thead>
+              <tr><th>Característica</th><th>Cumple</th><th>No Cumple</th><th>N/A</th><th>Observación</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let res of registroSeleccionado.resultadosParsed">
+                <td>{{ res.descripcion }}</td>
+                <td>{{ res.cumple ? res.cumple + '%' : '-' }}</td>
+                <td>{{ res.noCumple ? res.noCumple + '%' : '-' }}</td>
+                <td>{{ res.na ? 'X' : '-' }}</td>
+                <td>{{ res.observacion || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
+        <button class="btn-guardar" *ngIf="puedeCrear" (click)="editar(registroSeleccionado)"><i class="fa-solid fa-pen"></i> Editar</button>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

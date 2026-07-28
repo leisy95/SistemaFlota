@@ -21,5 +21,6 @@ namespace SistemaFlota
         public bool RecibePedidos { get; set; } = false;
         // RECIBE NOTIFICACIONES DE INSPECCIONES
         public bool RecibeInspecciones { get; set; } = false;
+        public bool RecibeLiberaciones { get; set; } = false;
     }
 }
