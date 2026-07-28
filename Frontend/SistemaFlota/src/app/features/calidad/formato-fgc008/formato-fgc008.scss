@@ -485,3 +485,115 @@ tbody {
 
   .form-grid, .cant-grid, .detalle-grid, .op-info-grid { grid-template-columns: 1fr; }
 }
+// Cliente detectado desde catálogo
+.cliente-box {
+  background: #eff6ff !important;
+  border-left-color: #2563eb !important;
+
+  span { color: #1d4ed8 !important; display: flex; align-items: center; gap: 6px; }
+  .cliente-nombre { font-size: 16px; margin-top: 4px; display: block; }
+}
+
+// Botón Importar
+.btn-importar {
+  padding: 8px 16px;
+  background: #2563eb;
+  color: var(--blanco);
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: fit-content;
+  &:hover { filter: brightness(0.92); }
+}
+
+// Modal Importar
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-importar {
+  background: var(--blanco);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h3 {
+    font-size: 1.1rem;
+    color: var(--gris-oscuro);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+.btn-cerrar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #999;
+  width: auto;
+  &:hover { color: #333; }
+}
+
+.modal-texto {
+  font-size: 0.85rem;
+  color: var(--gris-medio);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.mensaje-importar {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #f0faf5;
+  border-left: 3px solid var(--verde-principal);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--gris-oscuro);
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+
+  button {
+    padding: 9px 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}

@@ -27,6 +27,9 @@
       </div>
       <button class="btn-filtrar" (click)="cargar()">Filtrar</button>
       <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+      <button class="btn-importar" *ngIf="puedeCrear" (click)="mostrarModalImportar = true">
+        <i class="fa-solid fa-file-import"></i> Importar Órdenes
+      </button>
     </div>
 
     <!-- RESUMEN -->
@@ -135,6 +138,13 @@
               <div><label>Cant. OP</label><strong>{{ opExistente.cantidadOP }}</strong></div>
               <div><label>Entradas</label><strong>{{ opExistente.totalEntradas }}</strong></div>
               <div><label>Real acum.</label><strong>{{ opExistente.totalReal }}</strong></div>
+            </div>
+          </div>
+          <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
+            <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
+            <div class="op-info-grid">
+              <div><label>Cliente</label><strong>{{ clienteDetectado }}</strong></div>
+              <div><label>Referencia</label><strong>{{ referenciaDetectada || '-' }}</strong></div>
             </div>
           </div>
         </div>
@@ -268,6 +278,10 @@
         <div class="detalle-item"><span class="det-label">Listo para bodega</span><span
             [class.ok]="registroSeleccionado.listoBodega" [class.no]="!registroSeleccionado.listoBodega">{{
             registroSeleccionado.listoBodega ? 'SI' : 'NO' }}</span></div>
+        <div class="detalle-item"><span class="det-label">Cliente</span><span>{{ registroSeleccionado.cliente || '-'
+            }}</span></div>
+        <div class="detalle-item"><span class="det-label">Referencia</span><span>{{ registroSeleccionado.referencia ||
+            '-' }}</span></div>
         <div class="detalle-item"><span class="det-label">Cantidad OP</span><span>{{ registroSeleccionado.cantidadOP
             }}</span></div>
         <div class="detalle-item"><span class="det-label">Cantidad real</span><span>{{ registroSeleccionado.cantidadReal
@@ -362,3 +376,25 @@
     </div>
   </div>
 </ng-container>
+
+<!-- MODAL IMPORTAR ÓRDENES -->
+<div class="modal-overlay" *ngIf="mostrarModalImportar">
+  <div class="modal-importar">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-file-import"></i> Importar Órdenes de Producción</h3>
+      <button class="btn-cerrar" (click)="mostrarModalImportar = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="modal-texto">Suba el archivo Excel/CSV exportado del sistema de producción. El archivo debe tener
+      columnas con encabezados: <strong>OP, Cliente, Cantidad, Referencia</strong> (el orden no importa).</p>
+    <input type="file" accept=".xlsx,.xls,.csv" (change)="seleccionarArchivoImportar($event)">
+    <p class="mensaje-importar" *ngIf="mensajeImportar">{{ mensajeImportar }}</p>
+    <div class="modal-botones">
+      <button (click)="mostrarModalImportar = false">Cancelar</button>
+      <button class="btn-guardar" [disabled]="!archivoImportar || importando" (click)="importarOrdenes()">
+        <i class="fa-solid" [class.fa-spinner]="importando" [class.fa-spin]="importando"
+          [class.fa-upload]="!importando"></i>
+        {{ importando ? 'Importando...' : 'Importar' }}
+      </button>
+    </div>
+  </div>
+</div>

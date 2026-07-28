@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaFlota;
 
@@ -10,9 +11,11 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728003055_AgregarFirmaFormatoFGC008")]
+    partial class AgregarFirmaFormatoFGC008
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -727,11 +730,11 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("AccionesTomadas")
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("CantidadOP")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<int>("CantidadOP")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("CantidadReal")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<int>("CantidadReal")
+                        .HasColumnType("int");
 
                     b.Property<string>("Cliente")
                         .HasColumnType("longtext");
