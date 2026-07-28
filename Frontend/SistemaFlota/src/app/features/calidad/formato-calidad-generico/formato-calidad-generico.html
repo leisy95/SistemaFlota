@@ -58,19 +58,38 @@
   </ng-container>
 
   <!-- VISTA NUEVO / EDITAR -->
-  <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
+ <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
     <div class="form-card">
 
       <div class="form-section">
         <h3><i class="fa-solid fa-file-signature"></i> Datos generales</h3>
-        <div class="form-grid">
-          <div class="fg">
+      <div class="form-grid">
+          <div class="fg fg-cajon">
             <label>Orden de producción *</label>
             <input type="text" [(ngModel)]="form.ordenProduccion" placeholder="Ej: 22310" (blur)="buscarOP()">
           </div>
-          <div class="fg"><label>Operarios</label><input type="text" [(ngModel)]="form.operarios"></div>
-          <div class="fg"><label>Hora</label><input type="text" [(ngModel)]="form.hora" placeholder="Ej: 08:30 AM"></div>
-          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="form.maquina"></div>
+          <div class="fg fg-cajon">
+            <label>Cliente</label>
+            <input type="text" [(ngModel)]="form.cliente" readonly>
+          </div>
+          <div class="fg fg-cajon">
+            <label>Operario</label>
+            <select [(ngModel)]="form.operarios">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+          <div class="fg fg-cajon">
+            <label>Hora</label>
+            <input type="text" [(ngModel)]="form.hora" class="hora-negrita">
+          </div>
+          <div class="fg fg-cajon">
+            <label>Máquina</label>
+            <select [(ngModel)]="form.maquina">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
         </div>
         <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
           <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
@@ -85,14 +104,47 @@
       <div class="form-section" *ngIf="tipoFormato?.tieneVariablesCriticas">
         <h3><i class="fa-solid fa-gauge"></i> Variables Críticas</h3>
         <div class="form-grid">
-          <div class="fg"><label>Corona</label><input type="text" [(ngModel)]="variablesCriticas.corona"></div>
-          <div class="fg"><label>Molde</label><input type="text" [(ngModel)]="variablesCriticas.molde"></div>
+          <div class="fg">
+            <label>Corona</label>
+            <select [(ngModel)]="variablesCriticas.corona">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesCorona" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+        <div class="fg">
+            <label>Molde</label>
+            <select [(ngModel)]="variablesCriticas.molde">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesMolde" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
         </div>
+        <h4>Temperaturas Máquina (°C)</h4>
+        <div class="grid-6">
+          <div class="fg"><label>Zona 1</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona1"></div>
+          <div class="fg"><label>Zona 2</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona2"></div>
+          <div class="fg"><label>Zona 3</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona3"></div>
+          <div class="fg"><label>Zona 4</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona4"></div>
+          <div class="fg"><label>Zona 5</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona5"></div>
+          <div class="fg"><label>Zona 6</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona6"></div>
+        </div>
+        <h4>Velocidades Máquina (Hz)</h4>
+        <div class="form-grid">
+          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.maquina"></div>
+          <div class="fg"><label>Halador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.halador"></div>
+          <div class="fg"><label>Bobinador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.bobinador"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fg"><label>Aire (H)</label><input type="text" [(ngModel)]="variablesCriticas.aire"></div>
+          <div class="fg"><label>Amperaje (A)</label><input type="text" [(ngModel)]="variablesCriticas.amperaje"></div>
+          <div class="fg"><label>Altura Burbuja (Cm)</label><input type="text" [(ngModel)]="variablesCriticas.alturaBurbuja"></div>
+          <div class="fg"><label>Producción (Kg/h)</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
+        </div>
+      </div>
 
-        <div class="form-section">
+      <div class="form-section">
         <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
         <p class="nota-verificacion">Las verificaciones se registran cada 10% del avance en la ejecución de la orden de producción y una al final.</p>
-
         <div class="tabla-verificacion-container">
           <table class="tabla-verificacion">
             <thead>
@@ -130,28 +182,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-        <h4>Temperaturas Máquina (°C)</h4>
-        <div class="grid-6">
-          <div class="fg"><label>Zona 1</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona1"></div>
-          <div class="fg"><label>Zona 2</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona2"></div>
-          <div class="fg"><label>Zona 3</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona3"></div>
-          <div class="fg"><label>Zona 4</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona4"></div>
-          <div class="fg"><label>Zona 5</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona5"></div>
-          <div class="fg"><label>Zona 6</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona6"></div>
-        </div>
-        <h4>Velocidades Máquina (Hz)</h4>
-        <div class="form-grid">
-          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.maquina"></div>
-          <div class="fg"><label>Halador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.halador"></div>
-          <div class="fg"><label>Bobinador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.bobinador"></div>
-        </div>
-        <div class="form-grid">
-          <div class="fg"><label>Aire (H)</label><input type="text" [(ngModel)]="variablesCriticas.aire"></div>
-          <div class="fg"><label>Amperaje (A)</label><input type="text" [(ngModel)]="variablesCriticas.amperaje"></div>
-          <div class="fg"><label>Altura Burbuja (Cm)</label><input type="text" [(ngModel)]="variablesCriticas.alturaBurbuja"></div>
-          <div class="fg"><label>Producción (Kg/h)</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
         </div>
       </div>
       <div class="form-section" *ngIf="vista === 'liberar'">

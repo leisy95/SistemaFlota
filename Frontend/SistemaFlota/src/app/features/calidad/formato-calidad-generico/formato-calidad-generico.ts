@@ -7,6 +7,7 @@ import { OrdenesProduccionService } from '../../../core/services/ordenes-producc
 import { PermisosService } from '../../../core/services/permisos.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
 
 @Component({
     selector: 'app-formato-calidad-generico',
@@ -61,6 +62,10 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     opExistente: any = null;
     clienteDetectado: string | null = null;
     referenciaDetectada: string | null = null;
+    opcionesMaquina: any[] = [];
+    opcionesCorona: any[] = [];
+    opcionesMolde: any[] = [];
+    opcionesOperario: any[] = [];
 
     get usuario(): string {
         const u = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -73,6 +78,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     constructor(
         private service: FormatosCalidadService,
         private ordenesService: OrdenesProduccionService,
+        private opcionesService: OpcionesFormularioService,
         private permisosService: PermisosService,
         private route: ActivatedRoute
     ) { }
@@ -83,16 +89,25 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     }
 
     cargarConfiguracion() {
-        this.service.getCaracteristicas(this.codigoFormato).subscribe({
-            next: (data) => {
-                this.tipoFormato = data;
-                this.caracteristicas = data.caracteristicas;
-                this.inicializarResultados();
-                this.cargar();
-            },
-            error: (e) => console.error('Error cargando configuracion', e)
-        });
-    }
+    this.service.getCaracteristicas(this.codigoFormato).subscribe({
+      next: (data) => {
+        this.tipoFormato = data;
+        this.caracteristicas = data.caracteristicas;
+        this.inicializarResultados();
+        this.cargarOpciones();
+        this.cargar();
+      },
+      error: (e) => console.error('Error cargando configuracion', e)
+    });
+  }
+
+  cargarOpciones() {
+    const tipoId = this.tipoFormato?.id;
+    this.opcionesService.getOpciones('Maquina', tipoId).subscribe({ next: (d) => this.opcionesMaquina = d, error: (e) => console.error(e) });
+    this.opcionesService.getOpciones('Corona', tipoId).subscribe({ next: (d) => this.opcionesCorona = d, error: (e) => console.error(e) });
+    this.opcionesService.getOpciones('Molde', tipoId).subscribe({ next: (d) => this.opcionesMolde = d, error: (e) => console.error(e) });
+    this.opcionesService.getOpciones('Operario', tipoId).subscribe({ next: (d) => this.opcionesOperario = d, error: (e) => console.error(e) });
+  }
 
     inicializarResultados() {
         this.resultados = {};
@@ -166,55 +181,55 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.firmaDataUrl = null;
     }
 
-   guardar() {
-    if (!this.form.ordenProduccion.trim()) { alert('Ingrese la orden de produccion'); return; }
+    guardar() {
+        if (!this.form.ordenProduccion.trim()) { alert('Ingrese la orden de produccion'); return; }
 
-    const resultadosArray = this.caracteristicas.map(c => ({
-      caracteristicaId: c.id,
-      descripcion: c.descripcion,
-      cumple: this.resultados[c.id]?.cumple ?? null,
-      noCumple: this.resultados[c.id]?.noCumple ?? null,
-      na: this.resultados[c.id]?.na ?? false,
-      observacion: this.resultados[c.id]?.observacion ?? ''
-    }));
+        const resultadosArray = this.caracteristicas.map(c => ({
+            caracteristicaId: c.id,
+            descripcion: c.descripcion,
+            cumple: this.resultados[c.id]?.cumple ?? null,
+            noCumple: this.resultados[c.id]?.noCumple ?? null,
+            na: this.resultados[c.id]?.na ?? false,
+            observacion: this.resultados[c.id]?.observacion ?? ''
+        }));
 
-    const dto = {
-      tipoFormatoId: this.tipoFormato.id,
-      ordenProduccion: this.form.ordenProduccion,
-      cliente: this.form.cliente,
-      referencia: this.form.referencia,
-      operarios: this.form.operarios,
-      hora: this.form.hora,
-      maquina: this.form.maquina,
-      variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas ? JSON.stringify(this.variablesCriticas) : null,
-      resultadosJson: JSON.stringify(resultadosArray)
-    };
+        const dto = {
+            tipoFormatoId: this.tipoFormato.id,
+            ordenProduccion: this.form.ordenProduccion,
+            cliente: this.form.cliente,
+            referencia: this.form.referencia,
+            operarios: this.form.operarios,
+            hora: this.form.hora,
+            maquina: this.form.maquina,
+            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas ? JSON.stringify(this.variablesCriticas) : null,
+            resultadosJson: JSON.stringify(resultadosArray)
+        };
 
-    const peticion = this.editandoId
-      ? this.service.editarRegistro(this.editandoId, dto)
-      : this.service.crearRegistro(dto);
+        const peticion = this.editandoId
+            ? this.service.editarRegistro(this.editandoId, dto)
+            : this.service.crearRegistro(dto);
 
-    peticion.subscribe({
-      next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
-      error: (e) => { console.error(e); alert('Error guardando el registro'); }
-    });
-  }
+        peticion.subscribe({
+            next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
+            error: (e) => { console.error(e); alert('Error guardando el registro'); }
+        });
+    }
 
-  guardarLiberacion() {
-    if (this.form.puedeLiberarse === null) { alert('Seleccione SI o NO'); return; }
+    guardarLiberacion() {
+        if (this.form.puedeLiberarse === null) { alert('Seleccione SI o NO'); return; }
 
-    const dto = {
-      puedeLiberarse: this.form.puedeLiberarse,
-      explicacionNoLiberado: this.form.explicacionNoLiberado,
-      firmaDigital: this.firmaDataUrl,
-      cargoFirma: this.form.cargoFirma
-    };
+        const dto = {
+            puedeLiberarse: this.form.puedeLiberarse,
+            explicacionNoLiberado: this.form.explicacionNoLiberado,
+            firmaDigital: this.firmaDataUrl,
+            cargoFirma: this.form.cargoFirma
+        };
 
-    this.service.liberarRegistro(this.editandoId!, dto).subscribe({
-      next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
-      error: (e) => { console.error(e); alert('Error al liberar el registro'); }
-    });
-  }
+        this.service.liberarRegistro(this.editandoId!, dto).subscribe({
+            next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
+            error: (e) => { console.error(e); alert('Error al liberar el registro'); }
+        });
+    }
 
     ver(r: any) {
         this.registroSeleccionado = r;
