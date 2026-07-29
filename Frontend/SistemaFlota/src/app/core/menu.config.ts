@@ -141,9 +141,14 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'rrhh'
     },
 
-
-    //  CALIDAD
-
+//  CALIDAD
+    {
+        key: 'calidad-cyreles',
+        label: 'Cyreles',
+        icon: 'fa-solid fa-box',
+        ruta: '/calidad/calidad-cyreles',
+        modulo: 'calidad'
+    },
     {
         key: 'calidad-formatos',
         label: 'Formatos',
@@ -151,7 +156,6 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/calidad-formatos',
         modulo: 'calidad'
     },
-
     {
         key: 'calidad-extrusion',
         label: 'Extrusión',
@@ -159,7 +163,6 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/extrusion',
         modulo: 'calidad'
     },
-
     {
         key: 'calidad-impresion',
         label: 'Impresión',
@@ -167,7 +170,6 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/impresion',
         modulo: 'calidad'
     },
-
     {
         key: 'calidad-sellado',
         label: 'Sellado',
@@ -175,20 +177,18 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/sellado',
         modulo: 'calidad'
     },
-
-    {
+   {
         key: 'calidad-precorte',
         label: 'Precorte',
         icon: 'fa-solid fa-scissors',
         ruta: '/calidad/precorte',
         modulo: 'calidad'
     },
-
     {
-        key: 'calidad-formatos',
-        label: 'Formatos',
-        icon: 'fa-solid fa-file-lines',
-        ruta: '/calidad/calidad-formatos',
+        key: 'admin-opciones-formulario',
+        label: 'Opciones de Formularios',
+        icon: 'fa-solid fa-sliders',
+        ruta: '/calidad/admin-opciones-formulario',
         modulo: 'calidad'
     },
 
@@ -261,4 +261,12 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
     },
+    {
+        key: 'admin-opciones-formulario',
+        label: 'Opciones de Formularios',
+        icon: 'fa-solid fa-sliders',
+        ruta: '/calidad/admin-opciones-formulario',
+        modulo: 'admin-opciones-formulario'
+    },
+
 ];

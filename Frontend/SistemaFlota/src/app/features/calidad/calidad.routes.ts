@@ -47,4 +47,12 @@ export const CALIDAD_ROUTES: Routes = [
                 .then(c => c.FormatoCalidadGenericoComponent),
         data: { animation: 'precorte', codigo: 'F-GC-007' }
     },
+
+    {
+        path: 'admin-opciones-formulario',
+        loadComponent: () =>
+            import('./opciones-formulario/opciones-formulario')
+                .then(c => c.OpcionesFormularioComponent),
+        data: { animation: 'admin-opciones-formulario' }
+    },
 ];
