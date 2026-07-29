@@ -188,11 +188,11 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
             return Ok();
         }
-    
 
-    // GET api/FormatosCalidad/mejor-rendimiento?referencia=XXX
+
+        // GET api/FormatosCalidad/mejor-rendimiento?referencia=XXX
         [HttpGet("mejor-rendimiento")]
-        public async Task<IActionResult> MejorRendimiento([FromQuery] string referencia)
+        public async Task<IActionResult> MejorRendimiento([FromQuery] string referencia, [FromQuery] string? maquina = null)
         {
             if (string.IsNullOrWhiteSpace(referencia))
                 return BadRequest(new { mensaje = "Debe indicar una referencia para buscar" });
@@ -201,11 +201,15 @@ namespace SistemaFlota
                 .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
             if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo Extrusión no configurado" });
 
-            var registros = await _context.RegistrosFormatoCalidad
+            var query = _context.RegistrosFormatoCalidad
                 .Where(r => r.TipoFormatoId == tipoExtrusion.Id &&
                             r.Referencia != null && r.Referencia.Contains(referencia) &&
-                            r.ProduccionKgHora != null)
-                .ToListAsync();
+                            r.ProduccionKgHora != null);
+
+            if (!string.IsNullOrWhiteSpace(maquina))
+                query = query.Where(r => r.Maquina == maquina);
+
+            var registros = await query.ToListAsync();
 
             if (!registros.Any())
                 return Ok(new { mensaje = "No hay registros históricos para esta referencia", resultados = new List<object>() });
@@ -239,6 +243,7 @@ namespace SistemaFlota
                     r.OrdenProduccion,
                     r.Referencia,
                     r.Fecha,
+                    r.Maquina,
                     KgHora = kgHora,
                     DesperdicioTotal = desperdicioTotal,
                     r.VariablesCriticasJson
@@ -250,10 +255,12 @@ namespace SistemaFlota
 
             var conPuntaje = calculados.Select(c => new
             {
+
                 c.Id,
                 c.OrdenProduccion,
                 c.Referencia,
                 c.Fecha,
+                c.Maquina,
                 c.KgHora,
                 c.DesperdicioTotal,
                 c.VariablesCriticasJson,

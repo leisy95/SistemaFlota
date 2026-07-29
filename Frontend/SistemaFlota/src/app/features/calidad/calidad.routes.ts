@@ -55,4 +55,12 @@ export const CALIDAD_ROUTES: Routes = [
                 .then(c => c.OpcionesFormularioComponent),
         data: { animation: 'admin-opciones-formulario' }
     },
+
+    {
+        path: 'mejor-rendimiento',
+        loadComponent: () =>
+            import('./mejor-rendimiento/mejor-rendimiento')
+                .then(c => c.MejorRendimientoComponent),
+        data: { animation: 'mejor-rendimiento' }
+    },
 ];

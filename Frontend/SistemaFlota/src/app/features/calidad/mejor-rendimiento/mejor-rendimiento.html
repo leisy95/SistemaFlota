@@ -1,0 +1,108 @@
+<div class="contenedor">
+  <div class="header">
+    <div>
+      <h1><i class="fa-solid fa-magnifying-glass-chart"></i> Mejor Rendimiento</h1>
+      <p>Busca una referencia y encuentra los parámetros que dieron mejor resultado (más producción, menos desperdicio)</p>
+    </div>
+  </div>
+
+  <div class="buscador">
+    <input type="text" [(ngModel)]="referenciaBusqueda" placeholder="Ej: 0018.0*020.0*1.50 o parte de la referencia" (keyup.enter)="buscar()">
+    <button class="btn-buscar" (click)="buscar()" [disabled]="buscando">
+      <i class="fa-solid" [class.fa-spinner]="buscando" [class.fa-spin]="buscando" [class.fa-magnifying-glass]="!buscando"></i>
+      {{ buscando ? 'Buscando...' : 'Buscar' }}
+    </button>
+  </div>
+
+  <div class="vacio" *ngIf="mensajeVacio">
+    <p><i class="fa-solid fa-inbox"></i> {{ mensajeVacio }}</p>
+  </div>
+
+  <ng-container *ngIf="resultado">
+    <div class="resumen-encontrados">
+      <i class="fa-solid fa-circle-info"></i>
+      Se encontraron <strong>{{ resultado.totalEncontrados }}</strong> registro(s) histórico(s) para esta referencia
+    </div>
+
+    <!-- RESULTADO SELECCIONADO -->
+    <div class="tarjeta-mejor">
+      <div class="tarjeta-mejor-header">
+        <i class="fa-solid fa-trophy" *ngIf="seleccionado.id === resultado.mejor.id"></i>
+        <i class="fa-solid fa-clipboard-list" *ngIf="seleccionado.id !== resultado.mejor.id"></i>
+        <h2>{{ seleccionado.id === resultado.mejor.id ? 'Mejor combinación encontrada' : 'Parámetros de la orden ' + seleccionado.ordenProduccion }}</h2>
+      </div>
+
+      <div class="metricas-grid">
+        <div class="metrica">
+          <span class="metrica-label">Producción</span>
+          <span class="metrica-valor">{{ seleccionado.kgHora }} kg/h</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-label">Desperdicio total</span>
+          <span class="metrica-valor">{{ seleccionado.desperdicioTotal }} kg</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-label">Máquina</span>
+          <span class="metrica-valor">{{ seleccionado.maquina || '-' }}</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-label">Orden de origen</span>
+          <span class="metrica-valor">{{ seleccionado.ordenProduccion }}</span>
+        </div>
+        <div class="metrica">
+          <span class="metrica-label">Fecha</span>
+          <span class="metrica-valor">{{ seleccionado.fecha | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="variables-detalle" *ngIf="variablesDe(seleccionado.variablesCriticasJson) as vc">
+        <h3>Parámetros usados</h3>
+        <div class="variables-grid">
+          <div class="variable-item"><label>Corona</label><strong>{{ vc.corona || '-' }}</strong></div>
+          <div class="variable-item"><label>Molde</label><strong>{{ vc.molde || '-' }}</strong></div>
+        </div>
+        <h4>Temperaturas (°C)</h4>
+        <div class="variables-grid-6">
+          <div class="variable-item"><label>Zona 1</label><strong>{{ vc.temperaturas?.zona1 || '-' }}</strong></div>
+          <div class="variable-item"><label>Zona 2</label><strong>{{ vc.temperaturas?.zona2 || '-' }}</strong></div>
+          <div class="variable-item"><label>Zona 3</label><strong>{{ vc.temperaturas?.zona3 || '-' }}</strong></div>
+          <div class="variable-item"><label>Zona 4</label><strong>{{ vc.temperaturas?.zona4 || '-' }}</strong></div>
+          <div class="variable-item"><label>Zona 5</label><strong>{{ vc.temperaturas?.zona5 || '-' }}</strong></div>
+          <div class="variable-item"><label>Zona 6</label><strong>{{ vc.temperaturas?.zona6 || '-' }}</strong></div>
+        </div>
+        <h4>Velocidades (Hz)</h4>
+        <div class="variables-grid">
+          <div class="variable-item"><label>Máquina</label><strong>{{ vc.velocidades?.maquina || '-' }}</strong></div>
+          <div class="variable-item"><label>Halador</label><strong>{{ vc.velocidades?.halador || '-' }}</strong></div>
+          <div class="variable-item"><label>Bobinador</label><strong>{{ vc.velocidades?.bobinador || '-' }}</strong></div>
+        </div>
+        <div class="variables-grid">
+          <div class="variable-item"><label>Aire (H)</label><strong>{{ vc.aire || '-' }}</strong></div>
+          <div class="variable-item"><label>Amperaje (A)</label><strong>{{ vc.amperaje || '-' }}</strong></div>
+          <div class="variable-item"><label>Altura Burbuja (Cm)</label><strong>{{ vc.alturaBurbuja || '-' }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODOS LOS RESULTADOS -->
+    <div class="tabla-container" *ngIf="resultado.todos.length > 1">
+      <h3 class="titulo-tabla">Comparativa completa ({{ resultado.todos.length }} registros)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Orden</th><th>Fecha</th><th>Kg/h</th><th>Desperdicio</th><th>Puntaje</th>
+          </tr>
+        </thead>
+        <tbody>
+         <tr *ngFor="let r of resultado.todos; let i = index" [class.fila-mejor]="i === 0" [class.fila-seleccionada]="seleccionado.id === r.id" (click)="seleccionar(r)">
+            <td data-label="Orden">{{ r.ordenProduccion }} <span *ngIf="i === 0" class="badge-top">🏆 Mejor</span></td>
+            <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy' }}</td>
+            <td data-label="Kg/h">{{ r.kgHora }}</td>
+            <td data-label="Desperdicio">{{ r.desperdicioTotal }} kg</td>
+            <td data-label="Puntaje">{{ r.puntaje | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>

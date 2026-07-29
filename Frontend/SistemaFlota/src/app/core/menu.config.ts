@@ -191,6 +191,13 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/admin-opciones-formulario',
         modulo: 'calidad'
     },
+    {
+        key: 'mejor-rendimiento',
+        label: 'Mejor Rendimiento',
+        icon: 'fa-solid fa-magnifying-glass-chart',
+        ruta: '/calidad/mejor-rendimiento',
+        modulo: 'calidad'
+    },
 
     // Control envios 
 

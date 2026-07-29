@@ -237,8 +237,22 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 });
             }
         });
+    }
+    sugerenciaAplicada = false;
 
+    buscarSugerenciaMejorRendimiento() {
+        if (!this.tipoFormato?.tieneVariablesCriticas) return; // solo aplica a Extrusión
+        if (!this.form.referencia || !this.form.maquina) return;
 
+        this.service.buscarMejorRendimiento(this.form.referencia, this.form.maquina).subscribe({
+            next: (data: any) => {
+                if (!data.mejor || !data.mejor.variablesCriticasJson) return;
+                const vc = JSON.parse(data.mejor.variablesCriticasJson);
+                this.variablesCriticas = vc;
+                this.sugerenciaAplicada = true;
+            },
+            error: () => { /* sin historial, no pasa nada */ }
+        });
     }
 
     nuevo() {

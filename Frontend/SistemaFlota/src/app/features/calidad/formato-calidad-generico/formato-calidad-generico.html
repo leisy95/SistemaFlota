@@ -88,7 +88,7 @@
           </div>
           <div class="fg fg-cajon">
             <label>Máquina</label>
-            <select [(ngModel)]="form.maquina">
+            <select [(ngModel)]="form.maquina" (change)="buscarSugerenciaMejorRendimiento()">
               <option [ngValue]="''">-- Seleccione --</option>
               <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
             </select>
@@ -106,6 +106,9 @@
       <!-- VARIABLES CRÍTICAS: solo Extrusión -->
       <div class="form-section" *ngIf="tipoFormato?.tieneVariablesCriticas">
         <h3><i class="fa-solid fa-gauge"></i> Variables Críticas</h3>
+        <div class="op-info-box cliente-box" *ngIf="sugerenciaAplicada">
+          <span><i class="fa-solid fa-wand-magic-sparkles"></i> Parámetros sugeridos según el mejor rendimiento histórico para esta referencia y máquina. Puede modificarlos si es necesario.</span>
+        </div>
         <div class="form-grid">
           <div class="fg">
             <label>Corona</label>
