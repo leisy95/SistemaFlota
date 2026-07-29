@@ -155,6 +155,7 @@ namespace SistemaFlota
             r.ExplicacionNoLiberado = dto.ExplicacionNoLiberado;
             r.FirmaDigital = dto.FirmaDigital;
             r.CargoFirma = dto.CargoFirma;
+            r.ProduccionKgHora = dto.ProduccionKgHora;
             r.Estado = "Liberado";
 
             await _context.SaveChangesAsync();

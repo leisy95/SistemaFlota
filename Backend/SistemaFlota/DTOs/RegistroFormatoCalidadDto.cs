@@ -23,5 +23,6 @@
         public string? ExplicacionNoLiberado { get; set; }
         public string? FirmaDigital { get; set; }
         public string? CargoFirma { get; set; }
+        public string? ProduccionKgHora { get; set; }
     }
 }

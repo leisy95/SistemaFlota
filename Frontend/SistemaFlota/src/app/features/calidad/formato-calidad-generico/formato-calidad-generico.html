@@ -1,4 +1,4 @@
-<div class="contenedor">
+<div class="contenedor" (click)="cerrarMenus()">
   <div class="header">
     <div>
       <h1>{{ tipoFormato?.nombre }}</h1>
@@ -39,12 +39,15 @@
               </span>
             </td>
             <td data-label="Revisado por">{{ r.revisadoPor }}</td>
-            <td data-label="Acciones">
-              <div class="btn-acciones">
-                <button class="btn-ver" (click)="ver(r)"><i class="fa-solid fa-eye"></i></button>
-                <button class="btn-editar" *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="editar(r)"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-liberar" *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="abrirLiberar(r)" title="Liberar"><i class="fa-solid fa-check-double"></i></button>
-                <button class="btn-eliminar" *ngIf="puedeEliminar" (click)="eliminar(r.id)"><i class="fa-solid fa-trash"></i></button>
+            <td data-label="Acciones" class="td-menu">
+              <button class="btn-menu-puntos" (click)="toggleMenu(r.id, $event)">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <div class="menu-desplegable" *ngIf="menuAbiertoId === r.id">
+                <button (click)="ver(r); cerrarMenus()"><i class="fa-solid fa-eye"></i> Ver</button>
+                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="editar(r); cerrarMenus()"><i class="fa-solid fa-pen"></i> Editar</button>
+                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="abrirLiberar(r); cerrarMenus()"><i class="fa-solid fa-check-double"></i> Liberar</button>
+                <button *ngIf="puedeEliminar" class="opcion-eliminar" (click)="eliminar(r.id); cerrarMenus()"><i class="fa-solid fa-trash"></i> Eliminar</button>
               </div>
             </td>
           </tr>
@@ -138,52 +141,77 @@
           <div class="fg"><label>Aire (H)</label><input type="text" [(ngModel)]="variablesCriticas.aire"></div>
           <div class="fg"><label>Amperaje (A)</label><input type="text" [(ngModel)]="variablesCriticas.amperaje"></div>
           <div class="fg"><label>Altura Burbuja (Cm)</label><input type="text" [(ngModel)]="variablesCriticas.alturaBurbuja"></div>
-          <div class="fg"><label>Producción (Kg/h)</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
+          <div class="fg"><label>kilos desperdicio</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
         </div>
       </div>
 
-      <div class="form-section">
+     <div class="form-section">
         <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
-        <p class="nota-verificacion">Las verificaciones se registran cada 10% del avance en la ejecución de la orden de producción y una al final.</p>
-        <div class="tabla-verificacion-container">
-          <table class="tabla-verificacion">
+       <p class="nota-verificacion">Registre una verificación completa cada hora. Utilice el botón "Agregar hora" para crear una nueva ronda. Cada ronda debe diligenciarse dentro de la franja horaria correspondiente y entregarse una muestra física al responsable del proceso.</p>
+
+        <div class="alerta-hora" *ngIf="vista === 'nuevo' && !tieneRondaFinal">
+          <i class="fa-solid fa-clock"></i>
+          <span>Ventana actual: <strong>{{ ventanaHoraActual }}</strong> — debe registrar la verificación correspondiente dentro de esta hora.</span>
+        </div>
+        <div class="alerta-hora alerta-urgente" *ngIf="vista === 'nuevo' && faltaVerificacionEstaHora">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>La verificación de esta hora aún está pendiente. Complétela.</span>
+        </div>
+
+        <div class="rondas-botones">
+          <button type="button" class="btn-agregar-hora" [disabled]="tieneRondaFinal" (click)="agregarRondaHora()">
+            <i class="fa-solid fa-plus"></i> Agregar verificación de esta hora
+          </button>
+          <span class="badge-final" *ngIf="tieneRondaFinal"><i class="fa-solid fa-flag-checkered"></i> Verificación final registrada</span>
+        </div>
+
+        <div class="tabla-verificacion-container" *ngIf="rondas.length > 0">
+          <table class="tabla-verificacion tabla-rondas">
             <thead>
               <tr>
-                <th rowspan="2">Característica a Verificar</th>
-                <th colspan="2">Cumple (%)</th>
-                <th colspan="2">No Cumple (%)</th>
-                <th rowspan="2">N/A</th>
-                <th rowspan="2">Observaciones</th>
+                <th class="col-descripcion">Característica</th>
+                <th *ngFor="let ronda of rondas; let i = index" [class.col-final]="ronda.final">
+                  {{ ronda.hora }} <span *ngIf="ronda.final">(F)</span>
+                  <button type="button" class="btn-quitar-ronda" *ngIf="!tieneRondaFinal" (click)="quitarRonda(i)" title="Quitar esta hora">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                  <button type="button" class="btn-marcar-final" *ngIf="!tieneRondaFinal && i === rondas.length - 1" (click)="marcarRondaFinal(i)" title="Marcar como verificación final">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                  </button>
+                </th>
+                <th class="col-obs">Observaciones</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let c of caracteristicas">
                 <td class="col-descripcion">{{ c.descripcion }}</td>
-                <td class="col-porcentaje">
-                  <select [(ngModel)]="resultados[c.id].cumple" [disabled]="resultados[c.id].na">
-                    <option [ngValue]="null">--</option>
-                    <option *ngFor="let p of [10,20,30,40,50,60,70,80,90,100]" [ngValue]="p">{{ p }}%</option>
-                  </select>
-                </td>
-                <td></td>
-                <td class="col-porcentaje">
-                  <select [(ngModel)]="resultados[c.id].noCumple" [disabled]="resultados[c.id].na">
-                    <option [ngValue]="null">--</option>
-                    <option *ngFor="let p of [10,20,30,40,50,60,70,80,90,100]" [ngValue]="p">{{ p }}%</option>
-                  </select>
-                </td>
-                <td></td>
-                <td class="col-na">
-                  <input type="checkbox" [(ngModel)]="resultados[c.id].na">
+                <td *ngFor="let ronda of rondas; let i = index" class="col-valor">
+                  <div class="valor-btns">
+                    <button type="button" class="btn-valor btn-cumple" [class.activo]="ronda.valores[c.id] === 'cumple'" (click)="marcarValor(i, c.id, 'cumple')">✓</button>
+                    <button type="button" class="btn-valor btn-nocumple" [class.activo]="ronda.valores[c.id] === 'noCumple'" (click)="marcarValor(i, c.id, 'noCumple')">✗</button>
+                    <button type="button" class="btn-valor btn-na" [class.activo]="ronda.valores[c.id] === 'na'" (click)="marcarValor(i, c.id, 'na')">N/A</button>
+                  </div>
                 </td>
                 <td class="col-obs">
-                  <input type="text" [(ngModel)]="resultados[c.id].observacion" placeholder="Observación...">
+                  <input type="text" [(ngModel)]="observaciones[c.id]" placeholder="Observación...">
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div class="vacio-rondas" *ngIf="rondas.length === 0">
+          <p><i class="fa-solid fa-clock"></i> Aún no hay verificaciones registradas. Presione "Agregar verificación de esta hora" para empezar.</p>
+        </div>
       </div>
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-weight-scale"></i> Producción</h3>
+        <div class="fg">
+          <label>Producción (Kg/h)</label>
+          <input type="text" [(ngModel)]="form.produccionKgHora" placeholder="Ej: 45.5">
+        </div>
+      </div>
+
       <div class="form-section" *ngIf="vista === 'liberar'">
         <h3><i class="fa-solid fa-check-double"></i> ¿El producto puede ser liberado?</h3>
         <p class="nota-verificacion">Este apartado es diligenciado por el Jefe de producción o Asistente de calidad y producción.</p>
