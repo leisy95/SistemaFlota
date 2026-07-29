@@ -46,20 +46,27 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     // ── Formulario ──
     form = {
-    ordenProduccion: '',
-    cliente: '',
-    referencia: '',
-    operarios: '',
-    hora: '',
-    maquina: '',
-    puedeLiberarse: null as boolean | null,
-    explicacionNoLiberado: '',
-    cargoFirma: '',
-    produccionKgHora: ''
-  };
+        ordenProduccion: '',
+        cliente: '',
+        referencia: '',
+        operarios: '',
+        hora: '',
+        maquina: '',
+        puedeLiberarse: null as boolean | null,
+        explicacionNoLiberado: '',
+        cargoFirma: '',
+        produccionKgHora: ''
+    };
 
-    // Rondas de verificación por hora: cada ronda tiene su hora y los valores de cada característica
-    rondas: { hora: string; final: boolean; valores: { [caracteristicaId: number]: 'cumple' | 'noCumple' | 'na' | null } }[] = [];
+    // Rondas de verificación por hora: cada ronda tiene su hora, operario, y los valores de cada característica
+    rondas: {
+        hora: string;
+        final: boolean;
+        operario: string;
+        cierreDeOperario: boolean;
+        kilosDesperdicio: string;
+        valores: { [caracteristicaId: number]: 'cumple' | 'noCumple' | 'na' | null };
+    }[] = [];
     observaciones: { [caracteristicaId: number]: string } = {};
     tieneRondaFinal = false;
 
@@ -131,8 +138,11 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         }
     }
 
+    operarioRondaNueva = '';
+
     agregarRondaHora() {
         if (this.tieneRondaFinal) { alert('Ya se marcó la verificación final, no se pueden agregar más horas'); return; }
+        if (!this.operarioRondaNueva) { alert('Seleccione el operario que realiza esta verificación'); return; }
 
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -140,9 +150,28 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         const valores: { [key: number]: 'cumple' | 'noCumple' | 'na' | null } = {};
         for (const c of this.caracteristicas) valores[c.id] = null;
 
-        this.rondas.push({ hora: horaTexto, final: false, valores });
+        this.rondas.push({
+            hora: horaTexto, final: false, operario: this.operarioRondaNueva,
+            cierreDeOperario: false, kilosDesperdicio: '', valores
+        });
+        this.operarioRondaNueva = '';
     }
 
+    cerrarTurnoOperario(indice: number) {
+        const ronda = this.rondas[indice];
+        const kilos = prompt(`Cerrar turno de ${ronda.operario}\n\nIngrese los kilos de desperdicio:`);
+        if (kilos === null) return; // canceló
+
+        ronda.cierreDeOperario = true;
+        ronda.kilosDesperdicio = kilos.trim();
+    }
+    anchoColumnaHora(): string {
+        const totalRondas = this.rondas.length || 1;
+        // Reserva 18% para Característica y 20% para Observaciones, el resto se reparte entre las horas
+        const disponible = 62;
+        const porColumna = disponible / totalRondas;
+        return `${Math.max(porColumna, 6)}%`; // nunca menos de 6% para que no desaparezca
+    }
     marcarRondaFinal(indice: number) {
         if (!confirm('¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.')) return;
         this.rondas.forEach((r, i) => r.final = (i === indice));
@@ -184,6 +213,13 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         const ultimaRonda = this.rondas[this.rondas.length - 1];
         return this.caracteristicas.some(c => !ultimaRonda.valores[c.id]);
     }
+
+    get totalKilosDesperdicioVer(): number {
+        if (!this.registroSeleccionado?.rondasParsed) return 0;
+        return this.registroSeleccionado.rondasParsed
+            .filter((r: any) => r.cierreDeOperario)
+            .reduce((sum: number, r: any) => sum + (parseFloat(r.kilosDesperdicio) || 0), 0);
+    }
     buscarOP() {
         if (!this.form.ordenProduccion || !this.tipoFormato) return;
         this.service.buscarOP(this.form.ordenProduccion, this.tipoFormato.id).subscribe({
@@ -205,11 +241,13 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     }
 
-   nuevo() {
-    this.form = {
-      ordenProduccion: '', cliente: '', referencia: '', operarios: '',
-      hora: '', maquina: '', puedeLiberarse: null, explicacionNoLiberado: '', cargoFirma: '', produccionKgHora: ''
-    };
+    nuevo() {
+        const ahora = new Date();
+        const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+        this.form = {
+            ordenProduccion: '', cliente: '', referencia: '', operarios: '',
+            hora: horaTexto, maquina: '', puedeLiberarse: null, explicacionNoLiberado: '', cargoFirma: '', produccionKgHora: ''
+        };
         this.inicializarResultados();
         this.variablesCriticas = {
             corona: '', molde: '',
@@ -279,13 +317,13 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     guardarLiberacion() {
         if (this.form.puedeLiberarse === null) { alert('Seleccione SI o NO'); return; }
 
-      const dto = {
-      puedeLiberarse: this.form.puedeLiberarse,
-      explicacionNoLiberado: this.form.explicacionNoLiberado,
-      firmaDigital: this.firmaDataUrl,
-      cargoFirma: this.form.cargoFirma,
-      produccionKgHora: this.form.produccionKgHora
-    };
+        const dto = {
+            puedeLiberarse: this.form.puedeLiberarse,
+            explicacionNoLiberado: this.form.explicacionNoLiberado,
+            firmaDigital: this.firmaDataUrl,
+            cargoFirma: this.form.cargoFirma,
+            produccionKgHora: this.form.produccionKgHora
+        };
 
         this.service.liberarRegistro(this.editandoId!, dto).subscribe({
             next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
@@ -295,7 +333,10 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     ver(r: any) {
         this.registroSeleccionado = r;
-        this.registroSeleccionado.resultadosParsed = JSON.parse(r.resultadosJson || '[]');
+        const datos = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{},"caracteristicas":[]}');
+        this.registroSeleccionado.rondasParsed = datos.rondas || [];
+        this.registroSeleccionado.observacionesParsed = datos.observaciones || {};
+        this.registroSeleccionado.caracteristicasParsed = datos.caracteristicas || [];
         if (r.variablesCriticasJson) this.registroSeleccionado.variablesCriticasParsed = JSON.parse(r.variablesCriticasJson);
         this.vista = 'ver';
     }
@@ -303,11 +344,11 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     editar(r: any) {
         this.editandoId = r.id;
         this.form = {
-           ordenProduccion: r.ordenProduccion, cliente: r.cliente ?? '', referencia: r.referencia ?? '',
-        operarios: r.operarios ?? '', hora: r.hora ?? '', maquina: r.maquina ?? '',
-        puedeLiberarse: r.puedeLiberarse, explicacionNoLiberado: r.explicacionNoLiberado ?? '',
-        cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? ''
-    };
+            ordenProduccion: r.ordenProduccion, cliente: r.cliente ?? '', referencia: r.referencia ?? '',
+            operarios: r.operarios ?? '', hora: r.hora ?? '', maquina: r.maquina ?? '',
+            puedeLiberarse: r.puedeLiberarse, explicacionNoLiberado: r.explicacionNoLiberado ?? '',
+            cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? ''
+        };
 
         this.inicializarResultados();
         const datosGuardados = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{}}');
@@ -322,12 +363,12 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     }
 
     abrirLiberar(r: any) {
-    this.editandoId = r.id;
-    this.registroSeleccionado = r;
-    this.form.puedeLiberarse = r.puedeLiberarse ?? null;
-    this.form.explicacionNoLiberado = r.explicacionNoLiberado ?? '';
-    this.form.cargoFirma = r.cargoFirma ?? '';
-    this.form.produccionKgHora = r.produccionKgHora ?? '';
+        this.editandoId = r.id;
+        this.registroSeleccionado = r;
+        this.form.puedeLiberarse = r.puedeLiberarse ?? null;
+        this.form.explicacionNoLiberado = r.explicacionNoLiberado ?? '';
+        this.form.cargoFirma = r.cargoFirma ?? '';
+        this.form.produccionKgHora = r.produccionKgHora ?? '';
         this.firmaDataUrl = r.firmaDigital ?? null;
         this.vista = 'liberar';
         setTimeout(() => this.iniciarCanvas(), 300);
@@ -336,8 +377,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         if (!confirm('¿Eliminar este registro?')) return;
         this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
     }
-    exportarPDF() {
-        if (this.registros.length === 0) { alert('No hay registros para exportar'); return; }
+    exportarPDF(registroUnico?: any) {
+        const listaAExportar = registroUnico ? [registroUnico] : this.registros;
+        if (listaAExportar.length === 0) { alert('No hay registros para exportar'); return; }
 
         const doc = new jsPDF('p', 'mm', 'letter');
         const NEGRO: [number, number, number] = [0, 0, 0];
@@ -366,7 +408,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         doc.text('Nota: Las verificaciones se registran cada 10% del avance en la ejecución de la orden de Producción y una al final.', M + 2, y + 9.5, { maxWidth: W - M * 2 - 4 });
         y += 15;
 
-        for (const r of this.registros) {
+        for (const r of listaAExportar) {
             if (y > 240) { doc.addPage(); y = M; }
 
             doc.setFontSize(9); doc.setFont('helvetica', 'bold');
@@ -412,7 +454,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 autoTable(doc, {
                     startY: y,
                     body: [
-                      ['Aire (H)', vc.aire || '-', 'Amperaje (A)', vc.amperaje || '-', 'Altura Burbuja (Cm)', vc.alturaBurbuja || '-', 'Kilos Desperdicio', vc.produccionKgHora || '-'],
+                        ['Aire (H)', vc.aire || '-', 'Amperaje (A)', vc.amperaje || '-', 'Altura Burbuja (Cm)', vc.alturaBurbuja || '-', 'Kilos Desperdicio', vc.produccionKgHora || '-'],
                     ],
                     theme: 'grid',
                     bodyStyles: { fontSize: 6.5, lineColor: NEGRO, lineWidth: 0.3 },
@@ -423,25 +465,32 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 if (y > 240) { doc.addPage(); y = M; }
             }
 
-            const resultados = JSON.parse(r.resultadosJson || '[]');
-            const filas = resultados.map((res: any) => [
-                res.descripcion,
-                res.cumple ? res.cumple + '%' : '-',
-                res.noCumple ? res.noCumple + '%' : '-',
-                res.na ? 'X' : '-',
-                res.observacion || '-'
-            ]);
+            const datos = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{},"caracteristicas":[]}');
+            const rondas = datos.rondas || [];
+            const caracteristicasReg = datos.caracteristicas || [];
+            const observacionesReg = datos.observaciones || {};
+
+            const encabezados = ['Característica', ...rondas.map((rr: any) => rr.hora + (rr.final ? ' (F)' : '')), 'Observación'];
+            const filas = caracteristicasReg.map((c: any) => {
+                const fila = [c.descripcion];
+                for (const rr of rondas) {
+                    const v = rr.valores[c.id];
+                    fila.push(v === 'cumple' ? 'OK' : v === 'noCumple' ? 'NO' : v === 'na' ? 'N/A' : '-');
+                }
+                fila.push(observacionesReg[c.id] || '-');
+                return fila;
+            });
 
             autoTable(doc, {
                 startY: y,
-                head: [['Característica', 'Cumple', 'No Cumple', 'N/A', 'Observaciones']],
+                head: [encabezados],
                 body: filas,
-                headStyles: { fillColor: GRIS, textColor: NEGRO, fontSize: 7, lineColor: NEGRO, lineWidth: 0.3 },
-                bodyStyles: { fontSize: 7, lineColor: NEGRO, lineWidth: 0.3 },
+                headStyles: { fillColor: GRIS, textColor: NEGRO, fontSize: 6.5, lineColor: NEGRO, lineWidth: 0.3 },
+                bodyStyles: { fontSize: 6.5, lineColor: NEGRO, lineWidth: 0.3, halign: 'center' },
+                columnStyles: { 0: { halign: 'left' } },
                 margin: { left: M, right: M }
             });
             y = (doc as any).lastAutoTable.finalY + 4;
-
             if (y > 250) { doc.addPage(); y = M; }
             doc.setFontSize(8); doc.setFont('helvetica', 'bold');
             const liberado = r.puedeLiberarse === true ? 'SI' : (r.puedeLiberarse === false ? 'NO' : '-');

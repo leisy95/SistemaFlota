@@ -159,6 +159,10 @@
         </div>
 
         <div class="rondas-botones">
+          <select class="select-operario-ronda" [(ngModel)]="operarioRondaNueva" [disabled]="tieneRondaFinal">
+            <option value="">-- Operario --</option>
+            <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+          </select>
           <button type="button" class="btn-agregar-hora" [disabled]="tieneRondaFinal" (click)="agregarRondaHora()">
             <i class="fa-solid fa-plus"></i> Agregar verificación de esta hora
           </button>
@@ -170,8 +174,15 @@
             <thead>
               <tr>
                 <th class="col-descripcion">Característica</th>
-                <th *ngFor="let ronda of rondas; let i = index" [class.col-final]="ronda.final">
-                  {{ ronda.hora }} <span *ngIf="ronda.final">(F)</span>
+                <th *ngFor="let ronda of rondas; let i = index" [class.col-final]="ronda.final" [style.width]="anchoColumnaHora()">
+                  <div class="th-hora">{{ ronda.hora }} <span *ngIf="ronda.final">(F)</span></div>
+                  <div class="th-operario">{{ ronda.operario }}</div>
+                  <div class="th-cierre" *ngIf="ronda.cierreDeOperario">
+                    <i class="fa-solid fa-check-circle"></i> {{ ronda.kilosDesperdicio }} kg
+                  </div>
+                  <button type="button" class="btn-cerrar-turno" *ngIf="!ronda.cierreDeOperario" (click)="cerrarTurnoOperario(i)" title="Cerrar turno de este operario">
+                    <i class="fa-solid fa-door-closed"></i>
+                  </button>
                   <button type="button" class="btn-quitar-ronda" *ngIf="!tieneRondaFinal" (click)="quitarRonda(i)" title="Quitar esta hora">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
@@ -260,6 +271,7 @@
           <div class="detalle-item"><span class="det-label">Referencia</span><span>{{ registroSeleccionado.referencia || '-' }}</span></div>
           <div class="detalle-item"><span class="det-label">Operarios</span><span>{{ registroSeleccionado.operarios || '-' }}</span></div>
           <div class="detalle-item"><span class="det-label">Máquina</span><span>{{ registroSeleccionado.maquina || '-' }}</span></div>
+          <div class="detalle-item destacado"><span class="det-label">Total Desperdicio</span><span>{{ totalKilosDesperdicioVer }} kg</span></div>
           <div class="detalle-item"><span class="det-label">¿Liberado?</span>
             <span [class.ok]="registroSeleccionado.puedeLiberarse === true" [class.no]="registroSeleccionado.puedeLiberarse === false">
               {{ registroSeleccionado.puedeLiberarse === true ? 'SI' : (registroSeleccionado.puedeLiberarse === false ? 'NO' : '-') }}
@@ -269,29 +281,46 @@
         </div>
       </div>
 
-      <div class="form-section">
-        <h3>Resultados de verificación</h3>
-        <div class="tabla-verificacion-container">
-          <table class="tabla-verificacion">
+    <div class="form-section">
+        <h3>Resultados de verificación por hora</h3>
+        <div class="tabla-verificacion-container" *ngIf="registroSeleccionado.rondasParsed?.length > 0">
+          <table class="tabla-verificacion tabla-rondas">
             <thead>
-              <tr><th>Característica</th><th>Cumple</th><th>No Cumple</th><th>N/A</th><th>Observación</th></tr>
+              <tr>
+                <th class="col-descripcion">Característica</th>
+                <th *ngFor="let ronda of registroSeleccionado.rondasParsed" [class.col-final]="ronda.final">
+                  <div class="th-hora">{{ ronda.hora }} <span *ngIf="ronda.final">(F)</span></div>
+                  <div class="th-operario">{{ ronda.operario }}</div>
+                  <div class="th-cierre" *ngIf="ronda.cierreDeOperario">
+                    <i class="fa-solid fa-check-circle"></i> {{ ronda.kilosDesperdicio }} kg
+                  </div>
+                </th>
+                <th class="col-obs">Observación</th>
+              </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let res of registroSeleccionado.resultadosParsed">
-                <td>{{ res.descripcion }}</td>
-                <td>{{ res.cumple ? res.cumple + '%' : '-' }}</td>
-                <td>{{ res.noCumple ? res.noCumple + '%' : '-' }}</td>
-                <td>{{ res.na ? 'X' : '-' }}</td>
-                <td>{{ res.observacion || '-' }}</td>
+              <tr *ngFor="let c of registroSeleccionado.caracteristicasParsed">
+                <td class="col-descripcion">{{ c.descripcion }}</td>
+                <td *ngFor="let ronda of registroSeleccionado.rondasParsed" class="col-valor">
+                  <span *ngIf="ronda.valores[c.id] === 'cumple'" class="valor-ok">✓</span>
+                  <span *ngIf="ronda.valores[c.id] === 'noCumple'" class="valor-no">✗</span>
+                  <span *ngIf="ronda.valores[c.id] === 'na'" class="valor-na">N/A</span>
+                  <span *ngIf="!ronda.valores[c.id]">-</span>
+                </td>
+                <td class="col-obs">{{ registroSeleccionado.observacionesParsed[c.id] || '-' }}</td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="vacio-rondas" *ngIf="!registroSeleccionado.rondasParsed?.length">
+          <p>No hay verificaciones registradas</p>
         </div>
       </div>
 
       <div class="btn-row">
         <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
-        <button class="btn-guardar" *ngIf="puedeCrear" (click)="editar(registroSeleccionado)"><i class="fa-solid fa-pen"></i> Editar</button>
+      <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+        <button class="btn-guardar" *ngIf="puedeCrear && registroSeleccionado.estado === 'PendienteLiberacion'" (click)="editar(registroSeleccionado)"><i class="fa-solid fa-pen"></i> Editar</button>
       </div>
     </div>
   </ng-container>
