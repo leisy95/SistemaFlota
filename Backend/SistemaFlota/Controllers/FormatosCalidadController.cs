@@ -188,5 +188,87 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
             return Ok();
         }
+    
+
+    // GET api/FormatosCalidad/mejor-rendimiento?referencia=XXX
+        [HttpGet("mejor-rendimiento")]
+        public async Task<IActionResult> MejorRendimiento([FromQuery] string referencia)
+        {
+            if (string.IsNullOrWhiteSpace(referencia))
+                return BadRequest(new { mensaje = "Debe indicar una referencia para buscar" });
+
+            var tipoExtrusion = await _context.TiposFormatoCalidad
+                .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
+            if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo Extrusión no configurado" });
+
+            var registros = await _context.RegistrosFormatoCalidad
+                .Where(r => r.TipoFormatoId == tipoExtrusion.Id &&
+                            r.Referencia != null && r.Referencia.Contains(referencia) &&
+                            r.ProduccionKgHora != null)
+                .ToListAsync();
+
+            if (!registros.Any())
+                return Ok(new { mensaje = "No hay registros históricos para esta referencia", resultados = new List<object>() });
+
+            var calculados = registros.Select(r =>
+            {
+                var kgHora = decimal.TryParse(r.ProduccionKgHora, out var kg) ? kg : 0;
+
+                decimal desperdicioTotal = 0;
+                try
+                {
+                    var datos = System.Text.Json.JsonDocument.Parse(r.ResultadosJson ?? "{}");
+                    if (datos.RootElement.TryGetProperty("rondas", out var rondas))
+                    {
+                        foreach (var ronda in rondas.EnumerateArray())
+                        {
+                            if (ronda.TryGetProperty("cierreDeOperario", out var cierre) && cierre.GetBoolean() &&
+                                ronda.TryGetProperty("kilosDesperdicio", out var kdEl))
+                            {
+                                var kdTexto = kdEl.GetString();
+                                if (decimal.TryParse(kdTexto, out var kd)) desperdicioTotal += kd;
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                return new
+                {
+                    r.Id,
+                    r.OrdenProduccion,
+                    r.Referencia,
+                    r.Fecha,
+                    KgHora = kgHora,
+                    DesperdicioTotal = desperdicioTotal,
+                    r.VariablesCriticasJson
+                };
+            }).ToList();
+
+            var maxKgHora = calculados.Max(c => c.KgHora);
+            var maxDesperdicio = calculados.Max(c => c.DesperdicioTotal);
+
+            var conPuntaje = calculados.Select(c => new
+            {
+                c.Id,
+                c.OrdenProduccion,
+                c.Referencia,
+                c.Fecha,
+                c.KgHora,
+                c.DesperdicioTotal,
+                c.VariablesCriticasJson,
+                Puntaje = (maxKgHora > 0 ? (double)(c.KgHora / maxKgHora) : 0)
+                        - (maxDesperdicio > 0 ? (double)(c.DesperdicioTotal / maxDesperdicio) : 0)
+            })
+            .OrderByDescending(c => c.Puntaje)
+            .ToList();
+
+            return Ok(new
+            {
+                totalEncontrados = conPuntaje.Count,
+                mejor = conPuntaje.First(),
+                todos = conPuntaje
+            });
+        }
     }
 }
