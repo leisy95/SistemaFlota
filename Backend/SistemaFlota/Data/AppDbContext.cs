@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+using SistemaFlota.Models.Consecutivo;
+using SistemaFlota.Models.Costos.OrdenesCompras;
+using SistemaFlota.Models.Costos.RecepcionMercancia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 namespace SistemaFlota
@@ -53,6 +56,11 @@ namespace SistemaFlota
         //  --Costos--
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Material> Materiales { get; set; }
+        public DbSet<OrdenCompra> OrdenesCompra { get; set; }
+        public DbSet<OrdenCompraDetalle> OrdenesCompraDetalle { get; set; }
+        public DbSet<RecepcionMercancia> RecepcionesMercancia { get; set; }
+        public DbSet<RecepcionMercanciaDetalle> RecepcionesMercanciaDetalle { get; set; }
+        public DbSet<Consecutivo> Consecutivos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +71,58 @@ namespace SistemaFlota
                 .WithMany(p => p.Materiales)
                 .HasForeignKey(m => m.IdProveedor)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompra>()
+                .HasOne(o => o.Proveedor)
+                .WithMany()
+                .HasForeignKey(o => o.ProveedorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompra>()
+                .HasOne(o => o.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioCreacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompra>()
+                .HasOne(o => o.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioActualizacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraDetalle>()
+                .HasOne(d => d.OrdenCompra)
+                .WithMany(o => o.Detalles)
+                .HasForeignKey(d => d.OrdenCompraId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenCompraDetalle>()
+                .HasOne(d => d.Material)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercancia>()
+                .HasOne(r => r.OrdenCompra)
+                .WithMany()
+                .HasForeignKey(r => r.OrdenCompraId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalle>()
+                .HasOne(d => d.RecepcionMercancia)
+                .WithMany(r => r.Detalles)
+                .HasForeignKey(d => d.RecepcionMercanciaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalle>()
+                .HasOne(d => d.OrdenCompraDetalle)
+                .WithMany()
+                .HasForeignKey(d => d.OrdenCompraDetalleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Consecutivo>()
+                .HasIndex(x => x.Modulo)
+                .IsUnique();
         }
     }
 }

@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Proveedor } from '../../../../../core/models/costos/proveedores/proveedores.model';
 import { ProveedorService } from '../../../../../core/services/costos/proveedores/proveedor.service';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -17,22 +18,31 @@ import { ProveedorService } from '../../../../../core/services/costos/proveedore
   templateUrl: './crear-proveedor.html',
   styleUrl: './crear-proveedor.scss',
 })
-export class CrearProveedor {
+export class CrearProveedor implements OnInit {
 
   proveedor: Proveedor = {
     nombre: '',
     nit: '',
     contacto: '',
     telefono: '',
-    correoElectronico: ''
+    correoElectronico: '',
+    direccion: '',
+    ciudad: '',
+    departamento: ''
   };
 
   constructor(
     private proveedorService: ProveedorService,
     private dialogRef: MatDialogRef<CrearProveedor>,
-    @Inject(MAT_DIALOG_DATA) public data: Proveedor | null
+    @Inject(MAT_DIALOG_DATA) public data: Proveedor | null,
+    private toastr: ToastrService,
 
   ) { }
+  ngOnInit(): void {
+    if (this.data) {
+      this.proveedor = { ...this.data };
+    }
+  }
 
   cerrar(): void {
     this.dialogRef.close();
@@ -55,9 +65,10 @@ export class CrearProveedor {
           },
 
           error: (error) => {
-            console.error(
-              'Error al actualizar proveedor',
-              error
+
+            this.toastr.error(
+              error.error.message,
+              'Error'
             );
           }
         });
@@ -73,9 +84,10 @@ export class CrearProveedor {
           },
 
           error: (error) => {
-            console.error(
-              'Error al crear proveedor',
-              error
+
+            this.toastr.error(
+              error.error.message,
+              'Error'
             );
           }
         });

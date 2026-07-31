@@ -1,7 +1,8 @@
 import {
   ApplicationConfig,
   provideZoneChangeDetection,
-  isDevMode
+  isDevMode,
+  LOCALE_ID
 } from '@angular/core';
 
 import { provideRouter } from '@angular/router';
@@ -12,6 +13,10 @@ import { provideToastr } from 'ngx-toastr';
 
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { routes } from './app.routes';
+import { registerLocaleData } from '@angular/common';
+import localeEsCo from '@angular/common/locales/es-CO';
+
+registerLocaleData(localeEsCo);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +33,8 @@ export const appConfig: ApplicationConfig = {
       progressBar: true,
       closeButton: true
     }),
+
+    { provide: LOCALE_ID, useValue: 'es-CO' },
 
     provideServiceWorker('ngsw-worker.js', {
       enabled: false,

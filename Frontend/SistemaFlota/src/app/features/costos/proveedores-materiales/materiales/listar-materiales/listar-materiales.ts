@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { CrearMateriales } from '../crear-materiales/crear-materiales';
-import { Material } from '../../../../../core/models/materiales/material.models';
+import { Material } from '../../../../../core/models/costos/materiales/material.models';
 import { MaterialService } from '../../../../../core/services/costos/materiales/materiales.service';
-import { ProveedorFiltro } from '../../../../../core/models/materiales/filtros-material.models';
+import { ProveedorFiltro } from '../../../../../core/models/costos/materiales/filtros-material.models';
 
 @Component({
   selector: 'app-listar-materiales',
@@ -31,6 +31,9 @@ export class ListarMateriales {
   totalPagina = 0;
   materiales: Material[] = [];
 
+  documentoPdf?: string;
+  menuAbierto: number | null = null;
+
   // filtros
   proveedor = '';
   proveedores: ProveedorFiltro[] = [];
@@ -41,13 +44,28 @@ export class ListarMateriales {
   constructor(
     private toastr: ToastrService,
     private dialog: MatDialog,
-    private materialService: MaterialService
+    private materialService: MaterialService,
+
   ) { }
 
   ngOnInit(): void {
 
     this.obtenerMateriales();
     this.cargarFiltros();
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickFuera(event: MouseEvent): void {
+
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.menu-container')) {
+      this.menuAbierto = null;
+    }
+  }
+
+  toggleMenu(id: number): void {
+    this.menuAbierto = this.menuAbierto === id ? null : id;
   }
 
   cargarFiltros(): void {
@@ -132,6 +150,8 @@ export class ListarMateriales {
 
   editar(item: Material): void {
 
+    this.menuAbierto = null;
+
     this.materialService.obtenerPorId(item.idMaterial!).subscribe({
 
       next: (material) => {
@@ -160,7 +180,12 @@ export class ListarMateriales {
 
   }
 
+  cerrarMenu(): void {
+    this.menuAbierto = null;
+  }
+
   eliminar(material: any): void {
+    this.menuAbierto = null;
     console.log('Eliminar:', material);
   }
 

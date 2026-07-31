@@ -46,7 +46,7 @@
                     <label>Densidad</label>
 
                     <select name="densidad" [(ngModel)]="material.densidad">
-
+                        <option value="" disabled>Seleccione la densidad</option>
                         <option>Baja</option>
                         <option>Alta</option>
                         <option>Otro</option>
@@ -60,7 +60,8 @@
             <div class="campo ancho">
                 <label>Descripción Compra</label>
 
-                <textarea name="descripcionCompra" [(ngModel)]="material.descripcionCompra" rows="3">
+                <textarea name="descripcionCompra" [(ngModel)]="material.descripcionCompra"
+                    placeholder="Ej. Polietileno negro para fabricación de bolsas industriales." rows="3">
                 </textarea>
             </div>
 
@@ -69,13 +70,14 @@
                 <div class="campo">
                     <label>Categoría</label>
 
-                    <input type="text" name="categoria" [(ngModel)]="material.categoria">
+                    <input type="text" name="categoria" [(ngModel)]="material.categoria"
+                        placeholder="Ej. Resina plástica">
                 </div>
 
                 <div class="campo">
                     <label>Color</label>
 
-                    <input type="text" name="color" [(ngModel)]="material.color">
+                    <input type="text" name="color" [(ngModel)]="material.color" placeholder="Ej. Negro">
                 </div>
 
             </div>
@@ -85,14 +87,15 @@
                 <div class="campo">
                     <label>Tipo</label>
 
-                    <input type="text" name="tipoProduccion" [(ngModel)]="material.tipoProduccion">
+                    <input type="text" name="tipoProduccion" [(ngModel)]="material.tipoProduccion"
+                        placeholder="Ej. Extrusión">
                 </div>
 
                 <!-- NUEVO -->
                 <div class="campo">
                     <label>Unidad</label>
 
-                    <input type="text" name="unidad" [(ngModel)]="material.unidad">
+                    <input type="text" name="unidad" [(ngModel)]="material.unidad" placeholder="Ej. Kilogramo (Kg)">
                 </div>
 
             </div>
@@ -102,7 +105,7 @@
                 <div class="campo">
                     <label>Precio Base/KG (COP)</label>
 
-                    <input type="number" name="precioBaseKg" [(ngModel)]="material.precioBaseKg">
+                    <input type="number" name="precioBaseKg" [(ngModel)]="material.precioBaseKg" placeholder="Ej. 3500">
                 </div>
             </div>
 
@@ -115,6 +118,42 @@
                 </select>
             </div>
 
+            <div class="campo ancho">
+
+                <label>Ficha técnica (PDF)</label>
+
+                <label class="pdf-upload">
+
+                    <input type="file" accept=".pdf" (change)="seleccionarArchivo($event)">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                    <div class="pdf-info">
+
+                        <strong>Seleccione un archivo PDF</strong>
+                        <span>Arrastre el archivo o haga clic para buscarlo</span>
+
+                    </div>
+
+                </label>
+
+                <small class="pdf-ayuda" *ngIf="!nombreArchivo">
+                    Formato permitido: PDF
+                </small>
+
+                <div class="pdf-seleccionado" *ngIf="nombreArchivo">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>{{ nombreArchivo }}</span>
+                </div>
+
+                <a *ngIf="material.documentoPdf && !nombreArchivo" class="pdf-actual"
+                    [href]="'https://localhost:5214/' + material.documentoPdf" target="_blank">
+
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Ver ficha técnica actual
+
+                </a>
+
+            </div>
             <div class="botones">
                 <button class="btn-cancelar" (click)="cerrar()" type="button">
                     Cancelar

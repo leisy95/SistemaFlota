@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { MaterialPaginado } from '../../../models/materiales/material.pag.models';
-import { Material } from '../../../models/materiales/material.models';
-import { FiltrosMaterial } from '../../../models/materiales/filtros-material.models';
+import { MaterialPaginado } from '../../../models/costos/materiales/material.pag.models';
+import { Material } from '../../../models/costos/materiales/material.models';
+import { FiltrosMaterial } from '../../../models/costos/materiales/filtros-material.models';
 
 @Injectable({
     providedIn: 'root'
@@ -38,11 +38,8 @@ export class MaterialService {
     }
 
 
-    crear(material: Material): Observable<Material> {
-        return this.http.post<Material>(
-            this.apiUrl,
-            material
-        );
+    crear(formData: FormData) {
+        return this.http.post<Material>(this.apiUrl, formData);
     }
 
 
@@ -53,12 +50,8 @@ export class MaterialService {
         );
     }
 
-    actualizar(id: number, material: Material): Observable<void> {
-
-        return this.http.put<void>(
-            `${this.apiUrl}/${id}`,
-            material
-        );
+    actualizar(id: number, formData: FormData) {
+        return this.http.put(`${this.apiUrl}/${id}`, formData);
     }
 
     obtenerFiltros(): Observable<FiltrosMaterial> {

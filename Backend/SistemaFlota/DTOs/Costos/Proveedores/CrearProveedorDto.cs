@@ -21,5 +21,12 @@ namespace SistemaFlota.DTOs.Prov_Materiales.Proveedores
         [EmailAddress]
         [StringLength(150)]
         public string? CorreoElectronico { get; set; }
+
+        public string? Direccion { get; set; }
+
+        public string? Ciudad { get; set; }
+
+        public string? Departamento { get; set; }
+
     }
 }

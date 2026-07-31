@@ -231,4 +231,20 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/costos/proveedores-materiales',
         modulo: 'costos'
     },
+
+    {
+        key: 'ord/compra',
+        label: 'Ord - Compra',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/orden-compra',
+        modulo: 'costos'
+    },
+
+    {
+        key: 'rec/mercancia',
+        label: 'Re - Mercancia',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/recepcion-mercancia',
+        modulo: 'costos'
+    },
 ];

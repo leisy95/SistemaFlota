@@ -301,6 +301,10 @@ tbody td {
 }
 
 .btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: var(--verde-fondo-botones);
   border: 1px solid rgba(59, 130, 246, 0.35);
   color: var(--verde-oscuro);
@@ -313,7 +317,6 @@ tbody td {
   width: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
 
   &:hover {
     background: var(--azul-oscuro);

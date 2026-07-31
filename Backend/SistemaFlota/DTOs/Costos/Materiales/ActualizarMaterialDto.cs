@@ -36,5 +36,6 @@ namespace SistemaFlota.DTOs.Costos.Materiales
         public decimal PrecioBaseKg { get; set; }
 
         public bool Activo { get; set; }
+        public IFormFile? ArchivoPdf { get; set; }
     }
 }

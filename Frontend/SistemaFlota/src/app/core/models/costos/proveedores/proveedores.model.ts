@@ -5,4 +5,7 @@ export interface Proveedor {
     contacto?: string;
     telefono?: string;
     correoElectronico?: string;
+    direccion?: string;
+    ciudad?: string;
+    departamento?: string;
 }

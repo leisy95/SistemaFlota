@@ -32,5 +32,6 @@ namespace SistemaFlota.DTOs.Costos.Materiales
         public string Unidad { get; set; } = string.Empty;
 
         public bool Activo { get; set; }
+        public IFormFile? ArchivoPdf { get; set; }
     }
 }

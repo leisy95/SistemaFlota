@@ -13,10 +13,10 @@
     max-width: 95%;
     max-height: 90vh;
     overflow: auto;
-    background: #fff;
+    background: var(--blanco);
     border-radius: 18px;
     padding: 30px;
-    box-shadow: 0 15px 45px rgba(0, 0, 0, .15);
+    box-shadow: 0 15px 45px var(--gris-oscuro);
 }
 
 .modal-header {
@@ -67,6 +67,7 @@
     width: 100%;
     height: 50px;
     border: 1px solid var(--gris-medio);
+    color: var(--gris-oscuro);
     border-radius: 12px;
     padding: 0 15px;
     font-size: 1rem;
@@ -78,11 +79,120 @@
     border-color: #5b5df5;
 }
 
+.campo textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid var(--gris-medio);
+    color: var(--gris-oscuro);
+    border-radius: 12px;
+    padding: 14px 15px;
+    font-size: 1.1rem;
+    resize: vertical;
+    outline: none;
+    transition: .2s;
+    box-sizing: border-box;
+}
+
+.campo textarea:focus {
+    border-color: #5b5df5;
+    box-shadow: 0 0 0 4px rgba(91, 93, 245, .12);
+}
+
+.campo textarea::placeholder {
+    color: var(--gris-medio);
+}
+
 .botones {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 25px;
+}
+
+.pdf-upload {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 2px dashed #cfd8dc;
+    border-radius: 14px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.pdf-upload:hover {
+    border-color: #d32f2f;
+    background: #fff5f5;
+}
+
+.pdf-upload input {
+    display: none;
+}
+
+.pdf-upload i {
+    font-size: 2rem;
+    color: var(--verde-oscuro);
+}
+
+.pdf-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-info strong {
+    font-size: .95rem;
+    color: #263238;
+}
+
+.pdf-info span {
+    font-size: .82rem;
+    color: #757575;
+    margin-top: 3px;
+}
+
+.pdf-ayuda {
+    display: block;
+    margin-top: 8px;
+    color: #7a7a7a;
+    font-size: .82rem;
+}
+
+.pdf-seleccionado {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: #fff3f3;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+    font-weight: 500;
+}
+
+.pdf-seleccionado i {
+    font-size: 1.4rem;
+}
+
+.pdf-actual {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #1565c0;
+    font-weight: 600;
+    transition: .2s;
+}
+
+.pdf-actual:hover {
+    color: #0d47a1;
+}
+
+.pdf-actual i {
+    color: var(--verde-oscuro);
+    font-size: 1.2rem;
 }
 
 .cancelar {

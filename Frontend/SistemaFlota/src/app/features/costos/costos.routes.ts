@@ -17,4 +17,20 @@ export const COSTOS_ROUTES: Routes = [
                 .then(c => c.ProveedoresMateriales),
         data: { animation: 'proveedores' }
     },
+
+    {
+        path: 'orden-compra',
+        loadComponent: () =>
+            import('./ordenes-compra/listar-orden-compra/listar-orden-compra')
+                .then(c => c.ListarOrdenCompra),
+        data: { animation: 'proveedores' }
+    },
+
+    {
+        path: 'recepcion-mercancia',
+        loadComponent: () =>
+            import('./recepcion-mercancia/listar-repmercancia/listar-repmercancia')
+                .then(c => c.ListarRepmercancia),
+        data: { animation: 'proveedores' }
+    },
 ];

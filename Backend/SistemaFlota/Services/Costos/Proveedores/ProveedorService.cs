@@ -31,11 +31,15 @@ namespace SistemaFlota.Services.Costos.Proveedores
                 search = search.Trim();
 
                 query = query.Where(p =>
-                    p.Nombre.Contains(search) ||
-                    p.Nit.Contains(search) ||
-                    (p.Contacto != null &&
-                     p.Contacto.Contains(search))
-                );
+                     p.Nombre.Contains(search) ||
+                     p.Nit.Contains(search) ||
+                     (p.Contacto != null && p.Contacto.Contains(search)) ||
+                     (p.Telefono != null && p.Telefono.Contains(search)) ||
+                     (p.CorreoElectronico != null && p.CorreoElectronico.Contains(search)) ||
+                     (p.Direccion != null && p.Direccion.Contains(search)) ||
+                     (p.Ciudad != null && p.Ciudad.Contains(search)) ||
+                     (p.Departamento != null && p.Departamento.Contains(search))
+                 );
             }
 
             if (!string.IsNullOrWhiteSpace(estado))
@@ -67,6 +71,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
                     Contacto = p.Contacto,
                     Telefono = p.Telefono,
                     CorreoElectronico = p.CorreoElectronico,
+                    Direccion = p.Direccion,
+                    Ciudad = p.Ciudad,
+                    Departamento = p.Departamento,
                     Activo = p.Activo,
                     FechaCreacion = p.FechaCreacion,
                     FechaActualizacion = p.FechaActualizacion
@@ -98,6 +105,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
                     Contacto = p.Contacto,
                     Telefono = p.Telefono,
                     CorreoElectronico = p.CorreoElectronico,
+                    Direccion = p.Direccion,
+                    Ciudad = p.Ciudad,
+                    Departamento = p.Departamento,
                     Activo = p.Activo,
                     FechaCreacion = p.FechaCreacion,
                     FechaActualizacion = p.FechaActualizacion
@@ -113,6 +123,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
             dto.Contacto = dto.Contacto?.Trim();
             dto.Telefono = dto.Telefono?.Trim();
             dto.CorreoElectronico = dto.CorreoElectronico?.Trim();
+            dto.Direccion = dto.Direccion?.Trim();
+            dto.Ciudad = dto.Ciudad?.Trim();
+            dto.Departamento = dto.Departamento?.Trim();
 
             // Validar que no exista un proveedor con el mismo NIT
             bool existeNit = await _context.Proveedores
@@ -130,6 +143,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
                 Contacto = dto.Contacto,
                 Telefono = dto.Telefono,
                 CorreoElectronico = dto.CorreoElectronico,
+                Direccion = dto.Direccion,
+                Ciudad = dto.Ciudad,
+                Departamento = dto.Departamento,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow
             };
@@ -167,6 +183,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
             dto.Contacto = dto.Contacto?.Trim();
             dto.Telefono = dto.Telefono?.Trim();
             dto.CorreoElectronico = dto.CorreoElectronico?.Trim();
+            dto.Direccion = dto.Direccion?.Trim();
+            dto.Ciudad = dto.Ciudad?.Trim();
+            dto.Departamento = dto.Departamento?.Trim();
 
 
             // Validar NIT duplicado
@@ -189,6 +208,9 @@ namespace SistemaFlota.Services.Costos.Proveedores
             proveedor.Contacto = dto.Contacto;
             proveedor.Telefono = dto.Telefono;
             proveedor.CorreoElectronico = dto.CorreoElectronico;
+            proveedor.Direccion = dto.Direccion;
+            proveedor.Ciudad = dto.Ciudad;
+            proveedor.Departamento = dto.Departamento;
             proveedor.FechaActualizacion = DateTime.UtcNow;
 
 

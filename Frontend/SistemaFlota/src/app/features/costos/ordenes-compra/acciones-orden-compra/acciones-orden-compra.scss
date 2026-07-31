@@ -1,0 +1,161 @@
+.modal {
+    width: 100%;
+    background: var(--blanco);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--gris-claro);
+    background: linear-gradient(180deg, #ffffff, #fafbfc);
+
+    h2 {
+        margin: 0;
+        font-size: 1.375rem;
+        font-weight: 700;
+        color: var(gris-oscuro);
+    }
+
+    span {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 5px 12px;
+        border-radius: 30px;
+        background: var(--blanco);
+        color: var(--verde-oscuro);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+}
+
+.btn-close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    transition: .25s;
+
+    i {
+        font-size: 18px;
+        color: var(--verde-oscuro);
+    }
+
+    &:hover {
+        background: #e5e7eb;
+        transform: rotate(90deg);
+    }
+}
+
+.acciones {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.acciones button {
+    width: 100%;
+    border: 1px solid var(--gris-claro);
+    border-radius: 14px;
+    background: var(--blanco);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    cursor: pointer;
+    transition: .25s;
+    box-shadow: 0 2px 6px var(--gris-medio);
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: var(gris-oscuro);
+        box-shadow: 0 10px 24px var(--gris-oscuro);
+    }
+}
+
+.acciones button>i {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: var(--verde-suave);
+    color: var(--verde-oscuro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.acciones button div {
+    flex: 1;
+    text-align: left;
+}
+
+.acciones strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+    margin-bottom: 4px;
+}
+
+.acciones small {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--gris-oscuro);
+    line-height: 1.4;
+}
+
+.acciones button::after {
+    content: "\f054";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--verde-oscuro);
+    transition: .25s;
+}
+
+.acciones button:hover::after {
+    color: #2563eb;
+    transform: translateX(4px);
+}
+
+.acciones button.danger>i {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.acciones button.danger:hover {
+    border-color: #dc2626;
+
+    box-shadow: 0 10px 24px rgba(220, 38, 38, .12);
+}
+
+.acciones button.danger:hover::after {
+    color: #dc2626;
+}
+
+@media (max-width: 480px) {
+
+    .header {
+        padding: 18px;
+    }
+
+    .acciones {
+        padding: 18px;
+    }
+
+    .acciones button {
+        padding: 14px;
+    }
+
+}

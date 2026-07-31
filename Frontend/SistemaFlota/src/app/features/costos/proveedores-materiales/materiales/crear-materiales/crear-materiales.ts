@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CrearProveedor } from '../../proveedores/crear-proveedor/crear-proveedor';
-import { Material } from '../../../../../core/models/materiales/material.models';
+import { Material } from '../../../../../core/models/costos/materiales/material.models';
 import { Proveedor } from '../../../../../core/models/costos/proveedores/proveedores.model';
 import { MaterialService } from '../../../../../core/services/costos/materiales/materiales.service';
 import { ProveedorService } from '../../../../../core/services/costos/proveedores/proveedor.service';
@@ -30,6 +30,9 @@ export class CrearMateriales implements OnInit {
 
 
   ) { }
+
+  archivoPdf: File | null = null;
+  nombreArchivo = '';
 
   material: Material = {
     idProveedor: 0,
@@ -75,11 +78,28 @@ export class CrearMateriales implements OnInit {
 
   guardar(): void {
 
+    const formData = new FormData();
+
+    formData.append('idProveedor', this.material.idProveedor.toString());
+    formData.append('nombreMaterial', this.material.nombreMaterial);
+    formData.append('descripcionCompra', this.material.descripcionCompra ?? '');
+    formData.append('densidad', this.material.densidad);
+    formData.append('categoria', this.material.categoria);
+    formData.append('color', this.material.color ?? '');
+    formData.append('tipoProduccion', this.material.tipoProduccion ?? '');
+    formData.append('unidad', this.material.unidad);
+    formData.append('precioBaseKg', this.material.precioBaseKg.toString());
+    formData.append('activo', this.material.activo.toString());
+
+    if (this.archivoPdf) {
+      formData.append('archivoPdf', this.archivoPdf);
+    }
+
     if (this.data) {
 
       this.materialService.actualizar(
         this.material.idMaterial!,
-        this.material
+        formData
       ).subscribe({
         next: () => {
           this.toastr.success(
@@ -100,7 +120,12 @@ export class CrearMateriales implements OnInit {
     }
 
 
-    this.materialService.crear(this.material).subscribe({
+    console.log('Archivo seleccionado:', this.archivoPdf);
+
+    for (const item of formData.entries()) {
+      console.log(item[0], item[1]);
+    }
+    this.materialService.crear(formData).subscribe({
       next: () => {
         this.toastr.success(
           'Material creado correctamente.',
@@ -117,6 +142,24 @@ export class CrearMateriales implements OnInit {
       }
     });
 
+  }
+
+  seleccionarArchivo(event: Event): void {
+
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files?.length)
+      return;
+
+    const archivo = input.files[0];
+
+    if (archivo.type !== 'application/pdf') {
+      this.toastr.warning('Solo se permiten archivos PDF');
+      return;
+    }
+
+    this.archivoPdf = archivo;
+    this.nombreArchivo = archivo.name;
   }
 
   cerrar(): void {

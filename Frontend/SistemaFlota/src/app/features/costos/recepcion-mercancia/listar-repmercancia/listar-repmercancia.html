@@ -1,0 +1,150 @@
+<div class="recepcion-container">
+
+    <!-- Encabezado -->
+    <section class="page-header">
+        <h1>Recepción de Mercancías</h1>
+        <p>Sistema de marcado y registro de llegada de materiales</p>
+    </section>
+
+    <!-- Buscar orden -->
+    <section class="card buscar-card">
+
+        <label>
+            Buscar Orden de Compra
+        </label>
+
+        <div class="buscar-content">
+
+            <div class="input-container">
+
+                <span class="icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+
+                <input type="text" placeholder="Ingrese número de orden de compra..." [(ngModel)]="buscar"
+                    (input)="buscarOrden()">
+
+            </div>
+
+        </div>
+
+        <!-- Orden Seleccionada -->
+        <div class="orden-seleccionada" *ngIf="ordenSeleccionada">
+
+            <div class="orden-left">
+
+                <div class="check-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <div class="info">
+
+                    <h3>{{ ordenSeleccionada.numero }}</h3>
+
+                    <p>
+                        Proveedor:
+                        {{ ordenSeleccionada.proveedor }}
+                    </p>
+
+                    <span>
+
+                        Items:
+                        {{ ordenSeleccionada.totalItems }}
+
+                        |
+
+                        Total:
+                        ${{ ordenSeleccionada.totalPagar | number:'1.0-0' }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <button class="btn btn-agregar" (click)="iniciarRecepcion()"
+                [disabled]="ordenSeleccionada?.estado === 'Recepcionada'">
+
+                <i class="fa-solid fa-cube me-2"></i>
+
+                {{ ordenSeleccionada?.estado === 'Recepcionada'
+                ? 'Recepción realizada'
+                : 'Iniciar Recepción' }}
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- Lista de órdenes -->
+    <section class="card ordenes-card">
+
+        <h2>
+            Órdenes Disponibles para Recepción
+        </h2>
+
+        <div class="orden-item" [ngClass]="{
+                'orden-recepcionada': orden.estado === 'Recepcionada'
+                }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
+
+            <div class="orden-info">
+
+                <div class="icon-box">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+
+                <div>
+
+                    <h3>
+                        {{ orden.numero }}
+                    </h3>
+
+                    <p>
+                        {{ orden.proveedor }}
+                    </p>
+
+                    <span class="badge-recepcion" *ngIf="orden.estado === 'Recepcionada'">
+
+                        <i class="fa-solid fa-circle-check"></i>
+                        Recepcionada
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="orden-total">
+
+                <span>
+                    {{ orden.totalItems }} items
+                </span>
+
+                <strong>
+                    ${{ orden.totalPagar | number:'1.0-0' }}
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div class="paginacion">
+
+            <button (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
+                Anterior
+            </button>
+
+            <span>
+                Página {{ pagina }} de {{ totalPaginas }}
+            </span>
+
+            <button (click)="cambiarPagina(pagina + 1)" [disabled]="pagina >= totalPaginas">
+                Siguiente
+            </button>
+
+        </div>
+
+    </section>
+
+</div>

@@ -89,6 +89,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                     TipoProduccion = m.TipoProduccion,
                     Unidad = m.Unidad,
                     PrecioBaseKg = m.PrecioBaseKg,
+                    DocumentoPdf = m.DocumentoPdf,
                     Activo = m.Activo,
                     FechaCreacion = m.FechaCreacion,
                     FechaActualizacion = m.FechaActualizacion
@@ -131,6 +132,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                     TipoProduccion = m.TipoProduccion,
                     Unidad = m.Unidad,
                     PrecioBaseKg = m.PrecioBaseKg,
+                    DocumentoPdf = m.DocumentoPdf,
                     Activo = m.Activo,
                     FechaCreacion = m.FechaCreacion,
                     FechaActualizacion = m.FechaActualizacion
@@ -141,6 +143,7 @@ namespace SistemaFlota.Services.Costos.Materiales
         // Crear Material
         public async Task<MaterialDto> CrearAsync(CrearMaterialDto dto)
         {
+
             dto.NombreMaterial = dto.NombreMaterial.Trim();
             dto.DescripcionCompra = dto.DescripcionCompra?.Trim();
             dto.Densidad = dto.Densidad.Trim();
@@ -172,6 +175,34 @@ namespace SistemaFlota.Services.Costos.Materiales
                     "Ya existe un material con ese nombre para este proveedor.");
             }
 
+            string? rutaPdf = null;
+
+            if (dto.ArchivoPdf != null && dto.ArchivoPdf.Length > 0)
+            {
+                var carpeta = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "Costos",
+                    "Materiales",
+                    "FichaTecnica"
+                );
+
+                if (!Directory.Exists(carpeta))
+                {
+                    Directory.CreateDirectory(carpeta);
+                }
+
+                var nombreArchivo = $"{Guid.NewGuid()}.pdf";
+
+                var rutaCompleta = Path.Combine(carpeta, nombreArchivo);
+
+                using var stream = new FileStream(rutaCompleta, FileMode.Create);
+
+                await dto.ArchivoPdf.CopyToAsync(stream);
+
+                rutaPdf = $"Costos/Materiales/FichaTecnica/{nombreArchivo}";
+            }
+
             var material = new Material
             {
                 IdProveedor = dto.IdProveedor,
@@ -183,6 +214,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                 TipoProduccion = dto.TipoProduccion,
                 Unidad = dto.Unidad,
                 PrecioBaseKg = dto.PrecioBaseKg,
+                DocumentoPdf = rutaPdf,
                 Activo = dto.Activo,
                 FechaCreacion = DateTime.UtcNow
             };
@@ -204,6 +236,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                 TipoProduccion = material.TipoProduccion,
                 Unidad = material.Unidad,
                 PrecioBaseKg = material.PrecioBaseKg,
+                DocumentoPdf = material.DocumentoPdf,
                 Activo = material.Activo,
                 FechaCreacion = material.FechaCreacion,
                 FechaActualizacion = material.FechaActualizacion
@@ -258,6 +291,36 @@ namespace SistemaFlota.Services.Costos.Materiales
                 );
             }
 
+            // Para actualizar pdf
+
+            string? nuevaRutaPdf = null;
+
+            if (dto.ArchivoPdf != null && dto.ArchivoPdf.Length > 0)
+            {
+                var carpeta = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "Costos",
+                    "Materiales",
+                    "FichaTecnica"
+                );
+
+                if (!Directory.Exists(carpeta))
+                {
+                    Directory.CreateDirectory(carpeta);
+                }
+
+                var nombreArchivo = $"{Guid.NewGuid()}.pdf";
+
+                var rutaCompleta = Path.Combine(carpeta, nombreArchivo);
+
+                using var stream = new FileStream(rutaCompleta, FileMode.Create);
+
+                await dto.ArchivoPdf.CopyToAsync(stream);
+
+                nuevaRutaPdf = $"Costos/Materiales/FichaTecnica/{nombreArchivo}";
+            }
+
 
             material.IdProveedor = dto.IdProveedor;
             material.NombreMaterial = dto.NombreMaterial;
@@ -268,7 +331,27 @@ namespace SistemaFlota.Services.Costos.Materiales
             material.TipoProduccion = dto.TipoProduccion;
             material.Unidad = dto.Unidad;
             material.PrecioBaseKg = dto.PrecioBaseKg;
+
             material.Activo = dto.Activo;
+            if (nuevaRutaPdf != null)
+            {
+                if (!string.IsNullOrEmpty(material.DocumentoPdf))
+                {
+                    var archivoAnterior = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        material.DocumentoPdf
+                    );
+
+                    if (File.Exists(archivoAnterior))
+                    {
+                        File.Delete(archivoAnterior);
+                    }
+                }
+
+                material.DocumentoPdf = nuevaRutaPdf;
+            }
+
             material.FechaActualizacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

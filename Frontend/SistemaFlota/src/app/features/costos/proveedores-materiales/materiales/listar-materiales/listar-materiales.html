@@ -125,13 +125,33 @@
                     </td>
                     <td>{{item.fechaCreacion | date:'dd/MM/yyyy'}}</td>
 
-                    <td class="acciones">
-                        <button class="btn-editar" (click)="editar(item)">
-                            <i class="fa-regular fa-pen-to-square"></i>
+                    <td class="acciones-menu menu-container">
+
+                        <button class="btn-menu" (click)="toggleMenu(item.idMaterial!); $event.stopPropagation()">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        <button class="btn-eliminar" (click)="eliminar(item)">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
+
+                        <div class="menu" *ngIf="menuAbierto === item.idMaterial" (click)="$event.stopPropagation()">
+
+                            <button class="btn-editar" (click)="cerrarMenu(); editar(item)">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                                <span>Editar</span>
+                            </button>
+
+                            <button class="btn-eliminar" (click)="cerrarMenu(); eliminar(item)">
+                                <i class="fa-regular fa-trash-can"></i>
+                                <span>Eliminar</span>
+                            </button>
+
+                            <a *ngIf="item.documentoPdf" [href]="'http://localhost:5214/' + item.documentoPdf"
+                                target="_blank" (click)="cerrarMenu()">
+
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span> Ver Ficha técnica</span>
+                            </a>
+
+                        </div>
+
                     </td>
 
                 </tr>

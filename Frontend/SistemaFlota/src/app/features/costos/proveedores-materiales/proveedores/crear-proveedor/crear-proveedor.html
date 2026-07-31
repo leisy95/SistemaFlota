@@ -31,6 +31,21 @@
             </div>
 
             <div class="campo">
+                <label>Dirección</label>
+                <input type="text" [(ngModel)]="proveedor.direccion" name="direccion" placeholder="Ej: Calle 12 #24-21">
+            </div>
+
+            <div class="campo">
+                <label>Ciudad</label>
+                <input type="text" [(ngModel)]="proveedor.ciudad" name="ciudad" placeholder="Ej: Pereira">
+            </div>
+
+            <div class="campo">
+                <label>Departamento</label>
+                <input type="text" [(ngModel)]="proveedor.departamento" name="departamento" placeholder="Ej: Risaralda">
+            </div>
+
+            <div class="campo">
                 <label>Contacto</label>
                 <input type="text" [(ngModel)]="proveedor.contacto" name="contacto" placeholder="Ej: Juan Pérez">
             </div>
@@ -45,6 +60,7 @@
                 <input type="email" [(ngModel)]="proveedor.correoElectronico" name="correoElectronico"
                     placeholder="Ej: contacto@proveedor.com">
             </div>
+
         </div>
 
         <div class="modal-botones">

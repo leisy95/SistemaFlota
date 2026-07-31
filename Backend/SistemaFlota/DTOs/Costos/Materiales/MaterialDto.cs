@@ -25,6 +25,7 @@
         public decimal PrecioBaseKg { get; set; }
 
         public bool Activo { get; set; }
+        public string? DocumentoPdf { get; set; }
 
         public DateTime FechaCreacion { get; set; }
 

@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using SistemaFlota;
+using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Materiales;
+using SistemaFlota.Services.Costos.OrdenCompra;
 using SistemaFlota.Services.Costos.Proveedores;
+using SistemaFlota.Services.Costos.RecepcionMercancia;
+using SistemaFlota.Services.ImpresionEtiquetas;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,6 +88,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Servicios
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IMaterialesService, MaterialService>();
+builder.Services.AddScoped<IOrdenCompraService, OrdenCompraService>();
+builder.Services.AddScoped<IOrdenCompraPdfService, OrdenCompraPdfService>();
+builder.Services.AddScoped<IConsecutivoService, ConsecutivoService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IRecepcionMercanciaService, RecepcionMercanciaService>();
+builder.Services.AddScoped<IEtiquetasPdfService, EtiquetasPdfService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
@@ -99,8 +111,8 @@ if (!builder.Environment.IsDevelopment())
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
+QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
-
 
 // SEED
 using (var scope = app.Services.CreateScope())

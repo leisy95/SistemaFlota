@@ -13,6 +13,11 @@
         public string? Telefono { get; set; }
 
         public string? CorreoElectronico { get; set; }
+        public string? Direccion { get; set; }
+
+        public string? Ciudad { get; set; }
+
+        public string? Departamento { get; set; }
 
         public bool Activo { get; set; }
 
