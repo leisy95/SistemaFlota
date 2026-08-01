@@ -3,13 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using SistemaFlota;
+using SistemaFlota.Configuracion;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Materiales;
 using SistemaFlota.Services.Costos.OrdenCompra;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
+using SistemaFlota.Services.Email;
 using SistemaFlota.Services.ImpresionEtiquetas;
+using SistemaFlota.Services.Notificaciones;
+using SistemaFlota.Services.Pdf.RecepcionMercancia;
+
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,10 +70,12 @@ builder.Services
     });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($">>> ENV: {builder.Environment.EnvironmentName}");
-Console.WriteLine($">>> CONN: {connectionString}");
+Console.WriteLine($">>> Ambiente: {builder.Environment.EnvironmentName}");
+Console.WriteLine($">>> Tiene conexión: {!string.IsNullOrEmpty(connectionString)}");
 
-// ── MySQL con versión fija — evita AutoDetect en Railway
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("Email"));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
@@ -94,6 +101,11 @@ builder.Services.AddScoped<IConsecutivoService, ConsecutivoService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRecepcionMercanciaService, RecepcionMercanciaService>();
 builder.Services.AddScoped<IEtiquetasPdfService, EtiquetasPdfService>();
+builder.Services.AddScoped<IRecepcionMercanciaPdfService, RecepcionMercanciaPdfService>();
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<EmailTemplateService>();
+builder.Services.AddScoped<INotificacionRecepcionService, NotificacionRecepcionService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();

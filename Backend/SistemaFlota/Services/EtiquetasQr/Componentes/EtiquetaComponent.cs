@@ -2,73 +2,48 @@
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Models.Costos.RecepcionMercancia;
+using SistemaFlota.Services.ImpresionEtiquetas.Componentes;
 
 namespace SistemaFlota.Services.Pdf.EtiquetasQR.Components;
 
 public static class EtiquetaComponent
 {
     public static void Dibujar(
-    IContainer container,
-    RecepcionMercancia recepcion,
-    RecepcionMercanciaDetalle detalle,
-    int numeroEtiqueta)
+        IContainer container,
+        SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion,
+        RecepcionMercanciaDetalle detalle,
+        int numeroEtiqueta)
     {
         container
             .Border(1)
             .BorderColor(Colors.Grey.Darken2)
-            .Padding(4)
+            .Padding(3)
             .Row(row =>
             {
-                // LADO IZQUIERDO
-                row.RelativeItem()
-                    .Column(col =>
+                // 60% Información izquierda
+                row.RelativeItem(6)
+                    .PaddingRight(5)
+                    .Element(info =>
                     {
-                        col.Item()
-                            .Text("PLASTIERP")
-                            .Bold()
-                            .FontSize(9);
-
-                        col.Item()
-                            .PaddingVertical(2)
-                            .LineHorizontal(0.5f);
-
-                        col.Item()
-                            .Text(detalle.OrdenCompraDetalle!
-                                .Material.NombreMaterial)
-                            .Bold()
-                            .FontSize(10);
-
-                        col.Item()
-                            .PaddingTop(3)
-                            .Text($"Orden: {recepcion.OrdenCompra!.Numero}")
-                            .FontSize(7);
-
-                        col.Item()
-                            .Text($"Recepción: {recepcion.NumeroRecepcion}")
-                            .FontSize(7);
-
-                        col.Item()
-                            .Text($"Lote: {detalle.LoteProveedor}")
-                            .FontSize(7);
-
-                        col.Item()
-                            .Text($"Cantidad: {detalle.CantidadRecibida:0.##} Kg")
-                            .FontSize(7);
-
-                        col.Item()
-                            .Text($"Etiqueta: {numeroEtiqueta}")
-                            .FontSize(7);
+                        InformacionComponent.Dibujar(
+                            info,
+                            recepcion,
+                            detalle,
+                            numeroEtiqueta);
                     });
 
 
-                // QR
-                row.ConstantItem(65)
+                // 40% QR derecha
+                row.RelativeItem(4)
+                    .BorderRight(0.5f)
                     .AlignCenter()
                     .AlignMiddle()
-                    .BorderLeft(0.5f)
-                    .PaddingLeft(5)
-                    .Text("QR")
-                    .FontSize(8);
+                    .Element(qr =>
+                    {
+                        QrComponent.Dibujar(
+                            qr,
+                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id}");
+                    });
             });
     }
 }

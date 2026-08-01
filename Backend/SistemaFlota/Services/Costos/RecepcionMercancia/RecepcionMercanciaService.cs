@@ -3,6 +3,7 @@ using SistemaFlota.DTOs.Costos.RecepcionMercancia;
 using SistemaFlota.Models.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Notificaciones;
 
 namespace SistemaFlota.Services.Costos.RecepcionMercancia
 {
@@ -11,15 +12,18 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
         private readonly IConsecutivoService _consecutivoService;
+        private readonly INotificacionRecepcionService _notificacion;
 
         public RecepcionMercanciaService(
             AppDbContext context,
              ICurrentUserService currentUser,
-             IConsecutivoService consecutivoService)
+             IConsecutivoService consecutivoService,
+             INotificacionRecepcionService notificacion)
         {
             _context = context;
             _currentUser = currentUser;
             _consecutivoService = consecutivoService;
+            _notificacion = notificacion;
         }
 
         public async Task<RecepcionMercanciaPaginadoDto> ObtenerAsync(
@@ -81,6 +85,8 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         public async Task<RecepcionMercanciaDto> CrearAsync(
              CrearRecepcionMercanciaDto dto)
         {
+
+            Console.WriteLine(">>> ENTRO A CREAR RECEPCION");
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Detalles)
                     .ThenInclude(d => d.Material)
@@ -134,6 +140,8 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             _context.RecepcionesMercancia.Add(recepcion);
 
             await _context.SaveChangesAsync();
+
+            await _notificacion.EnviarRecepcionMercanciaAsync(recepcion.Id);
 
             return new RecepcionMercanciaDto
             {

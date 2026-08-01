@@ -1,4 +1,6 @@
-﻿using QuestPDF.Fluent;
+﻿using QRCoder;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace SistemaFlota.Services.ImpresionEtiquetas.Componentes;
@@ -9,12 +11,22 @@ public static class QrComponent
         IContainer container,
         string contenidoQr)
     {
+        using var qrGenerator = new QRCodeGenerator();
+
+        using var qrData = qrGenerator.CreateQrCode(
+            contenidoQr,
+            QRCodeGenerator.ECCLevel.Q);
+
+        using var qrCode = new PngByteQRCode(qrData);
+
+        byte[] qrBytes = qrCode.GetGraphic(10);
+
         container
-            .Border(1)
-            .Padding(5)
+            .Padding(3)
             .AlignCenter()
             .AlignMiddle()
-            .Height(120)
-            .Text("QR");
+            .Width(35, Unit.Millimetre)
+            .Height(35, Unit.Millimetre)
+            .Image(qrBytes);
     }
 }
