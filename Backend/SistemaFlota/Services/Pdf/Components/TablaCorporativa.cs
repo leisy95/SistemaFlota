@@ -88,7 +88,7 @@ public static class TablaCorporativa
     public static IContainer HeaderCell(IContainer container)
     {
         return container
-            .Background(PdfColors.AzulOscuro)
+            .Background(PdfColors.VerdePrincipal)
             .Border(1)
             .BorderColor(PdfColors.GrisClaro)
             .PaddingVertical(6)

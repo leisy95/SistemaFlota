@@ -15,7 +15,7 @@ namespace SistemaFlota.Services.Pdf.Components
             string numeroDocumento)
         {
             container
-                .Background(PdfColors.AzulOscuro)
+                .Background(PdfColors.VerdePrincipal)
                 .Padding(18)
                 .Row(row =>
                 {
@@ -96,7 +96,7 @@ namespace SistemaFlota.Services.Pdf.Components
                             col.Item()
                                 .Text("Dosquebradas - Risaralda")
                                 .FontSize(12)
-                                .FontColor("#CBD5E1");
+                                .FontColor(Colors.White);
                         });
 
                     // separación

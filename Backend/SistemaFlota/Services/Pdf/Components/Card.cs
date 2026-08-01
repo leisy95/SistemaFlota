@@ -19,7 +19,7 @@ public static class Card
             {
                 // Encabezado
                 col.Item()
-                    .Background(PdfColors.AzulOscuro)
+                    .Background(PdfColors.VerdePrincipal)
                     .PaddingVertical(6)
                     .PaddingHorizontal(10)
                     .Text(titulo)
