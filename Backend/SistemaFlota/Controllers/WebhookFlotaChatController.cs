@@ -104,13 +104,14 @@ namespace SistemaFlota.Controllers
             }
 
             // ── Sin autorización activa: revisa si hay una conversación en curso ──
-            var conversacion = await _context.ConversacionesFlotaChat
-                .Where(c => c.FlotaChatUsuarioId == flotaChatUsuarioId && c.FechaExpiracion > DateTime.Now)
+            var conversacion = (await _context.ConversacionesFlotaChat
+                .Where(c => c.FlotaChatUsuarioId == flotaChatUsuarioId)
                 .OrderByDescending(c => c.FechaInicio)
-                .FirstOrDefaultAsync();
-
+                .ToListAsync())
+                .FirstOrDefault(c => c.FechaExpiracion > DateTime.Now);
             if (conversacion != null)
             {
+
                 await ContinuarConversacionAsync(conversacion, conductorId, flotaChatUsuarioId, texto);
                 return;
             }
