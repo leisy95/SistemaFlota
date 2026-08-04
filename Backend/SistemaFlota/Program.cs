@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using SistemaFlota;
+using SistemaFlota.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +84,10 @@ builder.Services.AddScoped<AuditoriaService>();
 // ── TWILIO ────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<ITwilioService, FlotaChatService>();
 
+builder.Services.AddScoped<IProveedorOrdenesProduccion, ImportacionExcelOrdenesService>();
+
+builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
+
 // ── Zona horaria Colombia UTC-5 ───────────────────────────────────────────────
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
@@ -102,6 +107,96 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
    db.Database.Migrate();
+
+
+    // ── Semilla: Tipos de Formato de Calidad ──────────────────────────────
+    if (!db.Set<TipoFormatoCalidad>().Any())
+    {
+        var extrusion = new TipoFormatoCalidad { Codigo = "F-GC-004", Nombre = "Extrusión", TieneVariablesCriticas = true };
+        var impresion = new TipoFormatoCalidad { Codigo = "F-GC-005", Nombre = "Impresión", TieneVariablesCriticas = false };
+        var sellado = new TipoFormatoCalidad { Codigo = "F-GC-006", Nombre = "Sellado", TieneVariablesCriticas = false };
+        var precorte = new TipoFormatoCalidad { Codigo = "F-GC-007", Nombre = "Precorte", TieneVariablesCriticas = false };
+
+        db.Set<TipoFormatoCalidad>().AddRange(extrusion, impresion, sellado, precorte);
+        db.SaveChanges();
+
+        var caracteristicas = new List<CaracteristicaFormato>
+    {
+        // Extrusión (F-GC-004)
+        new() { TipoFormatoId = extrusion.Id, Orden = 1, Descripcion = "Medida de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 2, Descripcion = "Calibre de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 3, Descripcion = "Apariencia de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 4, Descripcion = "Resistencia de Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 5, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 6, Descripcion = "Bobinado del rollo" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 7, Descripcion = "Medida/Alineación Fuelles" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 8, Descripcion = "Grafilado" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 9, Descripcion = "Sellado en Película" },
+
+        // Impresión (F-GC-005)
+        new() { TipoFormatoId = impresion.Id, Orden = 1, Descripcion = "Medida de la Película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 2, Descripcion = "Calibre de la Película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        new() { TipoFormatoId = impresion.Id, Orden = 4, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = impresion.Id, Orden = 5, Descripcion = "Referencia de Impresión" },
+        new() { TipoFormatoId = impresion.Id, Orden = 6, Descripcion = "Registros de Impresión" },
+        new() { TipoFormatoId = impresion.Id, Orden = 7, Descripcion = "Bobinado del Rollo" },
+
+        // Sellado (F-GC-006)
+        new() { TipoFormatoId = sellado.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
+        new() { TipoFormatoId = sellado.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
+        new() { TipoFormatoId = sellado.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        new() { TipoFormatoId = sellado.Id, Orden = 4, Descripcion = "Resistencia del Sellado" },
+        new() { TipoFormatoId = sellado.Id, Orden = 5, Descripcion = "Línea de Sellado" },
+        new() { TipoFormatoId = sellado.Id, Orden = 6, Descripcion = "Medida/Alineación fuelles" },
+        new() { TipoFormatoId = sellado.Id, Orden = 7, Descripcion = "Perforaciones" },
+        new() { TipoFormatoId = sellado.Id, Orden = 8, Descripcion = "Troquel/Manija" },
+
+        // Precorte (F-GC-007)
+        new() { TipoFormatoId = precorte.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
+        new() { TipoFormatoId = precorte.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
+        new() { TipoFormatoId = precorte.Id, Orden = 3, Descripcion = "Resistencia del Sellado" },
+        new() { TipoFormatoId = precorte.Id, Orden = 4, Descripcion = "Línea de Sellado" },
+        new() { TipoFormatoId = precorte.Id, Orden = 5, Descripcion = "Línea de Precorte" },
+        new() { TipoFormatoId = precorte.Id, Orden = 6, Descripcion = "Troquel" },
+        new() { TipoFormatoId = precorte.Id, Orden = 7, Descripcion = "Tratado Corona" },
+        new() { TipoFormatoId = precorte.Id, Orden = 8, Descripcion = "Bobinado del Rollo" },
+    };
+
+        db.Set<CaracteristicaFormato>().AddRange(caracteristicas);
+        db.SaveChanges();
+        Console.WriteLine("✅ Tipos de Formato de Calidad precargados");
+    }
+
+    // ── Semilla: Opciones de Formulario (Máquina, Corona, Molde, Operario) ──
+    if (!db.Set<OpcionFormulario>().Any())
+    {
+            var opciones = new List<OpcionFormulario>();
+
+            // Operarios (aplica a TODOS los formatos: TipoFormatoId = null)
+            var operarios = new[] { "Mauricio Figueroa", "Dario Ossa", "Asmed Cano", "Jhon Jairo Montes" };
+            for (int i = 0; i < operarios.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Operario", TipoFormatoId = null, Valor = operarios[i], Orden = i });
+
+            // Máquina (por ahora, aplica a todos — se puede diferenciar por formato después desde la pantalla de admin)
+            var maquinas = new[] { "Coextrusora 50", "Coextrusora 40", "Extrusora 60", "50.3", "50.1", "47.4", "47.3" };
+            for (int i = 0; i < maquinas.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Maquina", TipoFormatoId = null, Valor = maquinas[i], Orden = i });
+
+            // Corona (aplica a todos)
+            var coronas = new[] { "Alta", "Baja" };
+            for (int i = 0; i < coronas.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Corona", TipoFormatoId = null, Valor = coronas[i], Orden = i });
+
+            // Molde (aplica a todos)
+            var moldes = new[] { "75 mm", "55 mm", "40 mm", "45 mm", "60 mm", "80 mm", "90 mm", "5.5 pulg", "4 pulg", "2 pulg", "8 pulg", "6 pulg", "11.5 pulg", "7 pulg", "5 pulg" };
+            for (int i = 0; i < moldes.Length; i++)
+                opciones.Add(new OpcionFormulario { Categoria = "Molde", TipoFormatoId = null, Valor = moldes[i], Orden = i });
+
+            db.Set<OpcionFormulario>().AddRange(opciones);
+            db.SaveChanges();
+            Console.WriteLine("✅ Opciones de Formulario precargadas");
+        }
 
     try
     {

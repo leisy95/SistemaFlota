@@ -37,7 +37,12 @@ export class CyrelesComponent implements OnInit {
 
   //  Filtros cajones 
   filtroCajonBusqueda = '';
-  filtroCajonEstado = ''; 
+  filtroCajonEstado = '';
+
+  // Búsqueda global dentro de contenido de cajones
+  buscandoGlobal = false;
+  resultadosGlobales: any[] = [];
+  private timeoutBusquedaGlobal: any;
 
   //  Filtros registros 
   filtroNombre = '';
@@ -48,8 +53,13 @@ export class CyrelesComponent implements OnInit {
   // Formularios 
   formCajon = { numero: 0, descripcion: '' };
   formRegistro = { nombre: '' };
-  fotoFile: File | null = null;
-  fotoPreview: string | null = null;
+  fotoFiles: File[] = [];
+  fotoPreviews: string[] = [];
+
+  // Vista ampliada de foto (lightbox)
+  fotoAmpliada: string | null = null;
+  fotosGaleriaActual: string[] = [];
+  indiceFotoActual = 0;
 
   constructor(private svc: CyrelesService, private cdr: ChangeDetectorRef) { }
 
@@ -74,12 +84,34 @@ export class CyrelesComponent implements OnInit {
     if (this.filtroCajonEstado === 'con') base = base.filter(c => c.totalRegistros > 0);
     if (this.filtroCajonEstado === 'sin') base = base.filter(c => c.totalRegistros === 0);
     this.cajonesFiltrados = base;
+
+    // Búsqueda global de contenido dentro de los cajones (con debounce)
+    clearTimeout(this.timeoutBusquedaGlobal);
+    if (this.filtroCajonBusqueda.trim().length >= 2) {
+      this.timeoutBusquedaGlobal = setTimeout(() => this.buscarEnContenido(), 350);
+    } else {
+      this.resultadosGlobales = [];
+    }
     this.cdr.markForCheck();
+  }
+
+  buscarEnContenido() {
+    this.buscandoGlobal = true;
+    this.svc.getRegistros({ nombre: this.filtroCajonBusqueda.trim() }).subscribe({
+      next: data => { this.resultadosGlobales = data; this.buscandoGlobal = false; this.cdr.markForCheck(); },
+      error: () => { this.buscandoGlobal = false; this.cdr.markForCheck(); }
+    });
+  }
+
+  irAResultado(r: any) {
+    const cajon = this.cajones.find(c => c.numero === r.cajonNumero);
+    if (cajon) this.abrirCajon(cajon);
   }
 
   limpiarFiltrosCajones() {
     this.filtroCajonBusqueda = '';
     this.filtroCajonEstado = '';
+    this.resultadosGlobales = [];
     this.aplicarFiltrosCajones();
   }
 
@@ -164,20 +196,29 @@ export class CyrelesComponent implements OnInit {
   }
 
   abrirCrearRegistro() {
-    this.formRegistro = { nombre: '' }; this.fotoFile = null; this.fotoPreview = null;
+    this.formRegistro = { nombre: '' }; this.fotoFiles = []; this.fotoPreviews = [];
     this.modal = 'crear-registro'; this.cdr.markForCheck();
   }
 
   abrirEditarRegistro(r: any) {
     this.registroActual = r;
     this.formRegistro = { nombre: r.nombre };
-    this.fotoFile = null;
-    this.fotoPreview = r.foto ? this.svc.getFotoUrl(r.foto) : null;
+    this.fotoFiles = [];
+    // Muestra las fotos ya guardadas como previews (de solo lectura, no se re-suben)
+    const fotosExistentes = this.fotosDe(r);
+    this.fotoPreviews = fotosExistentes.map((f: string) => this.svc.getFotoUrl(f));
     this.modal = 'editar-registro'; this.cdr.markForCheck();
   }
 
+  // Devuelve la lista de fotos de un registro, compatible con el campo viejo "foto" único
+  fotosDe(r: any): string[] {
+    if (r.fotos && r.fotos.length > 0) return r.fotos;
+    if (r.foto) return [r.foto];
+    return [];
+  }
+
   cerrarModal() {
-    this.modal = null; this.fotoFile = null; this.fotoPreview = null; this.mensajeError = ''; this.cdr.markForCheck();
+    this.modal = null; this.fotoFiles = []; this.fotoPreviews = []; this.mensajeError = ''; this.cdr.markForCheck();
   }
 
   // ── Guardar ────────────────────────────────────────────────────────────────
@@ -197,8 +238,8 @@ export class CyrelesComponent implements OnInit {
     if (!this.formRegistro.nombre.trim()) { this.mostrarError('El nombre es obligatorio'); return; }
     this.guardando = true;
     const obs = this.modal === 'crear-registro'
-      ? this.svc.crearRegistro(this.cajonActual.id, this.formRegistro.nombre, this.fotoFile ?? undefined)
-      : this.svc.editarRegistro(this.registroActual.id, this.cajonActual.id, this.formRegistro.nombre, this.fotoFile ?? undefined);
+      ? this.svc.crearRegistro(this.cajonActual.id, this.formRegistro.nombre, this.fotoFiles)
+      : this.svc.editarRegistro(this.registroActual.id, this.cajonActual.id, this.formRegistro.nombre, this.fotoFiles);
     obs.subscribe({
       next: () => { this.guardando = false; this.cerrarModal(); this.mostrarExito(this.modal === 'crear-registro' ? 'Registro creado' : 'Registro actualizado'); this.cargarRegistros(this.cajonActual.id); },
       error: () => { this.guardando = false; this.mostrarError('Error al guardar'); this.cdr.markForCheck(); }
@@ -225,15 +266,57 @@ export class CyrelesComponent implements OnInit {
 
   // ── Foto ───────────────────────────────────────────────────────────────────
   onFoto(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    this.fotoFile = file;
-    const reader = new FileReader();
-    reader.onload = e => { this.fotoPreview = e.target?.result as string; this.cdr.markForCheck(); };
-    reader.readAsDataURL(file);
+    const files = (event.target as HTMLInputElement).files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      this.fotoFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = e => {
+        this.fotoPreviews.push(e.target?.result as string);
+        this.cdr.markForCheck();
+      };
+      reader.readAsDataURL(file);
+    }
+    (event.target as HTMLInputElement).value = '';
+  }
+
+  quitarFotoPreview(index: number) {
+    this.fotoPreviews.splice(index, 1);
+    this.fotoFiles.splice(index, 1);
+    this.cdr.markForCheck();
   }
 
   getFotoUrl(nombre: string) { return this.svc.getFotoUrl(nombre); }
+
+  abrirFotoAmpliada(galeria: string[], indice: number) {
+    this.fotosGaleriaActual = galeria;
+    this.indiceFotoActual = indice;
+    this.fotoAmpliada = this.getFotoUrl(galeria[indice]);
+    this.cdr.markForCheck();
+  }
+
+  cerrarFotoAmpliada() {
+    this.fotoAmpliada = null;
+    this.cdr.markForCheck();
+  }
+
+  fotoSiguiente() {
+    if (this.indiceFotoActual < this.fotosGaleriaActual.length - 1) {
+      this.indiceFotoActual++;
+      this.fotoAmpliada = this.getFotoUrl(this.fotosGaleriaActual[this.indiceFotoActual]);
+      this.cdr.markForCheck();
+    }
+  }
+
+  fotoAnterior() {
+    if (this.indiceFotoActual > 0) {
+      this.indiceFotoActual--;
+      this.fotoAmpliada = this.getFotoUrl(this.fotosGaleriaActual[this.indiceFotoActual]);
+      this.cdr.markForCheck();
+    }
+  }
 
   // ── Exportar ───────────────────────────────────────────────────────────────
   exportarExcel() {

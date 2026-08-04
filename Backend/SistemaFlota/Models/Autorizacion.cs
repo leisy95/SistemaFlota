@@ -69,26 +69,22 @@ namespace SistemaFlota
         public DateTime? FechaReporteLlegada { get; set; }
         public int? KilometrajeFinal { get; set; }
         public string? NovedadesViaje { get; set; }
-        public string? EstadoVehiculoLlegada { get; set; } // Bueno | Novedad | Requiere taller
+        public string? EstadoVehiculoLlegada { get; set; } 
         public string? FotoOdometroLlegada { get; set; }
 
-        // ========================
-        // LLEGADA — CONFIRMACIÓN PORTERÍA
-        // Portería confirma la entrada física del vehículo
-        // ========================
         public DateTime? FechaConfirmacionLlegada { get; set; }
         public string? UsuarioPorteriaLlegada { get; set; }
         public string? ObservacionPorteriaLlegada { get; set; }
         public string? FirmaPorteriaLlegada { get; set; }
 
-        // Estado del turno: null = en ruta | ReportadaLlegada | Completada
+        
         public string? EstadoLlegada { get; set; }
 
-        // ========================
-        // SALIDA EN RUTA
-        // Conductor confirma cuando sale al día siguiente
-        // ========================
+       
         public DateTime? FechaSalidaReal { get; set; }
-    
-}
+
+        public DateTime? FechaUltimoRecordatorio { get; set; }
+        public int IntentosRecordatorio { get; set; } = 0;
+        public bool Escalado { get; set; } = false;
+    }
 }

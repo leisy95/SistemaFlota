@@ -3,6 +3,14 @@ import { Routes } from '@angular/router';
 export const CONFIGURACION_ROUTES: Routes = [
 
     {
+        path: 'vinculaciones-flotachat',
+        loadComponent: () =>
+            import('./vinculaciones-flotachat/vinculaciones-flotachat')
+                .then(c => c.VinculacionesFlotaChatComponent),
+        data: { animation: 'vinculaciones-flotachat' }
+    },
+
+    {
         path: '',
         loadComponent: () =>
             import('./configuracion-empresa/configuracion-empresa')

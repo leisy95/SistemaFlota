@@ -141,22 +141,61 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'rrhh'
     },
 
-
-    //  CALIDAD
-
+//  CALIDAD
     {
         key: 'calidad-cyreles',
         label: 'Cyreles',
-        icon: 'fa-solid fa-box-open',
+        icon: 'fa-solid fa-box',
         ruta: '/calidad/calidad-cyreles',
         modulo: 'calidad'
     },
-
     {
         key: 'calidad-formatos',
         label: 'Formatos',
         icon: 'fa-solid fa-file-lines',
         ruta: '/calidad/calidad-formatos',
+        modulo: 'calidad'
+    },
+    {
+        key: 'calidad-extrusion',
+        label: 'Extrusión',
+        icon: 'fa-solid fa-industry',
+        ruta: '/calidad/extrusion',
+        modulo: 'calidad'
+    },
+    {
+        key: 'calidad-impresion',
+        label: 'Impresión',
+        icon: 'fa-solid fa-print',
+        ruta: '/calidad/impresion',
+        modulo: 'calidad'
+    },
+    {
+        key: 'calidad-sellado',
+        label: 'Sellado',
+        icon: 'fa-solid fa-stamp',
+        ruta: '/calidad/sellado',
+        modulo: 'calidad'
+    },
+   {
+        key: 'calidad-precorte',
+        label: 'Precorte',
+        icon: 'fa-solid fa-scissors',
+        ruta: '/calidad/precorte',
+        modulo: 'calidad'
+    },
+    {
+        key: 'admin-opciones-formulario',
+        label: 'Opciones de Formularios',
+        icon: 'fa-solid fa-sliders',
+        ruta: '/calidad/admin-opciones-formulario',
+        modulo: 'calidad'
+    },
+    {
+        key: 'mejor-rendimiento',
+        label: 'Mejor Rendimiento',
+        icon: 'fa-solid fa-magnifying-glass-chart',
+        ruta: '/calidad/mejor-rendimiento',
         modulo: 'calidad'
     },
 
@@ -215,10 +254,26 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
+        key: 'vinculaciones-flotachat',
+        label: 'Vincular FlotaChat',
+        icon: 'fa-solid fa-link',
+        ruta: '/configuracion/vinculaciones-flotachat',
+        modulo: 'configuracion'
+    },
+
+    {
         key: 'usuarios',
         label: 'Usuarios',
         icon: 'fa-solid fa-file-lines',
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
     },
+    {
+        key: 'admin-opciones-formulario',
+        label: 'Opciones de Formularios',
+        icon: 'fa-solid fa-sliders',
+        ruta: '/calidad/admin-opciones-formulario',
+        modulo: 'admin-opciones-formulario'
+    },
+
 ];

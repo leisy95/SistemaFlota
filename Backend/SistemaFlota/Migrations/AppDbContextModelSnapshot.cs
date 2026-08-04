@@ -82,6 +82,9 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("Escalado")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -116,6 +119,9 @@ namespace SistemaFlota.Migrations
                     b.Property<DateTime?>("FechaSalidaReal")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("FechaUltimoRecordatorio")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("FirmaBodega")
                         .HasColumnType("longtext");
 
@@ -130,6 +136,9 @@ namespace SistemaFlota.Migrations
 
                     b.Property<string>("FotoOdometroLlegada")
                         .HasColumnType("longtext");
+
+                    b.Property<int>("IntentosRecordatorio")
+                        .HasColumnType("int");
 
                     b.Property<int?>("KilometrajeFinal")
                         .HasColumnType("int");
@@ -455,6 +464,12 @@ namespace SistemaFlota.Migrations
                     b.Property<bool>("RecibeIncidentes")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("RecibeInspecciones")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("RecibeLiberaciones")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("RecibePedidos")
                         .HasColumnType("tinyint(1)");
 
@@ -715,11 +730,14 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("AccionesTomadas")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("CantidadOP")
-                        .HasColumnType("int");
+                    b.Property<decimal>("CantidadOP")
+                        .HasColumnType("decimal(65,30)");
 
-                    b.Property<int>("CantidadReal")
-                        .HasColumnType("int");
+                    b.Property<decimal>("CantidadReal")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Cliente")
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("DefectosSI")
                         .HasColumnType("tinyint(1)");
@@ -739,6 +757,9 @@ namespace SistemaFlota.Migrations
                     b.Property<DateTime?>("FechaRevision")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("FirmaDigital")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("FotoEvidencia")
                         .HasColumnType("longtext");
 
@@ -747,6 +768,9 @@ namespace SistemaFlota.Migrations
 
                     b.Property<string>("OrdenProduccion")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Referencia")
                         .HasColumnType("longtext");
 
                     b.Property<string>("RevisadoPor")
@@ -1059,6 +1083,57 @@ namespace SistemaFlota.Migrations
                     b.ToTable("Cajones");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.CaracteristicaFormato", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoFormatoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoFormatoId");
+
+                    b.ToTable("CaracteristicasFormato");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.CyreleFoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("CyreleRegistroId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NombreArchivo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CyreleRegistroId");
+
+                    b.ToTable("CyreleFotos");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.CyreleRegistro", b =>
                 {
                     b.Property<int>("Id")
@@ -1094,6 +1169,147 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("CajonId");
 
                     b.ToTable("CyreleRegistros");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TipoFormatoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Valor")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoFormatoId");
+
+                    b.ToTable("OpcionesFormulario");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.OrdenProduccionExterna", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("CantidadOP")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cliente")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("FechaImportacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NumeroOP")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OrdenesProduccionExternas");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.RegistroFormatoCalidad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("CargoFirma")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Cliente")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ExplicacionNoLiberado")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaRevision")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FirmaDigital")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Hora")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Maquina")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Operarios")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("OrdenProduccion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ProduccionKgHora")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool?>("PuedeLiberarse")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ResultadosJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RevisadoPor")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("TipoFormatoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VariablesCriticasJson")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoFormatoId");
+
+                    b.ToTable("RegistrosFormatoCalidad");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.SeguimientoRrhh", b =>
@@ -1200,6 +1416,30 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("SeguimientoId");
 
                     b.ToTable("SeguimientosRrhhFotos");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.TipoFormatoCalidad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("TieneVariablesCriticas")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TiposFormatoCalidad");
                 });
 
             modelBuilder.Entity("SistemaFlota.NotaTrazabilidad", b =>
@@ -1337,6 +1577,36 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("PedidoId");
 
                     b.ToTable("PedidoReferencias");
+                });
+
+            modelBuilder.Entity("SistemaFlota.RespuestaFlotaChat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ConductorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FechaRecibido")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FlotaChatUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GrupoId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Procesado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RespuestasFlotaChat");
                 });
 
             modelBuilder.Entity("SistemaFlota.SolicitudTaller", b =>
@@ -1603,6 +1873,33 @@ namespace SistemaFlota.Migrations
                     b.ToTable("Vehiculos");
                 });
 
+            modelBuilder.Entity("SistemaFlota.VinculacionFlotaChat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntidadId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaVinculacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FlotaChatUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Telefono")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TipoEntidad")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VinculacionesFlotaChat");
+                });
+
             modelBuilder.Entity("SistemaFlota.Autorizacion", b =>
                 {
                     b.HasOne("SistemaFlota.Conductor", "Conductor")
@@ -1804,6 +2101,28 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.CaracteristicaFormato", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.TipoFormatoCalidad", "TipoFormato")
+                        .WithMany("Caracteristicas")
+                        .HasForeignKey("TipoFormatoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TipoFormato");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.CyreleFoto", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.CyreleRegistro", "Registro")
+                        .WithMany("Fotos")
+                        .HasForeignKey("CyreleRegistroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Registro");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.CyreleRegistro", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Cajon", "Cajon")
@@ -1813,6 +2132,26 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("Cajon");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.TipoFormatoCalidad", "TipoFormato")
+                        .WithMany()
+                        .HasForeignKey("TipoFormatoId");
+
+                    b.Navigation("TipoFormato");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.RegistroFormatoCalidad", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.TipoFormatoCalidad", "TipoFormato")
+                        .WithMany()
+                        .HasForeignKey("TipoFormatoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TipoFormato");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.SeguimientoRrhhFoto", b =>
@@ -1917,9 +2256,19 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Registros");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.CyreleRegistro", b =>
+                {
+                    b.Navigation("Fotos");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.SeguimientoRrhh", b =>
                 {
                     b.Navigation("Fotos");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.TipoFormatoCalidad", b =>
+                {
+                    b.Navigation("Caracteristicas");
                 });
 
             modelBuilder.Entity("SistemaFlota.Pedido", b =>

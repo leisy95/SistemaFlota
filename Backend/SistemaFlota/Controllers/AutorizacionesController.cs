@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using SistemaFlota.DTOs;
 
 namespace SistemaFlota
 {
@@ -37,8 +38,8 @@ namespace SistemaFlota
 
         [HttpGet]
         public async Task<IActionResult> Get(
-    [FromQuery] int pagina = 1,
-    [FromQuery] int porPagina = 200)
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 200)
         {
             try
             {
@@ -294,7 +295,6 @@ namespace SistemaFlota
                         {
                             foreach (var f in facturas)
                             {
-                                // ── Solo facturas con número real ──────────
                                 if (string.IsNullOrWhiteSpace(f.FacturaRemision) ||
                                     f.FacturaRemision.Trim() == "-")
                                     continue;
@@ -344,7 +344,7 @@ namespace SistemaFlota
             }
         }
 
-        // ── FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO ────────────────────────────
+        // ── FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO + AVISO AL CONDUCTOR ───────
         [HttpPut("{id}/facturacion")]
         public async Task<IActionResult> FirmarFacturacion(int id, [FromBody] FirmaDto dto)
         {
@@ -381,7 +381,6 @@ namespace SistemaFlota
                             {
                                 foreach (var f in facturas)
                                 {
-                                    // ── Solo facturas con número real ──────
                                     if (string.IsNullOrWhiteSpace(f.FacturaRemision) ||
                                         f.FacturaRemision.Trim() == "-")
                                         continue;
@@ -415,8 +414,18 @@ namespace SistemaFlota
                             Console.WriteLine($"⚠️ Error creando trazabilidad desde facturas: {exFact.Message}");
                         }
                     }
-                    // ── Si no hay facturas NO se crea registro en trazabilidad ──
-                    // (eliminado el bloque else que creaba registro con "-")
+
+                    // ── Notificar al conductor por FlotaChat ────────────────────
+                    if (!string.IsNullOrWhiteSpace(resultado.Conductor?.Telefono))
+                    {
+                        var mensajeConductor =
+                            $"📋 *AUTORIZACIÓN EN PROCESO*\n\n" +
+                            $"Hola {conductor.Split(' ')[0]}, se generó tu autorización de viaje.\n\n" +
+                            $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                            $"📦 Carga: {resultado.DescripcionCarga ?? "-"}\n\n" +
+                            $"Tu autorización está siendo procesada por Bodega y Portería. Te avisaremos cuando puedas salir.";
+                        await _twilio.EnviarMensajeAsync(resultado.Conductor.Telefono, mensajeConductor);
+                    }
                 }
 
                 await _auditoria.RegistrarAsync(
@@ -697,59 +706,5 @@ namespace SistemaFlota
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
-    }
-
-    // ── DTOs ──────────────────────────────────────────────────────────────────
-    public class CrearAutorizacionDto
-    {
-        public int ConductorId { get; set; }
-        public int VehiculoId { get; set; }
-        public string DestinoCompleto { get; set; } = string.Empty;
-        public int CantidadClientes { get; set; }
-        public decimal PesoKilos { get; set; }
-        public string TipoVuelta { get; set; } = string.Empty;
-        public string DescripcionCarga { get; set; } = string.Empty;
-        public string? NumeroGuia { get; set; }
-        public string? FacturasClientes { get; set; }
-    }
-
-    public class FirmaDto
-    {
-        public string Firma { get; set; } = string.Empty;
-        public string Usuario { get; set; } = string.Empty;
-        public string? Observacion { get; set; }
-    }
-
-    public class LlegadaConductorDto
-    {
-        public int? KilometrajeFinal { get; set; }
-        public string? NovedadesViaje { get; set; }
-        public string EstadoVehiculo { get; set; } = "Bueno";
-    }
-
-    public class FacturaClienteDto
-    {
-        public string? FacturaRemision { get; set; }
-        public string? Cliente { get; set; }
-        public decimal? PesoKilos { get; set; }
-    }
-
-    public class SalidaRapidaDto
-    {
-        public int ConductorId { get; set; }
-        public int VehiculoId { get; set; }
-        public string? TipoVuelta { get; set; }
-        public string? DestinoCompleto { get; set; }
-    }
-
-    public class LlegadaRapidaDto
-    {
-        public int ConductorId { get; set; }
-        public int VehiculoId { get; set; }
-        public string? TipoVuelta { get; set; }
-        public string? DestinoCompleto { get; set; }
-        public int? KilometrajeFinal { get; set; }
-        public string? NovedadesViaje { get; set; }
-        public string? EstadoVehiculo { get; set; }
     }
 }

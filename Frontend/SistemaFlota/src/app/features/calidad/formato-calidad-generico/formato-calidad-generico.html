@@ -1,0 +1,331 @@
+<div class="contenedor" (click)="cerrarMenus()">
+  <div class="header">
+    <div>
+      <h1>{{ tipoFormato?.nombre }}</h1>
+      <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
+    </div>
+    <button class="btn-nuevo" *ngIf="puedeCrear && vista === 'lista'" (click)="nuevo()">
+      <i class="fa-solid fa-plus"></i> Nuevo Registro
+    </button>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <ng-container *ngIf="vista === 'lista'">
+    <div class="filtros">
+      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
+      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+      <div class="fg"><label>Orden de producción</label><input type="text" [(ngModel)]="filtroOP" placeholder="Ej: 22310"></div>
+      <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+      <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+    </div>
+
+    <div class="cargando" *ngIf="cargando"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+
+    <div class="tabla-container" *ngIf="!cargando && registros.length > 0">
+      <table>
+        <thead>
+          <tr>
+           <th>Orden</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Revisado por</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of registros">
+            <td data-label="Orden"><span class="op-badge">{{ r.ordenProduccion }}</span></td>
+            <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td data-label="Cliente">{{ r.cliente || '-' }}</td>
+           <td data-label="Estado">
+              <span class="estado" [class.pendiente]="r.estado === 'PendienteLiberacion'" [class.ok]="r.estado === 'Liberado'">
+                {{ r.estado === 'PendienteLiberacion' ? 'Pendiente' : 'Liberado' }}
+              </span>
+            </td>
+            <td data-label="Revisado por">{{ r.revisadoPor }}</td>
+            <td data-label="Acciones" class="td-menu">
+              <button class="btn-menu-puntos" (click)="toggleMenu(r.id, $event)">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <div class="menu-desplegable" *ngIf="menuAbiertoId === r.id">
+                <button (click)="ver(r); cerrarMenus()"><i class="fa-solid fa-eye"></i> Ver</button>
+                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="editar(r); cerrarMenus()"><i class="fa-solid fa-pen"></i> Editar</button>
+                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="abrirLiberar(r); cerrarMenus()"><i class="fa-solid fa-check-double"></i> Liberar</button>
+                <button *ngIf="puedeEliminar" class="opcion-eliminar" (click)="eliminar(r.id); cerrarMenus()"><i class="fa-solid fa-trash"></i> Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="vacio" *ngIf="!cargando && registros.length === 0">
+      <p><i class="fa-solid fa-inbox"></i> No hay registros</p>
+    </div>
+  </ng-container>
+
+  <!-- VISTA NUEVO / EDITAR -->
+ <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
+    <div class="form-card">
+
+      <div class="form-section">
+        <h3><i class="fa-solid fa-file-signature"></i> Datos generales</h3>
+      <div class="form-grid">
+          <div class="fg fg-cajon">
+            <label>Orden de producción *</label>
+            <input type="text" [(ngModel)]="form.ordenProduccion" placeholder="Ej: 22310" (blur)="buscarOP()">
+          </div>
+          <div class="fg fg-cajon">
+            <label>Cliente</label>
+            <input type="text" [(ngModel)]="form.cliente" readonly>
+          </div>
+          <div class="fg fg-cajon">
+            <label>Operario</label>
+            <select [(ngModel)]="form.operarios">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+          <div class="fg fg-cajon">
+            <label>Hora</label>
+            <input type="text" [(ngModel)]="form.hora" class="hora-negrita">
+          </div>
+          <div class="fg fg-cajon">
+            <label>Máquina</label>
+            <select [(ngModel)]="form.maquina" (change)="buscarSugerenciaMejorRendimiento()">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+        </div>
+        <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
+          <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
+          <div class="op-info-grid">
+            <div><label>Cliente</label><strong>{{ clienteDetectado }}</strong></div>
+            <div><label>Referencia</label><strong>{{ referenciaDetectada || '-' }}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VARIABLES CRÍTICAS: solo Extrusión -->
+      <div class="form-section" *ngIf="tipoFormato?.tieneVariablesCriticas">
+        <h3><i class="fa-solid fa-gauge"></i> Variables Críticas</h3>
+        <div class="op-info-box cliente-box" *ngIf="sugerenciaAplicada">
+          <span><i class="fa-solid fa-wand-magic-sparkles"></i> Parámetros sugeridos según el mejor rendimiento histórico para esta referencia y máquina. Puede modificarlos si es necesario.</span>
+        </div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Corona</label>
+            <select [(ngModel)]="variablesCriticas.corona">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesCorona" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+        <div class="fg">
+            <label>Molde</label>
+            <select [(ngModel)]="variablesCriticas.molde">
+              <option [ngValue]="''">-- Seleccione --</option>
+              <option *ngFor="let o of opcionesMolde" [ngValue]="o.valor">{{ o.valor }}</option>
+            </select>
+          </div>
+        </div>
+        <h4>Temperaturas Máquina (°C)</h4>
+        <div class="grid-6">
+          <div class="fg"><label>Zona 1</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona1"></div>
+          <div class="fg"><label>Zona 2</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona2"></div>
+          <div class="fg"><label>Zona 3</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona3"></div>
+          <div class="fg"><label>Zona 4</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona4"></div>
+          <div class="fg"><label>Zona 5</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona5"></div>
+          <div class="fg"><label>Zona 6</label><input type="text" [(ngModel)]="variablesCriticas.temperaturas.zona6"></div>
+        </div>
+        <h4>Velocidades Máquina (Hz)</h4>
+        <div class="form-grid">
+          <div class="fg"><label>Máquina</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.maquina"></div>
+          <div class="fg"><label>Halador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.halador"></div>
+          <div class="fg"><label>Bobinador</label><input type="text" [(ngModel)]="variablesCriticas.velocidades.bobinador"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fg"><label>Aire (H)</label><input type="text" [(ngModel)]="variablesCriticas.aire"></div>
+          <div class="fg"><label>Amperaje (A)</label><input type="text" [(ngModel)]="variablesCriticas.amperaje"></div>
+          <div class="fg"><label>Altura Burbuja (Cm)</label><input type="text" [(ngModel)]="variablesCriticas.alturaBurbuja"></div>
+          <div class="fg"><label>kilos desperdicio</label><input type="text" [(ngModel)]="variablesCriticas.produccionKgHora"></div>
+        </div>
+      </div>
+
+     <div class="form-section">
+        <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
+       <p class="nota-verificacion">Registre una verificación completa cada hora. Utilice el botón "Agregar hora" para crear una nueva ronda. Cada ronda debe diligenciarse dentro de la franja horaria correspondiente y entregarse una muestra física al responsable del proceso.</p>
+
+        <div class="alerta-hora" *ngIf="vista === 'nuevo' && !tieneRondaFinal">
+          <i class="fa-solid fa-clock"></i>
+          <span>Ventana actual: <strong>{{ ventanaHoraActual }}</strong> — debe registrar la verificación correspondiente dentro de esta hora.</span>
+        </div>
+        <div class="alerta-hora alerta-urgente" *ngIf="vista === 'nuevo' && faltaVerificacionEstaHora">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>La verificación de esta hora aún está pendiente. Complétela.</span>
+        </div>
+
+        <div class="rondas-botones">
+          <select class="select-operario-ronda" [(ngModel)]="operarioRondaNueva" [disabled]="tieneRondaFinal">
+            <option value="">-- Operario --</option>
+            <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+          </select>
+          <button type="button" class="btn-agregar-hora" [disabled]="tieneRondaFinal" (click)="agregarRondaHora()">
+            <i class="fa-solid fa-plus"></i> Agregar verificación de esta hora
+          </button>
+          <span class="badge-final" *ngIf="tieneRondaFinal"><i class="fa-solid fa-flag-checkered"></i> Verificación final registrada</span>
+        </div>
+
+        <div class="tabla-verificacion-container" *ngIf="rondas.length > 0">
+          <table class="tabla-verificacion tabla-rondas">
+            <thead>
+              <tr>
+                <th class="col-descripcion">Característica</th>
+                <th *ngFor="let ronda of rondas; let i = index" [class.col-final]="ronda.final" [style.width]="anchoColumnaHora()">
+                  <div class="th-hora">{{ ronda.hora }} <span *ngIf="ronda.final">(F)</span></div>
+                  <div class="th-operario">{{ ronda.operario }}</div>
+                  <div class="th-cierre" *ngIf="ronda.cierreDeOperario">
+                    <i class="fa-solid fa-check-circle"></i> {{ ronda.kilosDesperdicio }} kg
+                  </div>
+                  <button type="button" class="btn-cerrar-turno" *ngIf="!ronda.cierreDeOperario" (click)="cerrarTurnoOperario(i)" title="Cerrar turno de este operario">
+                    <i class="fa-solid fa-door-closed"></i>
+                  </button>
+                  <button type="button" class="btn-quitar-ronda" *ngIf="!tieneRondaFinal" (click)="quitarRonda(i)" title="Quitar esta hora">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                  <button type="button" class="btn-marcar-final" *ngIf="!tieneRondaFinal && i === rondas.length - 1" (click)="marcarRondaFinal(i)" title="Marcar como verificación final">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                  </button>
+                </th>
+                <th class="col-obs">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of caracteristicas">
+                <td class="col-descripcion">{{ c.descripcion }}</td>
+                <td *ngFor="let ronda of rondas; let i = index" class="col-valor">
+                  <div class="valor-btns">
+                    <button type="button" class="btn-valor btn-cumple" [class.activo]="ronda.valores[c.id] === 'cumple'" (click)="marcarValor(i, c.id, 'cumple')">✓</button>
+                    <button type="button" class="btn-valor btn-nocumple" [class.activo]="ronda.valores[c.id] === 'noCumple'" (click)="marcarValor(i, c.id, 'noCumple')">✗</button>
+                    <button type="button" class="btn-valor btn-na" [class.activo]="ronda.valores[c.id] === 'na'" (click)="marcarValor(i, c.id, 'na')">N/A</button>
+                  </div>
+                </td>
+                <td class="col-obs">
+                  <input type="text" [(ngModel)]="observaciones[c.id]" placeholder="Observación...">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vacio-rondas" *ngIf="rondas.length === 0">
+          <p><i class="fa-solid fa-clock"></i> Aún no hay verificaciones registradas. Presione "Agregar verificación de esta hora" para empezar.</p>
+        </div>
+      </div>
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-weight-scale"></i> Producción</h3>
+        <div class="fg">
+          <label>Producción (Kg/h)</label>
+          <input type="text" [(ngModel)]="form.produccionKgHora" placeholder="Ej: 45.5">
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-check-double"></i> ¿El producto puede ser liberado?</h3>
+        <p class="nota-verificacion">Este apartado es diligenciado por el Jefe de producción o Asistente de calidad y producción.</p>
+        <div class="si-no-btn">
+          <button [class.activo-si]="form.puedeLiberarse === true" (click)="form.puedeLiberarse = true">SI</button>
+          <button [class.activo-no]="form.puedeLiberarse === false" (click)="form.puedeLiberarse = false">NO</button>
+        </div>
+        <div class="fg" *ngIf="form.puedeLiberarse === false" style="margin-top:12px">
+          <label>Si la respuesta es NO, explique ¿Por qué?</label>
+          <textarea [(ngModel)]="form.explicacionNoLiberado" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="vista === 'liberar'">
+        <h3><i class="fa-solid fa-signature"></i> Firma y Cargo</h3>
+        <div class="revisado-info"><span>Revisado por: <strong>{{ usuario }}</strong></span></div>
+        <div class="fg" style="margin-top:10px">
+          <label>Cargo de quien hace la liberación</label>
+          <input type="text" [(ngModel)]="form.cargoFirma" placeholder="Ej: Jefe de Producción">
+        </div>
+        <div class="fg" style="margin-top:10px">
+          <label>Firma de quien hace la liberación</label>
+          <canvas id="firmaCanvasGenerico" width="340" height="100" class="canvas-firma"></canvas>
+          <button type="button" (click)="limpiarFirma()" class="btn-limpiar-firma">Limpiar firma</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-cancelar" (click)="vista = 'lista'">Cancelar</button>
+        <button class="btn-guardar" *ngIf="vista !== 'liberar'" (click)="guardar()"><i class="fa-solid fa-floppy-disk"></i> Guardar registro</button>
+        <button class="btn-guardar" *ngIf="vista === 'liberar'" (click)="guardarLiberacion()"><i class="fa-solid fa-check-double"></i> Confirmar liberación</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VISTA VER -->
+  <ng-container *ngIf="vista === 'ver' && registroSeleccionado">
+    <div class="form-card">
+      <div class="form-section">
+        <div class="ver-header">
+          <h3>Detalle — {{ registroSeleccionado.ordenProduccion }}</h3>
+          <small>{{ registroSeleccionado.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+        <div class="detalle-grid">
+          <div class="detalle-item"><span class="det-label">Cliente</span><span>{{ registroSeleccionado.cliente || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Referencia</span><span>{{ registroSeleccionado.referencia || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Operarios</span><span>{{ registroSeleccionado.operarios || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Máquina</span><span>{{ registroSeleccionado.maquina || '-' }}</span></div>
+          <div class="detalle-item destacado"><span class="det-label">Total Desperdicio</span><span>{{ totalKilosDesperdicioVer }} kg</span></div>
+          <div class="detalle-item"><span class="det-label">¿Liberado?</span>
+            <span [class.ok]="registroSeleccionado.puedeLiberarse === true" [class.no]="registroSeleccionado.puedeLiberarse === false">
+              {{ registroSeleccionado.puedeLiberarse === true ? 'SI' : (registroSeleccionado.puedeLiberarse === false ? 'NO' : '-') }}
+            </span>
+          </div>
+          <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{ registroSeleccionado.revisadoPor }}</span></div>
+        </div>
+      </div>
+
+    <div class="form-section">
+        <h3>Resultados de verificación por hora</h3>
+        <div class="tabla-verificacion-container" *ngIf="registroSeleccionado.rondasParsed?.length > 0">
+          <table class="tabla-verificacion tabla-rondas">
+            <thead>
+              <tr>
+                <th class="col-descripcion">Característica</th>
+                <th *ngFor="let ronda of registroSeleccionado.rondasParsed" [class.col-final]="ronda.final">
+                  <div class="th-hora">{{ ronda.hora }} <span *ngIf="ronda.final">(F)</span></div>
+                  <div class="th-operario">{{ ronda.operario }}</div>
+                  <div class="th-cierre" *ngIf="ronda.cierreDeOperario">
+                    <i class="fa-solid fa-check-circle"></i> {{ ronda.kilosDesperdicio }} kg
+                  </div>
+                </th>
+                <th class="col-obs">Observación</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of registroSeleccionado.caracteristicasParsed">
+                <td class="col-descripcion">{{ c.descripcion }}</td>
+                <td *ngFor="let ronda of registroSeleccionado.rondasParsed" class="col-valor">
+                  <span *ngIf="ronda.valores[c.id] === 'cumple'" class="valor-ok">✓</span>
+                  <span *ngIf="ronda.valores[c.id] === 'noCumple'" class="valor-no">✗</span>
+                  <span *ngIf="ronda.valores[c.id] === 'na'" class="valor-na">N/A</span>
+                  <span *ngIf="!ronda.valores[c.id]">-</span>
+                </td>
+                <td class="col-obs">{{ registroSeleccionado.observacionesParsed[c.id] || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="vacio-rondas" *ngIf="!registroSeleccionado.rondasParsed?.length">
+          <p>No hay verificaciones registradas</p>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
+      <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+        <button class="btn-guardar" *ngIf="puedeCrear && registroSeleccionado.estado === 'PendienteLiberacion'" (click)="editar(registroSeleccionado)"><i class="fa-solid fa-pen"></i> Editar</button>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

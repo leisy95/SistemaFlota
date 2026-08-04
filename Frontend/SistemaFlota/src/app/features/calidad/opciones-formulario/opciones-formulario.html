@@ -1,0 +1,105 @@
+<div class="contenedor">
+  <div *ngIf="!esAdmin" class="restringido">
+    <i class="fa-solid fa-lock"></i>
+    <p>Acceso restringido — solo administradores</p>
+  </div>
+
+  <ng-container *ngIf="esAdmin">
+    <div class="header">
+      <div>
+        <h1><i class="fa-solid fa-sliders"></i> Opciones de Formularios</h1>
+        <p>Administra las listas desplegables de Máquina, Corona, Molde y Operario</p>
+      </div>
+      <button class="btn-nuevo" (click)="agregar()">
+        <i class="fa-solid fa-plus"></i> Nueva Opción
+      </button>
+    </div>
+
+    <div class="filtros">
+      <div class="fg">
+        <label>Filtrar por categoría</label>
+        <select [(ngModel)]="filtroCategoria" (change)="aplicarFiltro()">
+          <option value="">Todas</option>
+          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tabla-container" *ngIf="opcionesFiltradas.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th><th>Valor</th><th>Aplica a</th><th>Orden</th><th>Estado</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of opcionesFiltradas">
+            <td data-label="Categoría"><span class="cat-badge">{{ o.categoria }}</span></td>
+            <td data-label="Valor"><strong>{{ o.valor }}</strong></td>
+            <td data-label="Aplica a">{{ o.tipoFormatoNombre || 'Todos los formatos' }}</td>
+            <td data-label="Orden">{{ o.orden }}</td>
+            <td data-label="Estado">
+              <span class="estado" [class.ok]="o.activo" [class.no]="!o.activo">
+                {{ o.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td data-label="Acciones">
+              <div class="btn-acciones">
+                <button class="btn-editar" (click)="editar(o)"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-estado" (click)="cambiarEstado(o)" [title]="o.activo ? 'Desactivar' : 'Activar'">
+                  <i class="fa-solid" [class.fa-toggle-on]="o.activo" [class.fa-toggle-off]="!o.activo"></i>
+                </button>
+                <button class="btn-eliminar" (click)="eliminar(o.id)"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="vacio" *ngIf="opcionesFiltradas.length === 0">
+      <p><i class="fa-solid fa-inbox"></i> No hay opciones en esta categoría</p>
+    </div>
+  </ng-container>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" *ngIf="mostrarModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>{{ editando ? 'Editar Opción' : 'Nueva Opción' }}</h3>
+        <button class="btn-cerrar" (click)="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="fg">
+        <label>Categoría *</label>
+        <select [(ngModel)]="form.categoria">
+          <option value="">-- Seleccione --</option>
+          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Aplica a</label>
+        <select [(ngModel)]="form.tipoFormatoId">
+          <option [ngValue]="null">Todos los formatos</option>
+          <option *ngFor="let t of tipos" [ngValue]="t.id">{{ t.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Valor *</label>
+        <input type="text" [(ngModel)]="form.valor" placeholder="Ej: Coextrusora 50">
+      </div>
+
+      <div class="fg">
+        <label>Orden</label>
+        <input type="number" [(ngModel)]="form.orden" min="0">
+      </div>
+
+      <div class="modal-botones">
+        <button (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-guardar" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>

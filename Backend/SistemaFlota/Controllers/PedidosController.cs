@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using SistemaFlota.DTOs;
 
 namespace SistemaFlota
 {
@@ -34,11 +35,11 @@ namespace SistemaFlota
         // =====================================
         [HttpGet]
         public async Task<IActionResult> Get(
-    [FromQuery] int pagina = 1,
-    [FromQuery] int porPagina = 20,
-    [FromQuery] string? buscar = null,
-    [FromQuery] string? estado = null,
-    [FromQuery] string? prioridad = null)
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 20,
+            [FromQuery] string? buscar = null,
+            [FromQuery] string? estado = null,
+            [FromQuery] string? prioridad = null)
         {
             var query = _context.Pedidos
                 .Include(p => p.Referencias)
@@ -123,13 +124,12 @@ namespace SistemaFlota
                 registroId: pedido.Id
             );
 
-            // ── TWILIO: solo si es SOS o Urgente ──
-            if (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente")
+            // ── Notificar SIEMPRE, sin importar prioridad ──
             {
                 var ahora = FechaHelper.Ahora();
                 var hora = ahora.ToString("hh:mm tt");
                 var fecha = ahora.ToString("dd/MM/yyyy");
-                var emoji = dto.Prioridad == "SOS" ? "🔴" : "🟡";
+                var emoji = dto.Prioridad == "SOS" ? "🔴" : dto.Prioridad == "Urgente" ? "🟡" : "🟢";
 
                 // ── Construir lista de referencias ──
                 var refsTexto = string.Join("\n", dto.Referencias.Select(r =>
@@ -149,8 +149,8 @@ namespace SistemaFlota
                     $"📦 Referencias:\n{refsTexto}\n" +
                     (dto.Observaciones != null ? $"📋 Obs: {dto.Observaciones}\n" : "") +
                     $"🕐 Hora: {hora} — {fecha}\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
-                    $"⚠️ Requiere atención inmediata";
+                    $"━━━━━━━━━━━━━━━━━━" +
+                    (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente" ? "\n⚠️ Requiere atención inmediata" : "");
 
                 var numerosBodega = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibePedidos)
@@ -256,29 +256,5 @@ namespace SistemaFlota
             );
             return Ok();
         }
-    }
-
-    // ── DTOs ──────────────────────────────────────────────────────────────────
-    public class CrearPedidoDto
-    {
-        public string VendedorNombre { get; set; } = string.Empty;
-        public string Cliente { get; set; } = string.Empty;
-        public string Destino { get; set; } = string.Empty;
-        public string Prioridad { get; set; } = "Normal";
-        public string? Observaciones { get; set; }
-        public List<CrearReferenciaDto> Referencias { get; set; } = new();
-    }
-
-    public class CrearReferenciaDto
-    {
-        public string Referencia { get; set; } = string.Empty;
-        public decimal? CantidadKg { get; set; }
-        public decimal? CantidadUnidades { get; set; }
-    }
-
-    public class CambiarEstadoPedidoDto
-    {
-        public string Estado { get; set; } = string.Empty;
-        public string? GestionadoPor { get; set; }
     }
 }

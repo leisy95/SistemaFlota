@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using SistemaFlota.DTOs;
 
 namespace SistemaFlota.Controllers
 {
@@ -32,6 +33,9 @@ namespace SistemaFlota.Controllers
         {
             var query = _context.CostosFletes
                 .Include(c => c.Autorizacion)
+                    .ThenInclude(a => a!.Conductor)
+                .Include(c => c.Autorizacion)
+                    .ThenInclude(a => a!.Vehiculo)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(desde))
@@ -58,6 +62,9 @@ namespace SistemaFlota.Controllers
         {
             var registro = await _context.CostosFletes
                 .Include(c => c.Autorizacion)
+                    .ThenInclude(a => a!.Conductor)
+                .Include(c => c.Autorizacion)
+                    .ThenInclude(a => a!.Vehiculo)
                 .FirstOrDefaultAsync(c => c.Id == id);
             if (registro == null) return NotFound();
             return Ok(registro);
@@ -141,14 +148,4 @@ namespace SistemaFlota.Controllers
             return Ok();
         }
     }
-
-    public record CostoFleteDto(
-        int AutorizacionId,
-        decimal Peajes, decimal Combustible, decimal Parqueos,
-        decimal DescarguesMcia, decimal CargueMateriales,
-        decimal Alimentacion, decimal Hospedaje, decimal Varios,
-        decimal Total, string? Observaciones
-    );
-
-    public record VerificarDto(string VerificadoPor, string FirmaVerificacion);
 }

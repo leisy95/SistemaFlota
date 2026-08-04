@@ -8,9 +8,7 @@ import {
 } from '@angular/animations';
 
 export const pageSlideAnimation = trigger('pageSlideAnimation', [
-
   transition('* => *', [
-
     query(':enter, :leave', [
       style({
         position: 'absolute',
@@ -19,41 +17,28 @@ export const pageSlideAnimation = trigger('pageSlideAnimation', [
         width: '100%'
       })
     ], { optional: true }),
-
     query(':enter', [
       style({
-        transform: 'translateX(-80%) scale(0.98)',
-        opacity: 0,
-        filter: 'blur(3px)'
+        opacity: 0
       })
     ], { optional: true }),
-
     group([
-
       query(':leave', [
         animate(
-          '500ms cubic-bezier(0.22, 1, 0.36, 1)',
+          '250ms ease-out',
           style({
-            transform: 'translateX(80%) scale(0.98)',
-            opacity: 0,
-            filter: 'blur(3px)'
+            opacity: 0
           })
         )
       ], { optional: true }),
-
       query(':enter', [
         animate(
-          '500ms cubic-bezier(0.22, 1, 0.36, 1)',
+          '250ms ease-out',
           style({
-            transform: 'translateX(0) scale(1)',
-            opacity: 1,
-            filter: 'blur(0)'
+            opacity: 1
           })
         )
       ], { optional: true })
-
     ])
-
   ])
-
 ]);

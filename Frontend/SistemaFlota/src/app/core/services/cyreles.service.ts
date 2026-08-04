@@ -34,19 +34,22 @@ export class CyrelesService {
   getRegistro(id: number): Observable<any> {
     return this.http.get<any>(`${this.api}/registros/${id}`);
   }
-  crearRegistro(cajonId: number, nombre: string, foto?: File): Observable<any> {
+ crearRegistro(cajonId: number, nombre: string, fotos?: File[]): Observable<any> {
     const fd = new FormData();
     fd.append('cajonId', cajonId.toString());
     fd.append('nombre', nombre);
-    if (foto) fd.append('foto', foto, foto.name);
+    if (fotos) fotos.forEach(f => fd.append('fotos', f, f.name));
     return this.http.post<any>(`${this.api}/registros`, fd);
   }
-  editarRegistro(id: number, cajonId: number, nombre: string, foto?: File): Observable<any> {
+  editarRegistro(id: number, cajonId: number, nombre: string, fotos?: File[]): Observable<any> {
     const fd = new FormData();
     fd.append('cajonId', cajonId.toString());
     fd.append('nombre', nombre);
-    if (foto) fd.append('foto', foto, foto.name);
+    if (fotos) fotos.forEach(f => fd.append('fotos', f, f.name));
     return this.http.put<any>(`${this.api}/registros/${id}`, fd);
+  }
+  eliminarFotoDeRegistro(registroId: number, fotoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/registros/${registroId}/fotos/${fotoId}`);
   }
   eliminarRegistro(id: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/registros/${id}`);

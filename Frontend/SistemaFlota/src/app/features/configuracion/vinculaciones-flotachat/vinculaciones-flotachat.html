@@ -1,0 +1,96 @@
+<div class="contenedor">
+
+  <div class="header">
+    <div>
+      <h1><i class="fa-solid fa-link"></i> Vincular con FlotaChat</h1>
+      <p class="subtitulo">Conecta los usuarios de FlotaChat con conductores o contactos de oficina</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.activo]="tipoActivo === 'Conductor'" (click)="cambiarTipo('Conductor')">
+      <i class="fa-solid fa-id-card"></i> Conductores
+    </button>
+    <button class="tab" [class.activo]="tipoActivo === 'ContactoNotificacion'" (click)="cambiarTipo('ContactoNotificacion')">
+      <i class="fa-solid fa-building"></i> Contactos de Oficina
+    </button>
+  </div>
+
+  <div class="aviso-info">
+    <i class="fa-solid fa-circle-info"></i> Vincula cada usuario de FlotaChat con su registro correspondiente para que el sistema pueda enviar mensajes individuales e identificar respuestas.
+  </div>
+
+  <!-- PENDIENTES -->
+  <h2 class="subtitulo-seccion">Usuarios sin vincular ({{ pendientes.length }})</h2>
+
+  <div class="cargando" *ngIf="cargando"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+
+  <div class="tabla-container" *ngIf="!cargando && pendientes.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th><th>WhatsApp</th><th>Sugerencia</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pendientes">
+          <td data-label="Nombre"><strong>{{ p.nombre }}</strong></td>
+          <td data-label="WhatsApp"><span class="numero">{{ p.celular || 'Sin teléfono' }}</span></td>
+          <td data-label="Sugerencia">
+            <span class="area-badge" *ngIf="p.sugerencia">
+              <i class="fa-solid fa-check"></i> {{ p.sugerencia.nombre }}
+            </span>
+            <select *ngIf="!p.sugerencia" [(ngModel)]="seleccionManual[p.id]">
+              <option [ngValue]="null">-- Buscar --</option>
+              <option *ngFor="let e of entidades" [ngValue]="e.id">{{ e.nombre }}</option>
+            </select>
+          </td>
+          <td data-label="Acciones">
+            <div class="btn-acciones">
+              <button class="btn-probar" (click)="vincular(p)">
+                <i class="fa-solid fa-link"></i> Vincular
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="vacio" *ngIf="!cargando && pendientes.length === 0">
+    <p><i class="fa-solid fa-circle-check"></i> No hay usuarios pendientes</p>
+    <small>Todos los usuarios de FlotaChat de este tipo ya están vinculados</small>
+  </div>
+
+  <!-- VINCULADOS -->
+  <h2 class="subtitulo-seccion" style="margin-top: 28px;">Ya vinculados ({{ vinculados.length }})</h2>
+
+  <div class="tabla-container" *ngIf="vinculados.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th><th>WhatsApp</th><th>Fecha vinculación</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of vinculados">
+          <td data-label="Nombre"><strong>{{ nombreEntidad(v.entidadId) }}</strong></td>
+          <td data-label="WhatsApp"><span class="numero">{{ v.telefono }}</span></td>
+          <td data-label="Fecha"><span class="area-badge">{{ v.fechaVinculacion | date:'dd/MM/yyyy' }}</span></td>
+          <td data-label="Acciones">
+            <div class="btn-acciones">
+              <button class="btn-eliminar" (click)="desvincular(v.id)">
+                <i class="fa-solid fa-trash"></i> Quitar
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="vacio" *ngIf="vinculados.length === 0">
+    <p><i class="fa-solid fa-inbox"></i> Aún no hay vinculaciones de este tipo</p>
+  </div>
+
+</div>
