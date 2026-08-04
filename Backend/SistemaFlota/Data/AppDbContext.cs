@@ -55,5 +55,6 @@ namespace SistemaFlota
         public DbSet<CaracteristicaFormato> CaracteristicasFormato { get; set; }
         public DbSet<RegistroFormatoCalidad> RegistrosFormatoCalidad { get; set; }
         public DbSet<OpcionFormulario> OpcionesFormulario { get; set; }
+        public DbSet<ConversacionFlotaChat> ConversacionesFlotaChat { get; set; }
     }
 }
