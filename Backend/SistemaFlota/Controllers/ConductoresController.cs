@@ -28,6 +28,24 @@ namespace SistemaFlota
         }
 
         // =========================
+        // HELPERS
+        // =========================
+
+       
+        private string? NormalizarTelefono(string? telefono)
+        {
+            if (string.IsNullOrWhiteSpace(telefono))
+                return telefono;
+
+            var limpio = new string(telefono.Where(char.IsDigit).ToArray());
+
+            if (limpio.Length == 10 && !limpio.StartsWith("57"))
+                limpio = "57" + limpio;
+
+            return limpio;
+        }
+
+        // =========================
         // GET
         // =========================
 
@@ -174,7 +192,7 @@ namespace SistemaFlota
                             Licencia,
 
                         Telefono =
-                            Telefono,
+                            NormalizarTelefono(Telefono),
 
                         Email =
                             Email,
@@ -249,7 +267,7 @@ namespace SistemaFlota
                     Licencia;
 
                 conductor.Telefono =
-                    Telefono;
+                    NormalizarTelefono(Telefono);
 
                 conductor.Email =
                     Email;
