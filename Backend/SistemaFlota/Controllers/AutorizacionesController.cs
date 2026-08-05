@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -13,16 +13,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
         public AutorizacionesController(
             AppDbContext context,
             AuditoriaService auditoria,
-            ITwilioService twilio)
+            IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() =>
@@ -67,7 +67,7 @@ namespace SistemaFlota
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR GET Autorizaciones: {ex.Message}");
+                Console.WriteLine($"? ERROR GET Autorizaciones: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -130,14 +130,14 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Crear", modulo: "Autorizaciones",
-                    detalle: $"Autorización creada — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Vehículo: {resultado?.Vehiculo?.Placa ?? "-"}",
+                    detalle: $"Autorizaci�n creada � Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Veh�culo: {resultado?.Vehiculo?.Placa ?? "-"}",
                     registroId: autorizacion.Id
                 );
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR POST Autorizacion: {ex.Message}\n{ex.InnerException?.Message}");
+                Console.WriteLine($"? ERROR POST Autorizacion: {ex.Message}\n{ex.InnerException?.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -152,7 +152,7 @@ namespace SistemaFlota
                 {
                     ConductorId = dto.ConductorId,
                     VehiculoId = dto.VehiculoId,
-                    TipoVuelta = dto.TipoVuelta ?? "Mensajería",
+                    TipoVuelta = dto.TipoVuelta ?? "Mensajer�a",
                     DestinoCompleto = dto.DestinoCompleto ?? string.Empty,
                     DescripcionCarga = string.Empty,
                     Estado = "Autorizado",
@@ -167,7 +167,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "SalidaRapida", modulo: "Autorizaciones",
-                    detalle: $"Salida rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Vehículo: {resultado?.Vehiculo?.Placa ?? "-"}",
+                    detalle: $"Salida r�pida � Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Veh�culo: {resultado?.Vehiculo?.Placa ?? "-"}",
                     registroId: autorizacion.Id
                 );
                 if (resultado != null)
@@ -177,20 +177,20 @@ namespace SistemaFlota
                     var conductor = resultado.Conductor?.Nombre ?? "-";
                     var placa = resultado.Vehiculo?.Placa ?? "-";
                     var mensaje =
-                        $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n" +
-                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
-                        $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
-                        $"🕐 Hora salida: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                        $"?? *SALIDA EN RUTA*\n??????????????????\n" +
+                        $"?? Conductor: {conductor}\n?? Veh�culo: {placa}\n" +
+                        $"?? Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                        $"?? Hora salida: {hora} � {fecha}\n??????????????????";
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp).ToListAsync();
-                    if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                    if (numerosGrupo.Any()) await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensaje, "Incidentes");
                 }
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR SalidaRapida: {ex.Message}");
+                Console.WriteLine($"? ERROR SalidaRapida: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -205,7 +205,7 @@ namespace SistemaFlota
                 {
                     ConductorId = dto.ConductorId,
                     VehiculoId = dto.VehiculoId,
-                    TipoVuelta = dto.TipoVuelta ?? "Mensajería",
+                    TipoVuelta = dto.TipoVuelta ?? "Mensajer�a",
                     DestinoCompleto = dto.DestinoCompleto ?? string.Empty,
                     DescripcionCarga = string.Empty,
                     Estado = "Autorizado",
@@ -225,7 +225,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "LlegadaRapida", modulo: "Autorizaciones",
-                    detalle: $"Llegada rápida — Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Km: {dto.KilometrajeFinal}",
+                    detalle: $"Llegada r�pida � Conductor: {resultado?.Conductor?.Nombre ?? "-"}, Km: {dto.KilometrajeFinal}",
                     registroId: autorizacion.Id
                 );
                 if (resultado != null)
@@ -238,25 +238,25 @@ namespace SistemaFlota
                     var estado = dto.EstadoVehiculo ?? "Bueno";
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
                     var mensaje =
-                        $"🏁 *LLEGADA REGISTRADA*\n━━━━━━━━━━━━━━━━━━\n" +
-                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
-                        $"🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n" +
-                        $"📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                        $"?? *LLEGADA REGISTRADA*\n??????????????????\n" +
+                        $"?? Conductor: {conductor}\n?? Veh�culo: {placa}\n" +
+                        $"?? Km final: {km}\n?? Estado veh�culo: {estado}\n" +
+                        $"?? Novedades: {novedades}\n?? Hora: {hora} � {fecha}\n??????????????????";
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp).ToListAsync();
-                    if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                    if (numerosGrupo.Any()) await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensaje, "Incidentes");
                 }
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR LlegadaRapida: {ex.Message}");
+                Console.WriteLine($"? ERROR LlegadaRapida: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
 
-        // ── EDITAR — con sincronización de trazabilidad ───────────────────────
+        // -- EDITAR � con sincronizaci�n de trazabilidad -----------------------
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearAutorizacionDto dto)
         {
@@ -276,7 +276,7 @@ namespace SistemaFlota
                 a.FacturasClientes = dto.FacturasClientes;
                 await _context.SaveChangesAsync();
 
-                // ── Sincronizar trazabilidad: solo facturas con número real ──
+                // -- Sincronizar trazabilidad: solo facturas con n�mero real --
                 if (!string.IsNullOrWhiteSpace(dto.FacturasClientes))
                 {
                     try
@@ -317,7 +317,7 @@ namespace SistemaFlota
                                         PesoKilos = f.PesoKilos,
                                         Estado = "Pendiente"
                                     });
-                                    Console.WriteLine($"✅ Trazabilidad nueva factura: {f.FacturaRemision} — Autorización #{id}");
+                                    Console.WriteLine($"? Trazabilidad nueva factura: {f.FacturaRemision} � Autorizaci�n #{id}");
                                 }
                             }
                             await _context.SaveChangesAsync();
@@ -325,14 +325,14 @@ namespace SistemaFlota
                     }
                     catch (Exception exTraz)
                     {
-                        Console.WriteLine($"⚠️ Error sincronizando trazabilidad en edición: {exTraz.Message}");
+                        Console.WriteLine($"?? Error sincronizando trazabilidad en edici�n: {exTraz.Message}");
                     }
                 }
 
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Editar", modulo: "Autorizaciones",
-                    detalle: $"Autorización #{id} editada por: {GetUsuario()}",
+                    detalle: $"Autorizaci�n #{id} editada por: {GetUsuario()}",
                     registroId: id
                 );
 
@@ -344,7 +344,7 @@ namespace SistemaFlota
             }
         }
 
-        // ── FIRMAR FACTURACIÓN + TRAZABILIDAD AUTO + AVISO AL CONDUCTOR ───────
+        // -- FIRMAR FACTURACI�N + TRAZABILIDAD AUTO + AVISO AL CONDUCTOR -------
         [HttpPut("{id}/facturacion")]
         public async Task<IActionResult> FirmarFacturacion(int id, [FromBody] FirmaDto dto)
         {
@@ -366,7 +366,7 @@ namespace SistemaFlota
                     var vehiculo = resultado.Vehiculo?.Placa ?? "-";
                     var guia = resultado.NumeroGuia;
 
-                    Console.WriteLine($"📋 FirmarFacturacion #{id} — FacturasClientes: {resultado.FacturasClientes ?? "null"}");
+                    Console.WriteLine($"?? FirmarFacturacion #{id} � FacturasClientes: {resultado.FacturasClientes ?? "null"}");
 
                     if (!string.IsNullOrWhiteSpace(resultado.FacturasClientes))
                     {
@@ -406,39 +406,39 @@ namespace SistemaFlota
                                     }
                                 }
                                 await _context.SaveChangesAsync();
-                                Console.WriteLine($"✅ Trazabilidad creada desde facturas para autorización #{id}");
+                                Console.WriteLine($"? Trazabilidad creada desde facturas para autorizaci�n #{id}");
                             }
                         }
                         catch (Exception exFact)
                         {
-                            Console.WriteLine($"⚠️ Error creando trazabilidad desde facturas: {exFact.Message}");
+                            Console.WriteLine($"?? Error creando trazabilidad desde facturas: {exFact.Message}");
                         }
                     }
 
-                    // ── Notificar al conductor por FlotaChat ────────────────────
+                    // -- Notificar al conductor por FlotaChat --------------------
                     if (!string.IsNullOrWhiteSpace(resultado.Conductor?.Telefono))
                     {
                         var mensajeConductor =
-                            $"📋 *AUTORIZACIÓN EN PROCESO*\n\n" +
-                            $"Hola {conductor.Split(' ')[0]}, se generó tu autorización de viaje.\n\n" +
-                            $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
-                            $"📦 Carga: {resultado.DescripcionCarga ?? "-"}\n\n" +
-                            $"Tu autorización está siendo procesada por Bodega y Portería. Te avisaremos cuando puedas salir.";
-                        await _twilio.EnviarMensajeAsync(resultado.Conductor.Telefono, mensajeConductor);
+                            $"?? *AUTORIZACI�N EN PROCESO*\n\n" +
+                            $"Hola {conductor.Split(' ')[0]}, se gener� tu autorizaci�n de viaje.\n\n" +
+                            $"?? Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                            $"?? Carga: {resultado.DescripcionCarga ?? "-"}\n\n" +
+                            $"Tu autorizaci�n est� siendo procesada por Bodega y Porter�a. Te avisaremos cuando puedas salir.";
+                        await _mensajeria.EnviarMensajeAsync(resultado.Conductor.Telefono, mensajeConductor);
                     }
                 }
 
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
-                    detalle: $"Firma Facturación — #{id}, por: {dto.Usuario}",
+                    detalle: $"Firma Facturaci�n � #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR FirmarFacturacion: {ex.Message}\n{ex.InnerException?.Message}");
+                Console.WriteLine($"? ERROR FirmarFacturacion: {ex.Message}\n{ex.InnerException?.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -459,7 +459,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
-                    detalle: $"Firma Bodega — #{id}, por: {dto.Usuario}",
+                    detalle: $"Firma Bodega � #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
                 return Ok(await CargarConRelaciones(id));
@@ -487,7 +487,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Firmar", modulo: "Autorizaciones",
-                    detalle: $"Firma Portería Salida — #{id} AUTORIZADO, por: {dto.Usuario}",
+                    detalle: $"Firma Porter�a Salida � #{id} AUTORIZADO, por: {dto.Usuario}",
                     registroId: id
                 );
 
@@ -507,14 +507,14 @@ namespace SistemaFlota
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
                         var mensajeConductor =
-                            $"🚚 *SALIDA AUTORIZADA*\n" +
-                            $"Hola {conductor.Split(' ')[0]}, tu salida fue autorizada ✅\n" +
-                            $"━━━━━━━━━━━━━━━━━━\n" +
-                            $"🚗 Vehículo: {placa}\n📍 Destino: {destino}\n🔄 Tipo: {tipo}\n" +
-                            (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
-                            $"🕐 Hora: {hora} — {fecha}\n✍️ Autorizado por: {dto.Usuario}\n" +
-                            $"━━━━━━━━━━━━━━━━━━\n🛣️ ¡Buen viaje!";
-                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConductor);
+                            $"?? *SALIDA AUTORIZADA*\n" +
+                            $"Hola {conductor.Split(' ')[0]}, tu salida fue autorizada ?\n" +
+                            $"??????????????????\n" +
+                            $"?? Veh�culo: {placa}\n?? Destino: {destino}\n?? Tipo: {tipo}\n" +
+                            (guia != "-" ? $"?? Gu�a: {guia}\n" : "") +
+                            $"?? Hora: {hora} � {fecha}\n?? Autorizado por: {dto.Usuario}\n" +
+                            $"??????????????????\n??? �Buen viaje!";
+                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConductor);
                     }
 
                     var numerosGrupo = await _context.ContactosNotificacion
@@ -523,12 +523,12 @@ namespace SistemaFlota
                     if (numerosGrupo.Any())
                     {
                         var mensajeGrupo =
-                            $"🚚 *SALIDA AUTORIZADA*\n━━━━━━━━━━━━━━━━━━\n" +
-                            $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
-                            $"📍 Destino: {destino}\n🔄 Tipo: {tipo}\n" +
-                            (guia != "-" ? $"🔖 Guía: {guia}\n" : "") +
-                            $"🚪 Portería: {dto.Usuario}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
-                        await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                            $"?? *SALIDA AUTORIZADA*\n??????????????????\n" +
+                            $"?? Conductor: {conductor}\n?? Veh�culo: {placa}\n" +
+                            $"?? Destino: {destino}\n?? Tipo: {tipo}\n" +
+                            (guia != "-" ? $"?? Gu�a: {guia}\n" : "") +
+                            $"?? Porter�a: {dto.Usuario}\n?? Hora: {hora} � {fecha}\n??????????????????";
+                        await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Incidentes");
                     }
                 }
                 return Ok(resultado);
@@ -561,7 +561,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "ReportarLlegada", modulo: "Autorizaciones",
-                    detalle: $"Llegada reportada — #{id}, Km: {dto.KilometrajeFinal}, Estado: {dto.EstadoVehiculo}",
+                    detalle: $"Llegada reportada � #{id}, Km: {dto.KilometrajeFinal}, Estado: {dto.EstadoVehiculo}",
                     registroId: id
                 );
 
@@ -578,30 +578,30 @@ namespace SistemaFlota
                     var novedades = string.IsNullOrWhiteSpace(dto.NovedadesViaje) ? "Sin novedades" : dto.NovedadesViaje;
 
                     var mensajeGrupo =
-                        $"🏁 *LLEGADA REPORTADA*\n━━━━━━━━━━━━━━━━━━\n" +
-                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
-                        $"🛣 Km final: {km}\n🔧 Estado vehículo: {estado}\n" +
-                        $"📋 Novedades: {novedades}\n🕐 Hora: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                        $"?? *LLEGADA REPORTADA*\n??????????????????\n" +
+                        $"?? Conductor: {conductor}\n?? Veh�culo: {placa}\n" +
+                        $"?? Km final: {km}\n?? Estado veh�culo: {estado}\n" +
+                        $"?? Novedades: {novedades}\n?? Hora: {hora} � {fecha}\n??????????????????";
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp).ToListAsync();
-                    if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    if (numerosGrupo.Any()) await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Incidentes");
 
                     var numeroConductor = resultado.Conductor?.Telefono;
                     if (!string.IsNullOrWhiteSpace(numeroConductor))
                     {
                         var mensajeConfirmacion =
-                            $"✅ *Llegada registrada*\n" +
+                            $"? *Llegada registrada*\n" +
                             $"Hola {conductor.Split(' ')[0]}, tu llegada fue registrada correctamente.\n" +
-                            $"🕐 Hora: {hora} — {fecha}\n¡Gracias por el reporte!";
-                        await _twilio.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
+                            $"?? Hora: {hora} � {fecha}\n�Gracias por el reporte!";
+                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
                     }
                 }
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR ReportarLlegada: {ex.Message}");
+                Console.WriteLine($"? ERROR ReportarLlegada: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -614,7 +614,7 @@ namespace SistemaFlota
                 var a = await _context.Autorizaciones.FindAsync(id);
                 if (a == null) return NotFound();
                 if (a.EstadoLlegada != "ReportadaLlegada")
-                    return BadRequest("El conductor aún no ha reportado la llegada");
+                    return BadRequest("El conductor a�n no ha reportado la llegada");
                 a.FechaConfirmacionLlegada = FechaHelper.Ahora();
                 a.UsuarioPorteriaLlegada = dto.Usuario;
                 a.ObservacionPorteriaLlegada = dto.Observacion;
@@ -624,14 +624,14 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "ConfirmarLlegada", modulo: "Autorizaciones",
-                    detalle: $"Llegada confirmada por portería — #{id}, por: {dto.Usuario}",
+                    detalle: $"Llegada confirmada por porter�a � #{id}, por: {dto.Usuario}",
                     registroId: id
                 );
                 return Ok(await CargarConRelaciones(id));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR ConfirmarLlegada: {ex.Message}");
+                Console.WriteLine($"? ERROR ConfirmarLlegada: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -653,7 +653,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "ConfirmarSalida", modulo: "Autorizaciones",
-                    detalle: $"Salida en ruta confirmada — #{id}, hora: {a.FechaSalidaReal:hh:mm tt dd/MM/yyyy}",
+                    detalle: $"Salida en ruta confirmada � #{id}, hora: {a.FechaSalidaReal:hh:mm tt dd/MM/yyyy}",
                     registroId: id
                 );
 
@@ -666,20 +666,20 @@ namespace SistemaFlota
                     var conductor = resultado.Conductor?.Nombre ?? "-";
                     var placa = resultado.Vehiculo?.Placa ?? "-";
                     var mensaje =
-                        $"🚛 *SALIDA EN RUTA*\n━━━━━━━━━━━━━━━━━━\n" +
-                        $"👤 Conductor: {conductor}\n🚗 Vehículo: {placa}\n" +
-                        $"📍 Destino: {resultado.DestinoCompleto ?? "-"}\n" +
-                        $"🕐 Hora salida real: {hora} — {fecha}\n━━━━━━━━━━━━━━━━━━";
+                        $"?? *SALIDA EN RUTA*\n??????????????????\n" +
+                        $"?? Conductor: {conductor}\n?? Veh�culo: {placa}\n" +
+                        $"?? Destino: {resultado.DestinoCompleto ?? "-"}\n" +
+                        $"?? Hora salida real: {hora} � {fecha}\n??????????????????";
                     var numerosGrupo = await _context.ContactosNotificacion
                         .Where(c => c.Activo && c.RecibeIncidentes)
                         .Select(c => c.NumeroWhatsApp).ToListAsync();
-                    if (numerosGrupo.Any()) await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensaje);
+                    if (numerosGrupo.Any()) await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensaje, "Incidentes");
                 }
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ ERROR ConfirmarSalida: {ex.Message}");
+                Console.WriteLine($"? ERROR ConfirmarSalida: {ex.Message}");
                 return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -696,7 +696,7 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Rechazar", modulo: "Autorizaciones",
-                    detalle: $"Autorización #{id} RECHAZADA",
+                    detalle: $"Autorizaci�n #{id} RECHAZADA",
                     registroId: id
                 );
                 return Ok(await CargarConRelaciones(id));
@@ -708,3 +708,5 @@ namespace SistemaFlota
         }
     }
 }
+
+

@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SistemaFlota
 {
-    public class FlotaChatService : ITwilioService
+    public class FlotaChatService : IMensajeriaService
     {
         private readonly HttpClient _http;
         private readonly string _apiKey;
         private readonly string _apiUrl;
         private readonly ILogger<FlotaChatService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
-
+        private readonly IConfiguration _config;
         public FlotaChatService(IConfiguration config, ILogger<FlotaChatService> logger, IServiceScopeFactory scopeFactory)
         {
             _http = new HttpClient();
@@ -19,6 +19,7 @@ namespace SistemaFlota
             _apiUrl = config["FlotaChat:ApiUrl"] ?? "https://apichat.gecobagsci.com";
             _logger = logger;
             _scopeFactory = scopeFactory;
+            _config = config;
             _http.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
         }
 
@@ -52,11 +53,14 @@ namespace SistemaFlota
         // ── Envío a varios números: individual a cada uno vinculado ──────────
         public async Task EnviarAMultiplesAsync(List<string> numeros, string mensaje)
         {
+            await EnviarAMultiplesAsync(numeros, mensaje, "General");
+        }
+
+        public async Task EnviarAMultiplesAsync(List<string> numeros, string mensaje, string categoria)
+        {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
             var sinVincular = new List<string>();
-
             foreach (var numero in numeros)
             {
                 var vinculacion = await db.VinculacionesFlotaChat.FirstOrDefaultAsync(v => v.Telefono == numero);
@@ -65,15 +69,13 @@ namespace SistemaFlota
                 else
                     sinVincular.Add(numero);
             }
-
             if (sinVincular.Count > 0)
             {
-                _logger.LogWarning("⚠️ {Cantidad} contactos sin vincular, reciben por grupo compartido: {Numeros}",
-                    sinVincular.Count, string.Join(", ", sinVincular));
-                await EnviarAlGrupoCompartidoAsync(mensaje);
+                _logger.LogWarning("⚠️ {Cantidad} contactos sin vincular, reciben por grupo compartido ({Categoria}): {Numeros}",
+                    sinVincular.Count, categoria, string.Join(", ", sinVincular));
+                await EnviarAlGrupoCompartidoAsync(mensaje, categoria);
             }
         }
-
         // ── Helper: mensaje individual por chat directo (UsuarioId) ──────────
         private async Task EnviarMensajeIndividualAsync(int usuarioId, string mensaje)
         {
@@ -102,13 +104,17 @@ namespace SistemaFlota
         }
 
         // ── Helper: fallback al grupo compartido (contactos aún sin vincular) ─
-        private async Task EnviarAlGrupoCompartidoAsync(string mensaje)
+        private async Task EnviarAlGrupoCompartidoAsync(string mensaje, string categoria = "General")
         {
             try
             {
+                var grupoId = _config[$"FlotaChat:Grupo{categoria}"] != null
+                    ? int.Parse(_config[$"FlotaChat:Grupo{categoria}"]!)
+                    : 1; // "Operadores" como respaldo si no hay grupo configurado para esa categoría
+
                 var body = new
                 {
-                    grupoId = 1,
+                    grupoId,
                     contenido = mensaje,
                     tipo = "notificacion",
                     nombreOrigen = "SistemaFlota"

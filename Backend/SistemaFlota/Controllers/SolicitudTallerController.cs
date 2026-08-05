@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -12,16 +12,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
         public SolicitudTallerController(
             AppDbContext context,
             AuditoriaService auditoria,
-            ITwilioService twilio)
+            IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() =>
@@ -72,7 +72,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // POST — CREAR SOLICITUD
+        // POST � CREAR SOLICITUD
         // =====================================
         [HttpPost]
         public async Task<IActionResult> Post(
@@ -116,31 +116,31 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Crear", modulo: "SolicitudTaller",
-                    detalle: $"Solicitud taller — Conductor: {conductor?.Nombre ?? "-"}, Vehículo: {vehiculo?.Placa ?? "-"}, Tipo: {TipoMantenimiento}",
+                    detalle: $"Solicitud taller � Conductor: {conductor?.Nombre ?? "-"}, Veh�culo: {vehiculo?.Placa ?? "-"}, Tipo: {TipoMantenimiento}",
                     registroId: solicitud.Id
                 );
 
-                // ── TWILIO ──
+                // -- TWILIO --
                 var hora = DateTime.Now.ToString("hh:mm tt");
                 var fecha = DateTime.Now.ToString("dd/MM/yyyy");
                 var mensajeGrupo =
-                    $"🔧 *SOLICITUD TALLER*\n" +
-                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
-                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"} {vehiculo?.Marca ?? ""} {vehiculo?.Modelo ?? ""}\n" +
-                    $"⚙️ Tipo: {TipoMantenimiento}\n" +
-                    $"📋 Descripción: {DescripcionProblema}\n" +
-                    $"🛣 Km: {Kilometraje?.ToString() ?? "No registrado"}\n" +
-                    $"🕐 Hora: {hora} — {fecha}\n" +
-                    $"⚠️ Requiere autorización";
+                    $"?? *SOLICITUD TALLER*\n" +
+                    $"?? Conductor: {conductor?.Nombre ?? "-"}\n" +
+                    $"?? Veh�culo: {vehiculo?.Placa ?? "-"} {vehiculo?.Marca ?? ""} {vehiculo?.Modelo ?? ""}\n" +
+                    $"?? Tipo: {TipoMantenimiento}\n" +
+                    $"?? Descripci�n: {DescripcionProblema}\n" +
+                    $"?? Km: {Kilometraje?.ToString() ?? "No registrado"}\n" +
+                    $"?? Hora: {hora} � {fecha}\n" +
+                    $"?? Requiere autorizaci�n";
 
                 var numerosGrupo = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibeIncidentes)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                Console.WriteLine($"📱 Contactos grupo: {numerosGrupo.Count}");
+                Console.WriteLine($"?? Contactos grupo: {numerosGrupo.Count}");
                 if (numerosGrupo.Any())
-                    await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Incidentes");
 
                 return Ok(solicitud);
             }
@@ -151,7 +151,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // PUT — AUTORIZAR
+        // PUT � AUTORIZAR
         // =====================================
         [HttpPut("{id}/autorizar")]
         public async Task<IActionResult> Autorizar(int id, [FromBody] AutorizarSolicitudDto dto)
@@ -175,28 +175,28 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
-            Console.WriteLine($"📱 Teléfono conductor: '{s.Conductor?.Telefono}'");
+            // -- TWILIO --
+            Console.WriteLine($"?? Tel�fono conductor: '{s.Conductor?.Telefono}'");
             if (!string.IsNullOrWhiteSpace(s.Conductor?.Telefono))
             {
                 var mensaje =
-                    $"✅ *SOLICITUD TALLER AUTORIZADA*\n" +
+                    $"? *SOLICITUD TALLER AUTORIZADA*\n" +
                     $"Hola {s.Conductor.Nombre.Split(' ')[0]},\n" +
                     $"Tu solicitud de taller fue autorizada.\n" +
-                    $"🚗 Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
-                    $"⚙️ Tipo: {s.TipoMantenimiento}\n" +
-                    $"✍️ Autorizado por: {dto.AutorizadoPor}\n" +
-                    $"⚠️ Por favor confirma que recibiste este mensaje en el sistema.";
-                await _twilio.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                    $"?? Veh�culo: {s.Vehiculo?.Placa ?? "-"}\n" +
+                    $"?? Tipo: {s.TipoMantenimiento}\n" +
+                    $"?? Autorizado por: {dto.AutorizadoPor}\n" +
+                    $"?? Por favor confirma que recibiste este mensaje en el sistema.";
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
             }
             else
-                Console.WriteLine("⚠️ Conductor sin teléfono");
+                Console.WriteLine("?? Conductor sin tel�fono");
 
             return Ok(s);
         }
 
         // =====================================
-        // PUT — CONFIRMAR (CONDUCTOR)
+        // PUT � CONFIRMAR (CONDUCTOR)
         // =====================================
         [HttpPut("{id}/confirmar")]
         public async Task<IActionResult> Confirmar(int id)
@@ -220,17 +220,17 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO: notificar al grupo ──
+            // -- TWILIO: notificar al grupo --
             var hora = DateTime.Now.ToString("hh:mm tt");
             var fecha = DateTime.Now.ToString("dd/MM/yyyy");
 
             var mensajeGrupo =
-                $"✅ *SOLICITUD TALLER CONFIRMADA*\n" +
-                $"👤 Conductor: {s.Conductor?.Nombre ?? "-"}\n" +
-                $"🚗 Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
-                $"⚙️ Tipo: {s.TipoMantenimiento}\n" +
-                $"✅ El conductor confirmó la autorización\n" +
-                $"🕐 Hora: {hora} — {fecha}";
+                $"? *SOLICITUD TALLER CONFIRMADA*\n" +
+                $"?? Conductor: {s.Conductor?.Nombre ?? "-"}\n" +
+                $"?? Veh�culo: {s.Vehiculo?.Placa ?? "-"}\n" +
+                $"?? Tipo: {s.TipoMantenimiento}\n" +
+                $"? El conductor confirm� la autorizaci�n\n" +
+                $"?? Hora: {hora} � {fecha}";
 
             var numerosGrupo = await _context.ContactosNotificacion
                 .Where(c => c.Activo && c.RecibeIncidentes)
@@ -238,13 +238,13 @@ namespace SistemaFlota
                 .ToListAsync();
 
             if (numerosGrupo.Any())
-                await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Incidentes");
 
             return Ok(s);
         }
 
         // =====================================
-        // PUT — RECHAZAR
+        // PUT � RECHAZAR
         // =====================================
         [HttpPut("{id}/rechazar")]
         public async Task<IActionResult> Rechazar(int id, [FromBody] AutorizarSolicitudDto dto)
@@ -268,23 +268,23 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
+            // -- TWILIO --
             if (!string.IsNullOrWhiteSpace(s.Conductor?.Telefono))
             {
                 var mensaje =
-                    $"❌ *SOLICITUD TALLER RECHAZADA*\n" +
+                    $"? *SOLICITUD TALLER RECHAZADA*\n" +
                     $"Hola {s.Conductor.Nombre.Split(' ')[0]},\n" +
                     $"Tu solicitud fue rechazada.\n" +
-                    $"🚗 Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
-                    $"📋 Motivo: {dto.Observacion ?? "Sin observación"}";
-                await _twilio.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                    $"?? Veh�culo: {s.Vehiculo?.Placa ?? "-"}\n" +
+                    $"?? Motivo: {dto.Observacion ?? "Sin observaci�n"}";
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
             }
 
             return Ok(s);
         }
 
         // =====================================
-        // PUT — MARCAR EN TALLER
+        // PUT � MARCAR EN TALLER
         // =====================================
         [HttpPut("{id}/en-taller")]
         public async Task<IActionResult> EnTaller(int id)
@@ -305,21 +305,21 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
+            // -- TWILIO --
             if (!string.IsNullOrWhiteSpace(s.Conductor?.Telefono))
             {
                 var mensaje =
-                    $"🔧 *VEHÍCULO EN TALLER*\n" +
+                    $"?? *VEH�CULO EN TALLER*\n" +
                     $"Hola {s.Conductor.Nombre.Split(' ')[0]},\n" +
-                    $"Tu vehículo {s.Vehiculo?.Placa ?? "-"} está siendo atendido en taller.";
-                await _twilio.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                    $"Tu veh�culo {s.Vehiculo?.Placa ?? "-"} est� siendo atendido en taller.";
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
             }
 
             return Ok(s);
         }
 
         // =====================================
-        // PUT — REGISTRAR FACTURA
+        // PUT � REGISTRAR FACTURA
         // =====================================
         [HttpPut("{id}/factura")]
         public async Task<IActionResult> RegistrarFactura(int id, [FromBody] FacturaTallerDto dto)
@@ -341,20 +341,20 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(
                 usuario: GetUsuario(), rol: GetRol(),
                 accion: "Editar", modulo: "SolicitudTaller",
-                detalle: $"Factura taller #{id} — Nº: {dto.NumeroFacturaTaller}, Valor: {dto.ValorFactura}",
+                detalle: $"Factura taller #{id} � N�: {dto.NumeroFacturaTaller}, Valor: {dto.ValorFactura}",
                 registroId: id
             );
 
-            // ── TWILIO ──
+            // -- TWILIO --
             if (dto.FacturaValidada && !string.IsNullOrWhiteSpace(s.Conductor?.Telefono))
             {
                 var mensaje =
-                    $"✅ *TALLER FINALIZADO*\n" +
+                    $"? *TALLER FINALIZADO*\n" +
                     $"Hola {s.Conductor.Nombre.Split(' ')[0]},\n" +
-                    $"El mantenimiento de tu vehículo {s.Vehiculo?.Placa ?? "-"} fue completado.\n" +
-                    $"💰 Valor: ${dto.ValorFactura?.ToString("N0") ?? "-"}\n" +
-                    $"🧾 Factura: {dto.NumeroFacturaTaller ?? "-"}";
-                await _twilio.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                    $"El mantenimiento de tu veh�culo {s.Vehiculo?.Placa ?? "-"} fue completado.\n" +
+                    $"?? Valor: ${dto.ValorFactura?.ToString("N0") ?? "-"}\n" +
+                    $"?? Factura: {dto.NumeroFacturaTaller ?? "-"}";
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
             }
 
             return Ok(s);
@@ -396,3 +396,5 @@ namespace SistemaFlota
         public string? ObservacionFactura { get; set; }
     }
 }
+
+

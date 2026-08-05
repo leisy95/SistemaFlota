@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
@@ -14,16 +14,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
         public InspeccionesController(
             AppDbContext context,
             AuditoriaService auditoria,
-            ITwilioService twilio)
+            IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() =>
@@ -31,17 +31,17 @@ namespace SistemaFlota
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        // ── Calcula estado general por porcentaje ─────────────────────────────
+        // -- Calcula estado general por porcentaje -----------------------------
         private static (string estado, string emoji, double porcentaje) EvaluarInspeccion(
             int totalItems, int noConformes)
         {
-            if (totalItems == 0) return ("APTO", "✅", 0);
+            if (totalItems == 0) return ("APTO", "?", 0);
             double pct = (double)noConformes / totalItems * 100;
             if (pct == 0)
-                return ("APTO", "✅", pct);
+                return ("APTO", "?", pct);
             if (pct <= 20)
-                return ("APTO CON OBSERVACIONES", "⚠️", pct);
-            return ("NO APTO", "❌", pct);
+                return ("APTO CON OBSERVACIONES", "??", pct);
+            return ("NO APTO", "?", pct);
         }
 
         [HttpGet]
@@ -213,7 +213,7 @@ namespace SistemaFlota
                             itemsNoConformes.Add(
                                 !string.IsNullOrWhiteSpace(item.v.observacion)
                                     ? item.v.observacion
-                                    : item.v.descripcion ?? $"Ítem #{item.v.id}"
+                                    : item.v.descripcion ?? $"�tem #{item.v.id}"
                             );
                     }
                     await _context.SaveChangesAsync();
@@ -222,7 +222,7 @@ namespace SistemaFlota
                 var conductor = await _context.Conductores.FindAsync(ConductorId);
                 var vehiculo = await _context.Vehiculos.FindAsync(VehiculoId);
 
-                // ── Evaluar resultado por porcentaje ──────────────────────────
+                // -- Evaluar resultado por porcentaje --------------------------
                 var totalItems = items?.Count ?? 0;
                 var noConformes = itemsNoConformes.Count;
                 var (estadoGen, emojiGen, pctGen) = EvaluarInspeccion(totalItems, noConformes);
@@ -231,32 +231,32 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Crear", modulo: "Inspecciones",
-                    detalle: $"Inspección creada — Conductor: {conductor?.Nombre ?? "-"}, " +
-                             $"Vehículo: {vehiculo?.Placa ?? "-"}, Km: {Kilometraje}, " +
+                    detalle: $"Inspecci�n creada � Conductor: {conductor?.Nombre ?? "-"}, " +
+                             $"Veh�culo: {vehiculo?.Placa ?? "-"}, Km: {Kilometraje}, " +
                              $"Estado: {estadoGen} ({pctTexto} no conformes)",
                     registroId: inspeccion.Id
                 );
 
-                // ── Mensaje WhatsApp ──────────────────────────────────────────
+                // -- Mensaje WhatsApp ------------------------------------------
                 var hora = DateTime.Now.ToString("hh:mm tt");
                 var fecha = DateTime.Now.ToString("dd/MM/yyyy");
 
                 var mensajeGrupo =
-                    $"📋 *INSPECCIÓN VEHICULAR*\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
+                    $"?? *INSPECCI�N VEHICULAR*\n" +
+                    $"??????????????????\n" +
                     $"{emojiGen} Estado: *{estadoGen}*\n" +
-                    $"📊 No conformes: {noConformes}/{totalItems} ({pctTexto})\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
-                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
-                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
-                    $"🛣 Km: {Kilometraje}\n" +
-                    $"🕐 Hora: {hora} — {fecha}";
+                    $"?? No conformes: {noConformes}/{totalItems} ({pctTexto})\n" +
+                    $"??????????????????\n" +
+                    $"?? Conductor: {conductor?.Nombre ?? "-"}\n" +
+                    $"?? Veh�culo: {vehiculo?.Placa ?? "-"}\n" +
+                    $"?? Km: {Kilometraje}\n" +
+                    $"?? Hora: {hora} � {fecha}";
 
                 if (itemsNoConformes.Any())
                     mensajeGrupo +=
-                        $"\n━━━━━━━━━━━━━━━━━━\n" +
-                        $"⚠️ Ítems no conformes:\n" +
-                        $"• {string.Join("\n• ", itemsNoConformes)}";
+                        $"\n??????????????????\n" +
+                        $"?? �tems no conformes:\n" +
+                        $"� {string.Join("\n� ", itemsNoConformes)}";
 
                 var numerosGrupo = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibeInspecciones)
@@ -265,7 +265,7 @@ namespace SistemaFlota
 
                 try
                 {
-                    await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Inspecciones");
                     inspeccion.WhatsAppEnviado = true;
                 }
                 catch
@@ -274,17 +274,17 @@ namespace SistemaFlota
                 }
                 await _context.SaveChangesAsync();
 
-                // ── Mensaje al conductor si hay no conformes ──────────────────
+                // -- Mensaje al conductor si hay no conformes ------------------
                 if (itemsNoConformes.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))
                 {
                     var mensajeConductor =
-                        $"{emojiGen} *INSPECCIÓN: {estadoGen}*\n" +
+                        $"{emojiGen} *INSPECCI�N: {estadoGen}*\n" +
                         $"Hola {conductor.Nombre.Split(' ')[0]},\n" +
-                        $"Tu inspección del vehículo {vehiculo?.Placa ?? "-"} tiene " +
-                        $"{noConformes} ítem(s) no conforme(s) ({pctTexto}):\n" +
-                        $"• {string.Join("\n• ", itemsNoConformes)}\n" +
-                        $"Por favor repórtalo al área de mantenimiento.";
-                    await _twilio.EnviarMensajeAsync(conductor.Telefono, mensajeConductor);
+                        $"Tu inspecci�n del veh�culo {vehiculo?.Placa ?? "-"} tiene " +
+                        $"{noConformes} �tem(s) no conforme(s) ({pctTexto}):\n" +
+                        $"� {string.Join("\n� ", itemsNoConformes)}\n" +
+                        $"Por favor rep�rtalo al �rea de mantenimiento.";
+                    await _mensajeria.EnviarMensajeAsync(conductor.Telefono, mensajeConductor);
                 }
 
                 return Ok(new
@@ -309,3 +309,5 @@ namespace SistemaFlota
         }
     }
 }
+
+

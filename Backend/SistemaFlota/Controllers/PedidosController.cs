@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -13,16 +13,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
         public PedidosController(
             AppDbContext context,
             AuditoriaService auditoria,
-            ITwilioService twilio)
+            IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() =>
@@ -31,7 +31,7 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         // =====================================
-        // GET — TODOS
+        // GET � TODOS
         // =====================================
         [HttpGet]
         public async Task<IActionResult> Get(
@@ -79,7 +79,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // GET — POR ID
+        // GET � POR ID
         // =====================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -92,7 +92,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // POST — CREAR PEDIDO
+        // POST � CREAR PEDIDO
         // =====================================
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CrearPedidoDto dto)
@@ -120,53 +120,53 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(
                 usuario: GetUsuario(), rol: GetRol(),
                 accion: "Crear", modulo: "Pedidos",
-                detalle: $"Pedido #{pedido.Id} — Cliente: {dto.Cliente}, Destino: {dto.Destino}, Prioridad: {dto.Prioridad}, Referencias: {dto.Referencias.Count}",
+                detalle: $"Pedido #{pedido.Id} � Cliente: {dto.Cliente}, Destino: {dto.Destino}, Prioridad: {dto.Prioridad}, Referencias: {dto.Referencias.Count}",
                 registroId: pedido.Id
             );
 
-            // ── Notificar SIEMPRE, sin importar prioridad ──
+            // -- Notificar SIEMPRE, sin importar prioridad --
             {
                 var ahora = FechaHelper.Ahora();
                 var hora = ahora.ToString("hh:mm tt");
                 var fecha = ahora.ToString("dd/MM/yyyy");
-                var emoji = dto.Prioridad == "SOS" ? "🔴" : dto.Prioridad == "Urgente" ? "🟡" : "🟢";
+                var emoji = dto.Prioridad == "SOS" ? "??" : dto.Prioridad == "Urgente" ? "??" : "??";
 
-                // ── Construir lista de referencias ──
+                // -- Construir lista de referencias --
                 var refsTexto = string.Join("\n", dto.Referencias.Select(r =>
                 {
                     var cant = "";
                     if (r.CantidadKg.HasValue) cant += $"{r.CantidadKg} kg";
                     if (r.CantidadUnidades.HasValue) cant += (cant.Length > 0 ? " / " : "") + $"{r.CantidadUnidades} uds";
-                    return $"  • {r.Referencia} — {cant}";
+                    return $"  � {r.Referencia} � {cant}";
                 }));
 
                 var mensaje =
                     $"{emoji} *PEDIDO {dto.Prioridad.ToUpper()}*\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
-                    $"👤 Vendedor: {dto.VendedorNombre}\n" +
-                    $"🏪 Cliente: {dto.Cliente}\n" +
-                    $"📍 Destino: {dto.Destino}\n" +
-                    $"📦 Referencias:\n{refsTexto}\n" +
-                    (dto.Observaciones != null ? $"📋 Obs: {dto.Observaciones}\n" : "") +
-                    $"🕐 Hora: {hora} — {fecha}\n" +
-                    $"━━━━━━━━━━━━━━━━━━" +
-                    (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente" ? "\n⚠️ Requiere atención inmediata" : "");
+                    $"??????????????????\n" +
+                    $"?? Vendedor: {dto.VendedorNombre}\n" +
+                    $"?? Cliente: {dto.Cliente}\n" +
+                    $"?? Destino: {dto.Destino}\n" +
+                    $"?? Referencias:\n{refsTexto}\n" +
+                    (dto.Observaciones != null ? $"?? Obs: {dto.Observaciones}\n" : "") +
+                    $"?? Hora: {hora} � {fecha}\n" +
+                    $"??????????????????" +
+                    (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente" ? "\n?? Requiere atenci�n inmediata" : "");
 
                 var numerosBodega = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibePedidos)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                Console.WriteLine($"📦 Contactos bodega: {numerosBodega.Count}");
+                Console.WriteLine($"?? Contactos bodega: {numerosBodega.Count}");
                 if (numerosBodega.Any())
-                    await _twilio.EnviarAMultiplesAsync(numerosBodega, mensaje);
+                    await _mensajeria.EnviarAMultiplesAsync(numerosBodega, mensaje, "Pedidos");
             }
 
             return Ok(pedido);
         }
 
         // =====================================
-        // PUT — EDITAR PEDIDO
+        // PUT � EDITAR PEDIDO
         // =====================================
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearPedidoDto dto)
@@ -182,7 +182,7 @@ namespace SistemaFlota
             pedido.Prioridad = dto.Prioridad;
             pedido.Observaciones = dto.Observaciones;
 
-            // ── Actualizar referencias ──
+            // -- Actualizar referencias --
             _context.PedidoReferencias.RemoveRange(pedido.Referencias);
             pedido.Referencias = dto.Referencias.Select(r => new PedidoReferencia
             {
@@ -197,7 +197,7 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(
                 usuario: GetUsuario(), rol: GetRol(),
                 accion: "Editar", modulo: "Pedidos",
-                detalle: $"Pedido #{id} editado — Cliente: {dto.Cliente}, Prioridad: {dto.Prioridad}",
+                detalle: $"Pedido #{id} editado � Cliente: {dto.Cliente}, Prioridad: {dto.Prioridad}",
                 registroId: id
             );
 
@@ -205,7 +205,7 @@ namespace SistemaFlota
         }
 
         // =====================================
-        // PUT — CAMBIAR ESTADO
+        // PUT � CAMBIAR ESTADO
         // =====================================
         [HttpPut("{id}/estado")]
         public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoPedidoDto dto)
@@ -225,7 +225,7 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(
                 usuario: GetUsuario(), rol: GetRol(),
                 accion: "Editar", modulo: "Pedidos",
-                detalle: $"Pedido #{id} — Estado: {estadoAnterior} → {dto.Estado}, por: {dto.GestionadoPor}",
+                detalle: $"Pedido #{id} � Estado: {estadoAnterior} ? {dto.Estado}, por: {dto.GestionadoPor}",
                 registroId: id
             );
 
@@ -258,3 +258,5 @@ namespace SistemaFlota
         }
     }
 }
+
+

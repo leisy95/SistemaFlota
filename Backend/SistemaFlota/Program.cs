@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaFlota;
@@ -19,7 +19,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
+// -- CORS ----------------------------------------------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
@@ -61,7 +61,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 Console.WriteLine($">>> ENV: {builder.Environment.EnvironmentName}");
 Console.WriteLine($">>> CONN: {connectionString}");
 
-// ── MySQL con versión fija — evita AutoDetect en Railway ──────────────────────
+// -- MySQL con versi�n fija � evita AutoDetect en Railway ----------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
@@ -81,17 +81,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 
-// ── TWILIO ────────────────────────────────────────────────────────────────────
-builder.Services.AddSingleton<ITwilioService, FlotaChatService>();
+// -- TWILIO --------------------------------------------------------------------
+builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
 builder.Services.AddScoped<IProveedorOrdenesProduccion, ImportacionExcelOrdenesService>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 
-// ── Zona horaria Colombia UTC-5 ───────────────────────────────────────────────
+// -- Zona horaria Colombia UTC-5 -----------------------------------------------
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
-// ── Puerto — solo Railway en producción ──────────────────────────────────────
+// -- Puerto � solo Railway en producci�n --------------------------------------
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -109,11 +109,11 @@ using (var scope = app.Services.CreateScope())
    db.Database.Migrate();
 
 
-    // ── Semilla: Tipos de Formato de Calidad ──────────────────────────────
+    // -- Semilla: Tipos de Formato de Calidad ------------------------------
     if (!db.Set<TipoFormatoCalidad>().Any())
     {
-        var extrusion = new TipoFormatoCalidad { Codigo = "F-GC-004", Nombre = "Extrusión", TieneVariablesCriticas = true };
-        var impresion = new TipoFormatoCalidad { Codigo = "F-GC-005", Nombre = "Impresión", TieneVariablesCriticas = false };
+        var extrusion = new TipoFormatoCalidad { Codigo = "F-GC-004", Nombre = "Extrusi�n", TieneVariablesCriticas = true };
+        var impresion = new TipoFormatoCalidad { Codigo = "F-GC-005", Nombre = "Impresi�n", TieneVariablesCriticas = false };
         var sellado = new TipoFormatoCalidad { Codigo = "F-GC-006", Nombre = "Sellado", TieneVariablesCriticas = false };
         var precorte = new TipoFormatoCalidad { Codigo = "F-GC-007", Nombre = "Precorte", TieneVariablesCriticas = false };
 
@@ -122,33 +122,33 @@ using (var scope = app.Services.CreateScope())
 
         var caracteristicas = new List<CaracteristicaFormato>
     {
-        // Extrusión (F-GC-004)
-        new() { TipoFormatoId = extrusion.Id, Orden = 1, Descripcion = "Medida de Película" },
-        new() { TipoFormatoId = extrusion.Id, Orden = 2, Descripcion = "Calibre de Película" },
-        new() { TipoFormatoId = extrusion.Id, Orden = 3, Descripcion = "Apariencia de Película" },
-        new() { TipoFormatoId = extrusion.Id, Orden = 4, Descripcion = "Resistencia de Película" },
+        // Extrusi�n (F-GC-004)
+        new() { TipoFormatoId = extrusion.Id, Orden = 1, Descripcion = "Medida de Pel�cula" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 2, Descripcion = "Calibre de Pel�cula" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 3, Descripcion = "Apariencia de Pel�cula" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 4, Descripcion = "Resistencia de Pel�cula" },
         new() { TipoFormatoId = extrusion.Id, Orden = 5, Descripcion = "Tratado Corona" },
         new() { TipoFormatoId = extrusion.Id, Orden = 6, Descripcion = "Bobinado del rollo" },
-        new() { TipoFormatoId = extrusion.Id, Orden = 7, Descripcion = "Medida/Alineación Fuelles" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 7, Descripcion = "Medida/Alineaci�n Fuelles" },
         new() { TipoFormatoId = extrusion.Id, Orden = 8, Descripcion = "Grafilado" },
-        new() { TipoFormatoId = extrusion.Id, Orden = 9, Descripcion = "Sellado en Película" },
+        new() { TipoFormatoId = extrusion.Id, Orden = 9, Descripcion = "Sellado en Pel�cula" },
 
-        // Impresión (F-GC-005)
-        new() { TipoFormatoId = impresion.Id, Orden = 1, Descripcion = "Medida de la Película" },
-        new() { TipoFormatoId = impresion.Id, Orden = 2, Descripcion = "Calibre de la Película" },
-        new() { TipoFormatoId = impresion.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        // Impresi�n (F-GC-005)
+        new() { TipoFormatoId = impresion.Id, Orden = 1, Descripcion = "Medida de la Pel�cula" },
+        new() { TipoFormatoId = impresion.Id, Orden = 2, Descripcion = "Calibre de la Pel�cula" },
+        new() { TipoFormatoId = impresion.Id, Orden = 3, Descripcion = "Apariencia de la pel�cula" },
         new() { TipoFormatoId = impresion.Id, Orden = 4, Descripcion = "Tratado Corona" },
-        new() { TipoFormatoId = impresion.Id, Orden = 5, Descripcion = "Referencia de Impresión" },
-        new() { TipoFormatoId = impresion.Id, Orden = 6, Descripcion = "Registros de Impresión" },
+        new() { TipoFormatoId = impresion.Id, Orden = 5, Descripcion = "Referencia de Impresi�n" },
+        new() { TipoFormatoId = impresion.Id, Orden = 6, Descripcion = "Registros de Impresi�n" },
         new() { TipoFormatoId = impresion.Id, Orden = 7, Descripcion = "Bobinado del Rollo" },
 
         // Sellado (F-GC-006)
         new() { TipoFormatoId = sellado.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
         new() { TipoFormatoId = sellado.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
-        new() { TipoFormatoId = sellado.Id, Orden = 3, Descripcion = "Apariencia de la película" },
+        new() { TipoFormatoId = sellado.Id, Orden = 3, Descripcion = "Apariencia de la pel�cula" },
         new() { TipoFormatoId = sellado.Id, Orden = 4, Descripcion = "Resistencia del Sellado" },
-        new() { TipoFormatoId = sellado.Id, Orden = 5, Descripcion = "Línea de Sellado" },
-        new() { TipoFormatoId = sellado.Id, Orden = 6, Descripcion = "Medida/Alineación fuelles" },
+        new() { TipoFormatoId = sellado.Id, Orden = 5, Descripcion = "L�nea de Sellado" },
+        new() { TipoFormatoId = sellado.Id, Orden = 6, Descripcion = "Medida/Alineaci�n fuelles" },
         new() { TipoFormatoId = sellado.Id, Orden = 7, Descripcion = "Perforaciones" },
         new() { TipoFormatoId = sellado.Id, Orden = 8, Descripcion = "Troquel/Manija" },
 
@@ -156,8 +156,8 @@ using (var scope = app.Services.CreateScope())
         new() { TipoFormatoId = precorte.Id, Orden = 1, Descripcion = "Medida de la Bolsa" },
         new() { TipoFormatoId = precorte.Id, Orden = 2, Descripcion = "Calibre de la Bolsa" },
         new() { TipoFormatoId = precorte.Id, Orden = 3, Descripcion = "Resistencia del Sellado" },
-        new() { TipoFormatoId = precorte.Id, Orden = 4, Descripcion = "Línea de Sellado" },
-        new() { TipoFormatoId = precorte.Id, Orden = 5, Descripcion = "Línea de Precorte" },
+        new() { TipoFormatoId = precorte.Id, Orden = 4, Descripcion = "L�nea de Sellado" },
+        new() { TipoFormatoId = precorte.Id, Orden = 5, Descripcion = "L�nea de Precorte" },
         new() { TipoFormatoId = precorte.Id, Orden = 6, Descripcion = "Troquel" },
         new() { TipoFormatoId = precorte.Id, Orden = 7, Descripcion = "Tratado Corona" },
         new() { TipoFormatoId = precorte.Id, Orden = 8, Descripcion = "Bobinado del Rollo" },
@@ -165,10 +165,10 @@ using (var scope = app.Services.CreateScope())
 
         db.Set<CaracteristicaFormato>().AddRange(caracteristicas);
         db.SaveChanges();
-        Console.WriteLine("✅ Tipos de Formato de Calidad precargados");
+        Console.WriteLine("? Tipos de Formato de Calidad precargados");
     }
 
-    // ── Semilla: Opciones de Formulario (Máquina, Corona, Molde, Operario) ──
+    // -- Semilla: Opciones de Formulario (M�quina, Corona, Molde, Operario) --
     if (!db.Set<OpcionFormulario>().Any())
     {
             var opciones = new List<OpcionFormulario>();
@@ -178,7 +178,7 @@ using (var scope = app.Services.CreateScope())
             for (int i = 0; i < operarios.Length; i++)
                 opciones.Add(new OpcionFormulario { Categoria = "Operario", TipoFormatoId = null, Valor = operarios[i], Orden = i });
 
-            // Máquina (por ahora, aplica a todos — se puede diferenciar por formato después desde la pantalla de admin)
+            // M�quina (por ahora, aplica a todos � se puede diferenciar por formato despu�s desde la pantalla de admin)
             var maquinas = new[] { "Coextrusora 50", "Coextrusora 40", "Extrusora 60", "50.3", "50.1", "47.4", "47.3" };
             for (int i = 0; i < maquinas.Length; i++)
                 opciones.Add(new OpcionFormulario { Categoria = "Maquina", TipoFormatoId = null, Valor = maquinas[i], Orden = i });
@@ -195,7 +195,7 @@ using (var scope = app.Services.CreateScope())
 
             db.Set<OpcionFormulario>().AddRange(opciones);
             db.SaveChanges();
-            Console.WriteLine("✅ Opciones de Formulario precargadas");
+            Console.WriteLine("? Opciones de Formulario precargadas");
         }
 
     try
@@ -213,7 +213,7 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario admin creado");
+            Console.WriteLine("? Usuario admin creado");
         }
 
         var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
@@ -228,29 +228,29 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario maestro creado");
+            Console.WriteLine("? Usuario maestro creado");
         }
 
         var existenTipos = await db.TiposVehiculo.AnyAsync();
         if (!existenTipos)
         {
             db.TiposVehiculo.AddRange(
-                new TipoVehiculo { Nombre = "Camión" },
+                new TipoVehiculo { Nombre = "Cami�n" },
                 new TipoVehiculo { Nombre = "Van" },
                 new TipoVehiculo { Nombre = "Moto" },
                 new TipoVehiculo { Nombre = "Motocarro" },
                 new TipoVehiculo { Nombre = "Particular" },
-                new TipoVehiculo { Nombre = "Furgón" },
-                new TipoVehiculo { Nombre = "Tractocamión" },
+                new TipoVehiculo { Nombre = "Furg�n" },
+                new TipoVehiculo { Nombre = "Tractocami�n" },
                 new TipoVehiculo { Nombre = "Otro" }
             );
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Tipos de vehículo creados.");
+            Console.WriteLine("? Tipos de veh�culo creados.");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error en seed: {ex.Message}");
+        Console.WriteLine($"? Error en seed: {ex.Message}");
     }
 }
 
@@ -276,8 +276,8 @@ app.UseExceptionHandler(errorApp =>
             .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
         if (error != null)
         {
-            Console.WriteLine($"❌ ERROR GLOBAL: {error.Error.Message}");
-            Console.WriteLine($"❌ STACK: {error.Error.StackTrace}");
+            Console.WriteLine($"? ERROR GLOBAL: {error.Error.Message}");
+            Console.WriteLine($"? STACK: {error.Error.StackTrace}");
             await context.Response.WriteAsync(
                 System.Text.Json.JsonSerializer.Serialize(
                     new { error = error.Error.Message }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -12,16 +12,16 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
         public IncidentesController(
             AppDbContext context,
             AuditoriaService auditoria,
-            ITwilioService twilio)
+            IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() =>
@@ -140,30 +140,30 @@ namespace SistemaFlota
                 await _auditoria.RegistrarAsync(
                     usuario: GetUsuario(), rol: GetRol(),
                     accion: "Crear", modulo: "Incidentes",
-                    detalle: $"Incidente reportado — Conductor: {conductor?.Nombre ?? "-"}, Vehículo: {vehiculo?.Placa ?? "-"}, Tipo: {TipoIncidente}",
+                    detalle: $"Incidente reportado � Conductor: {conductor?.Nombre ?? "-"}, Veh�culo: {vehiculo?.Placa ?? "-"}, Tipo: {TipoIncidente}",
                     registroId: incidente.Id
                 );
 
-                // ── TWILIO ──
+                // -- TWILIO --
                 var hora = DateTime.Now.ToString("hh:mm tt");
                 var fecha = DateTime.Now.ToString("dd/MM/yyyy");
                 var mensajeGrupo =
-                    $"🚨 *INCIDENTE REPORTADO*\n" +
-                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
-                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
-                    $"⚠️ Tipo: {TipoIncidente}\n" +
-                    $"📋 Descripción: {DescripcionDetallada}\n" +
-                    $"📍 Ubicación: {UbicacionGPS ?? "No especificada"}\n" +
-                    $"🕐 Hora: {hora} — {fecha}";
+                    $"?? *INCIDENTE REPORTADO*\n" +
+                    $"?? Conductor: {conductor?.Nombre ?? "-"}\n" +
+                    $"?? Veh�culo: {vehiculo?.Placa ?? "-"}\n" +
+                    $"?? Tipo: {TipoIncidente}\n" +
+                    $"?? Descripci�n: {DescripcionDetallada}\n" +
+                    $"?? Ubicaci�n: {UbicacionGPS ?? "No especificada"}\n" +
+                    $"?? Hora: {hora} � {fecha}";
 
                 var numerosGrupo = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibeIncidentes)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                Console.WriteLine($"📱 Contactos grupo: {numerosGrupo.Count}");
+                Console.WriteLine($"?? Contactos grupo: {numerosGrupo.Count}");
                 if (numerosGrupo.Any())
-                    await _twilio.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo);
+                    await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Incidentes");
 
                 return Ok(incidente);
             }
@@ -200,21 +200,21 @@ namespace SistemaFlota
                 registroId: id
             );
 
-            // ── TWILIO ──
-            Console.WriteLine($"📱 Teléfono conductor: '{incidente.Conductor?.Telefono}'");
+            // -- TWILIO --
+            Console.WriteLine($"?? Tel�fono conductor: '{incidente.Conductor?.Telefono}'");
             if (!string.IsNullOrWhiteSpace(incidente.Conductor?.Telefono))
             {
                 var mensaje =
-                    $"✅ *INCIDENTE REVISADO*\n" +
+                    $"? *INCIDENTE REVISADO*\n" +
                     $"Hola {incidente.Conductor.Nombre.Split(' ')[0]},\n" +
                     $"Tu reporte de incidente #{id} fue revisado.\n" +
-                    $"🚗 Vehículo: {incidente.Vehiculo?.Placa ?? "-"}\n" +
-                    $"👤 Revisado por: {dto.RevisadoPor}\n" +
-                    $"📋 Observación: {dto.Observacion ?? "Sin observación"}";
-                await _twilio.EnviarMensajeAsync(incidente.Conductor.Telefono, mensaje);
+                    $"?? Veh�culo: {incidente.Vehiculo?.Placa ?? "-"}\n" +
+                    $"?? Revisado por: {dto.RevisadoPor}\n" +
+                    $"?? Observaci�n: {dto.Observacion ?? "Sin observaci�n"}";
+                await _mensajeria.EnviarMensajeAsync(incidente.Conductor.Telefono, mensaje);
             }
             else
-                Console.WriteLine("⚠️ Conductor sin teléfono");
+                Console.WriteLine("?? Conductor sin tel�fono");
 
             return Ok(incidente);
         }
@@ -235,3 +235,5 @@ namespace SistemaFlota
         public string? Observacion { get; set; }
     }
 }
+
+

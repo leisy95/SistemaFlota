@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs;
@@ -14,19 +14,19 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        private readonly ITwilioService _twilio;
+        private readonly IMensajeriaService _mensajeria;
 
-        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria, ITwilioService twilio)
+        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria, IMensajeriaService twilio)
         {
             _context = context;
             _auditoria = auditoria;
-            _twilio = twilio;
+            _mensajeria = twilio;
         }
 
         private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
         private string GetRol() => User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        // GET api/FormatosCalidad/tipos â€” lista los 4 tipos disponibles
+        // GET api/FormatosCalidad/tipos — lista los 4 tipos disponibles
         [HttpGet("tipos")]
         public async Task<IActionResult> GetTipos()
         {
@@ -37,7 +37,7 @@ namespace SistemaFlota
             return Ok(tipos);
         }
 
-        // GET api/FormatosCalidad/tipos/{codigo}/caracteristicas â€” ej: F-GC-004
+        // GET api/FormatosCalidad/tipos/{codigo}/caracteristicas — ej: F-GC-004
         [HttpGet("tipos/{codigo}/caracteristicas")]
         public async Task<IActionResult> GetCaracteristicas(string codigo)
         {
@@ -77,7 +77,7 @@ namespace SistemaFlota
             return Ok(lista);
         }
 
-        // POST api/FormatosCalidad/registros â€” el operario crea el registro (sin liberar aÃºn)
+        // POST api/FormatosCalidad/registros — el operario crea el registro (sin liberar aún)
         [HttpPost("registros")]
         public async Task<IActionResult> Post([FromBody] RegistroFormatoCalidadDto dto)
         {
@@ -103,7 +103,7 @@ namespace SistemaFlota
             await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Crear", "FormatosCalidad",
                 $"Registro OP: {dto.OrdenProduccion} - Tipo: {dto.TipoFormatoId}", registro.Id);
 
-            // â”€â”€ Notificar a los contactos que reciben avisos de liberaciÃ³n â”€â”€
+            // -- Notificar a los contactos que reciben avisos de liberación --
             var tipo = await _context.TiposFormatoCalidad.FindAsync(dto.TipoFormatoId);
             var contactos = await _context.ContactosNotificacion
                 .Where(c => c.Activo && c.RecibeLiberaciones)
@@ -112,19 +112,19 @@ namespace SistemaFlota
 
             if (contactos.Any())
             {
-                var mensaje = $"ðŸ“‹ *PENDIENTE DE LIBERACIÃ“N*\n\n" +
+                var mensaje = $"?? *PENDIENTE DE LIBERACIÓN*\n\n" +
                               $"Formato: {tipo?.Nombre} ({tipo?.Codigo})\n" +
                               $"Orden: {dto.OrdenProduccion}\n" +
                               $"Cliente: {dto.Cliente ?? "-"}\n" +
                               $"Registrado por: {GetUsuario()}\n\n" +
                               $"Por favor revisa y libera el producto en el sistema.";
-                await _twilio.EnviarAMultiplesAsync(contactos, mensaje);
+                await _mensajeria.EnviarAMultiplesAsync(contactos, mensaje, "Liberaciones");
             }
 
             return Ok(registro);
         }
 
-        // PUT api/FormatosCalidad/registros/{id} â€” ediciÃ³n general (antes de liberar)
+        // PUT api/FormatosCalidad/registros/{id} — edición general (antes de liberar)
         [HttpPut("registros/{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] RegistroFormatoCalidadDto dto)
         {
@@ -144,7 +144,7 @@ namespace SistemaFlota
             return Ok(r);
         }
 
-        // PUT api/FormatosCalidad/registros/{id}/liberar â€” completa la liberaciÃ³n
+        // PUT api/FormatosCalidad/registros/{id}/liberar — completa la liberación
         [HttpPut("registros/{id}/liberar")]
         public async Task<IActionResult> Liberar(int id, [FromBody] LiberarFormatoDto dto)
         {
@@ -161,7 +161,7 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Liberar", "FormatosCalidad",
-                $"LiberaciÃ³n OP: {r.OrdenProduccion} - Resultado: {(dto.PuedeLiberarse == true ? "SI" : "NO")}", r.Id);
+                $"Liberación OP: {r.OrdenProduccion} - Resultado: {(dto.PuedeLiberarse == true ? "SI" : "NO")}", r.Id);
 
             return Ok(r);
         }
@@ -199,7 +199,7 @@ namespace SistemaFlota
 
             var tipoExtrusion = await _context.TiposFormatoCalidad
                 .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
-            if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo ExtrusiÃ³n no configurado" });
+            if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo Extrusión no configurado" });
 
             var query = _context.RegistrosFormatoCalidad
                 .Where(r => r.TipoFormatoId == tipoExtrusion.Id &&
@@ -212,7 +212,7 @@ namespace SistemaFlota
             var registros = await query.ToListAsync();
 
             if (!registros.Any())
-                return Ok(new { mensaje = "No hay registros histÃ³ricos para esta referencia", resultados = new List<object>() });
+                return Ok(new { mensaje = "No hay registros históricos para esta referencia", resultados = new List<object>() });
 
             var calculados = registros.Select(r =>
             {
@@ -279,3 +279,5 @@ namespace SistemaFlota
         }
     }
 }
+
+
