@@ -70,6 +70,8 @@ namespace SistemaFlota.Controllers
             var texto = contenido.Trim().ToLower();
 
             var autorizacionActiva = await _context.Autorizaciones
+                .Include(a => a.Conductor)
+                .Include(a => a.Vehiculo)
                 .Where(a => a.ConductorId == conductorId && a.Estado == "Autorizado" && a.EstadoLlegada == null)
                 .OrderByDescending(a => a.FechaCreacion)
                 .FirstOrDefaultAsync();
@@ -80,11 +82,18 @@ namespace SistemaFlota.Controllers
                 if (texto.Contains("saliendo de bodega"))
                 {
                     autorizacionActiva.FechaSalidaReal = DateTime.Now;
+                    await ResponderAsync(flotaChatUsuarioId, "🚛 Registrado: saliendo de bodega. ¡Buen viaje!");
                 }
-                else if (texto.Contains("ruta completada"))
+                else if (texto.Contains("ruta completada") || texto.Contains("entrega completada"))
                 {
                     autorizacionActiva.EstadoLlegada = "ReportadaLlegada";
                     autorizacionActiva.FechaReporteLlegada = DateTime.Now;
+                    await ResponderAsync(flotaChatUsuarioId,
+                        $"✅ Ruta terminada\nDestino: {autorizacionActiva.DestinoCompleto ?? "-"}\n\n¡Gracias por confirmar!");
+                }
+                else if (texto.Contains("en punto de entrega"))
+                {
+                    await ResponderAsync(flotaChatUsuarioId, "📍 Registrado: en punto de entrega.");
                 }
                 else if (texto.Contains("necesito asistencia") ||
                          texto.Contains("requiero combustible") ||
@@ -93,11 +102,30 @@ namespace SistemaFlota.Controllers
                 {
                     autorizacionActiva.NovedadesViaje = (autorizacionActiva.NovedadesViaje ?? "") +
                         $"\n[{DateTime.Now:dd/MM HH:mm}] {contenido}";
+                    await ResponderAsync(flotaChatUsuarioId, "⚠️ Novedad registrada. Alguien te contactará pronto.");
                 }
                 else if (texto.Contains("llegaré tarde") || texto.Contains("llegare tarde"))
                 {
                     autorizacionActiva.NovedadesViaje = (autorizacionActiva.NovedadesViaje ?? "") +
                         $"\n[{DateTime.Now:dd/MM HH:mm}] Aviso: llegará tarde";
+                    await ResponderAsync(flotaChatUsuarioId, "🕐 Aviso de retraso registrado.");
+                }
+                else
+                {
+                    var vehiculoTxt = autorizacionActiva.Vehiculo?.Placa ?? "-";
+                    var destinoTxt = autorizacionActiva.DestinoCompleto ?? "-";
+                    await ResponderAsync(flotaChatUsuarioId,
+                        $"📋 Ya tienes una autorización pendiente:\n" +
+                        $"🚗 Vehículo: {vehiculoTxt}\n📍 Destino: {destinoTxt}\n\n" +
+                        "Puedes escribir:\n" +
+                        "🚛 Saliendo de bodega\n" +
+                        "✅ Entrega completada\n" +
+                        "📍 En punto de entrega\n" +
+                        "⚠️ Necesito asistencia\n" +
+                        "⛽ Requiero combustible\n" +
+                        "🔧 Vehículo con falla mecánica\n" +
+                        "🕐 Llegaré tarde\n" +
+                        "✔️ Ruta completada");
                 }
                 await _context.SaveChangesAsync();
                 return;
@@ -109,9 +137,9 @@ namespace SistemaFlota.Controllers
                 .OrderByDescending(c => c.FechaInicio)
                 .ToListAsync())
                 .FirstOrDefault(c => c.FechaExpiracion > DateTime.Now);
+
             if (conversacion != null)
             {
-
                 await ContinuarConversacionAsync(conversacion, conductorId, flotaChatUsuarioId, texto);
                 return;
             }
@@ -149,6 +177,7 @@ namespace SistemaFlota.Controllers
         // ── Continúa una conversación de creación de autorización en curso ─────
         private async Task ContinuarConversacionAsync(ConversacionFlotaChat conversacion, int conductorId, int flotaChatUsuarioId, string texto)
         {
+            // ── Paso 1: Confirmación ──
             if (conversacion.Paso == "EsperandoConfirmacion")
             {
                 if (texto.Trim() == "si" || texto.Trim() == "sí")
@@ -167,6 +196,7 @@ namespace SistemaFlota.Controllers
                 return;
             }
 
+            // ── Paso 2: Placa ──
             if (conversacion.Paso == "EsperandoPlaca")
             {
                 var placa = texto.Trim().ToUpper().Replace(" ", "");
@@ -178,15 +208,66 @@ namespace SistemaFlota.Controllers
                     return;
                 }
 
+                conversacion.VehiculoIdTemp = vehiculo.Id;
+                conversacion.Paso = "EsperandoDestino";
+                conversacion.FechaExpiracion = DateTime.Now.AddMinutes(10);
+                await _context.SaveChangesAsync();
+                await ResponderAsync(flotaChatUsuarioId, "📍 Indica el destino del viaje:");
+                return;
+            }
+
+            // ── Paso 3: Destino ──
+            if (conversacion.Paso == "EsperandoDestino")
+            {
+                if (string.IsNullOrWhiteSpace(texto))
+                {
+                    await ResponderAsync(flotaChatUsuarioId, "❌ El destino no puede estar vacío. Indica el destino del viaje:");
+                    return;
+                }
+
+                conversacion.DestinoTemp = texto.Trim();
+                conversacion.Paso = "EsperandoTipoVuelta";
+                conversacion.FechaExpiracion = DateTime.Now.AddMinutes(10);
+                await _context.SaveChangesAsync();
+                await ResponderAsync(flotaChatUsuarioId,
+                    "📋 ¿Cuál es el tipo de vuelta?\n\n" +
+                    "• Solo Entrega\n" +
+                    "• Mixta\n" +
+                    "• Recoge y Entrega\n" +
+                    "• Mensajería\n" +
+                    "• Solo Recoge");
+                return;
+            }
+
+            // ── Paso 4: Tipo de Vuelta ──
+            if (conversacion.Paso == "EsperandoTipoVuelta")
+            {
+                string? tipoVuelta = null;
+
+                if (texto.Contains("solo entrega")) tipoVuelta = "Solo Entrega";
+                else if (texto.Contains("mixta")) tipoVuelta = "Mixta";
+                else if (texto.Contains("recoge") && texto.Contains("entrega")) tipoVuelta = "Recoge y Entrega";
+                else if (texto.Contains("mensajer")) tipoVuelta = "Mensajería";
+                else if (texto.Contains("solo recoge") || texto.Contains("solo recoje")) tipoVuelta = "Solo Recoge";
+
+                if (tipoVuelta == null)
+                {
+                    await ResponderAsync(flotaChatUsuarioId,
+                        "❌ No reconocí el tipo de vuelta. Escribe una de estas opciones:\n\n" +
+                        "• Solo Entrega\n• Mixta\n• Recoge y Entrega\n• Mensajería\n• Solo Recoge");
+                    return;
+                }
+
                 var conductor = await _context.Conductores.FindAsync(conductorId);
+                var vehiculoFinal = await _context.Vehiculos.FindAsync(conversacion.VehiculoIdTemp!.Value);
                 var ahora = DateTime.Now;
 
                 var nueva = new Autorizacion
                 {
                     ConductorId = conductorId,
-                    VehiculoId = vehiculo.Id,
-                    TipoVuelta = "Mensajería",
-                    DestinoCompleto = "Generada desde chat",
+                    VehiculoId = conversacion.VehiculoIdTemp.Value,
+                    TipoVuelta = tipoVuelta,
+                    DestinoCompleto = conversacion.DestinoTemp,
                     DescripcionCarga = string.Empty,
                     Estado = "Autorizado",
                     FechaCreacion = ahora,
@@ -200,7 +281,11 @@ namespace SistemaFlota.Controllers
                 await _context.SaveChangesAsync();
 
                 await ResponderAsync(flotaChatUsuarioId,
-                    $"✅ Autorización creada para {conductor?.Nombre ?? "-"} con el vehículo {vehiculo.Placa}.\n\n¡Buen viaje!");
+                    $"✅ Autorización creada para {conductor?.Nombre ?? "-"}\n" +
+                    $"🚗 Vehículo: {vehiculoFinal?.Placa ?? "-"}\n" +
+                    $"📍 Destino: {conversacion.DestinoTemp}\n" +
+                    $"📋 Tipo: {tipoVuelta}\n\n" +
+                    "🚛 ¡Buen viaje!");
             }
         }
 

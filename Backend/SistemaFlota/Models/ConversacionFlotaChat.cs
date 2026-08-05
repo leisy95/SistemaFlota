@@ -8,5 +8,7 @@ namespace SistemaFlota.Models
         [Required][MaxLength(50)] public string Paso { get; set; } = string.Empty; // EsperandoConfirmacion | EsperandoPlaca
         public DateTime FechaInicio { get; set; } = DateTime.Now;
         public DateTime FechaExpiracion { get; set; } = DateTime.Now.AddMinutes(10);
+        public int? VehiculoIdTemp { get; set; }
+        public string? DestinoTemp { get; set; }
     }
 }
