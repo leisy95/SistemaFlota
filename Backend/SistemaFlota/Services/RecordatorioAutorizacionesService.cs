@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+Ôªøusing Microsoft.EntityFrameworkCore;
 
 namespace SistemaFlota
 {
@@ -17,7 +17,7 @@ namespace SistemaFlota
         private static readonly TimeSpan HoraVencimientoTarde = new(18, 0, 0);
         private static readonly TimeSpan HoraResumenDiario = new(18, 30, 0);
 
-        // Marca de la ˙ltima acciÛn ejecutada hoy, para no repetir en el mismo minuto
+        // Marca de la √∫ltima acci√≥n ejecutada hoy, para no repetir en el mismo minuto
         private DateTime _ultimaFechaProcesada = DateTime.MinValue;
         private readonly HashSet<string> _accionesHoy = new();
 
@@ -50,10 +50,10 @@ namespace SistemaFlota
 
         private async Task ProcesarCicloAsync()
         {
-            var ahora = DateTime.Now; // servidor ya est· en TZ America/Bogota (ver Program.cs)
+            var ahora = DateTime.Now; // servidor ya est√° en TZ America/Bogota (ver Program.cs)
             var hoy = ahora.Date;
 
-            // Reinicia el set de acciones cuando cambia el dÌa
+            // Reinicia el set de acciones cuando cambia el d√≠a
             if (hoy != _ultimaFechaProcesada)
             {
                 _accionesHoy.Clear();
@@ -77,7 +77,7 @@ namespace SistemaFlota
             if (diaSemana != DayOfWeek.Saturday)
                 await EjecutarSiToca("recordatorio_1750", horaActual, HoraRecordatorioTarde, EnviarRecordatorioFinRutaAsync);
 
-            // -- Vencimiento (L-V mediodÌa y 6pm; s·bado NO vence) -----------
+            // -- Vencimiento (L-V mediod√≠a y 6pm; s√°bado NO vence) -----------
             if (diaSemana != DayOfWeek.Saturday)
             {
                 await EjecutarSiToca("vencimiento_12", horaActual, HoraVencimientoManana, ProcesarVencimientoAsync);
@@ -85,7 +85,7 @@ namespace SistemaFlota
                 await EjecutarSiToca("resumen_diario", horaActual, HoraResumenDiario, EnviarResumenDiarioAsync);
             }
 
-            // -- S·bado: seguimiento suave cada hora desde la 1pm hasta las 8pm -
+            // -- S√°bado: seguimiento suave cada hora desde la 1pm hasta las 8pm -
             if (diaSemana == DayOfWeek.Saturday)
             {
                 for (int h = 13; h <= 20; h++)
@@ -99,7 +99,7 @@ namespace SistemaFlota
             await RevisarEscalamientoAsync();
         }
 
-        // Ejecuta la acciÛn solo si la hora actual coincide (±1 min) con la hora objetivo
+        // Ejecuta la acci√≥n solo si la hora actual coincide (¬±1 min) con la hora objetivo
         // y no se ha ejecutado ya hoy (evita duplicados si el ciclo corre cada minuto).
         private async Task EjecutarSiToca(string clave, TimeSpan horaActual, TimeSpan horaObjetivo, Func<Task> accion)
         {
@@ -107,7 +107,7 @@ namespace SistemaFlota
             if (horaActual < horaObjetivo || horaActual > horaObjetivo.Add(TimeSpan.FromMinutes(2))) return;
 
             _accionesHoy.Add(clave);
-            _logger.LogInformation("? Ejecutando acciÛn: {Clave}", clave);
+            _logger.LogInformation("? Ejecutando acci√≥n: {Clave}", clave);
             await accion();
         }
 
@@ -125,10 +125,10 @@ namespace SistemaFlota
             {
                 if (string.IsNullOrWhiteSpace(c.Telefono))
                 {
-                    _logger.LogWarning("?? Conductor {Nombre} sin telÈfono, no se pudo notificar (pausa activa)", c.Nombre);
+                    _logger.LogWarning("‚ö†Ô∏è Conductor {Nombre} sin tel√©fono, no se pudo notificar (pausa activa)", c.Nombre);
                     continue;
                 }
-                var mensaje = $"?? Recordatorio de pausa activa\n\nHola {c.Nombre}, recuerda tomar unos minutos para estirarte y descansar la vista. °CuÌdate en la vÌa!";
+                var mensaje = $"üßò Recordatorio de pausa activa\n\nHola {c.Nombre}, recuerda tomar unos minutos para estirarte y descansar la vista. ¬°Cu√≠date en la v√≠a!";
                 await _flotaChat.EnviarMensajeAsync(c.Telefono, mensaje, "Conductores");
             }
 
@@ -150,10 +150,10 @@ namespace SistemaFlota
             {
                 if (a.Conductor == null || string.IsNullOrWhiteSpace(a.Conductor.Telefono))
                 {
-                    _logger.LogWarning("?? AutorizaciÛn #{Id} sin conductor/telÈfono v·lido", a.Id);
+                    _logger.LogWarning("‚ö†Ô∏è Autorizaci√≥n #{Id} sin conductor/tel√©fono v√°lido", a.Id);
                     continue;
                 }
-                var mensaje = $"?? RECORDATORIO AUTORIZACI”N\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma si ya terminaste tu ruta o sigues en camino.";
+                var mensaje = $"‚è∞ RECORDATORIO AUTORIZACI√ìN\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma si ya terminaste tu ruta o sigues en camino.";
                 await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
 
                 a.FechaUltimoRecordatorio = DateTime.Now;
@@ -165,7 +165,7 @@ namespace SistemaFlota
             _logger.LogInformation("? Recordatorio fin de ruta enviado a {Cantidad} autorizaciones activas", activas.Count);
         }
 
-        // -- Vencimiento: marca y alerta (L-V ˙nicamente) ---------------------
+        // -- Vencimiento: marca y alerta (L-V √∫nicamente) ---------------------
         private async Task ProcesarVencimientoAsync()
         {
             using var scope = _scopeFactory.CreateScope();
@@ -182,15 +182,15 @@ namespace SistemaFlota
 
                 if (a.Conductor != null && !string.IsNullOrWhiteSpace(a.Conductor.Telefono))
                 {
-                    var mensaje = $"?? AUTORIZACI”N VENCIDA\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma tu estado o comunÌcate con logÌstica de inmediato.";
+                    var mensaje = $"üî¥ AUTORIZACI√ìN VENCIDA\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma tu estado o comun√≠cate con log√≠stica de inmediato.";
                     await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
                 }
             }
 
             await db.SaveChangesAsync();
-            _logger.LogInformation("?? {Cantidad} autorizaciones marcadas como vencidas", activas.Count);
+            _logger.LogInformation("üî¥ {Cantidad} autorizaciones marcadas como vencidas", activas.Count);
         }
-        // -- Resumen diario: estadÌsticas del dÌa a los Contactos de NotificaciÛn --
+        // -- Resumen diario: estad√≠sticas del d√≠a a los Contactos de Notificaci√≥n --
         private async Task EnviarResumenDiarioAsync()
         {
             using var scope = _scopeFactory.CreateScope();
@@ -207,12 +207,12 @@ namespace SistemaFlota
             var conNovedad = autorizacionesHoy.Count(a => !string.IsNullOrWhiteSpace(a.NovedadesViaje));
             var enCurso = autorizacionesHoy.Count(a => a.Estado == "Autorizado" && a.EstadoLlegada == null);
 
-            var mensaje = $"?? RESUMEN DEL DÕA ó {hoy:dd/MM/yyyy}\n\n" +
-                          $"Total autorizaciones: {total}\n" +
-                          $"? Completadas: {completadas}\n" +
-                          $"?? Vencidas: {vencidas}\n" +
-                          $"?? Con novedad: {conNovedad}\n" +
-                          $"?? A˙n en curso: {enCurso}";
+            var mensaje = $"üìä RESUMEN DEL D√çA ‚Äî {hoy:dd/MM/yyyy}\n\n" +
+              $"Total autorizaciones: {total}\n" +
+              $"‚úÖ Completadas: {completadas}\n" +
+              $"üî¥ Vencidas: {vencidas}\n" +
+              $"‚ö†Ô∏è Con novedad: {conNovedad}\n" +
+              $"üöö A√∫n en curso: {enCurso}";
 
             var contactos = await db.ContactosNotificacion
                 .Where(c => c.Activo && c.RecibeIncidentes)
@@ -222,9 +222,9 @@ namespace SistemaFlota
             if (contactos.Any())
                 await _flotaChat.EnviarAMultiplesAsync(contactos, mensaje);
 
-            _logger.LogInformation("?? Resumen diario enviado ó Total: {Total}, Completadas: {Completadas}, Vencidas: {Vencidas}", total, completadas, vencidas);
+            _logger.LogInformation("üìä Resumen diario enviado ‚Äî Total: {Total}, Completadas: {Completadas}, Vencidas: {Vencidas}", total, completadas, vencidas);
         }
-        // -- S·bado: seguimiento suave, sin marcar vencido --------------------
+        // -- S√°bado: seguimiento suave, sin marcar vencido --------------------
         private async Task EnviarSeguimientoSabadoAsync()
         {
             using var scope = _scopeFactory.CreateScope();
@@ -238,11 +238,11 @@ namespace SistemaFlota
             foreach (var a in activas)
             {
                 if (a.Conductor == null || string.IsNullOrWhiteSpace(a.Conductor.Telefono)) continue;
-                var mensaje = $"?? Hola {a.Conductor.Nombre}, øya llegaste o terminaste tu ruta? CuÈntanos para actualizar tu estado.";
+                var mensaje = $"üëã Hola {a.Conductor.Nombre}, ¬øya llegaste o terminaste tu ruta? Cu√©ntanos para actualizar tu estado.";
                 await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
             }
 
-            _logger.LogInformation("? Seguimiento suave s·bado enviado a {Cantidad} autorizaciones", activas.Count);
+            _logger.LogInformation("? Seguimiento suave s√°bado enviado a {Cantidad} autorizaciones", activas.Count);
         }
 
         // -- Si no responde en 15 min: reintenta una vez; si sigue sin responder, escala --
@@ -269,12 +269,12 @@ namespace SistemaFlota
                     // Reintento
                     if (a.Conductor != null && !string.IsNullOrWhiteSpace(a.Conductor.Telefono))
                     {
-                        var mensaje = $"?? RECORDATORIO (reintento)\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nNo hemos recibido tu respuesta. Por favor confirma tu estado.";
+                        var mensaje = $"‚è∞ RECORDATORIO (reintento)\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nNo hemos recibido tu respuesta. Por favor confirma tu estado.";
                         await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
                     }
                     a.FechaUltimoRecordatorio = DateTime.Now;
                     a.IntentosRecordatorio = 2;
-                    _logger.LogInformation("?? Reintento enviado ó AutorizaciÛn #{Id}", a.Id);
+                    _logger.LogInformation("üîÅ Reintento enviado ‚Äî Autorizaci√≥n #{Id}", a.Id);
                 }
                 else
                 {
@@ -286,12 +286,12 @@ namespace SistemaFlota
 
                     if (contactos.Any())
                     {
-                        var mensajeEscalado = $"?? CONDUCTOR SIN RESPUESTA\n\nConductor: {a.Conductor?.Nombre ?? "-"}\nDestino: {a.DestinoCompleto}\nAutorizaciÛn #{a.Id}\n\nNo ha respondido en m·s de 30 minutos. Por favor verificar.";
+                        var mensajeEscalado = $"üö® CONDUCTOR SIN RESPUESTA\n\nConductor: {a.Conductor?.Nombre ?? "-"}\nDestino: {a.DestinoCompleto}\nAutorizaci√≥n #{a.Id}\n\nNo ha respondido en m√°s de 30 minutos. Por favor verificar.";
                         await _flotaChat.EnviarAMultiplesAsync(contactos, mensajeEscalado);
                     }
 
                     a.Escalado = true;
-                    _logger.LogWarning("?? AutorizaciÛn #{Id} ESCALADA ó sin respuesta del conductor", a.Id);
+                    _logger.LogWarning("üö® Autorizaci√≥n #{Id} ESCALADA ‚Äî sin respuesta del conductor", a.Id);
                 }
             }
 

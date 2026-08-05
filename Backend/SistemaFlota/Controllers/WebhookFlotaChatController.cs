@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
@@ -15,13 +15,13 @@ namespace SistemaFlota.Controllers
         private readonly IConfiguration _config;
         private readonly IMensajeriaService _mensajeria;
 
-        private static readonly string[] PalabrasClaveSalida = { "salir", "salgo", "ruta", "autorizacion", "autorizaci�n" };
+        private static readonly string[] PalabrasClaveSalida = { "salir", "salgo", "ruta", "autorizacion", "autorización" };
 
-        public WebhookFlotaChatController(AppDbContext context, IConfiguration config, IMensajeriaService twilio)
+        public WebhookFlotaChatController(AppDbContext context, IConfiguration config, IMensajeriaService mensajeria)
         {
             _context = context;
             _config = config;
-            _mensajeria = twilio;
+            _mensajeria = mensajeria;
         }
 
         private bool SecretoValido()
@@ -37,7 +37,7 @@ namespace SistemaFlota.Controllers
         public async Task<IActionResult> Recibir([FromBody] WebhookRespuestaDto dto)
         {
             if (!SecretoValido())
-                return Unauthorized(new { mensaje = "Secreto de webhook inv�lido" });
+                return Unauthorized(new { mensaje = "Secreto de webhook inválido" });
 
             var vinculacion = await _context.VinculacionesFlotaChat
                 .FirstOrDefaultAsync(v => v.FlotaChatUsuarioId == dto.UsuarioId && v.TipoEntidad == "Conductor");
@@ -64,7 +64,7 @@ namespace SistemaFlota.Controllers
             return Ok(new { mensaje = "Respuesta registrada", id = respuesta.Id, conductorId = respuesta.ConductorId });
         }
 
-        // -- Interpreta el bot�n/mensaje del conductor --------------------------
+        // ── Interpreta el botón/mensaje del conductor ──────────────────────────
         private async Task ProcesarRespuestaAsync(int conductorId, int flotaChatUsuarioId, string contenido)
         {
             var texto = contenido.Trim().ToLower();
@@ -74,7 +74,7 @@ namespace SistemaFlota.Controllers
                 .OrderByDescending(a => a.FechaCreacion)
                 .FirstOrDefaultAsync();
 
-            // -- Si tiene autorizaci�n activa, maneja las respuestas normales --
+            // ── Si tiene autorización activa, maneja las respuestas normales ──
             if (autorizacionActiva != null)
             {
                 if (texto.Contains("saliendo de bodega"))
@@ -88,22 +88,22 @@ namespace SistemaFlota.Controllers
                 }
                 else if (texto.Contains("necesito asistencia") ||
                          texto.Contains("requiero combustible") ||
-                         texto.Contains("falla mec�nica") ||
+                         texto.Contains("falla mecánica") ||
                          texto.Contains("falla mecanica"))
                 {
                     autorizacionActiva.NovedadesViaje = (autorizacionActiva.NovedadesViaje ?? "") +
                         $"\n[{DateTime.Now:dd/MM HH:mm}] {contenido}";
                 }
-                else if (texto.Contains("llegar� tarde") || texto.Contains("llegare tarde"))
+                else if (texto.Contains("llegaré tarde") || texto.Contains("llegare tarde"))
                 {
                     autorizacionActiva.NovedadesViaje = (autorizacionActiva.NovedadesViaje ?? "") +
-                        $"\n[{DateTime.Now:dd/MM HH:mm}] Aviso: llegar� tarde";
+                        $"\n[{DateTime.Now:dd/MM HH:mm}] Aviso: llegará tarde";
                 }
                 await _context.SaveChangesAsync();
                 return;
             }
 
-            // -- Sin autorizaci�n activa: revisa si hay una conversaci�n en curso --
+            // ── Sin autorización activa: revisa si hay una conversación en curso ──
             var conversacion = (await _context.ConversacionesFlotaChat
                 .Where(c => c.FlotaChatUsuarioId == flotaChatUsuarioId)
                 .OrderByDescending(c => c.FechaInicio)
@@ -116,10 +116,10 @@ namespace SistemaFlota.Controllers
                 return;
             }
 
-            // -- No hay conversaci�n activa: revisa si el mensaje pide iniciar ruta --
+            // ── No hay conversación activa: revisa si el mensaje pide iniciar ruta ──
             if (!PalabrasClaveSalida.Any(p => texto.Contains(p))) return;
 
-            // -- Validar que no tenga OTRA autorizaci�n pendiente sin resolver --
+            // ── Validar que no tenga OTRA autorización pendiente sin resolver ──
             var pendiente = await _context.Autorizaciones
                 .Where(a => a.ConductorId == conductorId &&
                     (a.Estado == "Pendiente" || a.Estado == "Bodega" || a.Estado == "Porteria"))
@@ -128,11 +128,11 @@ namespace SistemaFlota.Controllers
             if (pendiente != null)
             {
                 await ResponderAsync(flotaChatUsuarioId,
-                    "?? Ya tienes una autorizaci�n en proceso, esperando ser aprobada. Por favor espera a que se complete.");
+                    "⚠️ Ya tienes una autorización en proceso, esperando ser aprobada. Por favor espera a que se complete.");
                 return;
             }
 
-            // -- Todo libre: inicia la conversaci�n de nueva autorizaci�n --
+            // ── Todo libre: inicia la conversación de nueva autorización ──
             _context.ConversacionesFlotaChat.Add(new ConversacionFlotaChat
             {
                 FlotaChatUsuarioId = flotaChatUsuarioId,
@@ -143,26 +143,26 @@ namespace SistemaFlota.Controllers
             await _context.SaveChangesAsync();
 
             await ResponderAsync(flotaChatUsuarioId,
-                "?? �Deseas iniciar una nueva autorizaci�n de salida?\n\nResponde *SI* para continuar.");
+                "🚚 ¿Deseas iniciar una nueva autorización de salida?\n\nResponde *SI* para continuar.");
         }
 
-        // -- Contin�a una conversaci�n de creaci�n de autorizaci�n en curso -----
+        // ── Continúa una conversación de creación de autorización en curso ─────
         private async Task ContinuarConversacionAsync(ConversacionFlotaChat conversacion, int conductorId, int flotaChatUsuarioId, string texto)
         {
             if (conversacion.Paso == "EsperandoConfirmacion")
             {
-                if (texto.Trim() == "si" || texto.Trim() == "s�")
+                if (texto.Trim() == "si" || texto.Trim() == "sí")
                 {
                     conversacion.Paso = "EsperandoPlaca";
                     conversacion.FechaExpiracion = DateTime.Now.AddMinutes(10);
                     await _context.SaveChangesAsync();
-                    await ResponderAsync(flotaChatUsuarioId, "?? Indica la placa del veh�culo (ej: ABC123):");
+                    await ResponderAsync(flotaChatUsuarioId, "🚗 Indica la placa del vehículo (ej: ABC123):");
                 }
                 else
                 {
                     _context.ConversacionesFlotaChat.Remove(conversacion);
                     await _context.SaveChangesAsync();
-                    await ResponderAsync(flotaChatUsuarioId, "Entendido, no se cre� ninguna autorizaci�n.");
+                    await ResponderAsync(flotaChatUsuarioId, "Entendido, no se creó ninguna autorización.");
                 }
                 return;
             }
@@ -174,7 +174,7 @@ namespace SistemaFlota.Controllers
 
                 if (vehiculo == null)
                 {
-                    await ResponderAsync(flotaChatUsuarioId, $"? No encontr� el veh�culo con placa {placa}. Intenta de nuevo:");
+                    await ResponderAsync(flotaChatUsuarioId, $"❌ No encontré el vehículo con placa {placa}. Intenta de nuevo:");
                     return;
                 }
 
@@ -185,7 +185,7 @@ namespace SistemaFlota.Controllers
                 {
                     ConductorId = conductorId,
                     VehiculoId = vehiculo.Id,
-                    TipoVuelta = "Mensajer�a",
+                    TipoVuelta = "Mensajería",
                     DestinoCompleto = "Generada desde chat",
                     DescripcionCarga = string.Empty,
                     Estado = "Autorizado",
@@ -200,7 +200,7 @@ namespace SistemaFlota.Controllers
                 await _context.SaveChangesAsync();
 
                 await ResponderAsync(flotaChatUsuarioId,
-                    $"? Autorizaci�n creada para {conductor?.Nombre ?? "-"} con el veh�culo {vehiculo.Placa}.\n\n�Buen viaje!");
+                    $"✅ Autorización creada para {conductor?.Nombre ?? "-"} con el vehículo {vehiculo.Placa}.\n\n¡Buen viaje!");
             }
         }
 
@@ -213,4 +213,3 @@ namespace SistemaFlota.Controllers
         }
     }
 }
-
