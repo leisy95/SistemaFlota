@@ -284,7 +284,7 @@ namespace SistemaFlota
                         $"{noConformes} ítem(s) no conforme(s) ({pctTexto}):\n" +
                         $"• {string.Join("\n• ", itemsNoConformes)}\n" +
                         $"Por favor repórtalo al área de mantenimiento.";
-                    await _mensajeria.EnviarMensajeAsync(conductor.Telefono, mensajeConductor);
+                    await _mensajeria.EnviarMensajeAsync(conductor.Telefono, mensajeConductor, "Conductores");
                 }
 
                 return Ok(new
@@ -309,5 +309,7 @@ namespace SistemaFlota
         }
     }
 }
+
+
 
 

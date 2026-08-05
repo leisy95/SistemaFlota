@@ -26,6 +26,11 @@ namespace SistemaFlota
         // ── Envío a un solo número: individual si está vinculado, si no, grupo ──
         public async Task EnviarMensajeAsync(string numeroDestino, string mensaje)
         {
+            await EnviarMensajeAsync(numeroDestino, mensaje, "General");
+        }
+
+        public async Task EnviarMensajeAsync(string numeroDestino, string mensaje, string categoria)
+        {
             try
             {
                 using var scope = _scopeFactory.CreateScope();
@@ -41,8 +46,8 @@ namespace SistemaFlota
                     return;
                 }
 
-                await EnviarAlGrupoCompartidoAsync(mensaje);
-                _logger.LogWarning("⚠️ Número {Numero} sin vincular a FlotaChat, se envió al grupo compartido", numeroDestino);
+                await EnviarAlGrupoCompartidoAsync(mensaje, categoria);
+                _logger.LogWarning("⚠️ Número {Numero} sin vincular a FlotaChat, se envió al grupo {Categoria}", numeroDestino, categoria);
             }
             catch (Exception ex)
             {

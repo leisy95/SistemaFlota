@@ -195,7 +195,7 @@ namespace SistemaFlota
                     $"?? Autorizado por: {dto.AutorizadoPor}\n" +
                     $"?? Por favor confirma que recibiste este mensaje respondiendo CONFIRMO";
 
-                await _mensajeria.EnviarMensajeAsync(cambio.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(cambio.Conductor.Telefono, mensaje, "Conductores");
             }
 
             return Ok(cambio);
@@ -286,7 +286,7 @@ namespace SistemaFlota
                     $"Tu solicitud fue rechazada.\n" +
                     $"?? Motivo: {dto.Observacion ?? "Sin observación"}\n" +
                     $"?? Continúa con la ruta autorizada: {cambio.RutaOriginal}";
-                await _mensajeria.EnviarMensajeAsync(cambio.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(cambio.Conductor.Telefono, mensaje, "Conductores");
             }
 
             return Ok(cambio);
@@ -329,5 +329,7 @@ namespace SistemaFlota
         public string? Observacion { get; set; }
     }
 }
+
+
 
 

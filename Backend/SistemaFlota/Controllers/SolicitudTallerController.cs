@@ -187,7 +187,7 @@ namespace SistemaFlota
                     $"?? Tipo: {s.TipoMantenimiento}\n" +
                     $"?? Autorizado por: {dto.AutorizadoPor}\n" +
                     $"?? Por favor confirma que recibiste este mensaje en el sistema.";
-                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje, "Conductores");
             }
             else
                 Console.WriteLine("?? Conductor sin teléfono");
@@ -277,7 +277,7 @@ namespace SistemaFlota
                     $"Tu solicitud fue rechazada.\n" +
                     $"?? Vehículo: {s.Vehiculo?.Placa ?? "-"}\n" +
                     $"?? Motivo: {dto.Observacion ?? "Sin observación"}";
-                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje, "Conductores");
             }
 
             return Ok(s);
@@ -312,7 +312,7 @@ namespace SistemaFlota
                     $"?? *VEHÍCULO EN TALLER*\n" +
                     $"Hola {s.Conductor.Nombre.Split(' ')[0]},\n" +
                     $"Tu vehículo {s.Vehiculo?.Placa ?? "-"} está siendo atendido en taller.";
-                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje, "Conductores");
             }
 
             return Ok(s);
@@ -354,7 +354,7 @@ namespace SistemaFlota
                     $"El mantenimiento de tu vehículo {s.Vehiculo?.Placa ?? "-"} fue completado.\n" +
                     $"?? Valor: ${dto.ValorFactura?.ToString("N0") ?? "-"}\n" +
                     $"?? Factura: {dto.NumeroFacturaTaller ?? "-"}";
-                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(s.Conductor.Telefono, mensaje, "Conductores");
             }
 
             return Ok(s);
@@ -396,5 +396,7 @@ namespace SistemaFlota
         public string? ObservacionFactura { get; set; }
     }
 }
+
+
 
 

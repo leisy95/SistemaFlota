@@ -129,7 +129,7 @@ namespace SistemaFlota
                     continue;
                 }
                 var mensaje = $"?? Recordatorio de pausa activa\n\nHola {c.Nombre}, recuerda tomar unos minutos para estirarte y descansar la vista. ¡Cuídate en la vía!";
-                await _flotaChat.EnviarMensajeAsync(c.Telefono, mensaje);
+                await _flotaChat.EnviarMensajeAsync(c.Telefono, mensaje, "Conductores");
             }
 
             _logger.LogInformation("? Pausa activa enviada a {Cantidad} conductores", conductores.Count);
@@ -154,7 +154,7 @@ namespace SistemaFlota
                     continue;
                 }
                 var mensaje = $"?? RECORDATORIO AUTORIZACIÓN\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma si ya terminaste tu ruta o sigues en camino.";
-                await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+                await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
 
                 a.FechaUltimoRecordatorio = DateTime.Now;
                 a.IntentosRecordatorio = 1;
@@ -183,7 +183,7 @@ namespace SistemaFlota
                 if (a.Conductor != null && !string.IsNullOrWhiteSpace(a.Conductor.Telefono))
                 {
                     var mensaje = $"?? AUTORIZACIÓN VENCIDA\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nPor favor confirma tu estado o comunícate con logística de inmediato.";
-                    await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+                    await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
                 }
             }
 
@@ -239,7 +239,7 @@ namespace SistemaFlota
             {
                 if (a.Conductor == null || string.IsNullOrWhiteSpace(a.Conductor.Telefono)) continue;
                 var mensaje = $"?? Hola {a.Conductor.Nombre}, ¿ya llegaste o terminaste tu ruta? Cuéntanos para actualizar tu estado.";
-                await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+                await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
             }
 
             _logger.LogInformation("? Seguimiento suave sábado enviado a {Cantidad} autorizaciones", activas.Count);
@@ -270,7 +270,7 @@ namespace SistemaFlota
                     if (a.Conductor != null && !string.IsNullOrWhiteSpace(a.Conductor.Telefono))
                     {
                         var mensaje = $"?? RECORDATORIO (reintento)\n\nConductor: {a.Conductor.Nombre}\nDestino: {a.DestinoCompleto}\n\nNo hemos recibido tu respuesta. Por favor confirma tu estado.";
-                        await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje);
+                        await _flotaChat.EnviarMensajeAsync(a.Conductor.Telefono, mensaje, "Conductores");
                     }
                     a.FechaUltimoRecordatorio = DateTime.Now;
                     a.IntentosRecordatorio = 2;
@@ -299,3 +299,5 @@ namespace SistemaFlota
         }
     }
 }
+
+

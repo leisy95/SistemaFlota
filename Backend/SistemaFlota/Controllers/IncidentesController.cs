@@ -211,7 +211,7 @@ namespace SistemaFlota
                     $"?? Vehículo: {incidente.Vehiculo?.Placa ?? "-"}\n" +
                     $"?? Revisado por: {dto.RevisadoPor}\n" +
                     $"?? Observación: {dto.Observacion ?? "Sin observación"}";
-                await _mensajeria.EnviarMensajeAsync(incidente.Conductor.Telefono, mensaje);
+                await _mensajeria.EnviarMensajeAsync(incidente.Conductor.Telefono, mensaje, "Conductores");
             }
             else
                 Console.WriteLine("?? Conductor sin teléfono");
@@ -235,5 +235,7 @@ namespace SistemaFlota
         public string? Observacion { get; set; }
     }
 }
+
+
 
 

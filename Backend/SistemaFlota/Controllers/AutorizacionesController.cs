@@ -424,7 +424,7 @@ namespace SistemaFlota
                             $"?? Destino: {resultado.DestinoCompleto ?? "-"}\n" +
                             $"?? Carga: {resultado.DescripcionCarga ?? "-"}\n\n" +
                             $"Tu autorización está siendo procesada por Bodega y Portería. Te avisaremos cuando puedas salir.";
-                        await _mensajeria.EnviarMensajeAsync(resultado.Conductor.Telefono, mensajeConductor);
+                        await _mensajeria.EnviarMensajeAsync(resultado.Conductor.Telefono, mensajeConductor, "Conductores");
                     }
                 }
 
@@ -514,7 +514,7 @@ namespace SistemaFlota
                             (guia != "-" ? $"?? Guía: {guia}\n" : "") +
                             $"?? Hora: {hora} — {fecha}\n?? Autorizado por: {dto.Usuario}\n" +
                             $"??????????????????\n??? ¡Buen viaje!";
-                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConductor);
+                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConductor, "Conductores");
                     }
 
                     var numerosGrupo = await _context.ContactosNotificacion
@@ -594,7 +594,7 @@ namespace SistemaFlota
                             $"? *Llegada registrada*\n" +
                             $"Hola {conductor.Split(' ')[0]}, tu llegada fue registrada correctamente.\n" +
                             $"?? Hora: {hora} — {fecha}\n¡Gracias por el reporte!";
-                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion);
+                        await _mensajeria.EnviarMensajeAsync(numeroConductor, mensajeConfirmacion, "Conductores");
                     }
                 }
                 return Ok(resultado);
@@ -708,5 +708,7 @@ namespace SistemaFlota
         }
     }
 }
+
+
 
 
