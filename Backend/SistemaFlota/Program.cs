@@ -6,6 +6,7 @@ using SistemaFlota;
 using SistemaFlota.Configuracion;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Materiales;
 using SistemaFlota.Services.Costos.OrdenCompra;
 using SistemaFlota.Services.Costos.Proveedores;
@@ -102,6 +103,7 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRecepcionMercanciaService, RecepcionMercanciaService>();
 builder.Services.AddScoped<IEtiquetasPdfService, EtiquetasPdfService>();
 builder.Services.AddScoped<IRecepcionMercanciaPdfService, RecepcionMercanciaPdfService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<EmailTemplateService>();

@@ -1092,6 +1092,42 @@ namespace SistemaFlota.Migrations
                     b.ToTable("Consecutivos");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<decimal>("CostoPromedio")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("StockActual")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("ValorInventario")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId", "Color")
+                        .IsUnique();
+
+                    b.ToTable("Inventarios");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", b =>
                 {
                     b.Property<int>("Id")
@@ -1218,7 +1254,7 @@ namespace SistemaFlota.Migrations
                     b.ToTable("OrdenesCompraDetalle");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia", b =>
+            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1234,6 +1270,9 @@ namespace SistemaFlota.Migrations
 
                     b.Property<bool>("EmbalajeAdecuado")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("FechaConfirmacion")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaRecepcion")
                         .HasColumnType("datetime(6)");
@@ -1260,14 +1299,20 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("UsuarioConfirmacionId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("OrdenCompraId");
+                    b.HasIndex("OrdenCompraId")
+                        .IsUnique();
 
-                    b.ToTable("RecepcionesMercancia");
+                    b.HasIndex("UsuarioConfirmacionId");
+
+                    b.ToTable("RecepcionesMercancias");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercanciaDetalle", b =>
+            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercanciaDetalle", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -2161,6 +2206,17 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.Prov_Materiales.Materiales.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Proveedores.Proveedor", "Proveedor")
@@ -2206,18 +2262,24 @@ namespace SistemaFlota.Migrations
                     b.Navigation("OrdenCompra");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia", b =>
+            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", "OrdenCompra")
-                        .WithMany()
-                        .HasForeignKey("OrdenCompraId")
+                        .WithOne("RecepcionMercancia")
+                        .HasForeignKey("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", "OrdenCompraId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioConfirmacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioConfirmacionId");
+
                     b.Navigation("OrdenCompra");
+
+                    b.Navigation("UsuarioConfirmacion");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercanciaDetalle", b =>
+            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercanciaDetalle", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompraDetalle", "OrdenCompraDetalle")
                         .WithMany()
@@ -2225,7 +2287,7 @@ namespace SistemaFlota.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia", "RecepcionMercancia")
+                    b.HasOne("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", "RecepcionMercancia")
                         .WithMany("Detalles")
                         .HasForeignKey("RecepcionMercanciaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2363,9 +2425,11 @@ namespace SistemaFlota.Migrations
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", b =>
                 {
                     b.Navigation("Detalles");
+
+                    b.Navigation("RecepcionMercancia");
                 });
 
-            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia", b =>
+            modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
                 {
                     b.Navigation("Detalles");
                 });

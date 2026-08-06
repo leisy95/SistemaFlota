@@ -1,3 +1,12 @@
+html,
+body {
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 .modal {
     display: flex;
     flex-direction: column;
@@ -471,63 +480,138 @@ textarea {
     font-weight: 600;
 }
 
-@media (max-width:992px) {
+@media (max-width: 992px) {
+
+    .modal {
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
+    }
+
     .form-grid {
         grid-template-columns: 1fr;
     }
 
     .resumen-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
     }
 
     .item-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 12px;
     }
 
-    .modal-header {
-        padding: 20px;
-    }
-
-    .modal-body {
-        padding: 20px;
+    .item-header small {
+        width: 100%;
     }
 
     .modal-footer {
-        flex-direction: column-reverse;
+        justify-content: stretch;
     }
 
-    .btn-primary,
-    .btn-secondary {
-        width: 100%;
-        justify-content: center;
+    .btn-cancelar,
+    .btn-agregar {
+        flex: 1;
     }
+
 }
 
-@media(max-width:768px) {
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 768px) {
+
+    .modal-header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start;
+        position: relative;
+    }
+
+    .btn-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+    }
+
     .header-info h2 {
-        font-size: 24px;
+        font-size: 1.6rem;
     }
 
-    .section-card {
-        padding: 20px;
+    .header-info p {
+        font-size: .95rem;
     }
 
-    .orden-card {
-        padding: 20px;
-    }
-
-    .item-card {
-        padding: 18px;
-    }
-
+    .section-card,
+    .orden-card,
+    .item-card,
     .resumen-card {
-        padding: 22px;
+        padding: 20px;
+    }
+
+    .section-card h3,
+    .orden-card h3,
+    .resumen-card h3 {
+        font-size: 1.3rem;
+    }
+
+    .orden-card p {
+        font-size: .95rem;
+    }
+
+    .item-header label span {
+        font-size: 1.1rem;
+    }
+
+    .resumen-grid {
+        grid-template-columns: 1fr;
     }
 
     .resumen-grid strong {
         font-size: 34px;
+    }
+
+    .mensaje {
+        flex-wrap: wrap;
+        font-size: 14px;
+    }
+
+}
+
+@media (max-width:576px) {
+
+    .titulo,
+    h1 {
+        font-size: 2rem !important;
+        line-height: 1.1;
+    }
+
+    .card,
+    .orden-card {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .precio,
+    .items {
+        text-align: left;
     }
 }

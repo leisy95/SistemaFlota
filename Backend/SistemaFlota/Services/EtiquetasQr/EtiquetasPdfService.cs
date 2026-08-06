@@ -18,7 +18,7 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
     public async Task<byte[]> GenerarAsync(int recepcionId)
     {
-        var recepcion = await _context.RecepcionesMercancia
+        var recepcion = await _context.RecepcionesMercancias
             .Include(x => x.Detalles)
                 .ThenInclude(x => x.OrdenCompraDetalle)
                     .ThenInclude(x => x.Material)

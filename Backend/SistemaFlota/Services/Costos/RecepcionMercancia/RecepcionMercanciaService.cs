@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
-using SistemaFlota.Models.Costos.RecepcionMercancia;
+using SistemaFlota.Migrations;
+using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Notificaciones;
 
 namespace SistemaFlota.Services.Costos.RecepcionMercancia
@@ -13,17 +15,20 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         private readonly ICurrentUserService _currentUser;
         private readonly IConsecutivoService _consecutivoService;
         private readonly INotificacionRecepcionService _notificacion;
+        private readonly IInventarioService _inventarioService;
 
         public RecepcionMercanciaService(
             AppDbContext context,
              ICurrentUserService currentUser,
              IConsecutivoService consecutivoService,
-             INotificacionRecepcionService notificacion)
+             INotificacionRecepcionService notificacion,
+             IInventarioService inventarioService)
         {
             _context = context;
             _currentUser = currentUser;
             _consecutivoService = consecutivoService;
             _notificacion = notificacion;
+            _inventarioService = inventarioService;
         }
 
         public async Task<RecepcionMercanciaPaginadoDto> ObtenerAsync(
@@ -39,12 +44,48 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
         public async Task<RecepcionMercanciaDto?> ObtenerPorIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var recepcion = await _context.RecepcionesMercancias
+                .Include(r => r.OrdenCompra)
+                    .ThenInclude(o => o.Proveedor)
+                .Include(r => r.Detalles)
+                    .ThenInclude(d => d.OrdenCompraDetalle)
+                        .ThenInclude(o => o.Material)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+
+            if (recepcion == null)
+                return null;
+
+
+            return new RecepcionMercanciaDto
+            {
+                Id = recepcion.Id,
+                ConsecutivoEntrada = recepcion.NumeroRecepcion,
+                NumeroOrden = recepcion.OrdenCompra!.Numero,
+                Proveedor = recepcion.OrdenCompra.Proveedor!.Nombre,
+                FechaRecepcion = recepcion.FechaRecepcion,
+                Conductor = recepcion.Conductor,
+                Transportadora = recepcion.Transportadora,
+                EmbalajeAdecuado = recepcion.EmbalajeAdecuado,
+
+                TotalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida),
+                TotalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos),
+
+                Detalles = recepcion.Detalles.Select(x => new RecepcionDetalleConsultaDto
+                {
+                    Material = x.OrdenCompraDetalle!.Material!.NombreMaterial,
+                    CantidadRecibida = x.CantidadRecibida,
+                    BultosRecibidos = x.BultosRecibidos,
+                    LoteProveedor = x.LoteProveedor,
+                    EstadoMaterial = x.EstadoMaterial
+
+                }).ToList()
+            };
         }
 
         public async Task<RecepcionFormularioDto?> ObtenerFormularioAsync(int ordenCompraId)
         {
-            var existeRecepcion = await _context.RecepcionesMercancia
+            var existeRecepcion = await _context.RecepcionesMercancias
                 .AnyAsync(x => x.OrdenCompraId == ordenCompraId);
 
             if (existeRecepcion)
@@ -85,8 +126,6 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         public async Task<RecepcionMercanciaDto> CrearAsync(
              CrearRecepcionMercanciaDto dto)
         {
-
-            Console.WriteLine(">>> ENTRO A CREAR RECEPCION");
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Detalles)
                     .ThenInclude(d => d.Material)
@@ -97,7 +136,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             if (orden == null)
                 throw new Exception("La orden de compra no existe");
 
-            var existeRecepcion = await _context.RecepcionesMercancia
+            var existeRecepcion = await _context.RecepcionesMercancias
                 .AnyAsync(x => x.OrdenCompraId == dto.OrdenCompraId);
 
             if (existeRecepcion)
@@ -106,7 +145,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             var numeroRecepcion = await _consecutivoService
                 .GenerarAsync("RecepcionMercancia");
 
-            var recepcion = new Models.Costos.RecepcionMercancia.RecepcionMercancia
+            var recepcion = new Models.Costos.RecepcionMercancias.RecepcionMercancia
             {
                 OrdenCompraId = dto.OrdenCompraId,
                 NumeroRecepcion = numeroRecepcion,
@@ -137,11 +176,14 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
             orden.Estado = "Recepcionada";
 
-            _context.RecepcionesMercancia.Add(recepcion);
+            _context.RecepcionesMercancias.Add(recepcion);
 
             await _context.SaveChangesAsync();
 
-            await _notificacion.EnviarRecepcionMercanciaAsync(recepcion.Id);
+            await _notificacion.EnviarRecepcionMercanciaAsync(
+                recepcion.Id,
+                dto.Usuarios
+            );
 
             return new RecepcionMercanciaDto
             {
@@ -158,6 +200,34 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 TotalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida),
                 TotalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos)
             };
+        }
+
+        public async Task ConfirmarRecepcionAsync(int id)
+        {
+            try
+            {
+                var recepcion = await _context.RecepcionesMercancias
+                    .Include(r => r.OrdenCompra)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+                if (recepcion == null)
+                    throw new Exception("La recepción no existe.");
+
+                if (recepcion.OrdenCompra!.Estado != "Recepcionada")
+                    throw new Exception("Solo se pueden confirmar recepciones en estado Recepcionada.");
+
+                recepcion.OrdenCompra.Estado = "Confirmada";
+                recepcion.FechaConfirmacion = DateTime.Now;
+                recepcion.UsuarioConfirmacionId = _currentUser.IdUsuario!.Value;
+
+                await _inventarioService.ProcesarRecepcionAsync(id);
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         public async Task<bool> ActualizarAsync(int id, ActualizarRecepcionMercanciaDto dto)

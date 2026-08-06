@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { IniciarRepmercancia } from '../iniciar-repmercancia/iniciar-repmercancia';
 import { OrdenCompra } from '../../../../core/models/costos/ordenCompra/ordencompra.model';
 import { OrdenCompraService } from '../../../../core/services/costos/ordencompra/ordencompra.service';
+import { DetalleRepmercancia } from '../detalle-repmercancia/detalle-repmercancia';
 
 @Component({
   selector: 'app-listar-repmercancia',
@@ -85,6 +86,26 @@ export class ListarRepmercancia {
       'Recepción'
     );
 
+  }
+
+  verRecepcion(orden: any): void {
+
+    console.log(orden);
+
+    this.dialog.open(DetalleRepmercancia, {
+      width: '1200px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      disableClose: true,
+      data: {
+        id: orden.recepcionId
+      }
+    }).afterClosed().subscribe(resultado => {
+
+      if (resultado) {
+        this.cargarOrdenes();
+      }
+    });
   }
 
   iniciarRecepcion(): void {

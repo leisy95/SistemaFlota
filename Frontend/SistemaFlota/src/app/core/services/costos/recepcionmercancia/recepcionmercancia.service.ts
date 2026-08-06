@@ -32,12 +32,26 @@ export class RecepcionMercanciaService {
         );
     }
 
+    obtenerPorId(id: number): Observable<any> {
+        return this.http.get<any>(
+            `${this.apiUrl}/${id}`
+        );
+    }
+
     obtenerEtiquetas(id: number): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/${id}/etiquetas`,
             {
                 responseType: 'blob'
             }
+        );
+    }
+
+    // Confirmacion orden despues de recpcion
+    confirmarRecepcion(id: number): Observable<any> {
+        return this.http.put(
+            `${this.apiUrl}/${id}/confirmar`,
+            {}
         );
     }
 }

@@ -67,7 +67,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 _environment.ContentRootPath,
                 "wwwroot",
                 "config",
-                "fondo.png"
+                "iguana3.png"
             );
         }
         private string ObtenerLogo(string? logo)

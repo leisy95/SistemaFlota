@@ -107,6 +107,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 .AsNoTracking()
                 .Include(x => x.Proveedor)
                 .Include(x => x.UsuarioCreacion)
+                 .Include(x => x.RecepcionMercancia)
                 .Include(x => x.UsuarioActualizacion)
                 .AsQueryable();
 
@@ -163,6 +164,9 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                     TotalBultos = x.TotalBultos,
                     TotalPagar = x.TotalPagar,
                     Estado = x.Estado,
+                    RecepcionId = x.RecepcionMercancia != null
+                        ? x.RecepcionMercancia.Id
+                        : null,
                     Observaciones = x.Observaciones,
 
                     UsuarioCreacion = x.UsuarioCreacion != null

@@ -13,9 +13,6 @@ public class EmailService : IEmailService
     public EmailService(IOptions<EmailSettings> options)
     {
         _settings = options.Value;
-
-        Console.WriteLine($"SMTP HOST: {_settings.Host}");
-        Console.WriteLine($"SMTP USER: {_settings.UserName}");
     }
 
     public async Task EnviarAsync(

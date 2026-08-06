@@ -1,6 +1,6 @@
 ﻿using SistemaFlota.Models.Costos.OrdenesCompras;
 
-namespace SistemaFlota.Models.Costos.RecepcionMercancia
+namespace SistemaFlota.Models.Costos.RecepcionMercancias
 {
     public class RecepcionMercanciaDetalle
     {

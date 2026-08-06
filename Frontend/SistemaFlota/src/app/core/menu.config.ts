@@ -247,4 +247,12 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/costos/recepcion-mercancia',
         modulo: 'costos'
     },
+
+    {
+        key: 'inventario',
+        label: 'Inventario',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/inventario',
+        modulo: 'costos'
+    },
 ];

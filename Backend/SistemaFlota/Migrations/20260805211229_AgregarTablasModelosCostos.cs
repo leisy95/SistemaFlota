@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SistemaFlota.Migrations
 {
     /// <inheritdoc />
-    public partial class TablasModelosCostos : Migration
+    public partial class AgregarTablasModelosCostos : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -164,6 +164,33 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Inventarios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    Color = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StockActual = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    CostoPromedio = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ValorInventario = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Inventarios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Inventarios_Materiales_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materiales",
+                        principalColumn: "IdMaterial",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "OrdenesCompraDetalle",
                 columns: table => new
                 {
@@ -198,7 +225,7 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "RecepcionesMercancia",
+                name: "RecepcionesMercancias",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -219,17 +246,24 @@ namespace SistemaFlota.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Observaciones = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FechaRecepcion = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    FechaRecepcion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaConfirmacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    UsuarioConfirmacionId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RecepcionesMercancia", x => x.Id);
+                    table.PrimaryKey("PK_RecepcionesMercancias", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercancia_OrdenesCompra_OrdenCompraId",
+                        name: "FK_RecepcionesMercancias_OrdenesCompra_OrdenCompraId",
                         column: x => x.OrdenCompraId,
                         principalTable: "OrdenesCompra",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_RecepcionesMercancias_Usuarios_UsuarioConfirmacionId",
+                        column: x => x.UsuarioConfirmacionId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -260,9 +294,9 @@ namespace SistemaFlota.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercanciaDetalle_RecepcionesMercancia_RecepcionMe~",
+                        name: "FK_RecepcionesMercanciaDetalle_RecepcionesMercancias_RecepcionM~",
                         column: x => x.RecepcionMercanciaId,
-                        principalTable: "RecepcionesMercancia",
+                        principalTable: "RecepcionesMercancias",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -272,6 +306,12 @@ namespace SistemaFlota.Migrations
                 name: "IX_Consecutivos_Modulo",
                 table: "Consecutivos",
                 column: "Modulo",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Inventarios_MaterialId_Color",
+                table: "Inventarios",
+                columns: new[] { "MaterialId", "Color" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -305,11 +345,6 @@ namespace SistemaFlota.Migrations
                 column: "OrdenCompraId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecepcionesMercancia_OrdenCompraId",
-                table: "RecepcionesMercancia",
-                column: "OrdenCompraId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_RecepcionesMercanciaDetalle_OrdenCompraDetalleId",
                 table: "RecepcionesMercanciaDetalle",
                 column: "OrdenCompraDetalleId");
@@ -318,6 +353,17 @@ namespace SistemaFlota.Migrations
                 name: "IX_RecepcionesMercanciaDetalle_RecepcionMercanciaId",
                 table: "RecepcionesMercanciaDetalle",
                 column: "RecepcionMercanciaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecepcionesMercancias_OrdenCompraId",
+                table: "RecepcionesMercancias",
+                column: "OrdenCompraId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecepcionesMercancias_UsuarioConfirmacionId",
+                table: "RecepcionesMercancias",
+                column: "UsuarioConfirmacionId");
         }
 
         /// <inheritdoc />
@@ -327,13 +373,16 @@ namespace SistemaFlota.Migrations
                 name: "Consecutivos");
 
             migrationBuilder.DropTable(
+                name: "Inventarios");
+
+            migrationBuilder.DropTable(
                 name: "RecepcionesMercanciaDetalle");
 
             migrationBuilder.DropTable(
                 name: "OrdenesCompraDetalle");
 
             migrationBuilder.DropTable(
-                name: "RecepcionesMercancia");
+                name: "RecepcionesMercancias");
 
             migrationBuilder.DropTable(
                 name: "Materiales");

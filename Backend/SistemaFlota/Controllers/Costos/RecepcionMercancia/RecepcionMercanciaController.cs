@@ -103,6 +103,18 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             }
         }
 
+        // Confirmar recepcion de mercancia
+        [HttpPut("{id}/confirmar")]
+        public async Task<IActionResult> ConfirmarRecepcion(int id)
+        {
+            await _service.ConfirmarRecepcionAsync(id);
+
+            return Ok(new
+            {
+                mensaje = "Recepción confirmada correctamente."
+            });
+        }
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Actualizar(
             int id,

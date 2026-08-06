@@ -1,4 +1,5 @@
-﻿using SistemaFlota.Models.Proveedores;
+﻿using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Models.Proveedores;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -61,5 +62,7 @@ namespace SistemaFlota.Models.Costos.OrdenesCompras
 
         public virtual ICollection<OrdenCompraDetalle> Detalles { get; set; }
             = new List<OrdenCompraDetalle>();
+
+        public virtual RecepcionMercancia? RecepcionMercancia { get; set; }
     }
 }

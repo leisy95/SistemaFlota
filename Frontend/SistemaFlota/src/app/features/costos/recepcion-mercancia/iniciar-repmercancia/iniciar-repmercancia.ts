@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { OrdenCompra } from '../../../../core/models/costos/ordenCompra/ordencompra.model';
 import { RecepcionMercanciaService } from '../../../../core/services/costos/recepcionmercancia/recepcionmercancia.service';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SelectorUsuarios } from '../../../../shared/reutilizable/selector-usuarios/selector-usuarios';
 
 @Component({
   selector: 'app-iniciar-repmercancia',
@@ -28,6 +29,7 @@ export class IniciarRepmercancia implements OnInit {
   constructor(
     private fb: FormBuilder,
     private toastr: ToastrService,
+    private dialog: MatDialog,
     private dialogRef: MatDialogRef<IniciarRepmercancia>,
     private recepcionService: RecepcionMercanciaService,
     @Inject(MAT_DIALOG_DATA) public data: OrdenCompra
@@ -145,14 +147,8 @@ export class IniciarRepmercancia implements OnInit {
   finalizarRecepcion(): void {
 
     if (this.form.invalid) {
-
       this.form.markAllAsTouched();
-
-      this.toastr.warning(
-        'Complete los campos obligatorios.',
-        'Validación'
-      );
-
+      this.toastr.warning('Complete los campos obligatorios.', 'Validación');
       return;
     }
 
@@ -161,62 +157,61 @@ export class IniciarRepmercancia implements OnInit {
     const recepcion = {
       ordenCompraId: this.orden.id,
       ...datos,
-
-      detalles: datos.detalles
-        .filter((x: any) => x.seleccionado)
-        .map((x: any) => ({
-
-          ordenCompraDetalleId: Number(x.ordenCompraDetalleId),
-          cantidadRecibida: Number(x.cantidadRecibida),
-          bultosRecibidos: Number(x.bultosRecibidos),
-          loteProveedor: x.loteProveedor,
-          estadoMaterial: x.estadoMaterial,
-          observaciones: x.observaciones || null
-
-        }))
+      detalles: datos.detalles.filter((x: any) => x.seleccionado).map((x: any) => ({
+        ordenCompraDetalleId: Number(x.ordenCompraDetalleId),
+        cantidadRecibida: Number(x.cantidadRecibida),
+        bultosRecibidos: Number(x.bultosRecibidos),
+        loteProveedor: x.loteProveedor,
+        estadoMaterial: x.estadoMaterial,
+        observaciones: x.observaciones || null
+      }))
     };
 
-    this.recepcionService
-      .crear(recepcion)
-      .subscribe({
+    this.dialog.open(SelectorUsuarios, {
+      width: '90vw',
+      maxWidth: '1400px',
+      height: '85vh',
+      disableClose: true
+    }).afterClosed().subscribe(idsUsuarios => {
 
-        next: (respuesta) => {
-          console.log('Recepción creada:', respuesta);
-          console.log('ID recepción:', respuesta.id);
+      if (!idsUsuarios?.length) {
+        this.toastr.warning('Seleccione al menos un destinatario.', 'Correo');
+        return;
+      }
 
-          this.recepcionService
-            .obtenerEtiquetas(respuesta.id)
-            .subscribe(pdf => {
+      recepcion.usuarios = idsUsuarios;
 
-              console.log('PDF recibido');
+      this.recepcionService.crear(recepcion).subscribe({
+        next: respuesta => {
 
-              const url = URL.createObjectURL(pdf);
+          this.recepcionService.obtenerEtiquetas(respuesta.id).subscribe(pdf => {
 
-              window.open(url, '_blank');
+            const url = URL.createObjectURL(pdf);
+            window.open(url, '_blank');
 
-              this.toastr.success(
-                `${respuesta.totalBultos} bultos recibidos correctamente.`,
-                'Recepción Finalizada'
-              );
+            this.toastr.success(
+              `${respuesta.totalBultos} bultos recibidos correctamente.`,
+              'Recepción Finalizada'
+            );
 
-              this.dialogRef.close(respuesta);
-            });
+            this.dialogRef.close(respuesta);
+
+          });
+
         },
-
-        error: (error) => {
+        error: error => {
 
           if (error.status === 409) {
             this.toastr.warning(error.error.mensaje, 'Recepción');
             return;
           }
 
-          this.toastr.error(
-            'No fue posible guardar la recepción',
-            'Error'
-          );
-        }
+          this.toastr.error('No fue posible guardar la recepción', 'Error');
 
+        }
       });
+
+    });
   }
 
   cerrar(): void {

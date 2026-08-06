@@ -19,6 +19,7 @@
         public string Cargo { get; set; } = string.Empty;
 
         public string? Observaciones { get; set; }
+        public List<int> Usuarios { get; set; } = new();
 
         public List<RecepcionMercanciaDetalleDto> Detalles { get; set; }
             = new();

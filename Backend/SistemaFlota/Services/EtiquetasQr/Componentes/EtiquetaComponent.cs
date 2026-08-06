@@ -1,7 +1,7 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using SistemaFlota.Models.Costos.RecepcionMercancia;
+using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Services.ImpresionEtiquetas.Componentes;
 
 namespace SistemaFlota.Services.Pdf.EtiquetasQR.Components;
@@ -10,7 +10,7 @@ public static class EtiquetaComponent
 {
     public static void Dibujar(
         IContainer container,
-        SistemaFlota.Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion,
+        SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
         RecepcionMercanciaDetalle detalle,
         int numeroEtiqueta)
     {

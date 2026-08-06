@@ -150,6 +150,8 @@ tbody {
     color: #334155;
     text-transform: capitalize;
     white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
   }
 }
 
@@ -484,6 +486,14 @@ tbody td {
 }
 
 @media(max-width:768px) {
+
+  .title,
+  h2 {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+  }
+
   .sidebar {
     transform: translateX(-250px);
   }
@@ -498,44 +508,6 @@ tbody td {
 
   .btn-hamburguesa {
     display: block;
-  }
-
-  .tabla-responsive {
-    display: block;
-  }
-
-  .tabla-responsive thead {
-    display: none;
-  }
-
-  .tabla-responsive tbody tr {
-    display: block;
-    margin-bottom: 18px;
-    padding: 18px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, .08);
-    backdrop-filter: blur(12px);
-
-  }
-
-  .tabla-responsive tbody td {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-    color: white;
-  }
-
-  .tabla-responsive tbody td:last-child {
-    border: none;
-  }
-
-  .tabla-responsive tbody td::before {
-    content: attr(data-label);
-    font-weight: bold;
-    color: var(--primary);
-    text-transform: uppercase;
-    font-size: 12px;
   }
 
   .stats-grid {

@@ -1,6 +1,6 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using SistemaFlota.Models.Costos.RecepcionMercancia;
+using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Services.Pdf.Styles;
 
 namespace SistemaFlota.Services.Pdf.Components;

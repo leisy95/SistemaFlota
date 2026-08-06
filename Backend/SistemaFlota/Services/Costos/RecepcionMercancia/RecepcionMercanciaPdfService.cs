@@ -19,7 +19,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
     public async Task<byte[]> GenerarPdfAsync(int idRecepcion)
     {
-        var recepcion = await _context.RecepcionesMercancia
+        var recepcion = await _context.RecepcionesMercancias
             .AsNoTracking()
             .Include(r => r.OrdenCompra)
                 .ThenInclude(o => o.Proveedor)
@@ -60,7 +60,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
     private void ConstruirDocumento(
     PageDescriptor page,
-    Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
     ConfiguracionEmpresa empresa)
     {
         page.Header()
@@ -102,30 +102,132 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
     private void DibujarDatosRecepcion(
     ColumnDescriptor col,
-    Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion)
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        // Card con número de recepción, fecha, recibe, cargo...
+        col.Item().Element(x =>
+        {
+            Card.Dibujar(x, "DATOS DE LA RECEPCIÓN", contenido =>
+            {
+                contenido.Item().Row(row =>
+                {
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text($"Recepción: {recepcion.NumeroRecepcion}");
+                        c.Item().Text($"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy}");
+                    });
+
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text($"Recibe: {recepcion.Recibe}");
+                        c.Item().Text($"Cargo: {recepcion.Cargo}");
+                    });
+                });
+            });
+        });
     }
 
     private void DibujarDatosOrden(
-        ColumnDescriptor col,
-        Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion)
+    ColumnDescriptor col,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        // Card con orden de compra, proveedor...
+        col.Item().Element(x =>
+        {
+            Card.Dibujar(x, "ORDEN DE COMPRA", contenido =>
+            {
+                contenido.Item().Text($"Orden: {recepcion.OrdenCompra?.Numero}");
+                contenido.Item().Text($"Proveedor: {recepcion.OrdenCompra?.Proveedor?.Nombre}");
+                contenido.Item().Text($"Fecha de orden: {recepcion.OrdenCompra?.FechaOrden:dd/MM/yyyy}");
+
+                if (recepcion.OrdenCompra?.FechaEntrega != null)
+                    contenido.Item().Text($"Fecha de entrega: {recepcion.OrdenCompra.FechaEntrega:dd/MM/yyyy}");
+
+                contenido.Item().Text($"Estado: {recepcion.OrdenCompra?.Estado}");
+            });
+        });
     }
 
     private void DibujarTransporte(
-        ColumnDescriptor col,
-        Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion)
+    ColumnDescriptor col,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        // Card con conductor, transportadora, tipo documento...
+        col.Item().Element(x =>
+        {
+            Card.Dibujar(x, "TRANSPORTE", contenido =>
+            {
+                contenido.Item().Text($"Conductor: {recepcion.Conductor}");
+                contenido.Item().Text($"Transportadora: {recepcion.Transportadora}");
+                contenido.Item().Text($"Tipo de documento: {recepcion.TipoDocumento}");
+                contenido.Item().Text($"Embalaje adecuado: {(recepcion.EmbalajeAdecuado ? "Sí" : "No")}");
+            });
+        });
     }
 
     private void DibujarResumen(
-        ColumnDescriptor col,
-        Models.Costos.RecepcionMercancia.RecepcionMercancia recepcion)
+    ColumnDescriptor col,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        // Totales recibidos
+        col.Item().Element(x =>
+        {
+            Card.Dibujar(x, "RESUMEN DE LA RECEPCIÓN", contenido =>
+            {
+                contenido.Item().Text($"Total de materiales: {recepcion.OrdenCompra?.TotalItems}");
+
+                contenido.Item().Text($"Total Kg: {recepcion.OrdenCompra?.TotalKg:N2}");
+
+                contenido.Item().Text($"Total bultos: {recepcion.OrdenCompra?.TotalBultos:N2}");
+
+                contenido.Item().Text($"Subtotal: ${recepcion.OrdenCompra?.Subtotal:N2}");
+
+                contenido.Item().Text($"Impuesto ({recepcion.OrdenCompra?.PorcentajeImpuesto:N0}%): ${recepcion.OrdenCompra?.ValorImpuesto:N2}");
+
+                contenido.Item().Text($"Costo total: ${recepcion.OrdenCompra?.TotalPagar:N2}");
+            });
+        });
+    }
+
+    private void DibujarEstadoProceso(
+    ColumnDescriptor col,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    {
+        col.Item().Element(x =>
+        {
+            Card.Dibujar(x, "ESTADO DEL PROCESO", contenido =>
+            {
+                // Etapa 1
+                contenido.Item().Text("ORDEN CREADA").Bold().FontSize(11);
+
+                contenido.Item().PaddingLeft(15).Column(c =>
+                {
+                    c.Item().Text($"Orden: {recepcion.OrdenCompra?.Numero}");
+                    c.Item().Text($"Fecha: {recepcion.OrdenCompra?.FechaCreacion:dd/MM/yyyy HH:mm}");
+                    c.Item().Text($"Estado: {recepcion.OrdenCompra?.Estado}");
+                });
+
+                contenido.Item().PaddingTop(10);
+
+                // Etapa 2
+                contenido.Item().Text("MERCANCÍA RECIBIDA").Bold().FontSize(11);
+
+                contenido.Item().PaddingLeft(15).Column(c =>
+                {
+                    c.Item().Text($"Recibe: {recepcion.Recibe}");
+                    c.Item().Text($"Cargo: {recepcion.Cargo}");
+                    c.Item().Text($"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy HH:mm}");
+                });
+
+                contenido.Item().PaddingTop(10);
+
+                // Etapa 3
+                contenido.Item().Text("RECEPCIÓN CONFIRMADA").Bold().FontSize(11);
+
+                contenido.Item().PaddingLeft(15).Column(c =>
+                {
+                    c.Item().Text("Estado: Pendiente");
+                    c.Item().Text("Usuario: ---");
+                    c.Item().Text("Fecha: ---");
+                });
+            });
+        });
     }
 
     private string ObtenerLogo()

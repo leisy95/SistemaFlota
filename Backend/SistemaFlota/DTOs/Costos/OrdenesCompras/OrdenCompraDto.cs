@@ -36,6 +36,8 @@ public class OrdenCompraDto
 
     public string Estado { get; set; } = string.Empty;
 
+    public int? RecepcionId { get; set; }
+
     public string? Observaciones { get; set; }
 
     // Auditoría

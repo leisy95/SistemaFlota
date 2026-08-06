@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
 using SistemaFlota.Models.Consecutivo;
+using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.OrdenesCompras;
-using SistemaFlota.Models.Costos.RecepcionMercancia;
+using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 namespace SistemaFlota
@@ -58,8 +59,9 @@ namespace SistemaFlota
         public DbSet<Material> Materiales { get; set; }
         public DbSet<OrdenCompra> OrdenesCompra { get; set; }
         public DbSet<OrdenCompraDetalle> OrdenesCompraDetalle { get; set; }
-        public DbSet<RecepcionMercancia> RecepcionesMercancia { get; set; }
+        public DbSet<RecepcionMercancia> RecepcionesMercancias { get; set; }
         public DbSet<RecepcionMercanciaDetalle> RecepcionesMercanciaDetalle { get; set; }
+        public DbSet<Inventario> Inventarios { get; set; }
         public DbSet<Consecutivo> Consecutivos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -104,8 +106,8 @@ namespace SistemaFlota
 
             modelBuilder.Entity<RecepcionMercancia>()
                 .HasOne(r => r.OrdenCompra)
-                .WithMany()
-                .HasForeignKey(r => r.OrdenCompraId)
+                .WithOne(o => o.RecepcionMercancia)
+                .HasForeignKey<RecepcionMercancia>(r => r.OrdenCompraId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<RecepcionMercanciaDetalle>()
@@ -119,6 +121,16 @@ namespace SistemaFlota
                 .WithMany()
                 .HasForeignKey(d => d.OrdenCompraDetalleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Inventario>()
+                .HasOne(i => i.Material)
+                .WithMany()
+                .HasForeignKey(i => i.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Inventario>()
+                .HasIndex(i => new { i.MaterialId, i.Color })
+                .IsUnique();
 
             modelBuilder.Entity<Consecutivo>()
                 .HasIndex(x => x.Modulo)

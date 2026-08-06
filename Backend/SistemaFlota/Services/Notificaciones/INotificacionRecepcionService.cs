@@ -2,5 +2,5 @@
 
 public interface INotificacionRecepcionService
 {
-    Task EnviarRecepcionMercanciaAsync(int recepcionId);
+    Task EnviarRecepcionMercanciaAsync(int recepcionId, List<int> usuarios);
 }

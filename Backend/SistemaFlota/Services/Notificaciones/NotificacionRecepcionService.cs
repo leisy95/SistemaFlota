@@ -25,44 +25,39 @@ public class NotificacionRecepcionService : INotificacionRecepcionService
     }
 
 
-    public async Task EnviarRecepcionMercanciaAsync(int recepcionId)
+    public async Task EnviarRecepcionMercanciaAsync(int recepcionId, List<int> usuarios)
     {
-        var recepcion = await _context.RecepcionesMercancia
+        var recepcion = await _context.RecepcionesMercancias
             .Include(x => x.OrdenCompra)
                 .ThenInclude(x => x.Proveedor)
             .FirstOrDefaultAsync(x => x.Id == recepcionId);
 
-
         if (recepcion == null)
             throw new Exception("Recepción no encontrada");
 
-
-        var correo = recepcion
-            .OrdenCompra?
-            .Proveedor?
-            .CorreoElectronico;
-
-
-        if (string.IsNullOrWhiteSpace(correo))
-            return;
-
+        var destinatarios = await _context.Usuarios
+            .Where(u => usuarios.Contains(u.Id) &&
+                        u.Activo &&
+                        !string.IsNullOrWhiteSpace(u.Email))
+            .ToListAsync();
 
         var pdf = await _pdfService.GenerarPdfAsync(recepcionId);
 
-
         var html = _template.RecepcionMercancia(
             recepcion.NumeroRecepcion,
-            recepcion.OrdenCompra.Proveedor.Nombre,
+            recepcion.OrdenCompra!.Proveedor.Nombre,
             recepcion.FechaRecepcion
         );
 
-
-        await _emailService.EnviarAsync(
-            correo,
-            $"Recepción mercancía {recepcion.NumeroRecepcion}",
-            html,
-            pdf,
-            $"Recepcion_{recepcion.NumeroRecepcion}.pdf"
-        );
+        foreach (var usuario in destinatarios)
+        {
+            await _emailService.EnviarAsync(
+                usuario.Email!,
+                $"Recepción mercancía {recepcion.NumeroRecepcion}",
+                html,
+                pdf,
+                $"Recepcion_{recepcion.NumeroRecepcion}.pdf"
+            );
+        }
     }
 }

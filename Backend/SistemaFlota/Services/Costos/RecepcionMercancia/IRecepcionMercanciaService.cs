@@ -18,7 +18,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         Task<RecepcionFormularioDto?> ObtenerFormularioAsync(int ordenCompraId);
 
         Task<RecepcionMercanciaDto> CrearAsync(CrearRecepcionMercanciaDto dto);
-
+        Task ConfirmarRecepcionAsync(int id);
         Task<bool> ActualizarAsync(int id, ActualizarRecepcionMercanciaDto dto);
 
         Task<bool> EliminarAsync(int id);

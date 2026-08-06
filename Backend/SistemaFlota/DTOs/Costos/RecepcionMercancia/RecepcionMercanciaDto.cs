@@ -23,8 +23,7 @@
         public decimal TotalKg { get; set; }
 
         public decimal TotalBultos { get; set; }
-
-        public List<RecepcionMercanciaDetalleDto> Detalles { get; set; }
+        public List<RecepcionDetalleConsultaDto> Detalles { get; set; }
             = new();
     }
 }

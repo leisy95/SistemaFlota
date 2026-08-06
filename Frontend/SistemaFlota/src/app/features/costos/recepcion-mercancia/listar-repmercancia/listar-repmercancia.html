@@ -62,13 +62,17 @@
 
             </div>
 
-            <button class="btn btn-agregar" (click)="iniciarRecepcion()"
-                [disabled]="ordenSeleccionada?.estado === 'Recepcionada'">
+            <button class="btn btn-agregar" (click)="ordenSeleccionada?.estado === 'Recepcionada'
+                    ? verRecepcion(ordenSeleccionada)
+                    : iniciarRecepcion()">
 
-                <i class="fa-solid fa-cube me-2"></i>
+                <i class="fa-solid" [ngClass]="ordenSeleccionada?.estado === 'Recepcionada'
+                    ? 'fa-clipboard-check'
+                    : 'fa-cube'">
+                </i>
 
                 {{ ordenSeleccionada?.estado === 'Recepcionada'
-                ? 'Recepción realizada'
+                ? 'Revisar y Confirmar Recepción'
                 : 'Iniciar Recepción' }}
 
             </button>
@@ -85,8 +89,8 @@
         </h2>
 
         <div class="orden-item" [ngClass]="{
-                'orden-recepcionada': orden.estado === 'Recepcionada'
-                }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
+        'orden-recepcionada': orden.estado === 'Recepcionada'
+             }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
 
             <div class="orden-info">
 
