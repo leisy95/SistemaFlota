@@ -629,3 +629,24 @@ tbody {
   align-items: center;
   justify-content: center;
 }
+.input-valor-numerico {
+  display: block;
+  width: 100%;
+  max-width: 60px;
+  margin: 4px auto 0;
+  padding: 3px 4px;
+  border: 1px solid var(--verde-principal);
+  border-radius: 5px;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #f0faf5;
+  color: var(--gris-oscuro);
+
+  &::placeholder { color: #aaa; }
+
+  &:focus {
+    outline: none;
+    border-color: var(--verde-principal);
+    box-shadow: 0 0 0 2px rgba(26, 127, 90, 0.15);
+  }
+}

@@ -66,6 +66,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         cierreDeOperario: boolean;
         kilosDesperdicio: string;
         valores: { [caracteristicaId: number]: 'cumple' | 'noCumple' | 'na' | null };
+        valoresNumericos: { [caracteristicaId: number]: string };
     }[] = [];
     observaciones: { [caracteristicaId: number]: string } = {};
     tieneRondaFinal = false;
@@ -82,6 +83,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     opExistente: any = null;
     clienteDetectado: string | null = null;
     referenciaDetectada: string | null = null;
+    descripcionDetectada: string | null = null;
     opcionesMaquina: any[] = [];
     opcionesCorona: any[] = [];
     opcionesMolde: any[] = [];
@@ -148,11 +150,12 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
 
         const valores: { [key: number]: 'cumple' | 'noCumple' | 'na' | null } = {};
-        for (const c of this.caracteristicas) valores[c.id] = null;
+        const valoresNumericos: { [key: number]: string } = {};
+        for (const c of this.caracteristicas) { valores[c.id] = null; valoresNumericos[c.id] = ''; }
 
         this.rondas.push({
             hora: horaTexto, final: false, operario: this.operarioRondaNueva,
-            cierreDeOperario: false, kilosDesperdicio: '', valores
+            cierreDeOperario: false, kilosDesperdicio: '', valores, valoresNumericos
         });
         this.operarioRondaNueva = '';
     }
@@ -172,6 +175,12 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         const porColumna = disponible / totalRondas;
         return `${Math.max(porColumna, 6)}%`; // nunca menos de 6% para que no desaparezca
     }
+    esCaracteristicaNumerica(descripcion: string): boolean {
+        const desc = descripcion.toLowerCase();
+        return desc.includes('medida de película') || desc.includes('medida de pelicula') ||
+            desc.includes('calibre de película') || desc.includes('calibre de pelicula');
+    }
+
     marcarRondaFinal(indice: number) {
         if (!confirm('¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.')) return;
         this.rondas.forEach((r, i) => r.final = (i === indice));
@@ -232,8 +241,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                         this.form.referencia = data.referencia;
                         this.clienteDetectado = data.cliente;
                         this.referenciaDetectada = data.referencia;
+                        this.descripcionDetectada = data.descripcion;
                     },
-                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; }
+                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; }
                 });
             }
         });
