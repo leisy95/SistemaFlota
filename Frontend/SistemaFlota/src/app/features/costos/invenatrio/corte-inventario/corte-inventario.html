@@ -1,0 +1,83 @@
+<div class="modal">
+
+    <div class="header">
+        <div>
+            <h2>
+                <i class="fa-solid fa-boxes-stacked"></i>
+                Corte de Inventario - Mes
+            </h2>
+            <p>Ingrese el conteo físico de cada item</p>
+        </div>
+
+        <button class="close" (click)="cerrarModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Proveedor</th>
+                    <th>Material</th>
+                    <th>Color</th>
+                    <th>Peso (KG)</th>
+                    <th>Conteo Físico (KG)</th>
+                    <th>Diferencia</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let item of items" [class.fila-negativa]="item.diferencia < 0">
+
+                    <td class="proveedor">
+                        {{ item.proveedor }}
+                    </td>
+
+                    <td>
+                        {{ item.material }}
+                    </td>
+
+                    <td class="color">
+                        {{ item.color }}
+                    </td>
+
+                    <td class="numero">
+                        {{ item.sistema }}
+                    </td>
+
+                    <td>
+                        <input type="number" [(ngModel)]="item.conteo" (input)="actualizar(item)" min="0"
+                            [class.input-error]="item.conteo < 0">
+                    </td>
+
+                    <td>
+                        {{ item.diferencia }}
+                    </td>
+
+                </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <div class="footer">
+
+        <button class="btn-cancelar">
+            <i class="fa-solid fa-ban"></i>
+            Cancelar
+        </button>
+
+        <button class="btn-agregar" (click)="guardar()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Guardar Corte
+        </button>
+
+    </div>
+
+</div>

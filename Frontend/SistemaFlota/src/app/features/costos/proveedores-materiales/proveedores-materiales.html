@@ -1,0 +1,21 @@
+<div class="contenedor">
+    <div class="header-card">
+        <h1>Gestión de Proveedores</h1>
+        <div class="tabs">
+            <button class="tab" [class.active]="vista == 'proveedores'" (click)="vista='proveedores'">
+                <i class="fa-solid fa-users"></i>
+                Proveedores
+            </button>
+            <button class="tab" [class.active]="vista == 'materiales'" (click)="vista='materiales'">
+                <i class="fa-solid fa-cube"></i>
+                Materiales por Proveedor
+            </button>
+        </div>
+    </div>
+    @if(vista=='proveedores'){
+    <app-listar-proveedores></app-listar-proveedores>
+    }
+    @if(vista=='materiales'){
+    <app-listar-materiales></app-listar-materiales>
+    }
+</div>

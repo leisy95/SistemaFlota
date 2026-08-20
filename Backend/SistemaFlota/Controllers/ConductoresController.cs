@@ -26,11 +26,6 @@ namespace SistemaFlota
         {
             _context = context;
         }
-
-        // =========================
-        // HELPERS
-        // =========================
-
        
         private string? NormalizarTelefono(string? telefono)
         {
@@ -45,9 +40,7 @@ namespace SistemaFlota
             return limpio;
         }
 
-        // =========================
         // GET
-        // =========================
 
         [HttpGet]
         [Authorize(Roles = "Admin,Conductor,Facturacion,jefe,Vendedor,Bodega")]

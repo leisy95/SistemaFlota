@@ -1,0 +1,374 @@
+<div class="container">
+
+    <div class="header">
+        <div class="header-titulo">
+
+            <div>
+                <h1>Orden de Traslado</h1>
+                <p>Detalle y trazabilidad de la orden</p>
+            </div>
+
+            <button class="btn-cerrar" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" *ngIf="cargando">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Cargando orden...
+    </div>
+
+    <ng-container *ngIf="!cargando && orden">
+
+        <!-- ENCABEZADO DE LA ORDEN -->
+        <div class="card orden-card">
+
+            <div class="orden-header">
+
+                <div class="orden-principal">
+
+                    <div class="orden-icon">
+                        <i class="fa-solid fa-right-left"></i>
+                    </div>
+
+                    <div class="orden-datos">
+
+                        <div class="orden-titulo">
+
+                            <h2>
+                                {{ orden.numeroOrden }}
+                            </h2>
+
+                            <span class="estado" [ngClass]="obtenerClaseEstado(orden.estado)">
+                                {{ orden.estado }}
+                            </span>
+
+                        </div>
+
+                        <div class="destino">
+                            <i class="fa-solid fa-location-dot"></i>
+                            Destino: {{ orden.destino }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- INFORMACIÓN GENERAL -->
+            <div class="separador"></div>
+
+            <div class="seccion">
+
+                <div class="seccion-titulo">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Información de la orden
+                </div>
+
+                <div class="informacion-grid">
+
+                    <div class="informacion-item">
+                        <span>Fecha</span>
+                        <strong>
+                            {{ orden.fecha | date:'dd/MM/yyyy HH:mm' }}
+                        </strong>
+                    </div>
+
+                    <div class="informacion-item">
+                        <span>Usuario</span>
+                        <strong>
+                            {{ orden.usuario }}
+                        </strong>
+                    </div>
+
+                    <div class="informacion-item">
+                        <span>Total KG</span>
+                        <strong>
+                            {{ orden.totalKg | number:'1.0-2' }} kg
+                        </strong>
+                    </div>
+
+                    <div class="informacion-item">
+                        <span>Total bultos</span>
+                        <strong>
+                            {{ orden.totalBultos | number:'1.0-2' }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MATERIALES -->
+        <div class="card">
+
+            <div class="seccion-header">
+
+                <div>
+                    <div class="seccion-titulo">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        Materiales
+                    </div>
+
+                    <p>
+                        Materiales incluidos en la orden de traslado
+                    </p>
+                </div>
+
+                <span class="cantidad-items">
+                    {{ orden.materiales.length }} items
+                </span>
+
+            </div>
+
+            <div class="tabla-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Tipo</th>
+                            <th>Densidad</th>
+                            <th>Color</th>
+                            <th>KG</th>
+                            <th>Bultos</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr *ngFor="let detalle of orden.materiales">
+
+                            <td>
+                                <strong>
+                                    {{ detalle.proveedor }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ detalle.tipo }}
+                            </td>
+
+                            <td>
+                                {{ detalle.densidad }}
+                            </td>
+
+                            <td>
+                                {{ detalle.color }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ detalle.cantidadKg | number:'1.0-2' }}
+                                </strong>
+                                kg
+                            </td>
+
+                            <td>
+                                {{ detalle.bultos | number:'1.0-2' }}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                    <tfoot>
+
+                        <tr>
+                            <td colspan="4">
+                                <strong>Total</strong>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ orden.totalKg | number:'1.0-2' }} kg
+                                </strong>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ orden.totalBultos | number:'1.0-2' }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- TRAZABILIDAD -->
+        <div class="card">
+            <div class="seccion-titulo">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Trazabilidad
+            </div>
+
+            <div class="timeline">
+
+                <!-- CREACIÓN -->
+                <div class="timeline-item activo">
+                    <div class="timeline-icon">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                    </div>
+
+                    <div class="timeline-content">
+                        <strong>Orden creada</strong>
+
+                        <span>
+                            {{ orden.fecha | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+
+                        <p>
+                            La orden de traslado fue creada por
+                            <strong>{{ orden.usuario }}</strong>.
+                        </p>
+                    </div>
+                </div>
+
+
+                <!-- VERIFICACIÓN -->
+                <div class="timeline-item" [class.activo]="orden.fechaVerificacion">
+
+                    <div class="timeline-icon">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+
+                    <div class="timeline-content">
+
+                        <strong>
+                            Verificación de materiales
+                        </strong>
+
+                        <!-- Cuando ya fue verificada -->
+                        <ng-container *ngIf="orden.fechaVerificacion; else verificacionPendiente">
+
+                            <span>
+                                {{ orden.fechaVerificacion | date:'dd/MM/yyyy HH:mm' }}
+                            </span>
+
+                            <p>
+                                Los materiales fueron verificados en bodega por
+                                <strong>
+                                    {{ orden.usuarioVerificacion || 'Usuario no disponible' }}
+                                </strong>.
+                            </p>
+
+                        </ng-container>
+
+                        <!-- Cuando todavía no se verifica -->
+                        <ng-template #verificacionPendiente>
+
+                            <span>
+                                Pendiente
+                            </span>
+
+                            <p>
+                                Aún no se ha realizado la verificación en bodega.
+                            </p>
+
+                        </ng-template>
+
+                    </div>
+                </div>
+
+
+                <!-- CONFIRMACIÓN -->
+                <div class="timeline-item" [class.activo]="orden.fechaConfirmacion">
+
+                    <div class="timeline-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+
+                    <div class="timeline-content">
+
+                        <strong>
+                            Confirmación final
+                        </strong>
+
+                        <!-- Cuando ya fue confirmada -->
+                        <ng-container *ngIf="orden.fechaConfirmacion; else confirmacionPendiente">
+
+                            <span>
+                                {{ orden.fechaConfirmacion | date:'dd/MM/yyyy HH:mm' }}
+                            </span>
+
+                            <p>
+                                La orden fue confirmada definitivamente por
+                                <strong>
+                                    {{ orden.usuarioConfirmacion || 'Usuario no disponible' }}
+                                </strong>.
+                            </p>
+
+                        </ng-container>
+
+                        <!-- Cuando todavía no se confirma -->
+                        <ng-template #confirmacionPendiente>
+
+                            <span>
+                                Pendiente
+                            </span>
+
+                            <p>
+                                La orden todavía no ha sido confirmada.
+                            </p>
+
+                        </ng-template>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="acciones">
+
+            <button class="btn-cancelar" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+                Cancelar
+            </button>
+
+            <button *ngIf="orden.estado === 'Pendiente'" class="btn-agregar" (click)="iniciarVerificacion()">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Verificar materiales
+            </button>
+
+            <button *ngIf="orden.estado === 'Verificando'" class="btn-agregar" (click)="confirmarOrden()">
+
+                <i class="fa-solid fa-circle-check"></i>
+                Confirmar orden
+            </button>
+
+        </div>
+
+    </ng-container>
+
+    <!-- NO ENCONTRADA -->
+    <div class="empty-state" *ngIf="!cargando && !orden">
+
+        <i class="fa-solid fa-file-circle-xmark"></i>
+
+        <h3>Orden no encontrada</h3>
+
+        <p>
+            No fue posible encontrar la orden de traslado solicitada.
+        </p>
+
+        <button class="btn-cerrar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+            Cerrar
+        </button>
+
+    </div>
+
+</div>

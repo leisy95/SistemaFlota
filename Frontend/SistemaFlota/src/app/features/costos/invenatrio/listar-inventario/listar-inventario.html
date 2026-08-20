@@ -1,0 +1,338 @@
+<div class="container">
+    <div class="header-card">
+
+        <h1 class="title">Inventario Actual</h1>
+
+        <div class="header-actions">
+            <button class="btn-excel" (click)="exportarExcel()">
+                <i class="fa-solid fa-file-excel"></i>
+                Exportar Excel
+            </button>
+
+            <button class="btn-agregar" (click)="corteMes()">
+                <i class="fa-solid fa-calendar-days"></i>
+                Corte de Mes
+            </button>
+        </div>
+
+    </div>
+
+    <div class="cards-resumen">
+
+        <div class="card-resumen">
+            <div class="icon azul">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div class="contenido">
+                <span>Total Items</span>
+                <h2>{{ totalItems }}</h2>
+            </div>
+        </div>
+
+        <div class="card-resumen">
+            <div class="icon verde">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+
+            <div class="contenido">
+                <span>Total KG</span>
+                <h2>{{ totalKg | number }}</h2>
+            </div>
+        </div>
+
+        <div class="card-resumen">
+            <div class="icon morado">
+                <i class="fa-solid fa-cube"></i>
+            </div>
+
+            <div class="contenido">
+                <span>Total Bultos</span>
+                <h2>{{ totalBultos }}</h2>
+            </div>
+        </div>
+
+        <div class="card-resumen">
+            <div class="icon naranja">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+
+            <div class="contenido">
+                <span>Valor Total</span>
+                <h2>{{ valorInventario | currency:'COP':'symbol':'1.0-0' }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="cpp-card">
+
+        <div class="cpp-header">
+            <div class="cpp-title">
+                <i class="fa-solid fa-calculator"></i>
+
+                <div>
+                    <h2>Calculadora de Costo Promedio Ponderado (CPP)</h2>
+                    <span>Simule el impacto de una nueva compra sobre el costo promedio del inventario.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cpp-form">
+
+            <div class="form-group">
+                <label>Material</label>
+                <select [(ngModel)]="materialSeleccionadoId" (change)="seleccionarMaterial()">
+                    <option [ngValue]="0">Seleccione...</option>
+                    <option *ngFor="let m of materiales" [ngValue]="m.id">
+                        {{ m.material }} - {{ m.color }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group azul">
+                <label>Stock Actual (KG)</label>
+                <input type="text" [value]="cpp.stockActual | number:'1.0-2'" readonly>
+            </div>
+
+            <div class="form-group morado">
+                <label>Costo Promedio ($/KG)</label>
+                <input type="text" [value]="cpp.costoActual | currency:'COP':'symbol':'1.0-0'" readonly>
+            </div>
+
+            <div class="form-group amarillo">
+                <label>Compra Nueva (KG)</label>
+                <input type="number" [(ngModel)]="cpp.compraNueva" (input)="calcularCPP()">
+            </div>
+
+            <div class="form-group rojo">
+                <label>Precio Nueva Compra ($/KG)</label>
+                <input type="number" [(ngModel)]="cpp.precioNuevo" (input)="calcularCPP()">
+            </div>
+
+        </div>
+
+        <div class="resultado-vacio" *ngIf="!mostrarResultado">
+            <i class="fa-solid fa-calculator"></i>
+            <p>Ingrese la cantidad y el precio de la compra para calcular el nuevo costo promedio.</p>
+        </div>
+
+        <div class="resultado-grid" *ngIf="mostrarResultado">
+
+            <div class="resultado-card">
+                <span>Nuevo CPP</span>
+                <h3>{{ resultadoCpp.nuevoCosto | currency:'COP':'symbol':'1.0-0' }}</h3>
+            </div>
+
+            <div class="resultado-card">
+                <span>Valor Compra</span>
+                <h3>{{ resultadoCpp.valorCompra | currency:'COP':'symbol':'1.0-0' }}</h3>
+            </div>
+
+            <div class="resultado-card">
+                <span>Nuevo Valor Inventario</span>
+                <h3>{{ resultadoCpp.nuevoInventario | currency:'COP':'symbol':'1.0-0' }}</h3>
+            </div>
+
+            <div class="resultado-card">
+                <span>Nuevo Stock</span>
+                <h3>{{ resultadoCpp.nuevoStock | number }} KG</h3>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="general">
+        <div class="filtros-card">
+
+            <div class="filtros-header">
+                <div>
+                    <h2>Inventario de Materiales</h2>
+                    <span>Consulte y administre el inventario disponible.</span>
+                </div>
+
+                <button class="btn-outline" (click)="limpiarFiltros()">
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                    Limpiar filtros
+                </button>
+            </div>
+
+            <div class="filtros">
+
+                <div class="form-group">
+                    <label>Buscar</label>
+
+                    <div class="input-icon">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" [(ngModel)]="buscar" (ngModelChange)="buscarInventario()"
+                            placeholder="Código, material o proveedor">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Proveedor</label>
+
+                    <select [(ngModel)]="proveedorId" (ngModelChange)="filtrar()">
+                        <option [ngValue]="null">Todos</option>
+
+                        <option *ngFor="let p of proveedores" [ngValue]="p.id">
+                            {{ p.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tipo Material</label>
+
+                    <select [(ngModel)]="tipoMaterial" (ngModelChange)="filtrar()">
+                        <option [ngValue]="null">Todos</option>
+
+                        <option *ngFor="let categoria of categorias" [ngValue]="categoria">
+                            {{ categoria }}
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="table-card">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Material</th>
+                        <th>Proveedor</th>
+                        <th>Densidad</th>
+                        <th>Color</th>
+                        <th class="text-right">Stock</th>
+                        <th class="text-right">Costo Promedio</th>
+                        <th class="text-right">Valor Total</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let material of materiales">
+                        <td><span class="badge">{{ material.tipo }}</span></td>
+                        <td>{{ material.material }}</td>
+                        <td>{{ material.proveedor }}</td>
+                        <td>{{ material.densidad }}</td>
+                        <td>{{ material.color }}</td>
+
+                        <td class="text-right">
+                            {{ material.stockActual | number:'1.0-2' }} KG
+                        </td>
+
+                        <td class="text-right">
+                            {{ material.costoPromedio | currency:'COP':'symbol':'1.0-0' }}
+                        </td>
+
+                        <td class="text-right">
+                            {{ material.valorInventario | currency:'COP':'symbol':'1.0-0' }}
+                        </td>
+
+                        <td class="acciones">
+                            <button class="btn-editar" title="Editar" (click)="editar(material)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+
+                            <button class="btn-icon warning" title="Movimientos" (click)="historial(material)">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </button>
+
+                            <button class="btn-icon" title="Historial de cortes" (click)="historialCortes()">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="paginacion">
+
+                <div class="info">
+                    Mostrando
+                    {{ ((page - 1) * pageSize) + 1 }}
+                    -
+                    {{ hastaRegistro }}
+                    de
+                    {{ totalRegistros }}
+                    registros
+                </div>
+
+                <div class="acciones">
+
+                    <select [(ngModel)]="pageSize" (change)="cambiarPageSize()">
+                        <option *ngFor="let s of pageSizes" [ngValue]="s">
+                            {{ s }} por página
+                        </option>
+                    </select>
+
+                    <button (click)="cambiarPagina(1)" [disabled]="page==1">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </button>
+
+                    <button (click)="cambiarPagina(page-1)" [disabled]="page==1">
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+
+                    <span>Página {{ page }} de {{ totalPaginas }}</span>
+
+                    <button (click)="cambiarPagina(page+1)" [disabled]="page==totalPaginas">
+                        <i class="fa-solid fa-angle-right"></i>
+                    </button>
+
+                    <button (click)="cambiarPagina(totalPaginas)" [disabled]="page==totalPaginas">
+                        <i class="fa-solid fa-angles-right"></i>
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer-resumen">
+
+            <div class="resumen-card azul">
+                <div class="icon">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+
+                <div>
+                    <span>Total Materiales</span>
+                    <h2>{{ totalItems }}</h2>
+                    <small>Materiales registrados</small>
+                </div>
+            </div>
+
+            <div class="resumen-card verde">
+                <div class="icon">
+                    <i class="fa-solid fa-weight-scale"></i>
+                </div>
+
+                <div>
+                    <span>Total Kilogramos</span>
+                    <h2>{{ totalKg | number:'1.0-2' }} KG</h2>
+                    <small>Stock disponible</small>
+                </div>
+            </div>
+
+            <div class="resumen-card naranja">
+                <div class="icon">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+
+                <div>
+                    <span>Valor Inventario</span>
+                    <h2>{{ valorInventario | currency:'COP':'symbol':'1.0-0' }}</h2>
+                    <small>Costo total del inventario</small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

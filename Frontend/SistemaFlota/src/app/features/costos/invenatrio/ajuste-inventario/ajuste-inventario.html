@@ -1,0 +1,109 @@
+<div class="modal">
+
+    <div class="header">
+
+        <div>
+            <h2>
+                <i class="fa-solid fa-sliders"></i>
+                Ajuste Manual de Inventario
+            </h2>
+
+            <p>
+                Actualice el inventario del material seleccionado.
+            </p>
+        </div>
+
+        <button class="close" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+        <div class="contenido">
+
+            <div class="card material">
+
+                <div class="item">
+                    <label>Material</label>
+                    <span>{{ inventario?.material }}</span>
+                </div>
+
+                <div class="item">
+                    <label>Color</label>
+                    <span>{{ inventario?.color }}</span>
+                </div>
+
+                <div class="item">
+                    <label>Stock Actual</label>
+                    <span class="stock">{{ inventario?.stockActual | number:'1.2-2' }} Kg</span>
+                </div>
+
+                <div class="item">
+                    <label>Costo Promedio</label>
+                    <span>{{ inventario?.costoPromedio | currency:'COP':'symbol':'1.0-0' }}</span>
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="grid">
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+
+                        <select formControlName="tipo">
+                            <option value="">Seleccione</option>
+                            <option value="Entrada">Entrada</option>
+                            <option value="Salida">Salida</option>
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cantidad</label>
+
+                        <input type="number" formControlName="cantidad">
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Motivo</label>
+
+                        <input type="text" formControlName="motivo">
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Observaciones</label>
+
+                        <textarea rows="4" formControlName="observaciones">
+                        </textarea>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+
+            <button type="button" class="btn-cancelar" (click)="cerrar()">
+
+                Cancelar
+
+            </button>
+
+            <button type="submit" class="btn-agregar" [disabled]="form.invalid">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+                Guardar Ajuste
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>

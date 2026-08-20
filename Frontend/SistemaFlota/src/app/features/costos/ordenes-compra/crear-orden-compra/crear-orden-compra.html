@@ -1,0 +1,343 @@
+<div class="modal-overlay">
+    <div class="orden-modal">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div>
+                <h2>
+                    {{ modoEditar ? 'Editar Orden de Compra' : 'Nueva Orden de Compra' }}
+                </h2>
+                <p>Complete la información de la orden de compra</p>
+            </div>
+
+            <button class="btn-close" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <!-- Información General -->
+            <div class="card">
+
+                <h3>Información General</h3>
+
+                <div class="form-grid">
+
+                    <div class="form-group span-2">
+                        <label>Proveedor *</label>
+
+                        <select [(ngModel)]="orden.proveedorId">
+
+                            <option [value]="0">
+                                Seleccione
+                            </option>
+
+                            <option *ngFor="let p of proveedores" [ngValue]="p.idProveedor">
+
+                                {{p.nombre}}
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label>Forma de Pago *</label>
+
+                        <select [(ngModel)]="orden.formaPago">
+                            <option *ngFor="let forma of formasPago" [value]="forma">
+                                {{ forma }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Tipo de impuesto</label>
+
+                        <input type="text" [(ngModel)]="orden.tipoImpuesto"
+                            placeholder="Ej: IVA, Impoconsumo, Retefuente">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Porcentaje (%)</label>
+
+                        <input type="number" min="0" [(ngModel)]="orden.porcentajeImpuesto"
+                            (input)="actualizarTotales()">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Fecha de Orden</label>
+
+                        <input type="date" [(ngModel)]="orden.fechaOrden">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Fecha de Entrega</label>
+
+                        <input type="date" [(ngModel)]="orden.fechaEntrega">
+
+                    </div>
+
+                    <div class="form-group span-2">
+
+                        <label>Lugar de entrega *</label>
+
+                        <select [(ngModel)]="orden.lugarEntrega">
+
+                            <option value="Recogemos en planta del proveedor">
+                                Recogemos en planta del proveedor
+                            </option>
+
+                            <option value="Mercancía puesta en nuestras instalaciones">
+                                Mercancía puesta en nuestras instalaciones
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group span-4">
+
+                        <label>Observaciones</label>
+
+                        <textarea [(ngModel)]="orden.observaciones" rows="3"
+                            placeholder="Ingrese observaciones de la orden">
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ITEMS -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <h3>Items de la Orden</h3>
+
+                    <button class="btn-agregar" (click)="agregarItem()">
+
+                        <i class="fa-solid fa-plus"></i>
+
+                        Agregar Item
+
+                    </button>
+
+                </div>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>Tipo Material</th>
+                                <th>Color</th>
+                                <th>Cantidad (KG)</th>
+                                <th>KG/Bulto</th>
+                                <th>Bultos (Auto)</th>
+                                <th>Costo/KG</th>
+                                <th>Subtotal</th>
+                                <th>Acción</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr *ngFor="let item of items; let i=index">
+
+                                <td>
+
+                                    <select [(ngModel)]="item.materialId">
+
+                                        <option [ngValue]="0">
+                                            Seleccione
+                                        </option>
+
+                                        <option *ngFor="let m of materiales" [ngValue]="m.idMaterial">
+
+                                            {{m.nombreMaterial}}
+
+                                        </option>
+
+                                    </select>
+
+                                </td>
+
+                                <td>
+
+                                    <input type="text" [(ngModel)]="item.color" placeholder="Ingrese color">
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number" [(ngModel)]="item.kilos" (input)="calcular(i)">
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number" [(ngModel)]="item.kgBulto" (input)="calcular(i)">
+
+                                </td>
+
+                                <td>
+
+                                    <span class="valor">
+
+                                        {{item.bultos}}
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+
+                                    <input type="number" [(ngModel)]="item.costo" (input)="calcular(i)">
+
+                                </td>
+
+                                <td class="subtotal">
+
+                                    {{ item.subtotal | currency:'COP':'symbol':'1.0-0' }}
+
+                                </td>
+
+                                <td>
+
+                                    <button class="btn-eliminar" (click)="eliminarItem(i)">
+
+                                        <i class="fa-solid fa-trash"></i>
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- RESUMEN -->
+
+                <div class="summary">
+
+                    <!-- Total Items -->
+                    <div class="card-resumen">
+
+                        <i class="fa-solid fa-boxes-stacked icono"></i>
+
+                        <small>Total Items</small>
+
+                        <h2>{{ items.length }}</h2>
+
+                    </div>
+
+                    <!-- Total KG -->
+                    <div class="card-resumen">
+
+                        <i class="fa-solid fa-weight-hanging icono"></i>
+
+                        <small>Total KG</small>
+
+                        <h2>{{ totalKg }}</h2>
+
+                    </div>
+
+                    <!-- Total Bultos -->
+                    <div class="card-resumen">
+
+                        <i class="fa-solid fa-sack-dollar icono"></i>
+
+                        <small>Total Bultos</small>
+
+                        <h2>{{ totalBultos }}</h2>
+
+                    </div>
+
+                    <!-- Totales -->
+                    <div class="totales">
+
+                        <h3>
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                            Resumen de la Orden
+                        </h3>
+
+                        <div class="fila">
+                            <span>Subtotal</span>
+                            <strong>{{ subtotal | currency:'COP':'symbol':'1.0-0' }}</strong>
+                        </div>
+
+                        <div class="fila">
+                            <span>
+                                {{ orden.tipoImpuesto }}
+                                ({{ orden.porcentajeImpuesto }}%)
+                            </span>
+
+                            <strong>
+                                {{ valorImpuesto | currency:'COP':'symbol':'1.0-0' }}
+                            </strong>
+                        </div>
+
+                        <hr>
+
+                        <div class="fila total">
+                            <span>TOTAL</span>
+
+                            <strong>
+                                {{ totalPagar | currency:'COP':'symbol':'1.0-0' }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+
+        <div class="modal-footer">
+
+            <button class="btn-pdf" (click)="generarPdf()">
+
+                <i class="fa-solid fa-file-arrow-down"></i>
+
+                Generar PDF
+
+            </button>
+
+            <button class="btn-save" (click)="guardarOrden()">
+
+                <i class="fa-solid" [class.fa-file-circle-check]="!modoEditar" [class.fa-floppy-disk]="modoEditar">
+                </i>
+
+                {{ modoEditar ? 'Actualizar Orden' : 'Guardar Orden' }}
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

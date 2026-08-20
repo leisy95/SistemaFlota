@@ -8,16 +8,16 @@ export class UsuariosService {
 
   private apiUrl = `${environment.apiUrl}/Usuarios`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // GET TODOS — con paginación y búsqueda
   obtenerUsuarios(
-    pagina    = 1,
+    pagina = 1,
     porPagina = 20,
-    buscar    = ''
+    buscar = ''
   ): Observable<any> {
     let params = new HttpParams()
-      .set('pagina',    pagina.toString())
+      .set('pagina', pagina.toString())
       .set('porPagina', porPagina.toString());
 
     if (buscar?.trim())
@@ -71,5 +71,10 @@ export class UsuariosService {
 
   verificarModulo(username: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/verificar-modulo`, { username, password });
+  }
+
+  // Obtener usuario para enviar correo
+  obtenerDestinatarios(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/destinatarios`);
   }
 }

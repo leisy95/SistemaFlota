@@ -1,0 +1,159 @@
+<div class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h2>Nueva Orden de Traslado a Extrusión</h2>
+                <p>Registre el traslado de materiales de bodega a extrusión</p>
+            </div>
+            <button class="btn-cerrar" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <section class="seccion">
+                <h3>Información del Traslado</h3>
+                <div class="separador"></div>
+
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>Fecha *</label>
+                        <div class="input-icon">
+                            <input type="text" [(ngModel)]="fecha" readonly />
+                            <i class="fa-regular fa-calendar"></i>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Destino *</label>
+                        <input type="text" [(ngModel)]="destino" readonly />
+                    </div>
+
+                    <div class="campo">
+                        <label>Usuario *</label>
+                        <input type="text" [(ngModel)]="usuario" readonly />
+                    </div>
+                </div>
+            </section>
+
+            <section class="seccion">
+                <h3>Seleccionar Material</h3>
+                <div class="separador"></div>
+
+                <div class="material-selector">
+                    <div class="material-grid">
+
+                        <div class="select-wrapper">
+                            <select [(ngModel)]="materialActual.proveedor" (change)="seleccionarMaterial()">
+
+                                <option value="">Proveedor</option>
+
+                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">
+
+                                    {{ proveedor }}
+
+                                </option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+
+                        <div class="select-wrapper">
+                            <select [(ngModel)]="materialActual.tipo" (change)="seleccionarMaterial()">
+
+                                <option value="">Tipo de Material</option>
+
+                                <option *ngFor="let tipo of tiposMaterial" [value]="tipo">
+
+                                    {{ tipo }}
+
+                                </option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+
+                        <div class="select-wrapper">
+                            <select [(ngModel)]="materialActual.densidad" (change)="seleccionarMaterial()">
+
+                                <option value="">Densidad</option>
+
+                                <option *ngFor="let densidad of densidades" [value]="densidad">
+
+                                    {{ densidad }}
+
+                                </option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+
+                        <div class="select-wrapper">
+                            <select [(ngModel)]="materialActual.color" (change)="seleccionarMaterial()">
+
+                                <option value="">Color</option>
+
+                                <option *ngFor="let color of colores" [value]="color">
+
+                                    {{ color }}
+
+                                </option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+
+                        <input class="input-material" type="number" [(ngModel)]="materialActual.cantidadKg"
+                            placeholder="Cantidad (Kg)" min="1" />
+
+                        <input class="input-material" type="number" [(ngModel)]="materialActual.bultos"
+                            placeholder="Bultos" min="1" />
+
+                    </div>
+
+                    <button class="btn-agregar" (click)="agregarMaterial()">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Agregar Material</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="seccion materiales-seccion" *ngIf="materiales.length > 0">
+                <h3>Materiales del Traslado ({{ materiales.length }})</h3>
+
+                <div class="materiales-lista">
+                    <div class="material-item" *ngFor="let material of materiales; let i = index">
+                        <div class="material-info">
+                            <strong>{{ material.proveedor }}</strong>
+                            <span>
+                                {{ material.tipo }}
+                                {{ material.densidad }}
+                                {{ material.cantidadKg }} kg /
+                                {{ material.bultos }} bultos
+                            </span>
+                            <span>- {{ material.color }}</span>
+                        </div>
+
+                        <button class="btn-eliminar" (click)="eliminarMaterial(i)">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="total-card">
+                    <div class="total-info">
+                        <strong>Total del Traslado</strong>
+                        <span>Este material se descontará del inventario de bodega</span>
+                    </div>
+
+                    <div class="total-valores">
+                        <strong>{{ totalKg | number:'1.0-0' }} kg</strong>
+                        <span>{{ totalBultos }} bultos</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-agregar" [disabled]="materiales.length === 0 || guardando" (click)="generarOrden()">
+                {{ guardando ? 'Generando...' : 'Generar Orden de Traslado' }}
+            </button>
+        </div>
+    </div>
+</div>

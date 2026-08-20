@@ -84,6 +84,29 @@ namespace SistemaFlota
             });
         }
 
+        // Obtener destinatarios
+        [HttpGet("destinatarios")]
+        [Authorize]
+        public async Task<IActionResult> GetDestinatarios()
+        {
+            var usuarios = await _context.Usuarios
+                .Where(u =>
+                    u.Activo &&
+                    !string.IsNullOrWhiteSpace(u.Email) &&
+                    !UsuariosOcultos.Contains(u.Username))
+                .OrderBy(u => u.Username)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Rol
+                })
+                .ToListAsync();
+
+            return Ok(usuarios);
+        }
+
         [HttpGet("roles")]
         [Authorize(Roles = "Admin,RecursosHumanos,PESV")]
         public IActionResult GetRoles() => Ok(RolesValidos);

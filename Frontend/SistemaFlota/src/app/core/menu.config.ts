@@ -9,7 +9,7 @@ export interface MenuItem {
 
 export const MENU_MODULOS: MenuItem[] = [
 
-    // FLOTA 
+    // FLOTA
 
     {
         key: 'dashboard',
@@ -131,7 +131,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'flota'
     },
 
-    //  SST / RRHH 
+    //  SST / RRHH
 
     {
         key: 'rrhh-seguimientos',
@@ -141,7 +141,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'rrhh'
     },
 
-//  CALIDAD
+    //  CALIDAD
     {
         key: 'calidad-cyreles',
         label: 'Cyreles',
@@ -177,7 +177,7 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/sellado',
         modulo: 'calidad'
     },
-   {
+    {
         key: 'calidad-precorte',
         label: 'Precorte',
         icon: 'fa-solid fa-scissors',
@@ -199,7 +199,7 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'calidad'
     },
 
-    // Control envios 
+    // Control envios
 
     {
         key: 'trazabilidad',
@@ -268,12 +268,46 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
     },
+
+    // Costos
+
     {
-        key: 'admin-opciones-formulario',
-        label: 'Opciones de Formularios',
-        icon: 'fa-solid fa-sliders',
-        ruta: '/calidad/admin-opciones-formulario',
-        modulo: 'admin-opciones-formulario'
+        key: 'prov/mater',
+        label: 'Prov - Materiales',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/proveedores-materiales',
+        modulo: 'costos'
     },
 
+    {
+        key: 'ord/compra',
+        label: 'Ord - Compra',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/orden-compra',
+        modulo: 'costos'
+    },
+
+    {
+        key: 'rec/mercancia',
+        label: 'Re - Mercancia',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/recepcion-mercancia',
+        modulo: 'costos'
+    },
+
+    {
+        key: 'inventario',
+        label: 'Inventario',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/inventario',
+        modulo: 'costos'
+    },
+
+    {
+        key: 'traslados',
+        label: 'Traslados',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/traslados',
+        modulo: 'costos'
+    },
 ];

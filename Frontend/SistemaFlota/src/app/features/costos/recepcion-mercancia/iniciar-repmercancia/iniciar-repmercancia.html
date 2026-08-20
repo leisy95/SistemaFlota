@@ -1,0 +1,266 @@
+<div [formGroup]="form">
+    <div class="modal">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="header-info">
+                <h2>Formulario de Recepción</h2>
+                <p>
+                    Complete los datos de la recepción y genere etiquetas QR para cada bulto
+                </p>
+            </div>
+            <button class="btn-close" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Orden -->
+            <section class="orden-card">
+
+                <h3>
+                    Orden de Compra: {{ orden.numero }}
+                </h3>
+
+                <p>
+                    <strong>Proveedor:</strong>
+                    {{ orden.proveedor }}
+                </p>
+
+                <p>
+                    <strong>Fecha de Orden:</strong>
+                    {{ orden.fechaOrden | date:'yyyy-MM-dd' }}
+                </p>
+
+            </section>
+            <!-- Transporte -->
+            <section class="section-card">
+                <h3>
+                    <i class="fa-solid fa-truck"></i>
+                    Datos de Transporte
+                </h3>
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label>Numero de Recepción</label>
+
+                        <input class="input" value="Se generará automáticamente" readonly>
+                    </div>
+
+                    <div class="field">
+                        <label>Nombre del Conductor</label>
+
+                        <input class="input" formControlName="conductor" placeholder="Nombre completo"
+                            [class.is-invalid]="form.get('conductor')?.invalid && form.get('conductor')?.touched">
+
+                        <small class="error" *ngIf="form.get('conductor')?.invalid && form.get('conductor')?.touched">
+                            Campo obligatorio
+                        </small>
+                    </div>
+
+                    <div class="field">
+                        <label>Empresa de Transporte</label>
+
+                        <input class="input" formControlName="transportadora" placeholder="Empresa"
+                            [class.is-invalid]="form.get('transportadora')?.invalid && form.get('transportadora')?.touched">
+
+                        <small class="error"
+                            *ngIf="form.get('transportadora')?.invalid && form.get('transportadora')?.touched">
+                            Campo obligatorio
+                        </small>
+                    </div>
+
+                    <div class="field">
+                        <label>Tipo Documento</label>
+
+                        <select class="select" formControlName="tipoDocumento">
+
+                            <option>Factura</option>
+                            <option>Remisión</option>
+                            <option>Otro</option>
+
+                        </select>
+                    </div>
+                </div>
+
+                <div class="checkbox">
+                    <input type="checkbox" formControlName="embalajeAdecuado">
+
+                    <span>¿Embalaje adecuado?</span>
+                </div>
+
+            </section>
+            <!-- Items -->
+            <section class="section-card">
+                <h3>
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Items a Recibir (Selección Parcial Permitida)
+                </h3>
+                <div formArrayName="detalles">
+
+                    <div class="item-card" *ngFor="let item of detalles.controls; let i = index" [formGroupName]="i">
+
+                        <div class="item-header">
+
+                            <label>
+                                <input type="checkbox" formControlName="seleccionado">
+
+                                <span>{{ item.get('material')?.value }}</span>
+                            </label>
+
+                            <div class="item-resumen">
+
+                                <span>
+                                    <strong>Pedido:</strong>
+                                    {{ item.get('cantidadOrdenada')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosOrdenados')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                                <span>
+                                    <strong>Recibido:</strong>
+                                    {{ item.get('cantidadRecibidaAnterior')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosRecibidosAnterior')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                                <span class="pendiente">
+                                    <strong>Pendiente:</strong>
+                                    {{ item.get('cantidadPendiente')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosPendientes')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-grid">
+
+                            <div class="field">
+                                <label>Cantidad Recibida (KG)</label>
+
+                                <input type="number" class="input" formControlName="cantidadRecibida"
+                                    [class.is-invalid]="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
+
+                                <small class="error"
+                                    *ngIf="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
+                                    Cantidad requerida
+                                </small>
+                            </div>
+
+                            <div class="field">
+                                <label>Bultos Recibidos</label>
+
+                                <input type="number" class="input" formControlName="bultosRecibidos"
+                                    [class.is-invalid]="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
+
+                                <small class="error"
+                                    *ngIf="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
+                                    Bultos requeridos
+                                </small>
+                            </div>
+
+                            <div class="field">
+                                <label>
+                                    <i class="fa-solid fa-cube"></i>
+                                    Lote del Proveedor
+                                </label>
+
+                                <input class="input" formControlName="loteProveedor"
+                                    [class.is-invalid]="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
+
+                                <small class="error"
+                                    *ngIf="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
+                                    Lote obligatorio
+                                </small>
+                            </div>
+
+                            <div class="field">
+                                <label>Estado del Material</label>
+
+                                <select class="select" formControlName="estadoMaterial"
+                                    [class.is-invalid]="item.get('estadoMaterial')?.invalid && item.get('estadoMaterial')?.touched">
+
+                                    <option>Conforme</option>
+                                    <option>No Conforme</option>
+                                    <option>Condicional</option>
+
+                                </select>
+                            </div>
+
+                            <div class="field full">
+                                <label>Observaciones</label>
+
+                                <textarea class="textarea" rows="4" formControlName="observaciones">
+                                </textarea>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+            <!-- Recepción -->
+            <section class="section-card">
+                <h3>
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    Información de Recepción
+                </h3>
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label>Firma quien Recibe</label>
+                        <input class="input" formControlName="recibe">
+                    </div>
+
+                    <div class="field">
+                        <label>Cargo</label>
+                        <input class="input" formControlName="cargo">
+                    </div>
+
+                    <div class="field full">
+                        <label>Observaciones Generales</label>
+                        <textarea class="textarea" rows="5" formControlName="observaciones">
+                        </textarea>
+                    </div>
+                </div>
+
+            </section>
+            <!-- Resumen -->
+            <section class="resumen-card">
+                <h3>Resumen de Recepción</h3>
+                <div class="resumen-grid">
+                    <div>
+                        <span>Items Seleccionados</span>
+                        <strong>{{totalItems}}</strong>
+                    </div>
+                    <div>
+                        <span>Total KG</span>
+                        <strong>{{totalKg}}</strong>
+                    </div>
+                    <div>
+                        <span>Total Bultos</span>
+                        <strong>{{totalBultos}}</strong>
+                    </div>
+                </div>
+                <div class="mensaje">
+                    <i class="fa-solid fa-file-lines"></i>
+                    Se generarán
+                    <strong>{{totalBultos}}</strong>
+                    etiquetas QR (una por bulto)
+                </div>
+            </section>
+        </div>
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="btn-cancelar" (click)="cerrar()">
+                Cancelar
+            </button>
+            <button class="btn-agregar" (click)="finalizarRecepcion()" [disabled]="form.invalid">
+                <i class="fa-solid fa-qrcode"></i>
+                Finalizar Recepción y Generar Etiquetas
+            </button>
+        </div>
+    </div>
+</div>

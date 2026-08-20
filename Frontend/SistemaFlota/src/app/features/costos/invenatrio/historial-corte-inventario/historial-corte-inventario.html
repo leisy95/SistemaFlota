@@ -1,0 +1,40 @@
+<div class="modal">
+    <div class="header">
+        <div>
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Cortes de Inventario</h2>
+            <p>Consulte los cortes de inventario realizados</p>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Estado</th>
+                    <th>Items</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let corte of cortes">
+                    <td>{{ corte.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ corte.usuario }}</td>
+                    <td>{{ corte.estado }}</td>
+                    <td class="numero">{{ corte.cantidadDetalles }}</td>
+                    <td>
+                        <button class="btn-ver" (click)="verDetalle(corte.id)">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </button>
+                    </td>
+                </tr>
+
+                <tr *ngIf="cortes.length === 0">
+                    <td colspan="5" class="sin-registros">No hay cortes de inventario registrados.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,4 +1,28 @@
+@use '@angular/material' as mat;
 @use 'ngx-toastr/toastr';
+
+html {
+  height: 100%;
+  @include mat.theme((color: (primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    ));
+}
+
+body {
+
+  color-scheme: light;
+
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  height: 100%;
+}
+
 :root {
   /* Paleta Gecobags */
   --verde-principal: #8BC34A;
@@ -71,11 +95,21 @@ h1 {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-size: 2.5rem;
+  color: var(--gris-oscuro);
 
   i {
     font-size: 28px;
     color: var(--verde-principal);
   }
+}
+
+// subtitulos
+
+h2 {
+  font-size: 34px;
+  margin-bottom: 8px;
+  color: var(--gris-oscuro);
 }
 
 // Tablas generales
@@ -116,6 +150,8 @@ tbody {
     color: #334155;
     text-transform: capitalize;
     white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
   }
 }
 
@@ -267,6 +303,10 @@ tbody td {
 }
 
 .btn-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: var(--verde-fondo-botones);
   border: 1px solid rgba(59, 130, 246, 0.35);
   color: var(--verde-oscuro);
@@ -279,7 +319,6 @@ tbody td {
   width: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
 
   &:hover {
     background: var(--azul-oscuro);
@@ -447,6 +486,14 @@ tbody td {
 }
 
 @media(max-width:768px) {
+
+  .title,
+  h2 {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+  }
+
   .sidebar {
     transform: translateX(-250px);
   }
@@ -461,44 +508,6 @@ tbody td {
 
   .btn-hamburguesa {
     display: block;
-  }
-
-  .tabla-responsive {
-    display: block;
-  }
-
-  .tabla-responsive thead {
-    display: none;
-  }
-
-  .tabla-responsive tbody tr {
-    display: block;
-    margin-bottom: 18px;
-    padding: 18px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, .08);
-    backdrop-filter: blur(12px);
-
-  }
-
-  .tabla-responsive tbody td {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-    color: white;
-  }
-
-  .tabla-responsive tbody td:last-child {
-    border: none;
-  }
-
-  .tabla-responsive tbody td::before {
-    content: attr(data-label);
-    font-weight: bold;
-    color: var(--primary);
-    text-transform: uppercase;
-    font-size: 12px;
   }
 
   .stats-grid {

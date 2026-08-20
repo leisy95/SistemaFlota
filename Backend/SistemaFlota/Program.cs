@@ -2,7 +2,22 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaFlota;
+using QuestPDF.Infrastructure;
+using SistemaFlota.Configuracion;
 using SistemaFlota.Models;
+using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Costos.Inventario;
+using SistemaFlota.Services.Costos.Inventario.CortesInventario;
+using SistemaFlota.Services.Costos.Materiales;
+using SistemaFlota.Services.Costos.OrdenCompra;
+using SistemaFlota.Services.Costos.OrdenesTraslado;
+using SistemaFlota.Services.Costos.Proveedores;
+using SistemaFlota.Services.Costos.RecepcionMercancia;
+using SistemaFlota.Services.Email;
+using SistemaFlota.Services.ImpresionEtiquetas;
+using SistemaFlota.Services.Notificaciones;
+using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +34,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// -- CORS ----------------------------------------------------------------------
+// CORS 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
@@ -58,8 +73,11 @@ builder.Services
     });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($">>> ENV: {builder.Environment.EnvironmentName}");
-Console.WriteLine($">>> CONN: {connectionString}");
+Console.WriteLine($">>> Ambiente: {builder.Environment.EnvironmentName}");
+Console.WriteLine($">>> Tiene conexion: {!string.IsNullOrEmpty(connectionString)}");
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("Email"));
 
 // -- MySQL con versión fija — evita AutoDetect en Railway ----------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -78,6 +96,25 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+// Servicios
+builder.Services.AddScoped<IProveedorService, ProveedorService>();
+builder.Services.AddScoped<IMaterialesService, MaterialService>();
+builder.Services.AddScoped<IOrdenCompraService, OrdenCompraService>();
+builder.Services.AddScoped<IOrdenCompraPdfService, OrdenCompraPdfService>();
+builder.Services.AddScoped<IConsecutivoService, ConsecutivoService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IRecepcionMercanciaService, RecepcionMercanciaService>();
+builder.Services.AddScoped<IEtiquetasPdfService, EtiquetasPdfService>();
+builder.Services.AddScoped<IRecepcionMercanciaPdfService, RecepcionMercanciaPdfService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAjusteInventarioService, AjusteInventarioService>();
+builder.Services.AddScoped<ICorteInventarioService, CorteInventarioService>();
+builder.Services.AddScoped<IOrdenTrasladoService, OrdenTrasladoService>();
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<EmailTemplateService>();
+builder.Services.AddScoped<INotificacionRecepcionService, NotificacionRecepcionService>();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
 
@@ -91,18 +128,17 @@ builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 // -- Zona horaria Colombia UTC-5 -----------------------------------------------
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
-// -- Puerto — solo Railway en producción --------------------------------------
+//  Puerto â€” solo Railway en produccion 
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
+QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
-// =====================================
 // SEED
-// =====================================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -213,7 +249,8 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("? Usuario admin creado");
+
+            Console.WriteLine(" Usuario admin creado");
         }
 
         var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
@@ -228,7 +265,8 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("? Usuario maestro creado");
+
+            Console.WriteLine(" Usuario maestro creado");
         }
 
         var existenTipos = await db.TiposVehiculo.AnyAsync();
@@ -245,6 +283,7 @@ using (var scope = app.Services.CreateScope())
                 new TipoVehiculo { Nombre = "Otro" }
             );
             await db.SaveChangesAsync();
+
             Console.WriteLine("? Tipos de vehículo creados.");
         }
     }
@@ -278,6 +317,7 @@ app.UseExceptionHandler(errorApp =>
         {
             Console.WriteLine($"? ERROR GLOBAL: {error.Error.Message}");
             Console.WriteLine($"? STACK: {error.Error.StackTrace}");
+
             await context.Response.WriteAsync(
                 System.Text.Json.JsonSerializer.Serialize(
                     new { error = error.Error.Message }

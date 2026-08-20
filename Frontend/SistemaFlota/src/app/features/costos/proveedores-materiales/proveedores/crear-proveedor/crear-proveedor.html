@@ -1,0 +1,76 @@
+<div class="modal">
+    <div class="modal-header">
+        <div>
+
+            <h2>
+                {{ data ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+            </h2>
+
+            <p>
+                {{ data ? 'Actualice la información del proveedor'
+                : 'Complete la información del proveedor' }}
+            </p>
+
+        </div>
+
+        <button class="btn-cerrar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <form (ngSubmit)="guardar()">
+        <div class="form-grid">
+            <div class="campo">
+                <label>Nombre del proveedor</label>
+                <input type="text" [(ngModel)]="proveedor.nombre" name="nombre"
+                    placeholder="Ej: Plásticos del Norte S.A.S.">
+            </div>
+
+            <div class="campo">
+                <label>NIT</label>
+                <input type="text" [(ngModel)]="proveedor.nit" name="nit" placeholder="Ej: 900123456-7">
+            </div>
+
+            <div class="campo">
+                <label>Dirección</label>
+                <input type="text" [(ngModel)]="proveedor.direccion" name="direccion" placeholder="Ej: Calle 12 #24-21">
+            </div>
+
+            <div class="campo">
+                <label>Ciudad</label>
+                <input type="text" [(ngModel)]="proveedor.ciudad" name="ciudad" placeholder="Ej: Pereira">
+            </div>
+
+            <div class="campo">
+                <label>Departamento</label>
+                <input type="text" [(ngModel)]="proveedor.departamento" name="departamento" placeholder="Ej: Risaralda">
+            </div>
+
+            <div class="campo">
+                <label>Contacto</label>
+                <input type="text" [(ngModel)]="proveedor.contacto" name="contacto" placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="campo">
+                <label>Teléfono</label>
+                <input type="text" [(ngModel)]="proveedor.telefono" name="telefono" placeholder="Ej: 3201234567">
+            </div>
+
+            <div class="campo campo-completo">
+                <label>Correo electrónico</label>
+                <input type="email" [(ngModel)]="proveedor.correoElectronico" name="correoElectronico"
+                    placeholder="Ej: contacto@proveedor.com">
+            </div>
+
+        </div>
+
+        <div class="modal-botones">
+            <button class="btn-cancelar" type="button" (click)="cerrar()">
+                Cancelar
+            </button>
+
+            <button class="btn-editar" type="submit">
+                {{ data ? 'Actualizar' : 'Guardar' }}
+            </button>
+        </div>
+    </form>
+</div>

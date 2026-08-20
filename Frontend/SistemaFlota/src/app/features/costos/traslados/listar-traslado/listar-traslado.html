@@ -1,0 +1,180 @@
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>Órdenes de Traslado</h1>
+            <p>Movimientos de bodega a extrusión</p>
+        </div>
+
+        <button class="btn-agregar" (click)="nuevaOrden()">
+            <i class="fa-solid fa-plus"></i>
+            Nueva Orden de Traslado
+        </button>
+    </div>
+
+    <div class="filtros">
+        <div class="filtro-buscador">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" [(ngModel)]="search" (ngModelChange)="buscar()"
+                placeholder="Buscar por número, destino o usuario..." />
+        </div>
+
+        <div class="filtro">
+            <select [(ngModel)]="estado">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Completado">Completado</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Anulado">Anulado</option>
+            </select>
+        </div>
+
+        <div class="filtro">
+            <select [(ngModel)]="destino">
+                <option value="">Todos los destinos</option>
+                <option value="Extrusión">Extrusión</option>
+            </select>
+        </div>
+
+        <button class="btn-buscar" (click)="buscar()">
+            <i class="fa-solid fa-filter"></i>
+            Filtrar
+        </button>
+
+        <button class="btn-limpiar" (click)="limpiarFiltros()">
+            <i class="fa-solid fa-rotate-left"></i>
+        </button>
+    </div>
+
+    <div class="loading" *ngIf="cargando">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Cargando órdenes...
+    </div>
+
+    <div class="ordenes" *ngIf="!cargando && ordenes.length > 0">
+
+        <div class="orden" *ngFor="let orden of ordenes">
+
+            <div class="orden-header">
+
+                <div class="orden-principal">
+                    <div class="orden-icon">
+                        <i class="fa-solid fa-right-left"></i>
+                    </div>
+
+                    <div class="orden-datos">
+                        <div class="orden-titulo">
+                            <span class="numero">{{ orden.numeroOrden }}</span>
+                            <span class="estado" [ngClass]="obtenerClaseEstado(orden.estado)">
+                                {{ orden.estado }}
+                            </span>
+                        </div>
+
+                        <div class="destino">
+                            Destino: {{ orden.destino }}
+                        </div>
+
+                        <div class="orden-meta">
+                            <span>Fecha: {{ orden.fecha | date:'dd/MM/yyyy' }}</span>
+                            <span>Items: {{ orden.materiales.length }}</span>
+                            <span>Usuario: {{ orden.usuario }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn-ver" (click)="verOrden(orden)">
+                        <i class="fa-solid fa-eye"></i>
+                        Ver
+                    </button>
+
+                    <button *ngIf="orden.estado === 'Pendiente'" class="btn-verificar"
+                        (click)="iniciarVerificacion(orden)">
+
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Verificar materiales
+
+                    </button>
+
+                    <button *ngIf="orden.estado === 'Verificando'" class="btn-confirmar"
+                        (click)="confirmarOrden(orden)">
+
+                        <i class="fa-solid fa-circle-check"></i>
+                        Confirmar orden
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="separador"></div>
+
+            <div class="orden-total">
+                <span>Total</span>
+
+                <strong>
+                    {{ orden.totalKg | number:'1.0-2' }} kg
+                </strong>
+
+                <strong>
+                    {{ orden.totalBultos | number:'1.0-2' }} bultos
+                </strong>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="paginacion" *ngIf="totalRegistros > 0">
+
+        <div class="paginacion-info">
+            Mostrando
+            <strong>{{ ordenes.length }}</strong>
+            de
+            <strong>{{ totalRegistros }}</strong>
+            registros
+        </div>
+
+        <div class="paginacion-controles">
+
+            <button class="btn-pagina" [disabled]="pagina === 1" (click)="cambiarPagina(pagina - 1)">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <button *ngFor="let numero of paginas" class="btn-pagina" [class.activa]="numero === pagina"
+                (click)="cambiarPagina(numero)">
+                {{ numero }}
+            </button>
+
+            <button class="btn-pagina" [disabled]="pagina === totalPaginas" (click)="cambiarPagina(pagina + 1)">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+
+        </div>
+
+        <div class="tamano-pagina">
+            <select [(ngModel)]="tamanoPagina" (change)="cambiarTamanoPagina()">
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+            </select>
+            registros
+        </div>
+
+    </div>
+
+    <div class="empty-state" *ngIf="!cargando && ordenes.length === 0">
+
+        <i class="fa-solid fa-right-left"></i>
+
+        <p>No se han registrado órdenes de traslado</p>
+
+        <button class="btn-nueva" (click)="nuevaOrden()">
+            <i class="fa-solid fa-plus"></i>
+            Crear primera orden
+        </button>
+
+    </div>
+
+</div>

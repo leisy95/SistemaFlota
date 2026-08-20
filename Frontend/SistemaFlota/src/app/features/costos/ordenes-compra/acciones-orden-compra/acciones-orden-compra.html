@@ -1,0 +1,54 @@
+<div class="modal">
+
+    <div class="header">
+        <div>
+            <h2>Acciones</h2>
+            <span>{{ orden.numero }}</span>
+        </div>
+        <button class="btn-close" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="acciones">
+        <button (click)="accion('detalle')">
+            <i class="fa-regular fa-file-lines"></i>
+            <div>
+                <strong>Ver detalle</strong>
+                <small>Consultar información completa.</small>
+            </div>
+        </button>
+
+        <button (click)="accion('editar')">
+            <i class="fa-solid fa-pen"></i>
+            <div>
+                <strong>Editar</strong>
+                <small>Modificar la orden.</small>
+            </div>
+        </button>
+
+        <button (click)="accion('imprimir')">
+            <i class="fa-solid fa-print"></i>
+            <div>
+                <strong>Imprimir PDF</strong>
+                <small>Descargar la orden.</small>
+            </div>
+        </button>
+
+        <button (click)="accion('recibir')">
+            <i class="fa-solid fa-box-open"></i>
+            <div>
+                <strong>Registrar recepción</strong>
+                <small>Recibir materiales.</small>
+            </div>
+        </button>
+
+        <button class="danger" (click)="accion('anular')">
+            <i class="fa-solid fa-trash"></i>
+            <div>
+                <strong>Anular</strong>
+                <small>Cancelar la orden.</small>
+            </div>
+        </button>
+    </div>
+</div>

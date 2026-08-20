@@ -1,0 +1,215 @@
+<div class="page-container">
+
+    <!-- HEADER -->
+    <section class="header-card">
+
+        <div>
+            <h1>Órdenes de Compra</h1>
+        </div>
+
+        <button class="btn-agregar" (click)="nuevaOrden()">
+            <i class="fa-solid fa-plus"></i>
+            Nueva Orden
+        </button>
+
+    </section>
+
+
+    <!-- CARDS RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <span>Total Órdenes</span>
+            <strong>{{total}}</strong>
+        </div>
+
+
+        <div class="stat-card">
+            <span>Pendientes</span>
+            <strong class="orange">
+                {{pendientes}}
+            </strong>
+        </div>
+
+
+        <div class="stat-card">
+            <span>Recibidas</span>
+            <strong class="green">
+                {{recibidas}}
+            </strong>
+        </div>
+
+
+        <div class="stat-card">
+            <span>Valor Total</span>
+            <strong class="green">
+                ${{ valorTotal | number:'1.0-0' }}
+            </strong>
+        </div>
+
+
+    </section>
+
+
+
+    <!-- FILTROS -->
+    <section class="filter-card">
+
+
+        <div class="field">
+            <label>Buscar Orden</label>
+
+            <div class="input-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text" placeholder="Número de orden o proveedor..." [(ngModel)]="buscar"
+                    (ngModelChange)="cargar()">
+            </div>
+
+        </div>
+
+
+
+        <div class="field">
+
+            <label>Proveedor</label>
+
+            <select [(ngModel)]="proveedorFiltro" (change)="cargar()">
+                <option [ngValue]="undefined">
+                    Todos
+                </option>
+                <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.idProveedor">
+
+                    {{ proveedor.nombre }}
+                </option>
+            </select>
+
+        </div>
+
+
+
+        <div class="field">
+
+            <label>Estado</label>
+
+            <select [(ngModel)]="estadoFiltro" (change)="cargar()">
+                <option value="">Todos</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Recibida">Recibida</option>
+            </select>
+
+        </div>
+
+
+
+        <button class="btn-filter" (click)="limpiarFiltros()">
+
+            <i class="fa-solid fa-filter"></i>
+
+            Limpiar Filtros
+
+        </button>
+
+
+    </section>
+
+
+
+    <!-- TABLA -->
+
+    <section class="table-card">
+
+
+        <h2>
+            Listado de Órdenes ({{total}})
+        </h2>
+
+
+
+        <div class="table-responsive">
+
+            <table>
+
+
+                <thead>
+
+                    <tr>
+                        <th>Número</th>
+                        <th>Proveedor</th>
+                        <th>Fecha</th>
+                        <th>Entrega</th>
+                        <th>Forma de Pago</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                    <tr *ngFor="let item of ordenes">
+
+
+                        <td class="numero">
+                            {{item.numero}}
+                        </td>
+
+
+                        <td>
+                            {{item.proveedor}}
+                        </td>
+
+
+                        <td>
+                            <i class="fa-regular fa-calendar"></i>
+                            {{item.fechaOrden | date:'dd/MM/yyyy'}}
+                        </td>
+
+
+                        <td>
+                            {{item.fechaEntrega | date:'dd/MM/yyyy'}}
+                        </td>
+
+
+                        <td>
+                            {{item.formaPago}}
+                        </td>
+
+
+                        <td class="center">
+                            {{item.totalItems}}
+                        </td>
+
+
+                        <td class="total">
+                            {{item.totalPagar | number}}
+                        </td>
+
+
+                        <td>
+
+                            <span class="badge" [ngClass]="item.estado.toLowerCase()">
+
+                                {{item.estado}}
+
+                            </span>
+                        </td>
+
+                        <td class="acciones">
+
+                            <button title="Más acciones" (click)="abrirAcciones(item)">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

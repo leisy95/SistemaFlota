@@ -1,0 +1,139 @@
+<div class="contenedor">
+    <div class="titulo">
+        <h1>Proveedores y Materiales</h1>
+        <p>Gestión completa de proveedores y catálogo de materiales</p>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros-card">
+
+        <div class="filtros-header">
+            <h2>Filtros de Búsqueda</h2>
+
+            <button class="btn-limpiar" (click)="limpiarFiltros()">
+                <i class="fa-solid fa-filter"></i>
+                Limpiar Filtros
+            </button>
+        </div>
+
+        <div class="filtros-grid">
+
+            <div class="campo buscar">
+                <label>Buscar por Nombre o Proveedor</label>
+
+                <div class="input-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Código, nombre o descripción..." [(ngModel)]="buscar"
+                        (ngModelChange)="filtrar()">
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Estado</label>
+
+                <select [(ngModel)]="estado" (ngModelChange)="filtrar()">
+
+                    <option value="">Todos</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Ordenar</label>
+
+                <select [(ngModel)]="orden" (ngModelChange)="filtrar()">
+                    <option value="" disabled>Seleccione un orden</option>
+                    <option value="nombre">Nombre</option>
+                    <option value="nit">NIT</option>
+                    <option value="contacto">Contacto</option>
+                </select>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="info">
+                <div class="icono">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <h2>Catálogo de Proveedores</h2>
+                    <span>{{proveedores.length}} proveedores registrados</span>
+                </div>
+            </div>
+            <button class="btn-agregar" (click)="nuevoProveedor()">
+                <i class="fa-solid fa-plus"></i>
+                Nuevo Proveedor
+            </button>
+        </div>
+
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Proveedor</th>
+                    <th>NIT</th>
+                    <th>Direccion</th>
+                    <th>Ciudad</th>
+                    <th>Departamento</th>
+                    <th>Contacto</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th class="acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of proveedores">
+                    <td>{{item.nombre}}</td>
+                    <td>{{item.nit}}</td>
+                    <td>{{item.direccion}}</td>
+                    <td>{{item.ciudad}}</td>
+                    <td>{{item.departamento}}</td>
+                    <td>{{item.contacto}}</td>
+                    <td>{{item.telefono}}</td>
+                    <td>
+                        <a href="mailto:{{item.correoElectronico}}">
+                            {{item.correoElectronico}}
+                        </a>
+                    </td>
+                    <td class="acciones">
+                        <button class="btn-editar" (click)="editar(item)">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-eliminar" (click)="eliminar(item)">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="paginacion">
+
+            <div class="info">
+                Mostrando
+                {{ proveedores.length }}
+                de
+                {{ totalRegistros }}
+                proveedores
+            </div>
+
+            <div class="controles">
+                <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="pagina === 1">
+                    Anterior
+                </button>
+                <span>
+                    Página {{ pagina }} de {{ totalPagina }}
+                </span>
+                <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="pagina === totalPagina">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

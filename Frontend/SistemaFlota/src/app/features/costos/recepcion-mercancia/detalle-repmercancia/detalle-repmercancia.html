@@ -1,0 +1,106 @@
+<div class="modal" *ngIf="recepcion">
+
+    <div class="header">
+        <div>
+            <h2>Detalle Recepción de Mercancía</h2>
+            <span>{{ recepcion.consecutivoEntrada }}</span>
+        </div>
+
+        <button class="btn-close" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="info-grid">
+
+            <div>
+                <label>Orden Compra</label>
+                <span>{{ recepcion.numeroOrden }}</span>
+            </div>
+
+            <div>
+                <label>Proveedor</label>
+                <span>{{ recepcion.proveedor }}</span>
+            </div>
+
+            <div>
+                <label>Fecha Recepción</label>
+                <span>{{ recepcion.fechaRecepcion | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div>
+                <label>Conductor</label>
+                <span>{{ recepcion.conductor }}</span>
+            </div>
+
+            <div>
+                <label>Transportadora</label>
+                <span>{{ recepcion.transportadora }}</span>
+            </div>
+
+            <div>
+                <label>Embalaje</label>
+                <span>{{ recepcion.embalajeAdecuado ? 'Adecuado' : 'No adecuado' }}</span>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Materiales Recibidos</h3>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Material</th>
+                        <th>Cantidad KG</th>
+                        <th>Bultos</th>
+                        <th>Lote</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of recepcion.detalles">
+                        <td>{{ item.material }}</td>
+                        <td>{{ item.cantidadRecibida }}</td>
+                        <td>{{ item.bultosRecibidos }}</td>
+                        <td>{{ item.loteProveedor }}</td>
+                        <td>{{ item.estadoMaterial }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="totales">
+            <div>
+                <label>Total KG</label>
+                <span>{{ recepcion.totalKg }}</span>
+            </div>
+
+            <div>
+                <label>Total Bultos</label>
+                <span>{{ recepcion.totalBultos }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="btn-cancelar" (click)="cerrar()">
+            Cerrar
+        </button>
+
+        <button class="btn-agregar" (click)="confirmarRecepcion()" [disabled]="confirmando">
+
+            <i class="fa-solid fa-check"></i>
+
+            {{ confirmando ? 'Confirmando...' : 'Confirmar e ingresar a inventario' }}
+
+        </button>
+    </div>
+
+</div>

@@ -115,7 +115,9 @@ namespace SistemaFlota
 
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new Claim(ClaimTypes.Name,  usuario.Username),
+                new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role,  usuario.Rol),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
