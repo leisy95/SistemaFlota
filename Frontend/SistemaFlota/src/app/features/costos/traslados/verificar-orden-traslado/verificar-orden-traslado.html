@@ -1,0 +1,194 @@
+<div class="modal">
+    <div class="modal-header">
+        <div>
+            <h2>Verificar materiales</h2>
+            <p>Verifique la cantidad disponible de cada material en bodega.</p>
+        </div>
+        <button class="btn-cerrar" (click)="cerrar()" [disabled]="procesando">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="modal-body">
+
+        <div class="orden-info">
+            <div>
+                <span>Orden</span>
+                <strong>{{ orden.numeroOrden }}</strong>
+            </div>
+
+            <div>
+                <span>Destino</span>
+                <strong>{{ orden.destino }}</strong>
+            </div>
+
+            <div>
+                <span>Fecha</span>
+                <strong>{{ orden.fecha | date:'dd/MM/yyyy' }}</strong>
+            </div>
+
+            <div>
+                <span>Usuario</span>
+                <strong>{{ orden.usuario }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-verificacion">
+            <div class="resumen-item">
+                <span>Materiales</span>
+                <strong>{{ materiales.length }}</strong>
+            </div>
+
+            <div class="resumen-item">
+                <span>Completos</span>
+                <strong>{{ materialesCompletos }}</strong>
+            </div>
+
+            <div class="resumen-item">
+                <span>KG verificados</span>
+                <strong>{{ totalKgVerificados | number:'1.0-2' }} kg</strong>
+            </div>
+
+            <div class="resumen-item">
+                <span>Bultos verificados</span>
+                <strong>{{ totalBultosVerificados | number:'1.0-2' }}</strong>
+            </div>
+        </div>
+
+        <div class="seccion">
+            <div class="seccion-header">
+                <div>
+                    <h3>Materiales de la orden</h3>
+                    <p>Ingrese lo que realmente se encuentra disponible en bodega.</p>
+                </div>
+
+                <span class="contador">
+                    {{ materiales.length }} materiales
+                </span>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material ID</th>
+                            <th>Proveedor</th>
+                            <th>Tipo</th>
+                            <th>Densidad</th>
+                            <th>Color</th>
+                            <th>Solicitado</th>
+                            <th>Disponible KG</th>
+                            <th>Solicitados</th>
+                            <th>Disponible bultos</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let material of materiales">
+
+                            <td>{{ material.materialId }}</td>
+
+                            <td>{{ material.proveedor }}</td>
+
+                            <td>{{ material.tipo }}</td>
+
+                            <td>{{ material.densidad }}</td>
+
+                            <td>{{ material.color }}</td>
+
+                            <td>
+                                <div class="cantidad-solicitada">
+                                    <strong>
+                                        {{ material.cantidadKg | number:'1.0-2' }} kg
+                                    </strong>
+                                </div>
+                            </td>
+
+                            <td>
+                                <input class="input-cantidad" type="number" min="0" [max]="material.cantidadKg"
+                                    [(ngModel)]="material.cantidadEncontrada">
+                            </td>
+
+                            <td>
+                                <div class="cantidad-solicitada">
+                                    <strong>
+                                        {{ material.bultos | number:'1.0-2' }}
+                                    </strong>
+                                </div>
+                            </td>
+
+                            <td>
+                                <input class="input-cantidad" type="number" min="0" [max]="material.bultos"
+                                    [(ngModel)]="material.bultosEncontrados">
+                            </td>
+
+                            <td>
+                                <span class="estado-material" [ngClass]="{
+                                        'completo': estadoMaterial(material) === 'Completo',
+                                        'parcial': estadoMaterial(material) === 'Parcial',
+                                        'no-disponible': estadoMaterial(material) === 'NoDisponible'
+                                    }">
+
+                                    <i class="fa-solid" [ngClass]="{
+                                            'fa-circle-check': estadoMaterial(material) === 'Completo',
+                                            'fa-circle-exclamation': estadoMaterial(material) === 'Parcial',
+                                            'fa-circle-xmark': estadoMaterial(material) === 'NoDisponible'
+                                        }">
+                                    </i>
+
+                                    {{ estadoMaterial(material) === 'NoDisponible'
+                                    ? 'No disponible'
+                                    : estadoMaterial(material) }}
+                                </span>
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="seccion">
+            <label class="label">Observaciones</label>
+
+            <textarea [(ngModel)]="observaciones" rows="3"
+                placeholder="Ingrese alguna observación sobre la verificación...">
+            </textarea>
+        </div>
+
+        <div class="advertencia" *ngIf="!todosCompletos">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+
+            <div>
+                <strong>La orden no está completa</strong>
+                <p>
+                    Solo podrá confirmarse definitivamente cuando todos
+                    los materiales estén disponibles en las cantidades solicitadas.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+        <button class="btn-cancelar" (click)="cerrar()" [disabled]="procesando">
+
+            <i class="fa-solid fa-xmark"></i>
+            Cancelar
+        </button>
+
+        <button class="btn-agregar" [disabled]="procesando || hayCantidadesInvalidas" (click)="finalizarVerificacion()">
+
+            <i class="fa-solid" [ngClass]="procesando
+                    ? 'fa-spinner fa-spin'
+                    : 'fa-circle-check'">
+            </i>
+
+            {{ procesando ? 'Guardando...' : 'Finalizar verificación' }}
+
+        </button>
+
+    </div>
+</div>

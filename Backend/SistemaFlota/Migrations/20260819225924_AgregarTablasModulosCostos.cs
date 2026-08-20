@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SistemaFlota.Migrations
 {
     /// <inheritdoc />
-    public partial class AgregarTablasModelosCostos : Migration
+    public partial class AgregarTablasModulosCostos : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,69 @@ namespace SistemaFlota.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Consecutivos", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "CortesInventario",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Estado = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CortesInventario", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "OrdenesTraslado",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NumeroOrden = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Destino = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    TotalKg = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    TotalBultos = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Estado = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaVerificacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    UsuarioVerificacionId = table.Column<int>(type: "int", nullable: true),
+                    FechaConfirmacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    UsuarioConfirmacionId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrdenesTraslado", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrdenesTraslado_Usuarios_UsuarioConfirmacionId",
+                        column: x => x.UsuarioConfirmacionId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrdenesTraslado_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrdenesTraslado_Usuarios_UsuarioVerificacionId",
+                        column: x => x.UsuarioVerificacionId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -164,6 +227,37 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "DetalleCorteInventario",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CorteInventarioId = table.Column<int>(type: "int", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    Color = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StockSistema = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ConteoFisico = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DetalleCorteInventario", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DetalleCorteInventario_CortesInventario_CorteInventarioId",
+                        column: x => x.CorteInventarioId,
+                        principalTable: "CortesInventario",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DetalleCorteInventario_Materiales_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materiales",
+                        principalColumn: "IdMaterial",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Inventarios",
                 columns: table => new
                 {
@@ -187,6 +281,47 @@ namespace SistemaFlota.Migrations
                         principalTable: "Materiales",
                         principalColumn: "IdMaterial",
                         onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "OrdenesTrasladoDetalle",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    OrdenTrasladoId = table.Column<int>(type: "int", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: true),
+                    Proveedor = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Tipo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Densidad = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Color = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CantidadKg = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Bultos = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    CantidadVerificadaKg = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
+                    BultosVerificados = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
+                    EstadoVerificacion = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrdenesTrasladoDetalle", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrdenesTrasladoDetalle_Materiales_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materiales",
+                        principalColumn: "IdMaterial",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrdenesTrasladoDetalle_OrdenesTraslado_OrdenTrasladoId",
+                        column: x => x.OrdenTrasladoId,
+                        principalTable: "OrdenesTraslado",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -268,6 +403,47 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "AjustesInventario",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NumeroAjuste = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    InventarioId = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Cantidad = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    StockAnterior = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    StockNuevo = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Motivo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CostoPromedio = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Observaciones = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AjustesInventario", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AjustesInventario_Inventarios_InventarioId",
+                        column: x => x.InventarioId,
+                        principalTable: "Inventarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AjustesInventario_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "RecepcionesMercanciaDetalle",
                 columns: table => new
                 {
@@ -303,10 +479,30 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AjustesInventario_InventarioId",
+                table: "AjustesInventario",
+                column: "InventarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AjustesInventario_UsuarioId",
+                table: "AjustesInventario",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Consecutivos_Modulo",
                 table: "Consecutivos",
                 column: "Modulo",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DetalleCorteInventario_CorteInventarioId",
+                table: "DetalleCorteInventario",
+                column: "CorteInventarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DetalleCorteInventario_MaterialId",
+                table: "DetalleCorteInventario",
+                column: "MaterialId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Inventarios_MaterialId_Color",
@@ -345,6 +541,31 @@ namespace SistemaFlota.Migrations
                 column: "OrdenCompraId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrdenesTraslado_UsuarioConfirmacionId",
+                table: "OrdenesTraslado",
+                column: "UsuarioConfirmacionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdenesTraslado_UsuarioId",
+                table: "OrdenesTraslado",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdenesTraslado_UsuarioVerificacionId",
+                table: "OrdenesTraslado",
+                column: "UsuarioVerificacionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdenesTrasladoDetalle_MaterialId",
+                table: "OrdenesTrasladoDetalle",
+                column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdenesTrasladoDetalle_OrdenTrasladoId",
+                table: "OrdenesTrasladoDetalle",
+                column: "OrdenTrasladoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RecepcionesMercanciaDetalle_OrdenCompraDetalleId",
                 table: "RecepcionesMercanciaDetalle",
                 column: "OrdenCompraDetalleId");
@@ -357,8 +578,7 @@ namespace SistemaFlota.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_RecepcionesMercancias_OrdenCompraId",
                 table: "RecepcionesMercancias",
-                column: "OrdenCompraId",
-                unique: true);
+                column: "OrdenCompraId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecepcionesMercancias_UsuarioConfirmacionId",
@@ -370,13 +590,28 @@ namespace SistemaFlota.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AjustesInventario");
+
+            migrationBuilder.DropTable(
                 name: "Consecutivos");
+
+            migrationBuilder.DropTable(
+                name: "DetalleCorteInventario");
+
+            migrationBuilder.DropTable(
+                name: "OrdenesTrasladoDetalle");
+
+            migrationBuilder.DropTable(
+                name: "RecepcionesMercanciaDetalle");
 
             migrationBuilder.DropTable(
                 name: "Inventarios");
 
             migrationBuilder.DropTable(
-                name: "RecepcionesMercanciaDetalle");
+                name: "CortesInventario");
+
+            migrationBuilder.DropTable(
+                name: "OrdenesTraslado");
 
             migrationBuilder.DropTable(
                 name: "OrdenesCompraDetalle");

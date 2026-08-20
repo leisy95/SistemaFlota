@@ -107,41 +107,28 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 .AsNoTracking()
                 .Include(x => x.Proveedor)
                 .Include(x => x.UsuarioCreacion)
-                 .Include(x => x.RecepcionMercancia)
                 .Include(x => x.UsuarioActualizacion)
                 .AsQueryable();
 
+
+
             if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(x =>
-                    x.Numero.Contains(search) ||
-                    x.Proveedor.Nombre.Contains(search));
-            }
+                query = query.Where(x => x.Numero.Contains(search) || x.Proveedor.Nombre.Contains(search));
 
             if (!string.IsNullOrWhiteSpace(estado))
-            {
                 query = query.Where(x => x.Estado == estado);
-            }
 
             if (proveedorId.HasValue)
-            {
                 query = query.Where(x => x.ProveedorId == proveedorId);
-            }
 
             if (!string.IsNullOrWhiteSpace(formaPago))
-            {
                 query = query.Where(x => x.FormaPago == formaPago);
-            }
 
             if (fechaInicio.HasValue)
-            {
                 query = query.Where(x => x.FechaOrden >= fechaInicio.Value);
-            }
 
             if (fechaFin.HasValue)
-            {
                 query = query.Where(x => x.FechaOrden <= fechaFin.Value);
-            }
 
             var totalRegistros = await query.CountAsync();
 
@@ -164,9 +151,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                     TotalBultos = x.TotalBultos,
                     TotalPagar = x.TotalPagar,
                     Estado = x.Estado,
-                    RecepcionId = x.RecepcionMercancia != null
-                        ? x.RecepcionMercancia.Id
-                        : null,
+                    RecepcionId = x.RecepcionesMercancia
+                        .OrderByDescending(r => r.FechaRecepcion)
+                        .Select(r => (int?)r.Id)
+                        .FirstOrDefault(),
                     Observaciones = x.Observaciones,
 
                     UsuarioCreacion = x.UsuarioCreacion != null
@@ -180,8 +168,53 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                         : "",
 
                     FechaActualizacion = x.FechaActualizacion,
+
+                    KgRecibidos = _context.RecepcionesMercancias
+                        .Where(r => r.OrdenCompraId == x.Id)
+                        .SelectMany(r => r.Detalles)
+                        .Sum(d => (decimal?)d.CantidadRecibida) ?? 0,
+
+                    BultosRecibidos = _context.RecepcionesMercancias
+                        .Where(r => r.OrdenCompraId == x.Id)
+                        .SelectMany(r => r.Detalles)
+                        .Sum(d => (decimal?)d.BultosRecibidos) ?? 0,
+
+                                        KgPendientes = x.Estado == "Parcial"
+                        ? x.TotalKg -
+                          (
+                              _context.RecepcionesMercancias
+                                  .Where(r => r.OrdenCompraId == x.Id)
+                                  .SelectMany(r => r.Detalles)
+                                  .Sum(d => (decimal?)d.CantidadRecibida) ?? 0
+                          )
+                        : 0,
+
+                     BultosPendientes = x.Estado == "Parcial"
+                        ? x.TotalBultos -
+                          (
+                              _context.RecepcionesMercancias
+                                  .Where(r => r.OrdenCompraId == x.Id)
+                                  .SelectMany(r => r.Detalles)
+                                  .Sum(d => (decimal?)d.BultosRecibidos) ?? 0
+                          )
+                        : 0
                 })
                 .ToListAsync();
+
+            foreach (var item in items)
+            {
+                if (item.KgRecibidos < 0)
+                    item.KgRecibidos = 0;
+
+                if (item.BultosRecibidos < 0)
+                    item.BultosRecibidos = 0;
+
+                if (item.KgPendientes < 0)
+                    item.KgPendientes = 0;
+
+                if (item.BultosPendientes < 0)
+                    item.BultosPendientes = 0;
+            }
 
             return new OrdenCompraPaginadoDto
             {

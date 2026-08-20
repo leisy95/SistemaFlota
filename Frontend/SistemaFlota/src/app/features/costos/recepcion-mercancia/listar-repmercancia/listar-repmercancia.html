@@ -66,14 +66,22 @@
                     ? verRecepcion(ordenSeleccionada)
                     : iniciarRecepcion()">
 
-                <i class="fa-solid" [ngClass]="ordenSeleccionada?.estado === 'Recepcionada'
-                    ? 'fa-clipboard-check'
-                    : 'fa-cube'">
+                <i class="fa-solid" [ngClass]="
+                    ordenSeleccionada?.estado === 'Parcial'
+                        ? 'fa-truck-ramp-box'
+                        : ordenSeleccionada?.estado === 'Recepcionada'
+                            ? 'fa-clipboard-check'
+                            : 'fa-cube'
+                ">
                 </i>
 
-                {{ ordenSeleccionada?.estado === 'Recepcionada'
+                {{
+                ordenSeleccionada?.estado === 'Parcial'
+                ? 'Continuar Recepción'
+                : ordenSeleccionada?.estado === 'Recepcionada'
                 ? 'Revisar y Confirmar Recepción'
-                : 'Iniciar Recepción' }}
+                : 'Iniciar Recepción'
+                }}
 
             </button>
 
@@ -89,8 +97,9 @@
         </h2>
 
         <div class="orden-item" [ngClass]="{
-        'orden-recepcionada': orden.estado === 'Recepcionada'
-             }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
+                'orden-recepcionada': orden.estado === 'Recepcionada',
+                'orden-parcial': orden.estado === 'Parcial'
+            }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
 
             <div class="orden-info">
 
@@ -108,12 +117,60 @@
                         {{ orden.proveedor }}
                     </p>
 
+                    <!-- Estado -->
                     <span class="badge-recepcion" *ngIf="orden.estado === 'Recepcionada'">
 
                         <i class="fa-solid fa-circle-check"></i>
                         Recepcionada
 
                     </span>
+
+                    <!-- Recepción parcial -->
+                    <div class="recepcion-parcial" *ngIf="orden.estado === 'Parcial'">
+
+                        <span class="badge-parcial">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Parcial
+                        </span>
+
+                        <div class="recepcion-info">
+
+                            <span>
+                                Pedido:
+                                <strong>
+                                    {{ orden.totalBultos | number:'1.0-2' }} bultos
+                                </strong>
+                                /
+                                <strong>
+                                    {{ orden.totalKg | number:'1.0-2' }} kg
+                                </strong>
+                            </span>
+
+                            <span>
+                                Recibido:
+                                <strong>
+                                    {{ orden.bultosRecibidos | number:'1.0-2' }} bultos
+                                </strong>
+                                /
+                                <strong>
+                                    {{ orden.kgRecibidos | number:'1.0-2' }} kg
+                                </strong>
+                            </span>
+
+                            <span>
+                                Pendiente:
+                                <strong>
+                                    {{ orden.bultosPendientes | number:'1.0-2' }} bultos
+                                </strong>
+                                /
+                                <strong>
+                                    {{ orden.kgPendientes | number:'1.0-2' }} kg
+                                </strong>
+                            </span>
+
+                        </div>
+
+                    </div>
 
                 </div>
 

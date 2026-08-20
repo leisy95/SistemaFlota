@@ -1092,6 +1092,111 @@ namespace SistemaFlota.Migrations
                     b.ToTable("Consecutivos");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.AjusteInventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("CostoPromedio")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("InventarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NumeroAjuste")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("StockAnterior")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("StockNuevo")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventarioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("AjustesInventario");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.CorteInventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CortesInventario");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.DetalleCorteInventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("ConteoFisico")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("CorteInventarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("StockSistema")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorteInventarioId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.ToTable("DetalleCorteInventario");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
                 {
                     b.Property<int>("Id")
@@ -1254,6 +1359,115 @@ namespace SistemaFlota.Migrations
                     b.ToTable("OrdenesCompraDetalle");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTraslado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Destino")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaConfirmacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaVerificacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NumeroOrden")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("TotalBultos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("TotalKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int?>("UsuarioConfirmacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuarioVerificacionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioConfirmacionId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("UsuarioVerificacionId");
+
+                    b.ToTable("OrdenesTraslado");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTrasladoDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Bultos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal?>("BultosVerificados")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("CantidadKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal?>("CantidadVerificadaKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Densidad")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("EstadoVerificacion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrdenTrasladoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Proveedor")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("OrdenTrasladoId");
+
+                    b.ToTable("OrdenesTrasladoDetalle");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
                 {
                     b.Property<int>("Id")
@@ -1304,8 +1518,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrdenCompraId")
-                        .IsUnique();
+                    b.HasIndex("OrdenCompraId");
 
                     b.HasIndex("UsuarioConfirmacionId");
 
@@ -2206,6 +2419,44 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.AjusteInventario", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.Costos.Inventario.Inventario", "Inventario")
+                        .WithMany("AjustesInventario")
+                        .HasForeignKey("InventarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Inventario");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.DetalleCorteInventario", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.Costos.Inventario.CortesInventario.CorteInventario", "CorteInventario")
+                        .WithMany("Detalles")
+                        .HasForeignKey("CorteInventarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Models.Prov_Materiales.Materiales.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CorteInventario");
+
+                    b.Navigation("Material");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Prov_Materiales.Materiales.Material", "Material")
@@ -2262,11 +2513,54 @@ namespace SistemaFlota.Migrations
                     b.Navigation("OrdenCompra");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTraslado", b =>
+                {
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioConfirmacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioConfirmacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaFlota.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioVerificacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioVerificacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Usuario");
+
+                    b.Navigation("UsuarioConfirmacion");
+
+                    b.Navigation("UsuarioVerificacion");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTrasladoDetalle", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.Prov_Materiales.Materiales.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTraslado", "OrdenTraslado")
+                        .WithMany("Detalles")
+                        .HasForeignKey("OrdenTrasladoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+
+                    b.Navigation("OrdenTraslado");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", "OrdenCompra")
-                        .WithOne("RecepcionMercancia")
-                        .HasForeignKey("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", "OrdenCompraId")
+                        .WithMany("RecepcionesMercancia")
+                        .HasForeignKey("OrdenCompraId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -2422,11 +2716,26 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Registros");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.CorteInventario", b =>
+                {
+                    b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
+                {
+                    b.Navigation("AjustesInventario");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", b =>
                 {
                     b.Navigation("Detalles");
 
-                    b.Navigation("RecepcionMercancia");
+                    b.Navigation("RecepcionesMercancia");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTraslado", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>

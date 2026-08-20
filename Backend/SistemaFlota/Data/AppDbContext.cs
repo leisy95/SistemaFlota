@@ -2,7 +2,9 @@
 using SistemaFlota.Models;
 using SistemaFlota.Models.Consecutivo;
 using SistemaFlota.Models.Costos.Inventario;
+using SistemaFlota.Models.Costos.Inventario.CortesInventario;
 using SistemaFlota.Models.Costos.OrdenesCompras;
+using SistemaFlota.Models.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
@@ -62,6 +64,10 @@ namespace SistemaFlota
         public DbSet<RecepcionMercancia> RecepcionesMercancias { get; set; }
         public DbSet<RecepcionMercanciaDetalle> RecepcionesMercanciaDetalle { get; set; }
         public DbSet<Inventario> Inventarios { get; set; }
+        public DbSet<AjusteInventario> AjustesInventario { get; set; }
+        public DbSet<CorteInventario> CortesInventario { get; set; }
+        public DbSet<OrdenTraslado> OrdenesTraslado { get; set; }
+        public DbSet<OrdenTrasladoDetalle> OrdenesTrasladoDetalle { get; set; }
         public DbSet<Consecutivo> Consecutivos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -106,8 +112,8 @@ namespace SistemaFlota
 
             modelBuilder.Entity<RecepcionMercancia>()
                 .HasOne(r => r.OrdenCompra)
-                .WithOne(o => o.RecepcionMercancia)
-                .HasForeignKey<RecepcionMercancia>(r => r.OrdenCompraId)
+                .WithMany(o => o.RecepcionesMercancia)
+                .HasForeignKey(r => r.OrdenCompraId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<RecepcionMercanciaDetalle>()
@@ -131,6 +137,60 @@ namespace SistemaFlota
             modelBuilder.Entity<Inventario>()
                 .HasIndex(i => new { i.MaterialId, i.Color })
                 .IsUnique();
+
+            modelBuilder.Entity<AjusteInventario>()
+                .HasOne(a => a.Inventario)
+                .WithMany(i => i.AjustesInventario)
+                .HasForeignKey(a => a.InventarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AjusteInventario>()
+                .HasOne(a => a.Usuario)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CorteInventario>()
+                .HasMany(c => c.Detalles)
+                .WithOne(d => d.CorteInventario)
+                .HasForeignKey(d => d.CorteInventarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DetalleCorteInventario>()
+                .HasOne(d => d.Material)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTraslado>()
+                .HasOne(x => x.Usuario)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTraslado>()
+                .HasOne(x => x.UsuarioVerificacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioVerificacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTraslado>()
+                .HasOne(x => x.UsuarioConfirmacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioConfirmacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTraslado>()
+                .HasMany(x => x.Detalles)
+                .WithOne(x => x.OrdenTraslado)
+                .HasForeignKey(x => x.OrdenTrasladoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenTrasladoDetalle>()
+                .HasOne(x => x.Material)
+                .WithMany()
+                .HasForeignKey(x => x.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Consecutivo>()
                 .HasIndex(x => x.Modulo)

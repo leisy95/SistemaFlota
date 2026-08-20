@@ -1,0 +1,47 @@
+<div class="modal">
+    <div class="header">
+        <div>
+            <h2><i class="fa-solid fa-boxes-stacked"></i> Detalle del Corte de Inventario</h2>
+            <p>Fecha: {{ data.fecha | date:'dd/MM/yyyy HH:mm' }} · Usuario: {{ data.usuario }}</p>
+        </div>
+
+        <button class="close" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Proveedor</th>
+                    <th>Material</th>
+                    <th>Color</th>
+                    <th>Sistema (KG)</th>
+                    <th>Conteo Físico (KG)</th>
+                    <th>Diferencia</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let item of data.detalles">
+                    <td>{{ item.proveedor }}</td>
+                    <td>{{ item.material }}</td>
+                    <td>{{ item.color }}</td>
+                    <td class="numero">{{ item.stockSistema }}</td>
+                    <td class="numero">{{ item.conteoFisico }}</td>
+                    <td class="numero" [class.negativo]="item.diferencia < 0" [class.positivo]="item.diferencia >= 0">
+                        {{ item.diferencia }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <button class="btn-cancelar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+            Cerrar
+        </button>
+    </div>
+</div>

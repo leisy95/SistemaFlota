@@ -7,8 +7,10 @@ using SistemaFlota.Configuracion;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
+using SistemaFlota.Services.Costos.Inventario.CortesInventario;
 using SistemaFlota.Services.Costos.Materiales;
 using SistemaFlota.Services.Costos.OrdenCompra;
+using SistemaFlota.Services.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
@@ -104,6 +106,9 @@ builder.Services.AddScoped<IRecepcionMercanciaService, RecepcionMercanciaService
 builder.Services.AddScoped<IEtiquetasPdfService, EtiquetasPdfService>();
 builder.Services.AddScoped<IRecepcionMercanciaPdfService, RecepcionMercanciaPdfService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAjusteInventarioService, AjusteInventarioService>();
+builder.Services.AddScoped<ICorteInventarioService, CorteInventarioService>();
+builder.Services.AddScoped<IOrdenTrasladoService, OrdenTrasladoService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<EmailTemplateService>();
@@ -149,7 +154,7 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario admin creado");
+            Console.WriteLine(" Usuario admin creado");
         }
 
         var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
@@ -164,7 +169,7 @@ using (var scope = app.Services.CreateScope())
                 Activo = true
             });
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Usuario maestro creado");
+            Console.WriteLine(" Usuario maestro creado");
         }
 
         var existenTipos = await db.TiposVehiculo.AnyAsync();
@@ -181,12 +186,12 @@ using (var scope = app.Services.CreateScope())
                 new TipoVehiculo { Nombre = "Otro" }
             );
             await db.SaveChangesAsync();
-            Console.WriteLine("✅ Tipos de vehículo creados.");
+            Console.WriteLine(" Tipos de vehículo creados.");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error en seed: {ex.Message}");
+        Console.WriteLine($" Error en seed: {ex.Message}");
     }
 }
 
@@ -212,8 +217,8 @@ app.UseExceptionHandler(errorApp =>
             .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
         if (error != null)
         {
-            Console.WriteLine($"❌ ERROR GLOBAL: {error.Error.Message}");
-            Console.WriteLine($"❌ STACK: {error.Error.StackTrace}");
+            Console.WriteLine($" ERROR GLOBAL: {error.Error.Message}");
+            Console.WriteLine($" STACK: {error.Error.StackTrace}");
             await context.Response.WriteAsync(
                 System.Text.Json.JsonSerializer.Serialize(
                     new { error = error.Error.Message }

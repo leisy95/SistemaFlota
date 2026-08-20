@@ -26,5 +26,8 @@ namespace SistemaFlota.Models.Costos.Inventario
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
         public DateTime FechaActualizacion { get; set; } = DateTime.Now;
+
+        public ICollection<AjusteInventario> AjustesInventario { get; set; }
+             = new List<AjusteInventario>();
     }
 }

@@ -41,4 +41,12 @@ export const COSTOS_ROUTES: Routes = [
                 .then(c => c.ListarInventario),
         data: { animation: 'proveedores' }
     },
+
+    {
+        path: 'traslados',
+        loadComponent: () =>
+            import('./traslados/listar-traslado/listar-traslado')
+                .then(c => c.ListarTraslado),
+        data: { animation: 'proveedores' }
+    },
 ];

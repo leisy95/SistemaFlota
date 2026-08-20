@@ -85,14 +85,27 @@ export class IniciarRepmercancia implements OnInit {
                 material: [x.material],
                 cantidadOrdenada: [x.cantidad],
                 bultosOrdenados: [x.bultos],
+                cantidadRecibidaAnterior: [x.cantidadRecibida],
+                bultosRecibidosAnterior: [x.bultosRecibidos],
+                cantidadPendiente: [x.cantidadPendiente],
+                bultosPendientes: [x.bultosPendientes],
                 seleccionado: [true],
                 cantidadRecibida: [
-                  x.cantidad,
-                  [Validators.required, Validators.min(0.01)]
+                  x.cantidadPendiente,
+                  [
+                    Validators.required,
+                    Validators.min(0.01),
+                    Validators.max(x.cantidadPendiente)
+                  ]
                 ],
+
                 bultosRecibidos: [
-                  Number(x.bultos),
-                  [Validators.required, Validators.min(0.01)]
+                  Number(x.bultosPendientes),
+                  [
+                    Validators.required,
+                    Validators.min(0.01),
+                    Validators.max(x.bultosPendientes)
+                  ]
                 ],
                 loteProveedor: [
                   '',

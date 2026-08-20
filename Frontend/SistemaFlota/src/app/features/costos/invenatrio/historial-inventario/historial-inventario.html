@@ -1,0 +1,102 @@
+<div class="modal">
+
+    <div class="header">
+
+        <div>
+            <h2>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Historial del Material
+            </h2>
+
+            <p>Movimientos registrados del inventario.</p>
+        </div>
+
+        <button class="close" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+    </div>
+
+    <div class="contenido">
+
+        <div class="card resumen">
+
+            <div class="item">
+                <label>Material</label>
+                <span>{{ historial[0]?.material }}</span>
+            </div>
+
+            <div class="item">
+                <label>Color</label>
+                <span>{{ historial[0]?.color }}</span>
+            </div>
+
+            <div class="item">
+                <label>Total Movimientos</label>
+                <span>{{ historial.length }}</span>
+            </div>
+
+        </div>
+
+        <div class="tabla">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Documento</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Stock Anterior</th>
+                        <th>Stock Nuevo</th>
+                        <th>Usuario</th>
+                        <th>Motivo</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let item of historial">
+
+                        <td>{{ item.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                        <td>{{ item.numeroAjuste }}</td>
+
+                        <td>
+                            <span class="badge" [class.entrada]="item.tipo?.trim() === 'Entrada'"
+                                [class.salida]="item.tipo?.trim() === 'Salida'">
+                                {{ item.tipo }}
+                            </span>
+                        </td>
+
+                        <td>{{ item.cantidad | number:'1.2-2' }} Kg</td>
+                        <td>{{ item.stockAnterior | number:'1.2-2' }}</td>
+                        <td>{{ item.stockNuevo | number:'1.2-2' }}</td>
+                        <td>{{ item.usuario }}</td>
+                        <td>{{ item.motivo }}</td>
+
+                    </tr>
+
+                    <tr *ngIf="historial.length === 0">
+                        <td colspan="8" class="sin-registros">
+                            No existen movimientos para este material.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+
+        <button class="btn btn-cancelar" (click)="cerrar()">
+            Cerrar
+        </button>
+
+    </div>
+
+</div>

@@ -5,8 +5,12 @@ import { ToastrService } from 'ngx-toastr';
 import { Inventario_Costos } from '../../../../core/models/costos/inventario/inventario-costos.models';
 import { InventarioService } from '../../../../core/services/costos/inventario/inventario.service';
 import { ProveedorFiltro } from '../../../../core/models/costos/inventario/proveedorfiltro.models';
-import { ActivatedRoute, Router } from '@angular/router';
 import { EstadoListadoService } from '../../../../core/services/serviciogeneralcarga/EstadoListadoService';
+import { MatDialog } from '@angular/material/dialog';
+import { CorteInventario } from '../corte-inventario/corte-inventario';
+import { AjusteInventario } from '../ajuste-inventario/ajuste-inventario';
+import { HistorialInventario } from '../historial-inventario/historial-inventario';
+import { HistorialCorteInventario } from '../historial-corte-inventario/historial-corte-inventario';
 
 @Component({
   selector: 'app-listar-inventario',
@@ -70,7 +74,8 @@ export class ListarInventario {
   constructor(
     private toastr: ToastrService,
     private inventarioService: InventarioService,
-    private estado: EstadoListadoService
+    private estado: EstadoListadoService,
+    private dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
@@ -240,16 +245,33 @@ export class ListarInventario {
           'No fue posible exportar el inventario.'
         );
       }
-
     });
-
   }
 
   corteMes(): void {
-    this.toastr.success(
-      'Corte de mes realizado.',
-      'Inventario'
-    );
+
+    const dialogRef = this.dialog.open(CorteInventario, {
+      width: '1200px',
+      maxWidth: '95vw',
+      height: 'auto',
+      maxHeight: '95vh',
+      disableClose: true,
+      data: {
+        titulo: 'Corte de Mes'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(resultado => {
+
+      if (resultado) {
+        this.toastr.success(
+          'Corte de mes realizado.',
+          'Inventario'
+        );
+      }
+
+    });
+
   }
 
   imprimir(material: any): void {
@@ -259,18 +281,36 @@ export class ListarInventario {
     );
   }
 
-  editar(material: any): void {
-    this.toastr.info(
-      `Editar ${material.tipo}.`,
-      'Inventario'
-    );
+  editar(material: Inventario_Costos): void {
+
+    this.dialog.open(AjusteInventario, {
+      width: '650px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      disableClose: true,
+      panelClass: 'ajuste-dialog',
+      data: material.id
+    });
+
   }
 
-  historial(material: any): void {
-    this.toastr.info(
-      `Movimientos de ${material.tipo}.`,
-      'Inventario'
-    );
+  historial(material: Inventario_Costos): void {
+
+    this.dialog.open(HistorialInventario, {
+      width: '1100px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      disableClose: true,
+      data: material.id
+    });
+
+  }
+
+  historialCortes(): void {
+    this.dialog.open(HistorialCorteInventario, {
+      width: '1000px',
+      maxWidth: '95vw'
+    });
   }
 
   cambiarPagina(pagina: number): void {

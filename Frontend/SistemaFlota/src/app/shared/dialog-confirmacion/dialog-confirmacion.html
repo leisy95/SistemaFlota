@@ -1,0 +1,24 @@
+<div class="dialog-confirmacion">
+    <div class="icono" [ngClass]="data.tipo || 'warning'">
+        <i *ngIf="data.tipo === 'danger'" class="fa-solid fa-triangle-exclamation"></i>
+        <i *ngIf="data.tipo === 'info'" class="fa-solid fa-circle-info"></i>
+        <i *ngIf="!data.tipo || data.tipo === 'warning'" class="fa-solid fa-circle-question"></i>
+    </div>
+
+    <div class="contenido">
+        <h2>{{ data.titulo }}</h2>
+        <p>{{ data.mensaje }}</p>
+    </div>
+
+    <div class="acciones">
+        <button class="btn-cancelar" (click)="cancelar()">
+            <i class="fa-solid fa-xmark"></i>
+            {{ data.textoCancelar || 'Cancelar' }}
+        </button>
+
+        <button class="btn-confirmar" [class.danger]="data.tipo === 'danger'" (click)="confirmar()">
+            <i class="fa-solid fa-check"></i>
+            {{ data.textoConfirmar || 'Confirmar' }}
+        </button>
+    </div>
+</div>

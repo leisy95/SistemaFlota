@@ -32,14 +32,13 @@ namespace SistemaFlota.Models.Costos.RecepcionMercancias
 
         public DateTime FechaRecepcion { get; set; } = DateTime.Now;
 
-        // Para estado confirmacion
         public DateTime? FechaConfirmacion { get; set; }
 
-        // NUEVO
         public int? UsuarioConfirmacionId { get; set; }
 
         [ForeignKey(nameof(UsuarioConfirmacionId))]
         public virtual Usuario? UsuarioConfirmacion { get; set; }
+
         public virtual ICollection<RecepcionMercanciaDetalle> Detalles { get; set; }
             = new List<RecepcionMercanciaDetalle>();
     }

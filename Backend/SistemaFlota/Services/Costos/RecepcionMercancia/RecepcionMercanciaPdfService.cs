@@ -75,15 +75,13 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
             });
 
         page.Content()
-            .PaddingVertical(20)
+            .PaddingVertical(10)
             .Column(col =>
             {
-                col.Spacing(15);
+                col.Spacing(7);
 
                 DibujarDatosRecepcion(col, recepcion);
-
                 DibujarDatosOrden(col, recepcion);
-
                 DibujarTransporte(col, recepcion);
 
                 col.Item().Element(x =>
@@ -110,17 +108,17 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
             {
                 contenido.Item().Row(row =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text($"Recepción: {recepcion.NumeroRecepcion}");
-                        c.Item().Text($"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy}");
-                    });
+                    row.RelativeItem().Text(
+                        $"Recepción: {recepcion.NumeroRecepcion}");
 
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text($"Recibe: {recepcion.Recibe}");
-                        c.Item().Text($"Cargo: {recepcion.Cargo}");
-                    });
+                    row.RelativeItem().Text(
+                        $"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy}");
+
+                    row.RelativeItem().Text(
+                        $"Recibe: {recepcion.Recibe}");
+
+                    row.RelativeItem().Text(
+                        $"Cargo: {recepcion.Cargo}");
                 });
             });
         });
@@ -134,14 +132,28 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
         {
             Card.Dibujar(x, "ORDEN DE COMPRA", contenido =>
             {
-                contenido.Item().Text($"Orden: {recepcion.OrdenCompra?.Numero}");
-                contenido.Item().Text($"Proveedor: {recepcion.OrdenCompra?.Proveedor?.Nombre}");
-                contenido.Item().Text($"Fecha de orden: {recepcion.OrdenCompra?.FechaOrden:dd/MM/yyyy}");
+                contenido.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(
+                        $"Orden: {recepcion.OrdenCompra?.Numero}");
+
+                    row.RelativeItem().Text(
+                        $"Proveedor: {recepcion.OrdenCompra?.Proveedor?.Nombre}");
+
+                    row.RelativeItem().Text(
+                        $"Fecha: {recepcion.OrdenCompra?.FechaOrden:dd/MM/yyyy}");
+
+                    row.RelativeItem().Text(
+                        $"Estado: {recepcion.OrdenCompra?.Estado}");
+                });
 
                 if (recepcion.OrdenCompra?.FechaEntrega != null)
-                    contenido.Item().Text($"Fecha de entrega: {recepcion.OrdenCompra.FechaEntrega:dd/MM/yyyy}");
-
-                contenido.Item().Text($"Estado: {recepcion.OrdenCompra?.Estado}");
+                {
+                    contenido.Item()
+                        .PaddingTop(3)
+                        .Text(
+                            $"Fecha de entrega: {recepcion.OrdenCompra.FechaEntrega:dd/MM/yyyy}");
+                }
             });
         });
     }
@@ -154,10 +166,20 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
         {
             Card.Dibujar(x, "TRANSPORTE", contenido =>
             {
-                contenido.Item().Text($"Conductor: {recepcion.Conductor}");
-                contenido.Item().Text($"Transportadora: {recepcion.Transportadora}");
-                contenido.Item().Text($"Tipo de documento: {recepcion.TipoDocumento}");
-                contenido.Item().Text($"Embalaje adecuado: {(recepcion.EmbalajeAdecuado ? "Sí" : "No")}");
+                contenido.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(
+                        $"Conductor: {recepcion.Conductor}");
+
+                    row.RelativeItem().Text(
+                        $"Transportadora: {recepcion.Transportadora}");
+
+                    row.RelativeItem().Text(
+                        $"Documento: {recepcion.TipoDocumento}");
+
+                    row.RelativeItem().Text(
+                        $"Embalaje: {(recepcion.EmbalajeAdecuado ? "Sí" : "No")}");
+                });
             });
         });
     }
@@ -170,17 +192,26 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
         {
             Card.Dibujar(x, "RESUMEN DE LA RECEPCIÓN", contenido =>
             {
-                contenido.Item().Text($"Total de materiales: {recepcion.OrdenCompra?.TotalItems}");
+                contenido.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(
+                        $"Materiales: {recepcion.OrdenCompra?.TotalItems}");
 
-                contenido.Item().Text($"Total Kg: {recepcion.OrdenCompra?.TotalKg:N2}");
+                    row.RelativeItem().Text(
+                        $"Total Kg: {recepcion.OrdenCompra?.TotalKg:N2}");
 
-                contenido.Item().Text($"Total bultos: {recepcion.OrdenCompra?.TotalBultos:N2}");
+                    row.RelativeItem().Text(
+                        $"Bultos: {recepcion.OrdenCompra?.TotalBultos:N2}");
 
-                contenido.Item().Text($"Subtotal: ${recepcion.OrdenCompra?.Subtotal:N2}");
+                    row.RelativeItem().Text(
+                        $"Subtotal: ${recepcion.OrdenCompra?.Subtotal:N2}");
 
-                contenido.Item().Text($"Impuesto ({recepcion.OrdenCompra?.PorcentajeImpuesto:N0}%): ${recepcion.OrdenCompra?.ValorImpuesto:N2}");
+                    row.RelativeItem().Text(
+                        $"Impuesto: ${recepcion.OrdenCompra?.ValorImpuesto:N2}");
 
-                contenido.Item().Text($"Costo total: ${recepcion.OrdenCompra?.TotalPagar:N2}");
+                    row.RelativeItem().Text(
+                        $"Total: ${recepcion.OrdenCompra?.TotalPagar:N2}");
+                });
             });
         });
     }

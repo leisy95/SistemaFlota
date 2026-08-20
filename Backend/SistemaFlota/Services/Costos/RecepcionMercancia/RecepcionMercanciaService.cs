@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
-using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
@@ -85,12 +84,6 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
         public async Task<RecepcionFormularioDto?> ObtenerFormularioAsync(int ordenCompraId)
         {
-            var existeRecepcion = await _context.RecepcionesMercancias
-                .AnyAsync(x => x.OrdenCompraId == ordenCompraId);
-
-            if (existeRecepcion)
-                throw new Exception("Esta orden de compra ya tiene una recepción registrada.");
-
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Proveedor)
                 .Include(o => o.Detalles)
@@ -100,6 +93,40 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             if (orden == null)
                 return null;
 
+            var recepcionesAnteriores = await _context.RecepcionesMercancias
+                .Where(r => r.OrdenCompraId == ordenCompraId)
+                .SelectMany(r => r.Detalles)
+                .ToListAsync();
+
+            var items = orden.Detalles
+                .Select(d =>
+                {
+                    var cantidadRecibida = recepcionesAnteriores
+                        .Where(r => r.OrdenCompraDetalleId == d.Id)
+                        .Sum(r => r.CantidadRecibida);
+
+                    var bultosRecibidos = recepcionesAnteriores
+                        .Where(r => r.OrdenCompraDetalleId == d.Id)
+                        .Sum(r => r.BultosRecibidos);
+
+                    var cantidadPendiente = Math.Max(0, d.CantidadKg - cantidadRecibida);
+                    var bultosPendientes = Math.Max(0, d.Bultos - bultosRecibidos);
+
+                    return new RecepcionMercanciaDetalleFormularioDto
+                    {
+                        OrdenCompraDetalleId = d.Id,
+                        MaterialId = d.MaterialId,
+                        Material = d.Material?.NombreMaterial ?? string.Empty,
+                        Cantidad = d.CantidadKg,
+                        Bultos = d.Bultos,
+                        CantidadRecibida = cantidadRecibida,
+                        BultosRecibidos = bultosRecibidos,
+                        CantidadPendiente = cantidadPendiente,
+                        BultosPendientes = bultosPendientes
+                    };
+                })
+                .Where(x => x.CantidadPendiente > 0 || x.BultosPendientes > 0)
+                .ToList();
 
             return new RecepcionFormularioDto
             {
@@ -109,17 +136,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 FechaOrden = orden.FechaOrden,
                 Recibe = _currentUser.Usuario,
                 Cargo = _currentUser.Rol,
-
-                Items = orden.Detalles
-                    .Select(d => new RecepcionMercanciaDetalleFormularioDto
-                    {
-                        OrdenCompraDetalleId = d.Id,
-                        MaterialId = d.MaterialId,
-                        Material = d.Material?.NombreMaterial ?? string.Empty,
-                        Cantidad = d.CantidadKg,
-                        Bultos = d.Bultos
-                    })
-                    .ToList()
+                Items = items
             };
         }
 
@@ -132,18 +149,15 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 .Include(o => o.Proveedor)
                 .FirstOrDefaultAsync(o => o.Id == dto.OrdenCompraId);
 
-
             if (orden == null)
                 throw new Exception("La orden de compra no existe");
 
-            var existeRecepcion = await _context.RecepcionesMercancias
-                .AnyAsync(x => x.OrdenCompraId == dto.OrdenCompraId);
+            var recepcionesAnteriores = await _context.RecepcionesMercancias
+                .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
+                .SelectMany(r => r.Detalles)
+                .ToListAsync();
 
-            if (existeRecepcion)
-                throw new Exception("Esta orden de compra ya fue recepcionada.");
-
-            var numeroRecepcion = await _consecutivoService
-                .GenerarAsync("RecepcionMercancia");
+            var numeroRecepcion = await _consecutivoService.GenerarAsync("RecepcionMercancia");
 
             var recepcion = new Models.Costos.RecepcionMercancias.RecepcionMercancia
             {
@@ -162,6 +176,59 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
             foreach (var item in dto.Detalles)
             {
+                var detalleOrden = orden.Detalles
+                    .FirstOrDefault(d => d.Id == item.OrdenCompraDetalleId);
+
+                if (detalleOrden == null)
+                    throw new Exception(
+                        $"El detalle {item.OrdenCompraDetalleId} no pertenece a la orden de compra."
+                    );
+
+                var cantidadRecibidaAnterior = recepcionesAnteriores
+                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Sum(r => r.CantidadRecibida);
+
+                var bultosRecibidosAnterior = recepcionesAnteriores
+                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Sum(r => r.BultosRecibidos);
+
+                var cantidadPendiente = Math.Max(
+                    0,
+                    detalleOrden.CantidadKg - cantidadRecibidaAnterior
+                );
+
+                var bultosPendientes = Math.Max(
+                    0,
+                    detalleOrden.Bultos - bultosRecibidosAnterior
+                );
+
+                if (item.CantidadRecibida < 0)
+                    throw new Exception(
+                        $"La cantidad recibida para {detalleOrden.Material?.NombreMaterial} no puede ser negativa."
+                    );
+
+                if (item.BultosRecibidos < 0)
+                    throw new Exception(
+                        $"Los bultos recibidos para {detalleOrden.Material?.NombreMaterial} no pueden ser negativos."
+                    );
+
+                if (item.CantidadRecibida > cantidadPendiente)
+                    throw new Exception(
+                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} " +
+                        $"supera la cantidad pendiente. " +
+                        $"Pendiente: {cantidadPendiente} kg."
+                    );
+
+                if (item.BultosRecibidos > bultosPendientes)
+                    throw new Exception(
+                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} " +
+                        $"superan los bultos pendientes. " +
+                        $"Pendientes: {bultosPendientes}."
+                    );
+
+                if (item.CantidadRecibida == 0 && item.BultosRecibidos == 0)
+                    continue;
+
                 var detalle = new RecepcionMercanciaDetalle
                 {
                     OrdenCompraDetalleId = item.OrdenCompraDetalleId,
@@ -171,12 +238,39 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     EstadoMaterial = item.EstadoMaterial,
                     Observaciones = item.Observaciones
                 };
+
                 recepcion.Detalles.Add(detalle);
             }
 
-            orden.Estado = "Recepcionada";
+            if (!recepcion.Detalles.Any())
+                throw new Exception("Debe ingresar al menos una cantidad o bulto recibido.");
 
             _context.RecepcionesMercancias.Add(recepcion);
+
+            await _context.SaveChangesAsync();
+
+            var todosLosDetallesRecibidos = await _context.RecepcionesMercancias
+                .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
+                .SelectMany(r => r.Detalles)
+                .ToListAsync();
+
+            var ordenCompleta = orden.Detalles.All(d =>
+            {
+                var cantidadRecibida = todosLosDetallesRecibidos
+                    .Where(r => r.OrdenCompraDetalleId == d.Id)
+                    .Sum(r => r.CantidadRecibida);
+
+                var bultosRecibidos = todosLosDetallesRecibidos
+                    .Where(r => r.OrdenCompraDetalleId == d.Id)
+                    .Sum(r => r.BultosRecibidos);
+
+                return cantidadRecibida >= d.CantidadKg &&
+                       bultosRecibidos >= d.Bultos;
+            });
+
+            orden.Estado = ordenCompleta
+                ? "Recepcionada"
+                : "Parcial";
 
             await _context.SaveChangesAsync();
 
@@ -188,7 +282,6 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             return new RecepcionMercanciaDto
             {
                 Id = recepcion.Id,
-
                 ConsecutivoEntrada = recepcion.NumeroRecepcion,
                 OrdenCompraId = recepcion.OrdenCompraId,
                 NumeroOrden = orden.Numero,
@@ -213,14 +306,51 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 if (recepcion == null)
                     throw new Exception("La recepción no existe.");
 
-                if (recepcion.OrdenCompra!.Estado != "Recepcionada")
-                    throw new Exception("Solo se pueden confirmar recepciones en estado Recepcionada.");
+                if (recepcion.FechaConfirmacion.HasValue)
+                    throw new Exception("Esta recepción ya fue confirmada.");
 
-                recepcion.OrdenCompra.Estado = "Confirmada";
+                if (recepcion.OrdenCompra == null)
+                    throw new Exception("La orden de compra no existe.");
+
+                if (recepcion.OrdenCompra.Estado != "Parcial" && recepcion.OrdenCompra.Estado != "Recepcionada")
+                    throw new Exception("La orden de compra no está en un estado válido para confirmar la recepción.");
+
                 recepcion.FechaConfirmacion = DateTime.Now;
                 recepcion.UsuarioConfirmacionId = _currentUser.IdUsuario!.Value;
 
                 await _inventarioService.ProcesarRecepcionAsync(id);
+
+                var recepcionesPendientes = await _context.RecepcionesMercancias
+                    .Where(r => r.OrdenCompraId == recepcion.OrdenCompraId && r.FechaConfirmacion == null)
+                    .AnyAsync();
+
+                if (!recepcionesPendientes)
+                {
+                    var detallesOrden = await _context.OrdenesCompra
+                        .Where(o => o.Id == recepcion.OrdenCompraId)
+                        .SelectMany(o => o.Detalles)
+                        .ToListAsync();
+
+                    var detallesRecibidos = await _context.RecepcionesMercancias
+                        .Where(r => r.OrdenCompraId == recepcion.OrdenCompraId)
+                        .SelectMany(r => r.Detalles)
+                        .ToListAsync();
+
+                    var ordenCompleta = detallesOrden.All(d =>
+                    {
+                        var kgRecibidos = detallesRecibidos
+                            .Where(x => x.OrdenCompraDetalleId == d.Id)
+                            .Sum(x => x.CantidadRecibida);
+
+                        var bultosRecibidos = detallesRecibidos
+                            .Where(x => x.OrdenCompraDetalleId == d.Id)
+                            .Sum(x => x.BultosRecibidos);
+
+                        return kgRecibidos >= d.CantidadKg && bultosRecibidos >= d.Bultos;
+                    });
+
+                    recepcion.OrdenCompra.Estado = ordenCompleta ? "Confirmada" : "Parcial";
+                }
 
                 await _context.SaveChangesAsync();
             }

@@ -107,11 +107,30 @@
                                 <span>{{ item.get('material')?.value }}</span>
                             </label>
 
-                            <small>
-                                Ordenado:
-                                {{ item.get('cantidadOrdenada')?.value }} KG
-                                ({{ item.get('bultosOrdenados')?.value }} bultos)
-                            </small>
+                            <div class="item-resumen">
+
+                                <span>
+                                    <strong>Pedido:</strong>
+                                    {{ item.get('cantidadOrdenada')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosOrdenados')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                                <span>
+                                    <strong>Recibido:</strong>
+                                    {{ item.get('cantidadRecibidaAnterior')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosRecibidosAnterior')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                                <span class="pendiente">
+                                    <strong>Pendiente:</strong>
+                                    {{ item.get('cantidadPendiente')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosPendientes')?.value | number:'1.0-2' }} bultos
+                                </span>
+
+                            </div>
 
                         </div>
 

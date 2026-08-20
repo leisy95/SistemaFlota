@@ -255,4 +255,12 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/costos/inventario',
         modulo: 'costos'
     },
+
+    {
+        key: 'traslados',
+        label: 'Traslados',
+        icon: 'fa-solid fa-file-lines',
+        ruta: '/costos/traslados',
+        modulo: 'costos'
+    },
 ];

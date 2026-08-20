@@ -12,6 +12,10 @@ export interface OrdenCompra {
     totalItems: number;
     totalKg: number;
     totalBultos: number;
+    kgRecibidos: number;
+    bultosRecibidos: number;
+    kgPendientes: number;
+    bultosPendientes: number;
     totalPagar: number;
     estado: string;
     observaciones?: string;

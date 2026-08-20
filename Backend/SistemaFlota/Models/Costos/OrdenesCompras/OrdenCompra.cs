@@ -63,6 +63,7 @@ namespace SistemaFlota.Models.Costos.OrdenesCompras
         public virtual ICollection<OrdenCompraDetalle> Detalles { get; set; }
             = new List<OrdenCompraDetalle>();
 
-        public virtual RecepcionMercancia? RecepcionMercancia { get; set; }
+        public virtual ICollection<RecepcionMercancia> RecepcionesMercancia { get; set; }
+            = new List<RecepcionMercancia>();
     }
 }

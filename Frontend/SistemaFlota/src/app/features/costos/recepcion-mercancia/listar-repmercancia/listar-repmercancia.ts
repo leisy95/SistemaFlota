@@ -48,6 +48,7 @@ export class ListarRepmercancia {
     ).subscribe({
       next: (resp) => {
         this.ordenes = resp.items;
+        this.total = resp.total;
       },
       error: () => {
         this.toastr.error(
@@ -89,8 +90,6 @@ export class ListarRepmercancia {
   }
 
   verRecepcion(orden: any): void {
-
-    console.log(orden);
 
     this.dialog.open(DetalleRepmercancia, {
       width: '1200px',
