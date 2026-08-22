@@ -21,6 +21,15 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "allowedCommonJsDependencies": [
+              "canvg",
+              "qrcode",
+              "sweetalert2",
+              "html2canvas",
+              "rgbcolor",
+              "raf",
+              "core-js"
+            ],
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -63,7 +72,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "20kb",
+                  "maximumWarning": "30kb",
                   "maximumError": "50kb"
                 }
               ],

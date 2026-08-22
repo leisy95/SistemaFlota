@@ -149,7 +149,8 @@ tbody {
     font-size: 1rem;
     color: #334155;
     text-transform: capitalize;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
     text-align: center;
     vertical-align: middle;
   }

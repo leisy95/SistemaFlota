@@ -99,6 +99,12 @@ namespace SistemaFlota
                 .HasForeignKey(o => o.UsuarioActualizacionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<OrdenCompra>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioEnvioCorreoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<OrdenCompraDetalle>()
                 .HasOne(d => d.OrdenCompra)
                 .WithMany(o => o.Detalles)

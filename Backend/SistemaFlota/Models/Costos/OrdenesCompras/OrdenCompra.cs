@@ -60,6 +60,11 @@ namespace SistemaFlota.Models.Costos.OrdenesCompras
         [ForeignKey(nameof(UsuarioActualizacionId))]
         public virtual Usuario? UsuarioActualizacion { get; set; }
 
+        // Campos para Trazabilidad de envio
+        public bool CorreoEnviado { get; set; } = false;
+        public DateTime? FechaEnvioCorreo { get; set; }
+        public int? UsuarioEnvioCorreoId { get; set; }
+
         public virtual ICollection<OrdenCompraDetalle> Detalles { get; set; }
             = new List<OrdenCompraDetalle>();
 
