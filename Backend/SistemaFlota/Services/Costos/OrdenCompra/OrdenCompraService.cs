@@ -4,6 +4,7 @@ using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Email;
 
 namespace SistemaFlota.Services.Costos.OrdenCompra
 {
@@ -12,15 +13,25 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         private readonly AppDbContext _context;
         private readonly IConsecutivoService _consecutivoService;
         private readonly ICurrentUserService _currentUser;
+        private readonly IEmailService _emailService;
+        private readonly IOrdenCompraPdfService _ordenCompraPdfService;
+        private readonly EmailTemplateService _emailTemplateService;
 
         public OrdenCompraService(
             AppDbContext context,
             IConsecutivoService consecutivoService,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            IEmailService emailService,
+            IOrdenCompraPdfService ordenCompraPdfService,
+            EmailTemplateService emailTemplateService
+            )
         {
             _context = context;
             _consecutivoService = consecutivoService;
             _currentUser = currentUser;
+            _emailService = emailService;
+            _ordenCompraPdfService = ordenCompraPdfService;
+            _emailTemplateService = emailTemplateService;
         }
 
         private async Task ValidarProveedorAsync(int proveedorId)
@@ -464,6 +475,43 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             }
 
             await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // Enviar correo + pdf
+        public async Task<bool> EnviarPorCorreoAsync(int id)
+        {
+            var orden = await _context.OrdenesCompra
+                .Include(x => x.Proveedor)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (orden == null)
+                throw new Exception("La orden de compra no existe.");
+
+            if (orden.Estado == "Anulada")
+                throw new Exception("No se puede enviar una orden anulada.");
+
+            if (string.IsNullOrWhiteSpace(orden.Proveedor.CorreoElectronico))
+                throw new Exception(
+                    "El proveedor no tiene un correo configurado.");
+
+            // Generar PDF
+            byte[] pdf = await _ordenCompraPdfService.GenerarPdfAsync(id);
+
+            // Generar HTML del correo
+            string html = _emailTemplateService.OrdenCompra(
+                orden.Numero,
+                orden.Proveedor.Nombre,
+                orden.FechaOrden);
+
+            // Enviar correo con PDF adjunto
+            await _emailService.EnviarAsync(
+                orden.Proveedor.CorreoElectronico,
+                $"Orden de compra {orden.Numero}",
+                html,
+                pdf,
+                $"OrdenCompra-{orden.Numero}.pdf");
 
             return true;
         }

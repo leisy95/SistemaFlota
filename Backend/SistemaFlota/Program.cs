@@ -109,6 +109,7 @@ builder.Services.AddScoped<IRecepcionMercanciaPdfService, RecepcionMercanciaPdfS
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IAjusteInventarioService, AjusteInventarioService>();
 builder.Services.AddScoped<ICorteInventarioService, CorteInventarioService>();
+builder.Services.AddScoped<ICorteInventarioPdfService, CorteInventarioPdfService>();
 builder.Services.AddScoped<IOrdenTrasladoService, OrdenTrasladoService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();

@@ -83,4 +83,11 @@ export class OrdenCompraService {
             }
         );
     }
+
+    enviarCorreo(id: number): Observable<any> {
+        return this.http.post<any>(
+            `${this.api}/${id}/enviar-correo`,
+            {}
+        );
+    }
 }

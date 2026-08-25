@@ -52,6 +52,25 @@ export class CorteInventario implements OnInit {
     item.diferencia = item.conteo - item.sistema;
   }
 
+  imprimirPdf(): void {
+    this.corteService.generarPdf().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 3000);
+      },
+      error: () => {
+        this.toastr.error(
+          'No fue posible generar la hoja de corte.',
+          'Error'
+        );
+      }
+    });
+  }
+
   guardar() {
     const dto = {
       detalles: this.items.map(item => ({

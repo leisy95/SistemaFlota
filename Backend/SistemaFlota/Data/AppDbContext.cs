@@ -196,6 +196,8 @@ namespace SistemaFlota
             modelBuilder.Entity<Consecutivo>()
                 .HasIndex(x => x.Modulo)
                 .IsUnique();
+
+         
         }
     }
 }
