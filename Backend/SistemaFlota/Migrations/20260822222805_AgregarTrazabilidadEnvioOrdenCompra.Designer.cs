@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaFlota;
 
@@ -10,9 +11,11 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260822222805_AgregarTrazabilidadEnvioOrdenCompra")]
+    partial class AgregarTrazabilidadEnvioOrdenCompra
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +62,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Auditorias", (string)null);
+                    b.ToTable("Auditorias");
                 });
 
             modelBuilder.Entity("SistemaFlota.Autorizacion", b =>
@@ -189,7 +192,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("Autorizaciones", (string)null);
+                    b.ToTable("Autorizaciones");
                 });
 
             modelBuilder.Entity("SistemaFlota.CambioRuta", b =>
@@ -243,7 +246,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("CambiosRuta", (string)null);
+                    b.ToTable("CambiosRuta");
                 });
 
             modelBuilder.Entity("SistemaFlota.Capacitacion", b =>
@@ -294,7 +297,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("ConductorId");
 
-                    b.ToTable("Capacitaciones", (string)null);
+                    b.ToTable("Capacitaciones");
                 });
 
             modelBuilder.Entity("SistemaFlota.ChecklistItem", b =>
@@ -317,7 +320,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("TipoVehiculoId");
 
-                    b.ToTable("ChecklistItems", (string)null);
+                    b.ToTable("ChecklistItems");
                 });
 
             modelBuilder.Entity("SistemaFlota.Conductor", b =>
@@ -393,7 +396,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conductores", (string)null);
+                    b.ToTable("Conductores");
                 });
 
             modelBuilder.Entity("SistemaFlota.ConfiguracionEmpresa", b =>
@@ -437,7 +440,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConfiguracionEmpresa", (string)null);
+                    b.ToTable("ConfiguracionEmpresa");
                 });
 
             modelBuilder.Entity("SistemaFlota.ContactoNotificacion", b =>
@@ -475,7 +478,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactosNotificacion", (string)null);
+                    b.ToTable("ContactosNotificacion");
                 });
 
             modelBuilder.Entity("SistemaFlota.CosteFlete", b =>
@@ -537,7 +540,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("AutorizacionId");
 
-                    b.ToTable("CostosFletes", (string)null);
+                    b.ToTable("CostosFletes");
                 });
 
             modelBuilder.Entity("SistemaFlota.DocumentoGeneral", b =>
@@ -578,7 +581,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DocumentosGenerales", (string)null);
+                    b.ToTable("DocumentosGenerales");
                 });
 
             modelBuilder.Entity("SistemaFlota.DocumentoVehiculo", b =>
@@ -621,7 +624,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("DocumentosVehiculo", (string)null);
+                    b.ToTable("DocumentosVehiculo");
                 });
 
             modelBuilder.Entity("SistemaFlota.EncuestaFatiga", b =>
@@ -673,7 +676,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("EncuestasFatiga", (string)null);
+                    b.ToTable("EncuestasFatiga");
                 });
 
             modelBuilder.Entity("SistemaFlota.ExamenMedico", b =>
@@ -718,7 +721,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("ConductorId");
 
-                    b.ToTable("ExamenesMedicos", (string)null);
+                    b.ToTable("ExamenesMedicos");
                 });
 
             modelBuilder.Entity("SistemaFlota.FormatoFGC008", b =>
@@ -778,7 +781,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FormatoFGC008", (string)null);
+                    b.ToTable("FormatoFGC008");
                 });
 
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
@@ -840,7 +843,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("Incidentes", (string)null);
+                    b.ToTable("Incidentes");
                 });
 
             modelBuilder.Entity("SistemaFlota.InfraccionConductor", b =>
@@ -888,7 +891,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("ConductorId");
 
-                    b.ToTable("Infracciones", (string)null);
+                    b.ToTable("Infracciones");
                 });
 
             modelBuilder.Entity("SistemaFlota.Inspeccion", b =>
@@ -924,7 +927,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("Inspecciones", (string)null);
+                    b.ToTable("Inspecciones");
                 });
 
             modelBuilder.Entity("SistemaFlota.InspeccionDetalle", b =>
@@ -958,7 +961,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("InspeccionId");
 
-                    b.ToTable("InspeccionDetalles", (string)null);
+                    b.ToTable("InspeccionDetalles");
                 });
 
             modelBuilder.Entity("SistemaFlota.InventarioRuta", b =>
@@ -985,7 +988,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InventarioRutas", (string)null);
+                    b.ToTable("InventarioRutas");
                 });
 
             modelBuilder.Entity("SistemaFlota.Mantenimiento", b =>
@@ -1056,7 +1059,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("Mantenimientos", (string)null);
+                    b.ToTable("Mantenimientos");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Cajon", b =>
@@ -1080,7 +1083,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cajones", (string)null);
+                    b.ToTable("Cajones");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.CaracteristicaFormato", b =>
@@ -1137,7 +1140,7 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("Modulo")
                         .IsUnique();
 
-                    b.ToTable("Consecutivos", (string)null);
+                    b.ToTable("Consecutivos");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.ConversacionFlotaChat", b =>
@@ -1222,7 +1225,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("AjustesInventario", (string)null);
+                    b.ToTable("AjustesInventario");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.CorteInventario", b =>
@@ -1243,7 +1246,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CortesInventario", (string)null);
+                    b.ToTable("CortesInventario");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.DetalleCorteInventario", b =>
@@ -1273,7 +1276,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("MaterialId");
 
-                    b.ToTable("DetalleCorteInventario", (string)null);
+                    b.ToTable("DetalleCorteInventario");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.Inventario", b =>
@@ -1309,7 +1312,7 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("MaterialId", "Color")
                         .IsUnique();
 
-                    b.ToTable("Inventarios", (string)null);
+                    b.ToTable("Inventarios");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompra", b =>
@@ -1394,7 +1397,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("UsuarioCreacionId");
 
-                    b.ToTable("OrdenesCompra", (string)null);
+                    b.ToTable("OrdenesCompra");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesCompras.OrdenCompraDetalle", b =>
@@ -1435,7 +1438,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("OrdenCompraId");
 
-                    b.ToTable("OrdenesCompraDetalle", (string)null);
+                    b.ToTable("OrdenesCompraDetalle");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTraslado", b =>
@@ -1491,7 +1494,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("UsuarioVerificacionId");
 
-                    b.ToTable("OrdenesTraslado", (string)null);
+                    b.ToTable("OrdenesTraslado");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.OrdenesTraslado.OrdenTrasladoDetalle", b =>
@@ -1544,7 +1547,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("OrdenTrasladoId");
 
-                    b.ToTable("OrdenesTrasladoDetalle", (string)null);
+                    b.ToTable("OrdenesTrasladoDetalle");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia", b =>
@@ -1601,7 +1604,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("UsuarioConfirmacionId");
 
-                    b.ToTable("RecepcionesMercancias", (string)null);
+                    b.ToTable("RecepcionesMercancias");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercanciaDetalle", b =>
@@ -1639,7 +1642,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("RecepcionMercanciaId");
 
-                    b.ToTable("RecepcionesMercanciaDetalle", (string)null);
+                    b.ToTable("RecepcionesMercanciaDetalle");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.CyreleFoto", b =>
@@ -1703,7 +1706,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("CajonId");
 
-                    b.ToTable("CyreleRegistros", (string)null);
+                    b.ToTable("CyreleRegistros");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
@@ -1831,7 +1834,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("IdProveedor");
 
-                    b.ToTable("Materiales", (string)null);
+                    b.ToTable("Materiales");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Proveedores.Proveedor", b =>
@@ -1882,7 +1885,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("IdProveedor");
 
-                    b.ToTable("Proveedores", (string)null);
+                    b.ToTable("Proveedores");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.RegistroFormatoCalidad", b =>
@@ -2038,7 +2041,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SeguimientosRrhh", (string)null);
+                    b.ToTable("SeguimientosRrhh");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.SeguimientoRrhhFoto", b =>
@@ -2067,7 +2070,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("SeguimientoId");
 
-                    b.ToTable("SeguimientosRrhhFotos", (string)null);
+                    b.ToTable("SeguimientosRrhhFotos");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.TipoFormatoCalidad", b =>
@@ -2127,7 +2130,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("TrazabilidadId");
 
-                    b.ToTable("NotasTrazabilidad", (string)null);
+                    b.ToTable("NotasTrazabilidad");
                 });
 
             modelBuilder.Entity("SistemaFlota.NumeroEmergencia", b =>
@@ -2156,7 +2159,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NumerosEmergencia", (string)null);
+                    b.ToTable("NumerosEmergencia");
                 });
 
             modelBuilder.Entity("SistemaFlota.Pedido", b =>
@@ -2202,7 +2205,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Pedidos", (string)null);
+                    b.ToTable("Pedidos");
                 });
 
             modelBuilder.Entity("SistemaFlota.PedidoReferencia", b =>
@@ -2228,7 +2231,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("PedidoId");
 
-                    b.ToTable("PedidoReferencias", (string)null);
+                    b.ToTable("PedidoReferencias");
                 });
 
             modelBuilder.Entity("SistemaFlota.RespuestaFlotaChat", b =>
@@ -2324,7 +2327,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("VehiculoId");
 
-                    b.ToTable("SolicitudesTaller", (string)null);
+                    b.ToTable("SolicitudesTaller");
                 });
 
             modelBuilder.Entity("SistemaFlota.TipoVehiculo", b =>
@@ -2339,7 +2342,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TiposVehiculo", (string)null);
+                    b.ToTable("TiposVehiculo");
                 });
 
             modelBuilder.Entity("SistemaFlota.TrazabilidadFactura", b =>
@@ -2401,7 +2404,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("AutorizacionId");
 
-                    b.ToTable("TrazabilidadFacturas", (string)null);
+                    b.ToTable("TrazabilidadFacturas");
                 });
 
             modelBuilder.Entity("SistemaFlota.Usuario", b =>
@@ -2442,7 +2445,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("SistemaFlota.UsuarioPermiso", b =>
@@ -2477,7 +2480,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("UsuarioPermisos", (string)null);
+                    b.ToTable("UsuarioPermisos");
                 });
 
             modelBuilder.Entity("SistemaFlota.Vehiculo", b =>
@@ -2522,7 +2525,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasIndex("ConductorId");
 
-                    b.ToTable("Vehiculos", (string)null);
+                    b.ToTable("Vehiculos");
                 });
 
             modelBuilder.Entity("SistemaFlota.VinculacionFlotaChat", b =>

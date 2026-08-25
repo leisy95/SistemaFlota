@@ -34,4 +34,11 @@ export class CorteInventarioService {
             `${this.apiUrl}/${id}`
         );
     }
+
+    generarPdf(): Observable<Blob> {
+        return this.http.get(
+            `${this.apiUrl}/pdf`,
+            { responseType: 'blob' }
+        );
+    }
 }

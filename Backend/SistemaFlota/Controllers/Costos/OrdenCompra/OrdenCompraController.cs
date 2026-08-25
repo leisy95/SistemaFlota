@@ -100,5 +100,30 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
             return Ok();
         }
+
+        // Enviar orden de compra por correo
+
+        [HttpPost("{id:int}/enviar-correo")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> EnviarCorreo(int id)
+        {
+            try
+            {
+                await _service.EnviarPorCorreoAsync(id);
+
+                return Ok(new
+                {
+                    mensaje = "La orden de compra fue enviada correctamente por correo."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
     }
 }

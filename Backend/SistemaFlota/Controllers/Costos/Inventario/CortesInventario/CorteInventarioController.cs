@@ -9,11 +9,14 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
     public class CorteInventarioController : ControllerBase
     {
         private readonly ICorteInventarioService _service;
-
+        private readonly ICorteInventarioPdfService _pdfService;
         public CorteInventarioController(
-            ICorteInventarioService service)
+            ICorteInventarioService service,
+            ICorteInventarioPdfService pdfService
+            )
         {
             _service = service;
+            _pdfService = pdfService;
         }
 
         [HttpGet]
@@ -58,6 +61,18 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
                 return NotFound();
 
             return Ok(resultado);
+        }
+
+        // Imprimir pdf
+        [HttpGet("pdf")]
+        public async Task<IActionResult> GenerarPdf()
+        {
+            var pdf = await _pdfService.GenerarPdfAsync();
+
+            return File(
+                pdf,
+                "application/pdf",
+                $"CorteInventario-{DateTime.Now:yyyy-MM-dd}.pdf");
         }
     }
 }

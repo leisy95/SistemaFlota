@@ -87,6 +87,23 @@ export class DetalleOrdenCompra implements OnInit {
       });
   }
 
+  enviarCorreo(): void {
+    if (!this.orden) return;
+
+    this.ordenCompraService.enviarCorreo(this.orden.id).subscribe({
+      next: (respuesta) => {
+        this.toastr.success(
+          respuesta?.mensaje || 'La orden de compra fue enviada correctamente por correo.',
+          'Correo enviado'
+        );
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje || 'No fue posible enviar la orden por correo.';
+        this.toastr.error(mensaje, 'Error');
+      }
+    });
+  }
+
   get totalKg(): number {
 
     if (!this.orden) {
