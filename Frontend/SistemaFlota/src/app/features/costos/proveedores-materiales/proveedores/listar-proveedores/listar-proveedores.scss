@@ -212,6 +212,380 @@ a {
     cursor: not-allowed;
 }
 
+/* =========================================================
+   TABLA PROVEEDORES
+========================================================= */
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla a {
+    color: var(--verde-oscuro);
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.tabla a:hover {
+    text-decoration: underline;
+}
+
+.acciones {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .contenedor {
+        padding: 10px;
+    }
+
+    .titulo {
+        margin-bottom: 18px;
+    }
+
+    .titulo h1 {
+        font-size: 24px;
+    }
+
+    .titulo p {
+        font-size: 14px;
+    }
+
+    /* FILTROS */
+
+    .filtros-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .filtros-card {
+        padding: 18px;
+    }
+
+    .filtros-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .btn-limpiar {
+        width: 100%;
+    }
+
+    /* CARD */
+
+    .card {
+        padding: 18px;
+        border-radius: 15px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .card-header .info {
+        width: 100%;
+    }
+
+    .btn-agregar {
+        width: 100%;
+    }
+
+    /* =====================================================
+       TABLA -> CARDS
+    ===================================================== */
+
+    .tabla {
+        width: 100%;
+        border: none;
+        overflow: visible;
+    }
+
+    .tabla table,
+    .tabla tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .tabla thead {
+        display: none;
+    }
+
+    .tabla tbody tr {
+        display: block;
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 16px;
+        border: 1px solid var(--gris-claro);
+        border-radius: 15px;
+        background: var(--blanco);
+        box-shadow: 0 2px 10px var(--gris-medio);
+        box-sizing: border-box;
+    }
+
+    .tabla tbody tr:hover {
+        background: var(--blanco);
+    }
+
+    .tabla tbody td {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 11px 0;
+        border: none;
+        text-align: right;
+        box-sizing: border-box;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .tabla tbody td:not(:last-child) {
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* Nombre de la columna */
+
+    .tabla tbody td::before {
+        content: attr(data-label);
+        color: var(--gris-oscuro);
+        font-size: 13px;
+        font-weight: 700;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* Contenido */
+
+    .tabla tbody td {
+        color: var(--gris-oscuro);
+        font-size: 14px;
+    }
+
+    /* PROVEEDOR */
+
+    .tabla tbody td:first-child {
+        padding-top: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    /* EMAIL */
+
+    .tabla tbody td a {
+        max-width: 100%;
+        text-align: right;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* ACCIONES */
+
+    .tabla tbody td.acciones {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        padding-top: 15px;
+        margin-top: 4px;
+        border-bottom: none;
+    }
+
+    .tabla tbody td.acciones::before {
+        margin-right: auto;
+    }
+
+    .tabla tbody td.acciones .btn-editar,
+    .tabla tbody td.acciones .btn-eliminar {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+    }
+
+    /* PAGINACIÓN */
+
+    .paginacion {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+        padding: 16px 5px;
+    }
+
+    .controles {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .btn-pagina {
+        flex: 1;
+        max-width: 120px;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .controles span {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - MÓVIL
+========================================================= */
+
+@media (max-width: 576px) {
+
+    .contenedor {
+        padding: 8px;
+    }
+
+    .titulo h1 {
+        font-size: 21px;
+    }
+
+    .titulo p {
+        font-size: 13px;
+    }
+
+    .filtros-card {
+        padding: 15px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .card-header {
+        gap: 12px;
+    }
+
+    .card-header h2 {
+        font-size: 19px;
+    }
+
+    .card-header span {
+        font-size: 13px;
+    }
+
+    /* CARDS DE PROVEEDORES */
+
+    .tabla tbody tr {
+        padding: 14px;
+        margin-bottom: 13px;
+        border-radius: 13px;
+    }
+
+    .tabla tbody td {
+        grid-template-columns: 95px minmax(0, 1fr);
+        gap: 10px;
+        padding: 10px 0;
+        font-size: 13px;
+    }
+
+    .tabla tbody td::before {
+        font-size: 12px;
+    }
+
+    .tabla tbody td:first-child {
+        font-size: 15px;
+    }
+
+    .tabla tbody td.acciones {
+        padding-top: 13px;
+    }
+
+    /* PAGINACIÓN */
+
+    .paginacion {
+        padding: 14px 0;
+    }
+
+    .info {
+        font-size: 13px;
+    }
+
+    .controles {
+        gap: 6px;
+    }
+
+    .btn-pagina {
+        max-width: 105px;
+        padding: 9px 10px;
+        font-size: 12px;
+    }
+
+    .controles span {
+        font-size: 12px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE - MÓVILES PEQUEÑOS
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .contenedor {
+        padding: 6px;
+    }
+
+    .card {
+        padding: 12px;
+    }
+
+    .titulo h1 {
+        font-size: 19px;
+    }
+
+    .tabla tbody tr {
+        padding: 12px;
+    }
+
+    .tabla tbody td {
+        grid-template-columns: 85px minmax(0, 1fr);
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    .tabla tbody td::before {
+        font-size: 11px;
+    }
+
+    .tabla tbody td:first-child {
+        font-size: 14px;
+    }
+
+    .tabla tbody td.acciones .btn-editar,
+    .tabla tbody td.acciones .btn-eliminar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .btn-pagina {
+        max-width: 90px;
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .controles span {
+        font-size: 11px;
+    }
+}
+
 @media (max-width: 992px) {
 
     .contenedor {

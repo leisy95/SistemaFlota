@@ -2,22 +2,15 @@
 
     <div class="sidebar-header">
 
-        <div class="logo-empresa" (click)="irAlInicio()">
+        <div class="logo-empresa" (click)="irAlInicio()" role="button" tabindex="0">
+            <div class="logo-img-wrapper" *ngIf="empresaLogo">
+                <img [src]="empresaLogo" alt="Logo {{ empresaNombre }}" class="logo-img">
+            </div>
 
-            <img *ngIf="empresaLogo" [src]="empresaLogo" alt="Logo" class="logo-img">
-            <h2 class="logo" *ngIf="!empresaLogo">
-
-                <i class="fa-solid fa-truck-fast"></i>
-
-                {{ empresaNombre }}
-
+            <h2 class="logo-texto">
+                <i *ngIf="!empresaLogo" class="fa-solid fa-truck-fast logo-icono"></i>
+                <span>{{ empresaNombre }}</span>
             </h2>
-            <h2 class="logo logo-con-img" *ngIf="empresaLogo">
-
-                {{ empresaNombre }}
-
-            </h2>
-
         </div>
     </div>
     <nav>

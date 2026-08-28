@@ -1,60 +1,69 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 
-@Injectable({ providedIn: 'root' })
-export class PermisosService {
+export interface PermisoUsuario {
+  modulo: string;
+  puedeVer: boolean;
+  puedeCrear: boolean;
+  puedeEditar: boolean;
+  puedeEliminar: boolean;
+  puedeEnviar: boolean;
+  esInicio: boolean;
+}
 
-  private permisos: any[] = [];
+@Injectable({
+  providedIn: 'root'
+})
+export class PermisosService {
+  private permisos: PermisoUsuario[] = [];
   private rol = '';
 
   constructor(private auth: AuthService) {
-
     const usuario = this.auth.obtenerUsuarioActual();
-
-    if (usuario) {
-      this.cargar(usuario);
-    }
+    if (usuario) this.cargar(usuario);
   }
 
-  cargar(usuario: any) {
-
-    this.rol = usuario.rol ?? '';
-    this.permisos = usuario.permisos ?? [];
+  cargar(usuario: any): void {
+    this.rol = usuario?.rol ?? '';
+    this.permisos = usuario?.permisos ?? [];
   }
 
-  // ¿Puede ver el módulo?
   puedeVer(modulo: string): boolean {
-    if (this.rol === 'Admin') {
-      return true;
-    }
-
-    const p = this.permisos.find(p => p.modulo === modulo);
-    if (!p) return false;
-    return p.puedeVer ?? true;
+    if (this.rol === 'Admin') return true;
+    const permiso = this.permisos.find(p => p.modulo === modulo);
+    return permiso?.puedeVer === true;
   }
 
-  // ¿Puede crear en el módulo?
   puedeCrear(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
-    const p = this.permisos.find(p => p.modulo === modulo);
-    ;
-    if (!p) return true;
-    return p.puedeCrear ?? false;
+    const permiso = this.permisos.find(p => p.modulo === modulo);
+    return permiso?.puedeCrear === true;
   }
 
-  // ¿Puede editar en el módulo?
   puedeEditar(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
-    const p = this.permisos.find(p => p.modulo === modulo);
-    if (!p) return true;
-    return p.puedeEditar ?? false;
+    const permiso = this.permisos.find(p => p.modulo === modulo);
+    return permiso?.puedeEditar === true;
   }
 
-  // ¿Puede eliminar en el módulo?
   puedeEliminar(modulo: string): boolean {
     if (this.rol === 'Admin') return true;
-    const p = this.permisos.find(p => p.modulo === modulo);
-    if (!p) return true;
-    return p.puedeEliminar ?? false;
+    const permiso = this.permisos.find(p => p.modulo === modulo);
+    return permiso?.puedeEliminar === true;
+  }
+
+  puedeEnviar(modulo: string): boolean {
+    if (this.rol === 'Admin') return true
+    const permiso = this.permisos.find(p => p.modulo === modulo);
+    return permiso?.puedeEnviar === true;
+  }
+
+  obtenerPermisos(): PermisoUsuario[] {
+    return this.permisos;
+  }
+
+  limpiar(): void {
+    this.permisos = [];
+    this.rol = '';
   }
 }

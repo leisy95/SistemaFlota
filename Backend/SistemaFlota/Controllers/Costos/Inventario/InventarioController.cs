@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.Services.Costos.Inventario;
 
 namespace SistemaFlota.Controllers.Costos.Inventario
@@ -17,6 +18,7 @@ namespace SistemaFlota.Controllers.Costos.Inventario
         }
 
         [HttpGet]
+        [Permiso("inventario", "ver")]
         public async Task<IActionResult> Obtener(
             string? search,
             int? proveedorId,
@@ -37,18 +39,21 @@ namespace SistemaFlota.Controllers.Costos.Inventario
         }
 
         [HttpGet("proveedores")]
+        [Permiso("inventario", "ver")]
         public async Task<IActionResult> ObtenerProveedores()
         {
             return Ok(await _inventarioService.ObtenerProveedoresInventarioAsync());
         }
 
         [HttpGet("categorias")]
+        [Permiso("inventario", "ver")]
         public async Task<IActionResult> ObtenerCategorias()
         {
             return Ok(await _inventarioService.ObtenerCategoriasInventarioAsync());
         }
 
         [HttpGet("excel")]
+        [Permiso("inventario", "ver")]
         public async Task<IActionResult> ExportarExcel(
             string? search,
             int? proveedorId,

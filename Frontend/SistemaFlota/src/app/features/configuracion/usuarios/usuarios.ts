@@ -67,6 +67,13 @@ export class UsuariosComponent implements OnInit {
     { key: 'rrhh-seguimientos', label: 'Seguimientos RRHH' },
     { key: 'calidad-cyreles', label: 'Cyreles' },
     { key: 'calidad-formatos', label: 'Formatos' },
+
+    // COSTOS
+    { key: 'proveedores-materiales', label: 'Proveedores y Materiales' },
+    { key: 'orden-compra', label: 'Órdenes de Compra' },
+    { key: 'recepcion-mercancia', label: 'Recepción de Mercancía' },
+    { key: 'inventario', label: 'Inventario' },
+    { key: 'traslados', label: 'Traslados' },
   ];
 
   readonly roles = [

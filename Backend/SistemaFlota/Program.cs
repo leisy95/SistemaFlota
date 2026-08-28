@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SistemaFlota;
 using QuestPDF.Infrastructure;
+using SistemaFlota;
+using SistemaFlota.Authorization;
 using SistemaFlota.Configuracion;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
@@ -118,6 +120,9 @@ builder.Services.AddScoped<INotificacionRecepcionService, NotificacionRecepcionS
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditoriaService>();
+
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermisoPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
 
 // -- TWILIO --------------------------------------------------------------------
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();

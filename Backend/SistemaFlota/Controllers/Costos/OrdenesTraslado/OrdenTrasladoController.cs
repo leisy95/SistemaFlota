@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.OrdenesTraslado;
 
@@ -15,7 +16,10 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
             _service = service;
         }
 
+
+        // crear Orden de traslado
         [HttpPost]
+        [Permiso("traslados", "crear")]
         public async Task<IActionResult> Crear([FromBody] CrearOrdenTrasladoDto dto)
         {
             try
@@ -29,7 +33,9 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
             }
         }
 
+        // Obtener traslado por ID
         [HttpGet("{id}")]
+        [Permiso("traslados", "ver")]
         public async Task<IActionResult> Obtener(int id)
         {
             var resultado = await _service.ObtenerPorIdAsync(id);
@@ -40,7 +46,9 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
             return Ok(resultado);
         }
 
+        //Listar todos los tralados
         [HttpGet]
+        [Permiso("traslados", "ver")]
         public async Task<IActionResult> ObtenerTodos(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -62,7 +70,9 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
             return Ok(resultado);
         }
 
+        // Verificar orden
         [HttpPut("verificar")]
+        [Permiso("traslados", "verificar")]
         public async Task<IActionResult> Verificar(
             [FromBody] VerificarOrdenTrasladoDto dto)
         {
@@ -78,7 +88,9 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
             }
         }
 
+        // Confirmar orden
         [HttpPut("{id}/confirmar")]
+        [Permiso("traslados", "confirmar")]
         public async Task<IActionResult> Confirmar(int id)
         {
             try

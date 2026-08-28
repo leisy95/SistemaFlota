@@ -272,7 +272,7 @@ export const MENU_MODULOS: MenuItem[] = [
     // Costos
 
     {
-        key: 'prov/mater',
+        key: 'proveedores-materiales',
         label: 'Prov - Materiales',
         icon: 'fa-solid fa-file-lines',
         ruta: '/costos/proveedores-materiales',
@@ -280,7 +280,7 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
-        key: 'ord/compra',
+        key: 'orden-compra',
         label: 'Ord - Compra',
         icon: 'fa-solid fa-file-lines',
         ruta: '/costos/orden-compra',
@@ -288,7 +288,7 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
-        key: 'rec/mercancia',
+        key: 'recepcion-mercancia',
         label: 'Re - Mercancia',
         icon: 'fa-solid fa-file-lines',
         ruta: '/costos/recepcion-mercancia',

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario;
 
@@ -18,7 +19,9 @@ namespace SistemaFlota.Controllers.Costos.Inventario.AjustesInventario
             _service = service;
         }
 
+        // Crear ajuste de inventario
         [HttpPost]
+        [Permiso("inventario", "crear")]
         public async Task<ActionResult<AjusteInventarioDto>> Crear(
             CrearAjusteInventarioDto dto)
         {
@@ -33,14 +36,18 @@ namespace SistemaFlota.Controllers.Costos.Inventario.AjustesInventario
             }
         }
 
+        // Consultar inventario para realizar ajuste
         [HttpGet("{inventarioId}")]
+        [Permiso("inventario", "ver")]
         public async Task<ActionResult<InventarioAjusteDto>> Obtener(
             int inventarioId)
         {
             return Ok(await _service.ObtenerInventarioAsync(inventarioId));
         }
 
-        [HttpGet("historial/{inventarioId}")]
+        // Historial de ajustes
+        [HttpGet("historial/{inventarioId:int}")]
+        [Permiso("inventario", "ver")]
         public async Task<ActionResult<List<AjusteInventarioDto>>> Historial(
             int inventarioId)
         {

@@ -82,6 +82,60 @@ export class Modulos {
 
         break;
 
+      case '/costos':
+        nombreModulo = 'Costos';
+
+        const modulosCostos = MENU_MODULOS
+          .filter(m => m.modulo === 'costos')
+          .map(m => m.key);
+
+        permitido = this.permisos.some(p =>
+          p.puedeVer &&
+          modulosCostos.includes(p.modulo)
+        );
+
+        if (permitido) {
+
+          const inicio = this.permisos.find(p =>
+            p.puedeVer &&
+            p.esInicio &&
+            modulosCostos.includes(p.modulo)
+          );
+
+          if (inicio) {
+
+            const menuInicio = MENU_MODULOS.find(m =>
+              m.modulo === 'costos' &&
+              m.key === inicio.modulo
+            );
+
+            if (menuInicio) {
+              this.router.navigate([menuInicio.ruta]);
+              return;
+            }
+          }
+
+          const primero = this.permisos.find(p =>
+            p.puedeVer &&
+            modulosCostos.includes(p.modulo)
+          );
+
+          if (primero) {
+
+            const menuPrimero = MENU_MODULOS.find(m =>
+              m.modulo === 'costos' &&
+              m.key === primero.modulo
+            );
+
+            if (menuPrimero) {
+              this.router.navigate([menuPrimero.ruta]);
+              return;
+            }
+          }
+        }
+
+        break;
+
       case '/rrhh':
         nombreModulo = 'Recursos Humanos';
         permitido = this.permisos.some(p =>
@@ -135,6 +189,38 @@ export class Modulos {
 
     this.router.navigate([ruta]);
 
+  }
+
+  puedeVerModulo(modulo: string): boolean {
+
+    if (this.rol === 'Admin') {
+      return true;
+    }
+
+    const modulosPermitidos = MENU_MODULOS
+      .filter(m => m.modulo === modulo)
+      .map(m => m.key);
+
+    return this.permisos.some(p =>
+      p.puedeVer &&
+      modulosPermitidos.includes(p.modulo)
+    );
+  }
+
+  cantidadSubmodulos(modulo: string): number {
+
+    if (this.rol === 'Admin') {
+      return MENU_MODULOS.filter(m => m.modulo === modulo).length;
+    }
+
+    const modulosDelSistema = MENU_MODULOS
+      .filter(m => m.modulo === modulo)
+      .map(m => m.key);
+
+    return this.permisos.filter(p =>
+      p.puedeVer &&
+      modulosDelSistema.includes(p.modulo)
+    ).length;
   }
 
   cerrarDialog(): void {

@@ -11,6 +11,7 @@ import { CorteInventario } from '../corte-inventario/corte-inventario';
 import { AjusteInventario } from '../ajuste-inventario/ajuste-inventario';
 import { HistorialInventario } from '../historial-inventario/historial-inventario';
 import { HistorialCorteInventario } from '../historial-corte-inventario/historial-corte-inventario';
+import { PermisosService } from '../../../../core/services/permisos.service';
 
 @Component({
   selector: 'app-listar-inventario',
@@ -76,6 +77,7 @@ export class ListarInventario {
     private inventarioService: InventarioService,
     private estado: EstadoListadoService,
     private dialog: MatDialog,
+    public permisos: PermisosService
   ) { }
 
   ngOnInit(): void {

@@ -3,19 +3,26 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { CrearOrdenCompra } from '../crear-orden-compra/crear-orden-compra';
 import { OrdenCompraService } from '../../../../core/services/costos/ordencompra/ordencompra.service';
 import { DetalleOrdenCompra } from '../detalle-orden-compra/detalle-orden-compra';
+import { PermisosService } from '../../../../core/services/permisos.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-acciones-orden-compra',
-  imports: [],
+  standalone: true,
+  imports: [
+    CommonModule
+  ],
   templateUrl: './acciones-orden-compra.html',
   styleUrl: './acciones-orden-compra.scss',
 })
 export class AccionesOrdenCompra {
+
   constructor(
     private dialogRef: MatDialogRef<AccionesOrdenCompra>,
     @Inject(MAT_DIALOG_DATA) public orden: any,
     private dialog: MatDialog,
-    private ordenCompraService: OrdenCompraService
+    private ordenCompraService: OrdenCompraService,
+    public permisos: PermisosService
   ) { }
 
   cerrar(): void {

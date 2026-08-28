@@ -257,7 +257,8 @@
             <button class="btn-cancelar" (click)="cerrar()">
                 Cancelar
             </button>
-            <button class="btn-agregar" (click)="finalizarRecepcion()" [disabled]="form.invalid">
+            <button *ngIf="permisos.puedeCrear('recepcion-mercancia')" class="btn-agregar"
+                (click)="finalizarRecepcion()" [disabled]="form.invalid">
                 <i class="fa-solid fa-qrcode"></i>
                 Finalizar Recepción y Generar Etiquetas
             </button>

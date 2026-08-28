@@ -11,7 +11,7 @@
     </div>
 
     <div class="acciones">
-        <button (click)="accion('detalle')">
+        <button *ngIf="permisos.puedeVer('orden-compra')" (click)="accion('detalle')">
             <i class="fa-regular fa-file-lines"></i>
             <div>
                 <strong>Ver detalle</strong>
@@ -19,7 +19,7 @@
             </div>
         </button>
 
-        <button (click)="accion('editar')">
+        <button *ngIf="permisos.puedeEditar('orden-compra')" (click)="accion('editar')">
             <i class="fa-solid fa-pen"></i>
             <div>
                 <strong>Editar</strong>
@@ -27,7 +27,7 @@
             </div>
         </button>
 
-        <button (click)="accion('imprimir')">
+        <button *ngIf="permisos.puedeVer('orden-compra')" (click)="accion('imprimir')">
             <i class="fa-solid fa-print"></i>
             <div>
                 <strong>Imprimir PDF</strong>
@@ -35,7 +35,7 @@
             </div>
         </button>
 
-        <button (click)="accion('recibir')">
+        <button *ngIf="permisos.puedeCrear('recepcion-mercancia')" (click)="accion('recibir')">
             <i class="fa-solid fa-box-open"></i>
             <div>
                 <strong>Registrar recepción</strong>
@@ -43,7 +43,7 @@
             </div>
         </button>
 
-        <button class="danger" (click)="accion('anular')">
+        <button *ngIf="permisos.puedeEliminar('orden-compra')" class="danger" (click)="accion('anular')">
             <i class="fa-solid fa-trash"></i>
             <div>
                 <strong>Anular</strong>

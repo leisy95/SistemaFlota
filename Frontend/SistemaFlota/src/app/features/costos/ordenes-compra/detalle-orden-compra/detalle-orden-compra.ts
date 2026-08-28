@@ -4,6 +4,7 @@ import { OrdenCompraService } from '../../../../core/services/costos/ordencompra
 import { ToastrService } from 'ngx-toastr';
 import { OrdenCompraResponse } from '../../../../core/models/costos/ordenCompra/ordencompra-response.model';
 import { CommonModule } from '@angular/common';
+import { PermisosService } from '../../../../core/services/permisos.service';
 
 @Component({
   selector: 'app-detalle-orden-compra',
@@ -21,7 +22,8 @@ export class DetalleOrdenCompra implements OnInit {
     private dialogRef: MatDialogRef<DetalleOrdenCompra>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private ordenCompraService: OrdenCompraService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    public permisos: PermisosService
   ) { }
 
   cargando = true;

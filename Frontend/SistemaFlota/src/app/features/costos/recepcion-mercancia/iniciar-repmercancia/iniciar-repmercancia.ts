@@ -6,6 +6,7 @@ import { OrdenCompra } from '../../../../core/models/costos/ordenCompra/ordencom
 import { RecepcionMercanciaService } from '../../../../core/services/costos/recepcionmercancia/recepcionmercancia.service';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SelectorUsuarios } from '../../../../shared/reutilizable/selector-usuarios/selector-usuarios';
+import { PermisosService } from '../../../../core/services/permisos.service';
 
 @Component({
   selector: 'app-iniciar-repmercancia',
@@ -32,6 +33,7 @@ export class IniciarRepmercancia implements OnInit {
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<IniciarRepmercancia>,
     private recepcionService: RecepcionMercanciaService,
+    public permisos: PermisosService,
     @Inject(MAT_DIALOG_DATA) public data: OrdenCompra
   ) {
     this.orden = data;
@@ -69,10 +71,9 @@ export class IniciarRepmercancia implements OnInit {
 
         next: (data) => {
 
-          console.log(data);
           this.form.patchValue({
-            recibe: data.recibe,
-            cargo: data.cargo
+            recibe: data.recibe ?? '',
+            cargo: data.cargo ?? ''
           });
 
           data.items.forEach((x: any) => {

@@ -86,30 +86,55 @@
                     <th class="acciones">Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
                 <tr *ngFor="let item of proveedores">
-                    <td>{{item.nombre}}</td>
-                    <td>{{item.nit}}</td>
-                    <td>{{item.direccion}}</td>
-                    <td>{{item.ciudad}}</td>
-                    <td>{{item.departamento}}</td>
-                    <td>{{item.contacto}}</td>
-                    <td>{{item.telefono}}</td>
-                    <td>
-                        <a href="mailto:{{item.correoElectronico}}">
-                            {{item.correoElectronico}}
+                    <td data-label="Proveedor">
+                        {{ item.nombre }}
+                    </td>
+
+                    <td data-label="NIT">
+                        {{ item.nit }}
+                    </td>
+
+                    <td data-label="Dirección">
+                        {{ item.direccion }}
+                    </td>
+
+                    <td data-label="Ciudad">
+                        {{ item.ciudad }}
+                    </td>
+
+                    <td data-label="Departamento">
+                        {{ item.departamento }}
+                    </td>
+
+                    <td data-label="Contacto">
+                        {{ item.contacto }}
+                    </td>
+
+                    <td data-label="Teléfono">
+                        {{ item.telefono }}
+                    </td>
+
+                    <td data-label="Email">
+                        <a href="mailto:{{ item.correoElectronico }}">
+                            {{ item.correoElectronico }}
                         </a>
                     </td>
-                    <td class="acciones">
+
+                    <td data-label="Acciones" class="acciones">
                         <button class="btn-editar" (click)="editar(item)">
                             <i class="fa-regular fa-pen-to-square"></i>
                         </button>
+
                         <button class="btn-eliminar" (click)="eliminar(item)">
                             <i class="fa-regular fa-trash-can"></i>
                         </button>
                     </td>
                 </tr>
             </tbody>
+
         </table>
 
         <div class="paginacion">

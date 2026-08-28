@@ -119,19 +119,13 @@ export class CrearMateriales implements OnInit {
       return;
     }
 
-
-    console.log('Archivo seleccionado:', this.archivoPdf);
-
-    for (const item of formData.entries()) {
-      console.log(item[0], item[1]);
-    }
     this.materialService.crear(formData).subscribe({
-      next: () => {
+      next: (material) => {
         this.toastr.success(
           'Material creado correctamente.',
           'Éxito'
         );
-        this.dialogRef.close(true);
+        this.dialogRef.close(material);
       },
 
       error: () => {

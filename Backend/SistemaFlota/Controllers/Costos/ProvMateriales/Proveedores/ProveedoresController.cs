@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
 using SistemaFlota.Services.Costos.Proveedores;
 
@@ -17,6 +18,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
 
         /// Listar Proveedores
         [HttpGet]
+        [Permiso("proveedores-materiales", "ver")]
         public async Task<ActionResult<ProveedorPaginadoDto>> Obtener(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -37,6 +39,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
 
         /// Obtiene un proveedor por su Id. para editar
         [HttpGet("{id:int}")]
+        [Permiso("proveedores-materiales", "ver")]
         public async Task<ActionResult<ProveedorDto>> ObtenerPorId(int id)
         {
             var proveedor = await _proveedorService.ObtenerPorIdAsync(id);
@@ -49,6 +52,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
 
         /// Crea un nuevo proveedor.
         [HttpPost]
+        [Permiso("proveedores-materiales", "crear")]
         public async Task<ActionResult<ProveedorDto>> Crear([FromBody] CrearProveedorDto dto)
         {
             if (!ModelState.IsValid)
@@ -75,6 +79,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
 
         /// Actualiza un proveedor.
         [HttpPut("{id:int}")]
+        [Permiso("proveedores-materiales", "editar")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] ActualizarProveedorDto dto)
         {
             if (!ModelState.IsValid)
@@ -101,6 +106,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
 
         /// Elimina (desactiva) un proveedor.
         [HttpDelete("{id:int}")]
+        [Permiso("proveedores-materiales", "eliminar")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var eliminado = await _proveedorService.EliminarAsync(id);

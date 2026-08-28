@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.Materiales;
 using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
 using SistemaFlota.Services.Costos.Materiales;
@@ -18,6 +19,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
 
         /// Listar Proveedores
         [HttpGet]
+        [Permiso("proveedores-materiales", "ver")]
         public async Task<ActionResult<MaterialPaginadoDto>> Obtener(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -40,7 +42,9 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
             return Ok(resultado);
         }
 
+        // Obtener material por Id
         [HttpGet("{id:int}")]
+        [Permiso("proveedores-materiales", "ver")]
         public async Task<ActionResult<MaterialDto>> ObtenerPorId(int id)
         {
             var material = await _materialesService.ObtenerPorIdAsync(id);
@@ -53,13 +57,16 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
 
         // Filtros
         [HttpGet("filtros")]
+        [Permiso("proveedores-materiales", "ver")]
         public async Task<ActionResult<FiltrosMaterialDto>> ObtenerFiltros()
         {
             var filtros = await _materialesService.ObtenerFiltrosAsync();
             return Ok(filtros);
         }
 
+        // Crear material
         [HttpPost]
+        [Permiso("proveedores-materiales", "crear")]
         public async Task<ActionResult<MaterialDto>> Crear([FromForm] CrearMaterialDto dto)
         {
             if (!ModelState.IsValid)
@@ -76,6 +83,7 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
 
         // Actualizar un material 
         [HttpPut("{id:int}")]
+        [Permiso("proveedores-materiales", "editar")]
         public async Task<IActionResult> Actualizar(int id, [FromForm] ActualizarMaterialDto dto)
         {
             if (!ModelState.IsValid)

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.Inventario.CortesInventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
 
@@ -6,6 +8,7 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CorteInventarioController : ControllerBase
     {
         private readonly ICorteInventarioService _service;
@@ -19,7 +22,9 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
             _pdfService = pdfService;
         }
 
+        // Consultar corte actual
         [HttpGet]
+        [Permiso("inventario", "ver")]
         public async Task<ActionResult<List<CorteInventarioDto>>> ObtenerCorte()
         {
             var resultado = await _service.ObtenerCorteAsync();
@@ -27,7 +32,9 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
             return Ok(resultado);
         }
 
+        // Guardar Corte
         [HttpPost]
+        [Permiso("inventario", "editar")]
         public async Task<IActionResult> GuardarCorte([FromBody] CrearCorteInventarioDto dto)
         {
             try
@@ -45,7 +52,9 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
             }
         }
 
+        // Historial
         [HttpGet("historial")]
+        [Permiso("inventario", "ver")]
         public async Task<ActionResult<List<HistorialCorteInventarioDto>>> ObtenerHistorial()
         {
             var resultado = await _service.ObtenerHistorialAsync();
@@ -65,6 +74,7 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
 
         // Imprimir pdf
         [HttpGet("pdf")]
+        [Permiso("inventario", "ver")]
         public async Task<IActionResult> GenerarPdf()
         {
             var pdf = await _pdfService.GenerarPdfAsync();

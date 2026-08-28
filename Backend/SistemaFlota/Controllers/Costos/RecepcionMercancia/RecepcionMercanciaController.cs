@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.ImpresionEtiquetas;
@@ -22,7 +23,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             _etiquetasPdfService = etiquetasPdfService;
         }
 
+        //Listar Recepciones
         [HttpGet]
+        [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> Obtener(
             [FromQuery] string? search,
             [FromQuery] DateTime? fechaInicio,
@@ -42,7 +45,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             return Ok(resultado);
         }
 
+        // Obtener recepcion por ID
         [HttpGet("{id:int}")]
+        [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> ObtenerPorId(int id)
         {
             var recepcion = await _service.ObtenerPorIdAsync(id);
@@ -53,7 +58,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             return Ok(recepcion);
         }
 
+        // Formulario de recepcion
         [HttpGet("formulario/{ordenCompraId:int}")]
+        [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> ObtenerFormulario(int ordenCompraId)
         {
             try
@@ -74,7 +81,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             }
         }
 
+        // Imprimir etiquetas
         [HttpGet("{id}/etiquetas")]
+        [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> ImprimirEtiquetas(int id)
         {
             var pdf = await _etiquetasPdfService.GenerarAsync(id);
@@ -85,7 +94,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
                 $"Etiquetas_{id}.pdf");
         }
 
+        // Crear recepcion
         [HttpPost]
+        [Permiso("recepcion-mercancia", "crear")]
         public async Task<IActionResult> Crear([FromBody] CrearRecepcionMercanciaDto dto)
         {
             try
@@ -105,6 +116,7 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
 
         // Confirmar recepcion de mercancia
         [HttpPut("{id}/confirmar")]
+        [Permiso("recepcion-mercancia", "editar")]
         public async Task<IActionResult> ConfirmarRecepcion(int id)
         {
             await _service.ConfirmarRecepcionAsync(id);
@@ -115,7 +127,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             });
         }
 
+        // Actualizar Recepcion
         [HttpPut("{id:int}")]
+        [Permiso("recepcion-mercancia", "editar")]
         public async Task<IActionResult> Actualizar(
             int id,
             [FromBody] ActualizarRecepcionMercanciaDto dto)
@@ -129,6 +143,7 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
         }
 
         [HttpDelete("{id:int}")]
+        [Permiso("recepcion-mercancia", "eliminar")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var eliminado = await _service.EliminarAsync(id);
@@ -139,7 +154,9 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             return NoContent();
         }
 
+        // Filtro de reccepcion
         [HttpGet("filtros")]
+        [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> ObtenerFiltros()
         {
             var filtros = await _service.ObtenerFiltrosAsync();

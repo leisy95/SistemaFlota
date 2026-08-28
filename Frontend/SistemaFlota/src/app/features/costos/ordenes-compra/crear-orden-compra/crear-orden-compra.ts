@@ -241,12 +241,12 @@ export class CrearOrdenCompra implements OnInit {
       this.ordenCompraService
         .actualizar(this.orden.id!, this.orden)
         .subscribe({
-          next: () => {
+          next: (ordenCreada) => {
             this.toastr.success(
               'La orden fue actualizada correctamente.',
               'Éxito'
             );
-            this.dialogRef.close(true);
+            this.dialogRef.close(ordenCreada);
           },
           error: () => {
             this.toastr.error(

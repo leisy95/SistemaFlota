@@ -6,7 +6,7 @@
 
     <div class="modulos">
 
-        <div class="card-link" (click)="navegarModulo('/rrhh')">
+        <div [class.modulo-bloqueado]="!puedeVerModulo('rrhh')" class="card-link" (click)="navegarModulo('/rrhh')">
             <div class="card">
                 <div class="barra azul"></div>
                 <div class="icono azul">
@@ -15,7 +15,38 @@
                 <h3>Recursos Humanos</h3>
                 <p>Empleados, vacaciones, permisos, SST y bienestar.</p>
                 <div class="footer">
-                    <span>8 Submódulos</span>
+                    <span>{{ cantidadSubmodulos('rrhh') }} Submódulos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
+        <div [class.modulo-bloqueado]="!puedeVerModulo('costos')" class="card-link" (click)="navegarModulo('/costos')">
+            <div class="card">
+                <div class="barra naranja"></div>
+                <div class="icono naranja">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3>Materias Primas</h3>
+                <p>Compras, inventario, traslados y gestión de costos.</p>
+                <div class="footer">
+                    <span>{{ cantidadSubmodulos('costos') }} Submódulos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
+        <div [class.modulo-bloqueado]="!puedeVerModulo('calidad')" class="card-link"
+            (click)="navegarModulo('/calidad')">
+            <div class="card">
+                <div class="barra cyan"></div>
+                <div class="icono cyan">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3>Calidad</h3>
+                <p>Indicadores, auditorías y procesos.</p>
+                <div class="footer">
+                    <span>{{ cantidadSubmodulos('calidad') }} Submódulos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
@@ -36,7 +67,8 @@
             </div>
         </a>
 
-        <div class="card-link" (click)="navegarModulo('/control-envios')">
+        <div [class.modulo-bloqueado]="!puedeVerModulo('control-envios')" class="card-link"
+            (click)="navegarModulo('/control-envios')">
             <div class="card">
                 <div class="barra naranja"></div>
                 <div class="icono naranja">
@@ -45,28 +77,14 @@
                 <h3>Control envios</h3>
                 <p>Gestión de pedidos, despachos y entregas.</p>
                 <div class="footer">
-                    <span>4 Submódulos</span>
+                    <span>{{ cantidadSubmodulos('control-envios') }} Submódulos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
         </div>
 
-        <div class="card-link" (click)="navegarModulo('/costos')">
-            <div class="card">
-                <div class="barra naranja"></div>
-                <div class="icono naranja">
-                    <i class="fa-solid fa-calculator"></i>
-                </div>
-                <h3>Costos</h3>
-                <p>Compras, inventario, traslados y gestión de costos.</p>
-                <div class="footer">
-                    <span>Submódulos</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-link vehiculos" (click)="navegarModulo('/flota')">
+        <div [class.modulo-bloqueado]="!puedeVerModulo('flota')" class="card-link vehiculos"
+            (click)="navegarModulo('/flota')">
             <div class="card">
                 <div class="barra morado"></div>
                 <div class="icono morado">
@@ -75,28 +93,14 @@
                 <h3>Vehículos</h3>
                 <p>Flota, inspecciones y mantenimientos.</p>
                 <div class="footer">
-                    <span>7 Submódulos</span>
+                    <span>{{ cantidadSubmodulos('flota') }} Submódulos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
         </div>
 
-        <div class="card-link" (click)="navegarModulo('/calidad')">
-            <div class="card">
-                <div class="barra cyan"></div>
-                <div class="icono cyan">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <h3>Calidad</h3>
-                <p>Indicadores, auditorías y procesos.</p>
-                <div class="footer">
-                    <span>6 Submódulos</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-link" (click)="navegarModulo('/reportes')">
+        <div [class.modulo-bloqueado]="!puedeVerModulo('reportes')" class="card-link"
+            (click)="navegarModulo('/reportes')">
             <div class="card">
                 <div class="barra cyan"></div>
                 <div class="icono cyan">
@@ -105,13 +109,14 @@
                 <h3>Reportes</h3>
                 <p>Genera reportes y analisis para tomar decisiones.</p>
                 <div class="footer">
-                    <span>6 Submódulos</span>
+                    <span>{{ cantidadSubmodulos('reportes') }} Submódulos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
         </div>
 
-        <div class="card-link" (click)="navegarModulo('/configuracion')">
+        <div [class.modulo-bloqueado]="!puedeVerModulo('configuracion')" class="card-link"
+            (click)="navegarModulo('/configuracion')">
             <div class="card">
                 <div class="barra gris"></div>
                 <div class="icono gris">
@@ -120,7 +125,7 @@
                 <h3>Configuración</h3>
                 <p>Parámetros generales del sistema.</p>
                 <div class="footer">
-                    <span>3 Submódulos</span>
+                    <span>{{ cantidadSubmodulos('configuracion') }} Submódulos</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>

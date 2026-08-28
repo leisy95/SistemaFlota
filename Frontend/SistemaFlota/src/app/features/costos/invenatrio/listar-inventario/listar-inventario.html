@@ -4,12 +4,12 @@
         <h1 class="title">Inventario Actual</h1>
 
         <div class="header-actions">
-            <button class="btn-excel" (click)="exportarExcel()">
+            <button *ngIf="permisos.puedeVer('inventario')" class="btn-excel" (click)="exportarExcel()">
                 <i class="fa-solid fa-file-excel"></i>
                 Exportar Excel
             </button>
 
-            <button class="btn-agregar" (click)="corteMes()">
+            <button *ngIf="permisos.puedeCrear('inventario')" class="btn-agregar" (click)="corteMes()">
                 <i class="fa-solid fa-calendar-days"></i>
                 Corte de Mes
             </button>
@@ -236,15 +236,18 @@
                         </td>
 
                         <td class="acciones">
-                            <button class="btn-editar" title="Editar" (click)="editar(material)">
+                            <button *ngIf="permisos.puedeEditar('inventario')" class="btn-editar" title="Editar"
+                                (click)="editar(material)">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
 
-                            <button class="btn-icon warning" title="Movimientos" (click)="historial(material)">
+                            <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon warning" title="Movimientos"
+                                (click)="historial(material)">
                                 <i class="fa-solid fa-chart-line"></i>
                             </button>
 
-                            <button class="btn-icon" title="Historial de cortes" (click)="historialCortes()">
+                            <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon" title="Historial de cortes"
+                                (click)="historialCortes()">
                                 <i class="fa-solid fa-clock-rotate-left"></i>
                             </button>
                         </td>

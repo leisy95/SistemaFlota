@@ -1,14 +1,12 @@
-<div class="contenedor">
+<div class="contenedor" [class.panel-abierto]="materialSeleccionado">
+
     <!-- HEADER -->
     <div class="header">
         <div class="titulo">
-            <div>
-                <h1>Materiales por Proveedor</h1>
-                <span>
-                    {{ materiales.length }} de {{ materiales.length }}
-                    materiales en catálogo
-                </span>
-            </div>
+            <h1>Materiales por Proveedor</h1>
+            <span class="subtitulo">
+                {{ materiales.length }} de {{ totalRegistros }} materiales en catálogo
+            </span>
         </div>
 
         <button class="btn-agregar" (click)="nuevoMaterial()">
@@ -18,169 +16,220 @@
     </div>
 
     <!-- FILTROS -->
-    <div class="card">
-        <h3>
+    <div class="card filtros-card">
+        <div class="card-header">
             <i class="fa-solid fa-filter"></i>
-            Filtros
-        </h3>
+            <h3>Filtros</h3>
+        </div>
 
-        <div class="filtros">
-
-            <div>
+        <div class="filtros-grid">
+            <div class="campo">
                 <label>Buscar</label>
-
-                <div class="inputIcon">
+                <div class="input-icon">
                     <i class="fa-solid fa-magnifying-glass"></i>
-
-                    <input placeholder="Material, proveedor..." [(ngModel)]="buscar" (ngModelChange)="filtrar()">
+                    <input type="text" placeholder="Material, proveedor..." [(ngModel)]="buscar"
+                        (ngModelChange)="filtrar()">
                 </div>
             </div>
 
-            <div>
+            <div class="campo">
                 <label>Proveedor</label>
-
                 <select [(ngModel)]="proveedor" (ngModelChange)="filtrar()">
                     <option value="">Todos</option>
-
                     <option *ngFor="let p of proveedores" [value]="p.idProveedor">
                         {{ p.nombre }}
                     </option>
                 </select>
             </div>
 
-            <div>
-                <label>Densidad</label>
-
+            <div class="campo">
+                <label>Estado</label>
                 <select [(ngModel)]="estado" (ngModelChange)="filtrar()">
-
                     <option value="">Todos</option>
                     <option value="Activo">Activo</option>
                     <option value="Inactivo">Inactivo</option>
-
                 </select>
             </div>
 
-            <div>
+            <div class="campo">
                 <label>Color</label>
-
                 <select [(ngModel)]="color" (ngModelChange)="filtrar()">
                     <option value="">Todos</option>
-
                     <option *ngFor="let c of colores" [value]="c">
                         {{ c }}
                     </option>
                 </select>
             </div>
-
         </div>
     </div>
 
-    <!-- TABLA -->
-    <div class="tabla">
-        <table>
+    <!-- LAYOUT PRINCIPAL: TABLA + DRAWER -->
+    <div class="layout-contenido">
 
-            <thead>
-                <tr>
-                    <th>Codigo</th>
-                    <th>Proveedor</th>
-                    <th>Nombre Material</th>
-                    <th>Descripcion Compra</th>
-                    <th>Densidad</th>
-                    <th>Categoria</th>
-                    <th>Color</th>
-                    <th>Tipo</th>
-                    <th>Precio</th>
-                    <th>Unidad</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
+        <!-- TABLA PRINCIPAL -->
+        <div class="tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Proveedor</th>
+                        <th>Material</th>
+                        <th>Precio</th>
+                        <th>Unidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
 
-            <tbody>
+                <tbody>
+                    <tr *ngFor="let item of materiales" (click)="seleccionarMaterial(item)"
+                        [class.fila-activa]="materialSeleccionado?.idMaterial === item.idMaterial">
 
-                <tr *ngFor="let item of materiales">
-                    <td>{{ item.idMaterial }}</td>
-                    <td>{{ item.proveedor }}</td>
-                    <td>{{ item.nombreMaterial }}</td>
-                    <td>{{item.descripcionCompra}}</td>
-                    <td>
-                        <span class="badge">
-                            {{ item.densidad }}
-                        </span>
-                    </td>
-                    <td>{{ item.categoria }}</td>
-                    <td>{{ item.color }}</td>
-                    <td>{{ item.tipoProduccion }}</td>
-                    <td>{{item.precioBaseKg | currency}}</td>
-                    <td>{{ item.unidad }}</td>
-                    <td>
-                        <span *ngIf="item.activo" class="activo">
-                            Activo
-                        </span>
+                        <td class="col-codigo">{{ item.idMaterial }}</td>
 
-                        <span *ngIf="!item.activo" class="inactivo">
-                            Inactivo
-                        </span>
-                    </td>
-                    <td>{{item.fechaCreacion | date:'dd/MM/yyyy'}}</td>
+                        <td class="col-material">
+                            {{ item.proveedor }}
+                        </td>
 
-                    <td class="acciones-menu menu-container">
+                        <td class="col-material">
+                            {{ item.nombreMaterial }}
+                        </td>
 
-                        <button class="btn-menu" (click)="toggleMenu(item.idMaterial!); $event.stopPropagation()">
-                            <i class="fa-solid fa-ellipsis-vertical"></i>
-                        </button>
+                        <td class="col-precio">
+                            {{ item.precioBaseKg | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
+                        <td class="col-unidad">{{ item.unidad }}</td>
 
-                        <div class="menu" *ngIf="menuAbierto === item.idMaterial" (click)="$event.stopPropagation()">
 
-                            <button class="btn-editar" (click)="cerrarMenu(); editar(item)">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                                <span>Editar</span>
+                        <td class="col-estado">
+                            <span *ngIf="item.activo" class="activo">Activo</span>
+                            <span *ngIf="!item.activo" class="inactivo">Inactivo</span>
+                        </td>
+
+                        <td class="acciones-menu menu-container" (click)="$event.stopPropagation()">
+                            <button class="btn-menu" (click)="toggleMenu(item.idMaterial!)">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
                             </button>
 
-                            <button class="btn-eliminar" (click)="cerrarMenu(); eliminar(item)">
-                                <i class="fa-regular fa-trash-can"></i>
-                                <span>Eliminar</span>
-                            </button>
+                            <div class="menu" *ngIf="menuAbierto === item.idMaterial">
+                                <button class="btn-editar" (click)="cerrarMenu(); editar(item, $event)">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>Editar</span>
+                                </button>
 
-                            <a *ngIf="item.documentoPdf" [href]="'http://localhost:5214/' + item.documentoPdf"
-                                target="_blank" (click)="cerrarMenu()">
+                                <button class="btn-eliminar" (click)="cerrarMenu(); eliminar(item, $event)">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    <span>Eliminar</span>
+                                </button>
 
-                                <i class="fa-solid fa-file-pdf"></i>
-                                <span> Ver Ficha técnica</span>
-                            </a>
+                                <a *ngIf="item.documentoPdf" [href]="'http://localhost:5214/' + item.documentoPdf"
+                                    target="_blank" (click)="cerrarMenu()">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <span>Ver Ficha técnica</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-                        </div>
+            <!-- PAGINACIÓN -->
+            <div class="paginacion">
+                <div class="info">
+                    Mostrando {{ materiales.length }} de {{ totalRegistros }} Materiales
+                </div>
 
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-        <div class="paginacion">
-
-            <div class="info">
-                Mostrando
-                {{ materiales.length }}
-                de
-                {{ totalRegistros }}
-                Materiales
-            </div>
-
-            <div class="controles">
-                <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="pagina === 1">
-                    Anterior
-                </button>
-                <span>
-                    Página {{ pagina }} de {{ totalPagina }}
-                </span>
-                <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="pagina === totalPagina">
-                    Siguiente
-                </button>
+                <div class="controles">
+                    <button class="btn-pagina" (click)="paginaAnterior()" [disabled]="pagina === 1">
+                        Anterior
+                    </button>
+                    <span>
+                        Página {{ pagina }} de {{ totalPagina }}
+                    </span>
+                    <button class="btn-pagina" (click)="paginaSiguiente()" [disabled]="pagina === totalPagina">
+                        Siguiente
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- PANEL LATERAL DE DETALLES (DRAWER) -->
+        <aside class="drawer-detalles" *ngIf="materialSeleccionado">
+            <div class="drawer-header">
+                <h3>Detalles del Material</h3>
+                <button class="btn-close" (click)="cerrarDrawer()">&times;</button>
+            </div>
+
+            <div class="drawer-body">
+                <div class="detalle-header">
+                    <h2>{{ materialSeleccionado.nombreMaterial }}</h2>
+                    <span class="codigo-badge">ID: {{ materialSeleccionado.idMaterial }}</span>
+                </div>
+
+                <hr />
+
+                <div class="detalle-grupo">
+                    <label>Descripción de Compra</label>
+                    <p>{{ materialSeleccionado.descripcionCompra || 'Sin descripción disponible' }}</p>
+                </div>
+
+                <div class="detalle-grid">
+                    <div>
+                        <label>Proveedor</label>
+                        <p>{{ materialSeleccionado.proveedor }}</p>
+                    </div>
+
+                    <div>
+                        <label>Categoría</label>
+                        <p>{{ materialSeleccionado.categoria }}</p>
+                    </div>
+
+                    <div>
+                        <label>Densidad</label>
+                        <p>
+                            <span class="badge">{{ materialSeleccionado.densidad }}</span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label>Color</label>
+                        <p>{{ materialSeleccionado.color }}</p>
+                    </div>
+
+                    <div>
+                        <label>Tipo Producción</label>
+                        <p>{{ materialSeleccionado.tipoProduccion }}</p>
+                    </div>
+
+                    <div>
+                        <label>Precio Base</label>
+                        <p><strong>{{ materialSeleccionado.precioBaseKg | currency }}</strong> / {{
+                            materialSeleccionado.unidad }}</p>
+                    </div>
+
+                    <div>
+                        <label>Estado</label>
+                        <p>
+                            <span *ngIf="materialSeleccionado.activo" class="activo">Activo</span>
+                            <span *ngIf="!materialSeleccionado.activo" class="inactivo">Inactivo</span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label>Fecha Creación</label>
+                        <p>{{ materialSeleccionado.fechaCreacion | date:'dd/MM/yyyy' }}</p>
+                    </div>
+                </div>
+
+                <div class="drawer-acciones" *ngIf="materialSeleccionado.documentoPdf">
+                    <a [href]="'http://localhost:5214/' + materialSeleccionado.documentoPdf" target="_blank"
+                        class="btn-pdf-drawer">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Ver Ficha Técnica en PDF
+                    </a>
+                </div>
+            </div>
+        </aside>
+
     </div>
 </div>

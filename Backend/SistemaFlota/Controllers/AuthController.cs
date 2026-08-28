@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using SistemaFlota.Services.Auth;
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Collections.Concurrent;
 
 namespace SistemaFlota
 {
@@ -22,11 +24,18 @@ namespace SistemaFlota
         private const int MaxIntentos = 5;
         private const int BloqueoMinutos = 3;
 
-        public AuthController(AppDbContext context, IConfiguration config, AuditoriaService auditoria)
+        private readonly ICurrentUserService _currentUser;
+
+        public AuthController(AppDbContext context, 
+            IConfiguration config, 
+            AuditoriaService auditoria,
+            ICurrentUserService currentUser
+            )
         {
             _context = context;
             _config = config;
             _auditoria = auditoria;
+            _currentUser = currentUser;
         }
 
         [HttpPost("login")]
@@ -157,6 +166,31 @@ namespace SistemaFlota
                 email = usuario.Email,
                 permisos = permisos
             });
+        }
+
+        [HttpGet("mis-permisos")]
+        [Authorize]
+        public async Task<IActionResult> MisPermisos()
+        {
+            var usuarioId = _currentUser.IdUsuario;
+
+            if (usuarioId == null)
+                return Unauthorized();
+
+            var permisos = await _context.UsuarioPermisos
+               .Where(p => p.UsuarioId == usuarioId.Value)
+                .Select(p => new
+                {
+                    modulo = p.Modulo,
+                    puedeVer = p.PuedeVer,
+                    puedeCrear = p.PuedeCrear,
+                    puedeEditar = p.PuedeEditar,
+                    puedeEliminar = p.PuedeEliminar,
+                    esInicio = p.EsInicio
+                })
+                .ToListAsync();
+
+            return Ok(permisos);
         }
 
         [HttpPost("logout")]

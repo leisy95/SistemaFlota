@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.OrdenCompra;
 using SistemaFlota.Services.Costos.OrdenCompra;
 
@@ -6,6 +8,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrdenCompraController : ControllerBase
     {
         private readonly IOrdenCompraService _service;
@@ -22,6 +25,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         // Listar órdenes de compra
         [HttpGet]
+        [Permiso("orden-compra", "ver")]
         [ProducesResponseType(typeof(OrdenCompraPaginadoDto), StatusCodes.Status200OK)]
         public async Task<ActionResult<OrdenCompraPaginadoDto>> Obtener(
             [FromQuery] string? search,
@@ -49,6 +53,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         // Crear una nueva orden de compra.
         [HttpPost]
+        [Permiso("orden-compra", "crear")]
         [ProducesResponseType(typeof(OrdenCompraDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<OrdenCompraDto>> Crear(
@@ -61,6 +66,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         // Para generar pdf orden compra
         [HttpGet("{id}/pdf")]
+        [Permiso("orden-compra", "ver")]
         public async Task<IActionResult> GenerarPdf(int id)
         {
             var pdf = await _pdfService.GenerarPdfAsync(id);
@@ -73,6 +79,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         // Para editar una orden por id
         [HttpGet("{id:int}")]
+        [Permiso("orden-compra", "ver")]
         [ProducesResponseType(typeof(OrdenCompraDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<OrdenCompraDto>> ObtenerPorId(int id)
@@ -87,6 +94,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         // Para actualizar una orden
         [HttpPut("{id:int}")]
+        [Permiso("orden-compra", "editar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Actualizar(
@@ -104,6 +112,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
         // Enviar orden de compra por correo
 
         [HttpPost("{id:int}/enviar-correo")]
+        [Permiso("orden-compra", "enviar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EnviarCorreo(int id)
