@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
+using SistemaFlota.Authorization;
 using System.Security.Claims;
 
 namespace SistemaFlota
@@ -30,6 +31,7 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         [HttpGet]
+        [Permiso("reporte-ruta", "ver")]
         public async Task<IActionResult> Get()
         {
             var lista = await _context.Incidentes
@@ -60,6 +62,7 @@ namespace SistemaFlota
         }
 
         [HttpGet("{id}")]
+        [Permiso("Incidentes", "ver")]
         public async Task<IActionResult> GetById(int id)
         {
             var incidente = await _context.Incidentes
@@ -91,6 +94,7 @@ namespace SistemaFlota
         }
 
         [HttpPost]
+        [Permiso("reporte-ruta", "crear")]
         public async Task<IActionResult> Post(
             [FromForm] int ConductorId,
             [FromForm] int VehiculoId,
@@ -179,6 +183,7 @@ namespace SistemaFlota
         }
 
         [HttpPut("{id}/revisar")]
+        [Permiso("Incidentes", "editar")]
         public async Task<IActionResult> Revisar(int id, [FromBody] RevisarIncidenteDto dto)
         {
             var incidente = await _context.Incidentes
@@ -220,6 +225,7 @@ namespace SistemaFlota
         }
 
         [HttpGet("contactos-whatsapp")]
+        [Permiso("Incidentes", "ver")]
         public async Task<IActionResult> GetContactos()
         {
             var contactos = await _context.ContactosNotificacion

@@ -120,11 +120,11 @@
       </div>
       <label class="btn-foto" *ngIf="fotosPreview.length < 5" for="inputFotos">
         <i class="fas fa-camera-retro"></i>
-        <p>Toque para capturar fotos</p>
-        <small>Tome fotos del daño, ubicación o situación</small>
+        <p>Tomar o seleccionar fotos</p>
+        <small>Use la cámara o seleccione imágenes de la galería</small>
       </label>
-      <input id="inputFotos" type="file" accept="image/*" capture="environment" multiple
-        (change)="seleccionarFotos($event)" style="display:none">
+      <input id="inputFotos" type="file" accept="image/*" multiple (change)="seleccionarFotos($event)"
+        style="display:none">
       <p class="fotos-contador">
         <i class="fas fa-images"></i>
         {{ fotosPreview.length }}/5 fotos

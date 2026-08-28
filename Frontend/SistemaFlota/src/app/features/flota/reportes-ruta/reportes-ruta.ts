@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConductoresService } from '../../../core/services/conductores.service';
-import { VehiculosService }   from '../../../core/services/vehiculos.service';
-import { IncidentesService }  from '../../../core/services/incidentes.service';
-import { PermisosService }    from '../../../core/services/permisos.service';
+import { VehiculosService } from '../../../core/services/vehiculos.service';
+import { IncidentesService } from '../../../core/services/incidentes.service';
+import { PermisosService } from '../../../core/services/permisos.service';
 
 @Component({
   selector: 'app-reportes-ruta',
@@ -16,16 +16,16 @@ import { PermisosService }    from '../../../core/services/permisos.service';
 export class ReporteRutaComponent implements OnInit {
 
   conductores: any[] = [];
-  vehiculos:   any[] = [];
+  vehiculos: any[] = [];
 
-  enviando  = false;
-  enviado   = false;
-  errorMsg  = '';
+  enviando = false;
+  enviado = false;
+  errorMsg = '';
 
-  fotosSeleccionadas: File[]   = [];
-  fotosPreview:       string[] = [];
-  ubicacionObtenida   = false;
-  obteniendo          = false;
+  fotosSeleccionadas: File[] = [];
+  fotosPreview: string[] = [];
+  ubicacionObtenida = false;
+  obteniendo = false;
 
   form = {
     conductorId: 0, vehiculoId: 0,
@@ -35,21 +35,23 @@ export class ReporteRutaComponent implements OnInit {
 
   readonly tiposIncidente = [
     { value: 'DañoMecanico', label: 'Daño mecánico' },
-    { value: 'Averia',       label: 'Avería del vehículo' },
-    { value: 'Trancon',      label: 'Trancón' },
-    { value: 'CierreVia',    label: 'Cierre de vía' },
-    { value: 'Accidente',    label: 'Accidente de tránsito' },
-    { value: 'Otro',         label: 'Otro' },
+    { value: 'Averia', label: 'Avería del vehículo' },
+    { value: 'Trancon', label: 'Trancón' },
+    { value: 'CierreVia', label: 'Cierre de vía' },
+    { value: 'Accidente', label: 'Accidente de tránsito' },
+    { value: 'Otro', label: 'Otro' },
   ];
 
-  get puedeCrear(): boolean { return this.permisosService.puedeCrear('reportes-ruta'); }
+  get puedeCrear(): boolean {
+    return this.permisosService.puedeCrear('reporte-ruta');
+  }
 
   constructor(
     private conductoresService: ConductoresService,
-    private vehiculosService:   VehiculosService,
-    private incidentesService:  IncidentesService,
-    private permisosService:    PermisosService
-  ) {}
+    private vehiculosService: VehiculosService,
+    private incidentesService: IncidentesService,
+    private permisosService: PermisosService
+  ) { }
 
   ngOnInit(): void {
     this.obtenerConductores();
@@ -59,14 +61,14 @@ export class ReporteRutaComponent implements OnInit {
   obtenerConductores() {
     this.conductoresService.obtenerConductores().subscribe({
       next: (data) => this.conductores = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
   obtenerVehiculos() {
     this.vehiculosService.obtenerVehiculos().subscribe({
       next: (data) => this.vehiculos = data,
-      error: (err)  => console.error(err)
+      error: (err) => console.error(err)
     });
   }
 
@@ -75,11 +77,11 @@ export class ReporteRutaComponent implements OnInit {
     this.obteniendo = true;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        this.form.latitud      = pos.coords.latitude;
-        this.form.longitud     = pos.coords.longitude;
+        this.form.latitud = pos.coords.latitude;
+        this.form.longitud = pos.coords.longitude;
         this.form.ubicacionGPS = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
         this.ubicacionObtenida = true;
-        this.obteniendo        = false;
+        this.obteniendo = false;
       },
       (err) => { console.error(err); alert('No se pudo obtener la ubicación.'); this.obteniendo = false; },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -103,20 +105,20 @@ export class ReporteRutaComponent implements OnInit {
   }
 
   enviarReporte() {
-    if (!this.form.conductorId)          { alert('Seleccione el conductor');          return; }
-    if (!this.form.vehiculoId)           { alert('Seleccione el vehículo');           return; }
-    if (!this.form.tipoIncidente)        { alert('Seleccione el tipo de incidente');  return; }
+    if (!this.form.conductorId) { alert('Seleccione el conductor'); return; }
+    if (!this.form.vehiculoId) { alert('Seleccione el vehículo'); return; }
+    if (!this.form.tipoIncidente) { alert('Seleccione el tipo de incidente'); return; }
     if (!this.form.descripcionDetallada) { alert('Ingrese la descripción detallada'); return; }
 
     this.enviando = true; this.errorMsg = '';
     const fd = new FormData();
-    fd.append('ConductorId',          this.form.conductorId.toString());
-    fd.append('VehiculoId',           this.form.vehiculoId.toString());
-    fd.append('TipoIncidente',        this.form.tipoIncidente);
+    fd.append('ConductorId', this.form.conductorId.toString());
+    fd.append('VehiculoId', this.form.vehiculoId.toString());
+    fd.append('TipoIncidente', this.form.tipoIncidente);
     fd.append('DescripcionDetallada', this.form.descripcionDetallada);
-    fd.append('UbicacionGPS',         this.form.ubicacionGPS);
-    fd.append('Latitud',              this.form.latitud.toString());
-    fd.append('Longitud',             this.form.longitud.toString());
+    fd.append('UbicacionGPS', this.form.ubicacionGPS);
+    fd.append('Latitud', this.form.latitud.toString());
+    fd.append('Longitud', this.form.longitud.toString());
     this.fotosSeleccionadas.forEach(foto => fd.append('Fotos', foto));
 
     this.incidentesService.crearIncidente(fd).subscribe({
@@ -129,7 +131,7 @@ export class ReporteRutaComponent implements OnInit {
   nuevoReporte() {
     this.enviado = false; this.enviando = false; this.errorMsg = '';
     this.fotosSeleccionadas = []; this.fotosPreview = [];
-    this.ubicacionObtenida  = false;
+    this.ubicacionObtenida = false;
     this.form = { conductorId: 0, vehiculoId: 0, tipoIncidente: '', descripcionDetallada: '', ubicacionGPS: '', latitud: 0, longitud: 0 };
   }
 }
