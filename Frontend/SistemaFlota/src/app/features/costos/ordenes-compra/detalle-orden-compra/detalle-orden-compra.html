@@ -53,7 +53,7 @@
 
         <h3>Materiales</h3>
 
-        <div class="table-responsive">
+        <div class="tabla">
             <table>
 
                 <thead>
@@ -72,19 +72,23 @@
 
                     <tr *ngFor="let item of orden.detalles">
 
-                        <td>{{ item.material }}</td>
+                        <td data-label="Material">{{ item.material }}</td>
 
-                        <td>{{ item.color }}</td>
+                        <td data-label="Color">{{ item.color }}</td>
 
-                        <td>{{ item.cantidadKg }}</td>
+                        <td data-label="Kg">{{ item.cantidadKg }}</td>
 
-                        <td>{{ item.kgPorBulto }}</td>
+                        <td data-label="Kg/Bulto">{{ item.kgPorBulto }}</td>
 
-                        <td>{{ item.bultos }}</td>
+                        <td data-label="Bultos">{{ item.bultos }}</td>
 
-                        <td>{{ item.costoKg | currency }}</td>
+                        <td data-label="Costo Kg">
+                            {{ item.costoKg | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
 
-                        <td>{{ item.subtotal | currency }}</td>
+                        <td data-label="Subtotal">
+                            {{ item.subtotal | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
 
                     </tr>
 

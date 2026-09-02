@@ -137,7 +137,7 @@
 
                 </div>
 
-                <div class="table-container">
+                <div class="tabla">
 
                     <table>
 
@@ -160,72 +160,46 @@
 
                             <tr *ngFor="let item of items; let i=index">
 
-                                <td>
-
+                                <td data-label="Tipo Material">
                                     <select [(ngModel)]="item.materialId">
-
-                                        <option [ngValue]="0">
-                                            Seleccione
-                                        </option>
+                                        <option [ngValue]="0">Seleccione</option>
 
                                         <option *ngFor="let m of materiales" [ngValue]="m.idMaterial">
-
                                             {{m.nombreMaterial}}
-
                                         </option>
-
                                     </select>
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="Color">
                                     <input type="text" [(ngModel)]="item.color" placeholder="Ingrese color">
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="Cantidad (KG)">
                                     <input type="number" [(ngModel)]="item.kilos" (input)="calcular(i)">
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="KG/Bulto">
                                     <input type="number" [(ngModel)]="item.kgBulto" (input)="calcular(i)">
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="Bultos">
                                     <span class="valor">
-
                                         {{item.bultos}}
-
                                     </span>
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="Costo/KG">
                                     <input type="number" [(ngModel)]="item.costo" (input)="calcular(i)">
-
                                 </td>
 
-                                <td class="subtotal">
-
+                                <td data-label="Subtotal" class="subtotal">
                                     {{ item.subtotal | currency:'COP':'symbol':'1.0-0' }}
-
                                 </td>
 
-                                <td>
-
+                                <td data-label="Acción">
                                     <button class="btn-eliminar" (click)="eliminarItem(i)">
-
                                         <i class="fa-solid fa-trash"></i>
-
                                     </button>
-
                                 </td>
 
                             </tr>

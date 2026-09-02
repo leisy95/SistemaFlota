@@ -587,38 +587,28 @@
     }
 }
 
-@media (max-width: 1200px) {
+// Para la seccion detalles
+
+/* =========================================
+   RESPONSIVE - ESTA PANTALLA
+   Solo títulos, header, filtros y detalles
+   ========================================= */
+
+@media (max-width: 1024px) {
+
     .contenedor {
-        padding: 15px;
+        padding: 20px;
     }
 
-    .filtros-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    /* HEADER */
 
-    .contenedor.panel-abierto .layout-contenido {
-        grid-template-columns: minmax(0, 1fr) 340px;
-    }
-
-    .drawer-body {
-        padding: 18px;
-    }
-
-    .col-material {
-        min-width: 200px;
-        max-width: 300px;
-    }
-}
-
-@media (max-width: 992px) {
     .header {
-        padding: 22px;
+        padding: 22px 25px;
+        gap: 15px;
     }
 
     .titulo {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
+        gap: 14px;
     }
 
     .titulo h1 {
@@ -626,62 +616,87 @@
     }
 
     .subtitulo {
-        font-size: .9rem;
-        white-space: normal;
+        font-size: .95rem;
     }
+
+    /* FILTROS */
+
+    .filtros-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .card {
+        padding: 22px;
+    }
+
+    /* DETALLES */
 
     .contenedor.panel-abierto .layout-contenido {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 16px;
     }
 
-    .drawer-detalles {
-        position: relative;
-        top: auto;
-        width: 100%;
+    .drawer-header {
+        padding: 18px;
     }
 
     .drawer-body {
-        max-height: none;
+        padding: 18px;
     }
 }
 
+
+/* =========================================
+   TABLET
+   ========================================= */
+
 @media (max-width: 768px) {
+
     .contenedor {
-        padding: 10px;
+        padding: 15px;
     }
+
+
+    /* ==============================
+       HEADER
+       ============================== */
 
     .header {
         flex-direction: column;
         align-items: stretch;
-        gap: 18px;
         padding: 20px;
+        margin-bottom: 20px;
         border-radius: 15px;
     }
 
     .titulo {
-        width: 100%;
-        align-items: flex-start;
+        gap: 12px;
     }
 
     .titulo h1 {
         font-size: 23px;
-        line-height: 1.25;
     }
 
     .subtitulo {
-        font-size: .88rem;
+        font-size: 14px;
         white-space: normal;
     }
 
     .btn-agregar {
         width: 100%;
+        min-height: 44px;
     }
+
+
+    /* ==============================
+       FILTROS
+       ============================== */
 
     .card {
         padding: 18px;
         border-radius: 15px;
+        margin-bottom: 20px;
     }
 
     .card-header {
@@ -697,104 +712,43 @@
         gap: 15px;
     }
 
-    .campo input,
-    .campo select {
-        height: 46px;
-    }
-
-    .tabla {
-        border-radius: 15px;
-        overflow-x: auto;
-    }
-
-    .tabla table {
-        min-width: 700px;
-    }
-
-    .drawer-detalles {
-        border-radius: 15px;
-    }
-
-    .drawer-header {
-        padding: 17px;
-    }
-
-    .drawer-body {
-        padding: 17px;
-    }
-
-    .detalle-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .paginacion {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 15px;
-        padding: 16px 10px;
-    }
-
-    .info {
+    .campo label {
         font-size: 14px;
     }
 
-    .controles {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
+    .campo input,
+    .campo select {
+        height: 46px;
+        font-size: 15px;
     }
 
-    .btn-pagina {
-        flex: 1;
-        max-width: 120px;
-        padding: 9px 12px;
-        font-size: 13px;
+
+    /* ==============================
+       DETALLES DEL MATERIAL
+       ============================== */
+
+    .contenedor.panel-abierto .layout-contenido {
+        display: block !important;
     }
 
-    .controles span {
-        font-size: 13px;
-        white-space: nowrap;
-    }
-}
-
-@media (max-width: 576px) {
-    .contenedor {
-        padding: 8px;
-    }
-
-    .header {
-        padding: 17px;
-        margin-bottom: 15px;
-    }
-
-    .titulo h1 {
-        font-size: 21px;
-    }
-
-    .subtitulo {
-        font-size: .82rem;
-    }
-
-    .card {
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .card h3 {
-        font-size: 19px;
-    }
-
-    .tabla {
-        border-radius: 13px;
-    }
-
-    .tabla table {
-        min-width: 650px;
+    .drawer-detalles {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        z-index: 1000 !important;
+        background: var(--blanco) !important;
+        overflow: hidden !important;
+        box-shadow: 0 -4px 25px rgba(0, 0, 0, .18) !important;
     }
 
     .drawer-header {
-        padding: 15px;
+        min-height: 70px;
+        padding: 16px 20px;
+        box-sizing: border-box;
     }
 
     .drawer-header h3 {
@@ -802,93 +756,155 @@
     }
 
     .drawer-body {
-        padding: 15px;
+        height: calc(100vh - 70px);
+        max-height: none !important;
+        overflow-y: auto;
+        padding: 20px;
+        box-sizing: border-box;
     }
 
     .detalle-header h2 {
-        font-size: 20px;
+        font-size: 21px;
     }
 
     .detalle-grid {
+        grid-template-columns: 1fr 1fr;
         gap: 15px;
     }
 
-    .menu {
-        width: 195px;
-    }
-
-    .paginacion {
-        padding: 14px 5px;
-    }
-
-    .controles {
-        gap: 6px;
-    }
-
-    .btn-pagina {
-        max-width: 105px;
-        padding: 9px 10px;
-        font-size: 12px;
-    }
-
-    .controles span {
-        font-size: 12px;
+    .detalle-grupo {
+        margin-bottom: 20px;
     }
 }
 
-@media (max-width: 400px) {
+
+/* =========================================
+   MÓVIL PEQUEÑO
+   ========================================= */
+
+@media (max-width: 480px) {
+
     .contenedor {
-        padding: 6px;
+        padding: 10px;
     }
 
+
+    /* ==============================
+       HEADER
+       ============================== */
+
     .header {
-        padding: 15px;
+        padding: 16px;
+        border-radius: 13px;
+    }
+
+    .titulo {
+        gap: 10px;
     }
 
     .titulo h1 {
-        font-size: 19px;
+        font-size: 20px;
     }
 
     .subtitulo {
-        font-size: .78rem;
+        font-size: 13px;
     }
 
+    .btn-agregar {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+
+
+    /* ==============================
+       FILTROS
+       ============================== */
+
     .card {
-        padding: 13px;
+        padding: 15px;
+        border-radius: 13px;
     }
 
     .card h3 {
         font-size: 18px;
     }
 
-    .tabla table {
-        min-width: 620px;
+    .campo input,
+    .campo select {
+        height: 44px;
+        font-size: 14px;
     }
 
+
+    /* ==============================
+       DETALLES PROFESIONALES
+       ============================== */
+
     .drawer-header {
-        padding: 13px;
+        min-height: 64px;
+        padding: 14px 16px;
+    }
+
+    .drawer-header h3 {
+        font-size: 17px;
+    }
+
+    .btn-close {
+        width: 34px;
+        height: 34px;
+        font-size: 22px;
     }
 
     .drawer-body {
-        padding: 13px;
+        height: calc(100vh - 64px);
+        padding: 18px 16px 30px;
+    }
+
+    .detalle-header {
+        gap: 8px;
     }
 
     .detalle-header h2 {
-        font-size: 18px;
+        font-size: 19px;
     }
 
-    .detalle-grid p,
-    .detalle-grupo p {
+    .codigo-badge {
+        font-size: 11px;
+        padding: 5px 9px;
+    }
+
+    .detalle-grupo {
+        margin-bottom: 18px;
+    }
+
+    .detalle-grupo label,
+    .detalle-grid label {
+        font-size: 11px;
+        margin-bottom: 5px;
+    }
+
+    .detalle-grupo p,
+    .detalle-grid p {
         font-size: 13px;
+        line-height: 1.5;
     }
 
-    .btn-pagina {
-        max-width: 95px;
-        padding: 8px;
-        font-size: 11px;
+    .detalle-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
-    .controles span {
-        font-size: 11px;
+    .drawer-body hr {
+        margin: 18px 0;
+    }
+
+    .drawer-acciones {
+        margin-top: 20px;
+        padding-top: 18px;
+    }
+
+    .btn-pdf-drawer {
+        min-height: 44px;
+        font-size: 13px;
     }
 }

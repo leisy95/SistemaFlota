@@ -168,29 +168,197 @@ table {
     background: #dfe4e8;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
 
-    .info-grid {
+    .page-container {
+        margin-top: 65px;
+        padding: 15px;
+    }
+
+    .header-card {
+        padding: 25px;
+    }
+
+    .header-card h1 {
+        font-size: 1.7rem;
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .stat-card strong {
+        margin-top: 20px;
+        font-size: 1.6rem;
+    }
+
+    .filter-card {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 18px;
+    }
+
+    .btn-filter {
+        margin-top: 25px;
+    }
+
+    .table-card {
+        padding: 20px;
+    }
+
+    .table-card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 25px;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .page-container {
+        margin-top: 60px;
+        padding: 10px;
+    }
+
+    .header-card {
+        padding: 18px;
+        gap: 15px;
+    }
+
+    .header-card h1 {
+        font-size: 1.4rem;
+    }
+
+    .btn-agregar {
+        padding: 10px 13px;
+        font-size: 13px;
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .stat-card span {
+        font-size: .85rem;
+    }
+
+    .stat-card strong {
+        margin-top: 12px;
+        font-size: 1.4rem;
+    }
+
+    .filter-card {
         grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 14px;
     }
 
-    .totales {
+    .field label {
+        font-size: .85rem;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select {
+        height: 42px;
+        font-size: .9rem;
+    }
+
+    .btn-filter {
         width: 100%;
+        margin-top: 5px;
+        height: 42px;
     }
 
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
+    .table-card {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 14px;
     }
 
-    .footer {
+    .table-card h2 {
+        font-size: 1.1rem;
+        margin-bottom: 18px;
+    }
+
+    .paginacion {
         flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 15px 5px;
     }
 
-    .btn-primary,
-    .btn-secondary {
+    .info {
+        text-align: center;
+        font-size: .85rem;
+    }
+
+    .controles {
         justify-content: center;
-        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .btn-pagina {
+        padding: 7px 13px;
+        font-size: .85rem;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .header-card {
+        padding: 15px;
+    }
+
+    .header-card h1 {
+        font-size: 1.2rem;
+    }
+
+    .btn-agregar {
+        padding: 9px 11px;
+        font-size: 12px;
+    }
+
+    .stats-container {
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 13px;
+    }
+
+    .stat-card span {
+        font-size: .78rem;
+    }
+
+    .stat-card strong {
+        font-size: 1.2rem;
+    }
+
+    .filter-card {
+        padding: 13px;
+    }
+
+    .table-card {
+        padding: 12px;
+    }
+
+    .table-card h2 {
+        font-size: 1rem;
     }
 }

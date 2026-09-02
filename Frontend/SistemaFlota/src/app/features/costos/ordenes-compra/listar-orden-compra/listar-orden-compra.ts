@@ -186,6 +186,34 @@ export class ListarOrdenCompra {
 
   }
 
+  paginaAnterior(): void {
+    if (this.pagina > 1) {
+      this.pagina--;
+      this.cargar();
+    }
+  }
+
+  paginaSiguiente(): void {
+    if (this.pagina < this.totalPaginas) {
+      this.pagina++;
+      this.cargar();
+    }
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.total / this.pageSize);
+  }
+
+  get registrosInicio(): number {
+    return this.total === 0
+      ? 0
+      : (this.pagina - 1) * this.pageSize + 1;
+  }
+
+  get registrosFin(): number {
+    return Math.min(this.pagina * this.pageSize, this.total);
+  }
+
   limpiarFiltros(): void {
 
     this.buscar = '';

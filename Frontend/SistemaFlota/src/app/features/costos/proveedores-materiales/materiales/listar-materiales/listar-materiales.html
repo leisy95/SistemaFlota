@@ -85,28 +85,29 @@
                     <tr *ngFor="let item of materiales" (click)="seleccionarMaterial(item)"
                         [class.fila-activa]="materialSeleccionado?.idMaterial === item.idMaterial">
 
-                        <td class="col-codigo">{{ item.idMaterial }}</td>
+                        <td data-label="Codigo" class="col-codigo">{{ item.idMaterial }}</td>
 
-                        <td class="col-material">
+                        <td data-label="Proveedor" class="col-material">
                             {{ item.proveedor }}
                         </td>
 
-                        <td class="col-material">
+                        <td data-label="Material" class="col-material">
                             {{ item.nombreMaterial }}
                         </td>
 
-                        <td class="col-precio">
+                        <td data-label="Precio" class="col-precio">
                             {{ item.precioBaseKg | currency:'COP':'symbol':'1.0-0':'es-CO' }}
                         </td>
-                        <td class="col-unidad">{{ item.unidad }}</td>
+                        <td data-label="Unidad" class="col-unidad">{{ item.unidad }}</td>
 
 
-                        <td class="col-estado">
+                        <td data-label="Estado" class="col-estado">
                             <span *ngIf="item.activo" class="activo">Activo</span>
                             <span *ngIf="!item.activo" class="inactivo">Inactivo</span>
                         </td>
 
-                        <td class="acciones-menu menu-container" (click)="$event.stopPropagation()">
+                        <td data-label="Acciones" class="acciones-menu menu-container"
+                            (click)="$event.stopPropagation()">
                             <button class="btn-menu" (click)="toggleMenu(item.idMaterial!)">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                             </button>

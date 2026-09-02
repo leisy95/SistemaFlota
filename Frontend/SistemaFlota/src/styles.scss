@@ -163,6 +163,144 @@ tbody td {
 
 }
 
+// Para las tablas responsivas
+
+@media (max-width: 768px) {
+
+  /* TABLA EN VISTA CARD */
+  .tabla {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .tabla table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .tabla thead {
+    display: none !important;
+  }
+
+  .tabla tbody,
+  .tabla tr {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .tabla tbody tr {
+    margin-bottom: 15px !important;
+    padding: 12px 16px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 2px 10px var(--verde-principal);
+  }
+
+  .tabla tbody td,
+  .tabla tbody td.acciones-menu,
+  .tabla tbody td.col-codigo,
+  .tabla tbody td.col-material,
+  .tabla tbody td.col-precio,
+  .tabla tbody td.col-estado {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 10px 0 !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    text-align: right !important;
+    box-sizing: border-box !important;
+  }
+
+  .tabla tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: left;
+    color: #4b5563;
+    white-space: nowrap;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+
+  .tabla tbody td:last-child {
+    border-bottom: none !important;
+  }
+
+  .tabla tbody td>* {
+    min-width: 0;
+    margin-left: auto;
+  }
+
+  .tabla tbody td.col-material strong,
+  .tabla tbody td.col-material small {
+    text-align: right;
+  }
+
+  .tabla tbody td.acciones-menu {
+    background: transparent !important;
+    border-left: none !important;
+    height: auto !important;
+  }
+
+  .tabla tbody td.acciones-menu .btn-menu,
+  .tabla tbody td.acciones-menu>div {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* PAGINACIÓN */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    text-align: center;
+  }
+
+  .controles {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* TABLA CARDS */
+
+  .tabla tbody tr {
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  .tabla tbody td {
+    grid-template-columns: 90px 1fr;
+    font-size: 13px;
+  }
+
+  .tabla tbody td::before {
+    font-size: 11px;
+  }
+
+  .btn-pagina {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .controles span {
+    font-size: 12px;
+  }
+}
+
 .modal-botones {
   display: flex;
   justify-content: flex-end;

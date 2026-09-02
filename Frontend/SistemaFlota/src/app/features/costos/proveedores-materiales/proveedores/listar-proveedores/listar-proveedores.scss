@@ -212,10 +212,6 @@ a {
     cursor: not-allowed;
 }
 
-/* =========================================================
-   TABLA PROVEEDORES
-========================================================= */
-
 .tabla {
     width: 100%;
     border-collapse: collapse;
@@ -235,18 +231,16 @@ a {
     white-space: nowrap;
 }
 
-/* =========================================================
-   RESPONSIVE - TABLET
-========================================================= */
+/* RESPONSIVE TABLET Y MÓVIL */
 
 @media (max-width: 768px) {
 
     .contenedor {
-        padding: 10px;
+        padding: 15px;
     }
 
     .titulo {
-        margin-bottom: 18px;
+        margin-bottom: 20px;
     }
 
     .titulo h1 {
@@ -254,31 +248,36 @@ a {
     }
 
     .titulo p {
+        margin-top: 8px;
         font-size: 14px;
     }
 
-    /* FILTROS */
+    .filtros-card {
+        padding: 18px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .filtros-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .filtros-header h2 {
+        font-size: 22px;
+    }
 
     .filtros-grid {
         grid-template-columns: 1fr;
         gap: 15px;
     }
 
-    .filtros-card {
-        padding: 18px;
-    }
-
-    .filtros-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
     .btn-limpiar {
         width: 100%;
+        justify-content: center;
     }
-
-    /* CARD */
 
     .card {
         padding: 18px;
@@ -289,29 +288,23 @@ a {
         flex-direction: column;
         align-items: stretch;
         gap: 15px;
-    }
-
-    .card-header .info {
-        width: 100%;
+        margin-bottom: 20px;
     }
 
     .btn-agregar {
         width: 100%;
+        justify-content: center;
     }
 
-    /* =====================================================
-       TABLA -> CARDS
-    ===================================================== */
+    .info h2 {
+        font-size: 22px;
+    }
+
+    .info span {
+        font-size: 14px;
+    }
 
     .tabla {
-        width: 100%;
-        border: none;
-        overflow: visible;
-    }
-
-    .tabla table,
-    .tabla tbody {
-        display: block;
         width: 100%;
     }
 
@@ -319,109 +312,63 @@ a {
         display: none;
     }
 
-    .tabla tbody tr {
+    .tabla tbody,
+    .tabla tr {
         display: block;
         width: 100%;
-        margin-bottom: 16px;
-        padding: 16px;
+    }
+
+    .tabla tbody tr {
+        margin-bottom: 15px;
+        padding: 15px;
         border: 1px solid var(--gris-claro);
         border-radius: 15px;
         background: var(--blanco);
-        box-shadow: 0 2px 10px var(--gris-medio);
-        box-sizing: border-box;
-    }
-
-    .tabla tbody tr:hover {
-        background: var(--blanco);
+        box-shadow: 0 2px 10px var(--verde-principal);
     }
 
     .tabla tbody td {
         display: grid;
-        grid-template-columns: 110px minmax(0, 1fr);
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        padding: 11px 0;
-        border: none;
+        grid-template-columns: 110px 1fr;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gris-claro);
         text-align: right;
-        box-sizing: border-box;
         word-break: break-word;
-        overflow-wrap: anywhere;
     }
-
-    .tabla tbody td:not(:last-child) {
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    /* Nombre de la columna */
 
     .tabla tbody td::before {
         content: attr(data-label);
-        color: var(--gris-oscuro);
-        font-size: 13px;
+
         font-weight: 700;
         text-align: left;
-        flex-shrink: 0;
-    }
-
-    /* Contenido */
-
-    .tabla tbody td {
         color: var(--gris-oscuro);
-        font-size: 14px;
     }
 
-    /* PROVEEDOR */
-
-    .tabla tbody td:first-child {
-        padding-top: 0;
-        font-size: 16px;
-        font-weight: 700;
+    .tabla tbody td:last-child {
+        border-bottom: none;
     }
-
-    /* EMAIL */
-
-    .tabla tbody td a {
-        max-width: 100%;
-        text-align: right;
-        word-break: break-word;
-        overflow-wrap: anywhere;
-    }
-
-    /* ACCIONES */
 
     .tabla tbody td.acciones {
         display: flex;
-        justify-content: flex-end;
         align-items: center;
+        justify-content: flex-end;
         gap: 10px;
-        padding-top: 15px;
-        margin-top: 4px;
-        border-bottom: none;
     }
 
     .tabla tbody td.acciones::before {
         margin-right: auto;
     }
 
-    .tabla tbody td.acciones .btn-editar,
-    .tabla tbody td.acciones .btn-eliminar {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 9px;
-    }
-
-    /* PAGINACIÓN */
 
     .paginacion {
         flex-direction: column;
         align-items: center;
-        text-align: center;
+
         gap: 15px;
-        padding: 16px 5px;
+        padding: 15px 0;
+
+        text-align: center;
     }
 
     .controles {
@@ -429,29 +376,15 @@ a {
         justify-content: space-between;
         gap: 8px;
     }
-
-    .btn-pagina {
-        flex: 1;
-        max-width: 120px;
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-
-    .controles span {
-        font-size: 13px;
-        white-space: nowrap;
-    }
 }
 
-/* =========================================================
-   RESPONSIVE - MÓVIL
-========================================================= */
-
-@media (max-width: 576px) {
+@media (max-width: 480px) {
 
     .contenedor {
-        padding: 8px;
+        padding: 10px;
     }
+
+    /* TÍTULOS */
 
     .titulo h1 {
         font-size: 21px;
@@ -461,295 +394,49 @@ a {
         font-size: 13px;
     }
 
+    /* FILTROS */
+
     .filtros-card {
         padding: 15px;
     }
 
+    .filtros-header h2 {
+        font-size: 20px;
+    }
+
+    /* CARD */
+
     .card {
         padding: 15px;
     }
 
-    .card-header {
-        gap: 12px;
-    }
-
-    .card-header h2 {
+    .info h2 {
         font-size: 19px;
     }
 
-    .card-header span {
-        font-size: 13px;
-    }
-
-    /* CARDS DE PROVEEDORES */
+    /* TABLA */
 
     .tabla tbody tr {
-        padding: 14px;
-        margin-bottom: 13px;
-        border-radius: 13px;
+        padding: 12px;
     }
 
     .tabla tbody td {
-        grid-template-columns: 95px minmax(0, 1fr);
-        gap: 10px;
-        padding: 10px 0;
+        grid-template-columns: 90px 1fr;
         font-size: 13px;
     }
 
     .tabla tbody td::before {
         font-size: 12px;
-    }
-
-    .tabla tbody td:first-child {
-        font-size: 15px;
-    }
-
-    .tabla tbody td.acciones {
-        padding-top: 13px;
     }
 
     /* PAGINACIÓN */
 
-    .paginacion {
-        padding: 14px 0;
-    }
-
-    .info {
-        font-size: 13px;
-    }
-
-    .controles {
-        gap: 6px;
-    }
-
     .btn-pagina {
-        max-width: 105px;
-        padding: 9px 10px;
+        padding: 8px 10px;
         font-size: 12px;
     }
 
     .controles span {
         font-size: 12px;
-    }
-}
-
-/* =========================================================
-   RESPONSIVE - MÓVILES PEQUEÑOS
-========================================================= */
-
-@media (max-width: 400px) {
-
-    .contenedor {
-        padding: 6px;
-    }
-
-    .card {
-        padding: 12px;
-    }
-
-    .titulo h1 {
-        font-size: 19px;
-    }
-
-    .tabla tbody tr {
-        padding: 12px;
-    }
-
-    .tabla tbody td {
-        grid-template-columns: 85px minmax(0, 1fr);
-        gap: 8px;
-        font-size: 12px;
-    }
-
-    .tabla tbody td::before {
-        font-size: 11px;
-    }
-
-    .tabla tbody td:first-child {
-        font-size: 14px;
-    }
-
-    .tabla tbody td.acciones .btn-editar,
-    .tabla tbody td.acciones .btn-eliminar {
-        width: 36px;
-        height: 36px;
-    }
-
-    .btn-pagina {
-        max-width: 90px;
-        padding: 8px;
-        font-size: 11px;
-    }
-
-    .controles span {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 992px) {
-
-    .contenedor {
-        padding: 20px;
-    }
-
-    .card {
-        padding: 24px;
-    }
-
-    .card-header {
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .filtros-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .buscar {
-        grid-column: 1/-1;
-    }
-
-    .filtros-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .acciones {
-        width: 100%;
-        text-align: left;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .contenedor {
-        padding: 16px;
-    }
-
-    .filtros-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .buscar {
-        grid-column: auto;
-    }
-
-    .btn-limpiar {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .titulo h1 {
-        font-size: 28px;
-    }
-
-    .titulo p {
-        font-size: 16px;
-    }
-
-    .card {
-        padding: 20px;
-    }
-
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .info {
-        gap: 14px;
-    }
-
-    .icono {
-        width: 46px;
-        height: 46px;
-    }
-
-    .icono i {
-        font-size: 1.25rem;
-    }
-
-    .info h2 {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
-
-    .info span {
-        font-size: 15px;
-    }
-
-    .paginacion {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        align-items: center;
-        text-align: center;
-        padding: 16px;
-    }
-
-    .info {
-        font-size: 14px;
-    }
-
-    .controles {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .btn-pagina {
-        flex: 1;
-        max-width: 120px;
-        padding: 10px 14px;
-        font-size: 14px;
-    }
-
-    .controles span {
-        font-size: 14px;
-        white-space: nowrap;
-    }
-}
-
-@media (max-width: 480px) {
-
-    .contenedor {
-        padding: 12px;
-    }
-
-    .card {
-        padding: 16px;
-        border-radius: 14px;
-    }
-
-    .titulo h1 {
-        font-size: 24px;
-    }
-
-    .titulo p {
-        font-size: 14px;
-    }
-
-    .info {
-        gap: 10px;
-    }
-
-    .icono {
-        width: 40px;
-        height: 40px;
-    }
-
-    .icono i {
-        font-size: 18px;
-    }
-
-    .info h2 {
-        font-size: 20px;
-    }
-
-    .info span {
-        font-size: 14px;
     }
 }

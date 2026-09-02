@@ -126,7 +126,7 @@
 
 
 
-        <div class="table-responsive">
+        <div class="tabla">
 
             <table>
 
@@ -155,43 +155,43 @@
                     <tr *ngFor="let item of ordenes">
 
 
-                        <td class="numero">
+                        <td data-label="Número" class="numero">
                             {{item.numero}}
                         </td>
 
 
-                        <td>
+                        <td data-label="Proveedor">
                             {{item.proveedor}}
                         </td>
 
 
-                        <td>
+                        <td data-label="Fecha">
                             <i class="fa-regular fa-calendar"></i>
                             {{item.fechaOrden | date:'dd/MM/yyyy'}}
                         </td>
 
 
-                        <td>
+                        <td data-label="Entrega">
                             {{item.fechaEntrega | date:'dd/MM/yyyy'}}
                         </td>
 
 
-                        <td>
+                        <td data-label="Forma de Pago">
                             {{item.formaPago}}
                         </td>
 
 
-                        <td class="center">
+                        <td data-label="Items" class="center">
                             {{item.totalItems}}
                         </td>
 
 
-                        <td class="total">
+                        <td data-label="Total" class="total">
                             {{item.totalPagar | number}}
                         </td>
 
 
-                        <td>
+                        <td data-label="Estado">
 
                             <span class="badge" [ngClass]="item.estado.toLowerCase()">
 
@@ -200,7 +200,7 @@
                             </span>
                         </td>
 
-                        <td class="acciones">
+                        <td data-label="Acciones" class="acciones">
 
                             <button title="Más acciones" (click)="abrirAcciones(item)">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -210,6 +210,38 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="paginacion" *ngIf="total > 0">
+
+            <div class="info">
+                Mostrando
+                {{ registrosInicio }}
+                -
+                {{ registrosFin }}
+                de
+                {{ total }}
+                órdenes
+            </div>
+
+            <div class="controles">
+
+                <button class="btn-pagina" [disabled]="pagina === 1" (click)="paginaAnterior()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Anterior
+                </button>
+
+                <span>
+                    Página {{ pagina }} de {{ totalPaginas }}
+                </span>
+
+                <button class="btn-pagina" [disabled]="pagina >= totalPaginas" (click)="paginaSiguiente()">
+                    Siguiente
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
         </div>
     </section>
 </div>

@@ -20,6 +20,8 @@
     box-shadow: 0 20px 45px var(--gris-oscuro);
 }
 
+/* HEADER */
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -35,11 +37,10 @@
     }
 
     p {
-        margin-top: 14px;
+        margin: 14px 0 0;
         color: var(--gris-oscuro);
         font-size: 18px;
     }
-
 }
 
 .btn-close {
@@ -52,7 +53,12 @@
     font-size: 22px;
     transition: .25s;
 
+    &:hover {
+        background: var(--gris-claro);
+    }
 }
+
+/* BODY */
 
 .modal-body {
     padding: 30px;
@@ -60,8 +66,9 @@
     display: flex;
     flex-direction: column;
     gap: 28px;
-
 }
+
+/* CARDS */
 
 .card {
     background: var(--blanco);
@@ -72,11 +79,13 @@
 }
 
 .card h3 {
-    margin-bottom: 24px;
+    margin: 0 0 24px;
     font-size: 26px;
     font-weight: 700;
     color: var(--gris-oscuro);
 }
+
+/* FORMULARIO */
 
 .form-grid {
     display: grid;
@@ -87,6 +96,7 @@
 .form-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .span-2 {
@@ -95,32 +105,6 @@
 
 .span-4 {
     grid-column: span 4;
-}
-
-.form-group textarea {
-    width: 100%;
-    min-height: 110px;
-    padding: 14px 16px;
-    border: 1px solid var(--gris-medio);
-    border-radius: 12px;
-    background: #fff;
-    font-family: inherit;
-    font-size: 16px;
-    color: var(--gris-oscuro);
-    line-height: 1.5;
-    resize: none;
-    transition: .2s;
-}
-
-.form-group textarea::placeholder {
-    color: #9ca3af;
-    font-size: 14px;
-}
-
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--azul-principal);
-    box-shadow: 0 0 0 3px rgba(33, 150, 243, .15);
 }
 
 .form-group label {
@@ -140,6 +124,7 @@
     font-size: 16px;
     transition: .2s;
     background: #fff;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -149,6 +134,35 @@
     box-shadow: 0 0 0 3px rgba(33, 150, 243, .15);
 }
 
+.form-group textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px 16px;
+    border: 1px solid var(--gris-medio);
+    border-radius: 12px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--gris-oscuro);
+    line-height: 1.5;
+    resize: none;
+    box-sizing: border-box;
+    transition: .2s;
+}
+
+.form-group textarea::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--azul-principal);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, .15);
+}
+
+/* HEADER ITEMS */
+
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -156,16 +170,33 @@
     margin-bottom: 25px;
 }
 
-.table-container {
-    overflow-x: auto;
-    border-radius: 14px;
+.card-header h3 {
+    margin: 0;
 }
 
-table {
-    width: 100%;
-    min-width: 1180px;
-    border-collapse: collapse;
+/* BOTON AGREGAR */
+
+.btn-agregar {
+    height: 46px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s;
 }
+
+.btn-agregar:hover {
+    opacity: .9;
+}
+
+/* TABLA ITEMS */
 
 thead {
     background: #F7F8FA;
@@ -188,17 +219,42 @@ td select {
         0 2px 6px rgba(0, 0, 0, .04);
 }
 
+
+/* VALORES */
+
 .valor {
     color: var(--verde-oscuro);
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .subtotal {
     color: var(--verde-oscuro);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1.1rem;
+    white-space: nowrap;
 }
+
+/* ELIMINAR */
+
+.btn-eliminar {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 16px;
+    transition: .2s;
+}
+
+.btn-eliminar:hover {
+    background: #fecaca;
+}
+
+/* RESUMEN */
 
 .summary {
     display: grid;
@@ -224,22 +280,7 @@ td select {
     min-height: 110px;
 }
 
-.summary small {
-    color: var(--gris-oscuro);
-    font-size: .9rem;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-}
-
-.summary h2 {
-    margin-top: 12px;
-    font-size: 2.875rem;
-    font-weight: 700;
-    color: var(--gris-oscuro);
-}
-
 .card-resumen {
-
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -248,12 +289,6 @@ td select {
     border: 1px solid var(--verde-principal);
     border-radius: 12px;
     padding: 20px;
-}
-
-.icono {
-    font-size: 28px;
-    color: var(--verde-oscuro);
-    margin-bottom: 12px;
 }
 
 .card-resumen small {
@@ -270,18 +305,13 @@ td select {
     color: var(--gris-oscuro);
 }
 
-.totales h3 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+.icono {
+    font-size: 28px;
     color: var(--verde-oscuro);
-    font-size: 1.125rem;
+    margin-bottom: 12px;
 }
 
-.totales h3 i {
-    font-size: 22px;
-}
+/* TOTALES */
 
 .totales {
     background: var(--blanco);
@@ -293,12 +323,26 @@ td select {
     justify-content: center;
 }
 
+.totales h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 20px;
+    color: var(--verde-oscuro);
+    font-size: 1.125rem;
+}
+
+.totales h3 i {
+    font-size: 22px;
+}
+
 .totales .fila {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 0;
     font-size: 1rem;
+    gap: 15px;
 }
 
 .totales .fila span {
@@ -308,6 +352,7 @@ td select {
 .totales .fila strong {
     font-weight: 700;
     color: var(--gris-oscuro);
+    white-space: nowrap;
 }
 
 .totales hr {
@@ -327,13 +372,14 @@ td select {
     font-size: 1.375rem;
 }
 
+/* FOOTER */
+
 .modal-footer {
     padding: 24px 30px;
     border-top: 1px solid var(--gris-claro);
     display: flex;
     justify-content: flex-end;
     gap: 18px;
-
 }
 
 .btn-pdf {
@@ -360,52 +406,327 @@ td select {
     cursor: pointer;
 }
 
-@media(max-width:992px) {
 
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 1024px) {
+
+    .modal-overlay {
+        padding: 15px;
+        align-items: flex-start;
     }
 
-    .summary {
-        grid-template-columns: 1fr;
+    .orden-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 30px);
     }
-
-    .summary>div:not(.totales) {
-        min-height: 90px;
-    }
-}
-
-@media(max-width:768px) {
 
     .modal-header {
-        padding: 22px;
+        padding: 22px 25px;
+
+        h2 {
+            font-size: 1.7rem;
+        }
+
+        p {
+            font-size: 15px;
+            margin-top: 8px;
+        }
     }
 
     .modal-body {
         padding: 20px;
+        gap: 20px;
+    }
+
+    .card {
+        padding: 22px;
+        border-radius: 16px;
+    }
+
+    .card h3 {
+        font-size: 22px;
+        margin-bottom: 20px;
     }
 
     .form-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px 20px;
     }
 
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    .span-2 {
+        grid-column: span 2;
+    }
+
+    .span-4 {
+        grid-column: span 2;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 48px;
+        font-size: 15px;
+    }
+
+    .form-group textarea {
+        min-height: 95px;
+        font-size: 15px;
     }
 
     .summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 15px;
+    }
+
+    .summary>div:not(.totales) {
+        min-height: 100px;
+        padding: 14px;
+    }
+
+    .card-resumen h2 {
+        font-size: 2rem;
+    }
+
+    .icono {
+        font-size: 24px;
+    }
+
+    .totales {
+        grid-column: span 3;
     }
 
     .modal-footer {
-        flex-direction: column;
+        padding: 18px 22px;
     }
 
-    .btn-save,
-    .btn-pdf {
+    .btn-pdf,
+    .btn-save {
+        height: 50px;
+        font-size: 16px;
+        padding: 0 22px;
+    }
+}
+
+
+/* =====================================================
+   MÓVIL
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+    .modal-overlay {
+        padding: 8px;
+    }
+
+    .orden-modal {
+        max-height: calc(100vh - 16px);
+        border-radius: 14px;
+    }
+
+    .modal-header {
+        padding: 16px 18px;
+
+        h2 {
+            font-size: 1.3rem;
+        }
+
+        p {
+            font-size: 13px;
+            margin-top: 6px;
+        }
+    }
+
+    .btn-close {
+        width: 36px;
+        height: 36px;
+        font-size: 19px;
+    }
+
+    .modal-body {
+        padding: 12px;
+        gap: 14px;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .card h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    /* FORMULARIO */
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .span-2,
+    .span-4 {
+        grid-column: span 1;
+    }
+
+    .form-group label {
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 44px;
+        font-size: 14px;
+    }
+
+    .form-group textarea {
+        min-height: 85px;
+        font-size: 14px;
+    }
+
+    /* ITEMS */
+
+    .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .card-header .btn-agregar {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /*
+     * La tabla se convierte en tarjetas.
+     * Se utilizan los data-label del HTML.
+     */
+
+    .table-container {
+        overflow: visible;
+    }
+
+    .table-container table {
+        min-width: 0;
         width: 100%;
     }
 
+    .table-container thead {
+        display: none;
+    }
+
+    .table-container tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .table-container tr {
+        display: block;
+        padding: 14px;
+        border: 1px solid var(--gris-claro);
+        border-radius: 14px;
+        background: var(--blanco);
+        box-shadow: 0 3px 10px var(--gris-medio);
+    }
+
+    .table-container td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 0;
+        border: none;
+    }
+
+    .table-container td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--gris-oscuro);
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .table-container td input,
+    .table-container td select {
+        width: 55%;
+        min-width: 0;
+        height: 42px;
+        font-size: 14px;
+        padding: 0 10px;
+    }
+
+    .table-container .valor {
+        font-size: 1rem;
+    }
+
+    .table-container .subtotal {
+        font-size: 1rem;
+    }
+
+    .btn-eliminar {
+        width: 38px;
+        height: 38px;
+    }
+
+    /* RESUMEN */
+
+    .summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .summary>div:not(.totales) {
+        min-height: 80px;
+        padding: 14px;
+    }
+
+    .card-resumen h2 {
+        font-size: 1.8rem;
+    }
+
+    .icono {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .totales {
+        grid-column: span 1;
+        padding: 16px;
+    }
+
+    .totales h3 {
+        font-size: 1rem;
+        margin-bottom: 14px;
+    }
+
+    .totales .fila {
+        font-size: .9rem;
+    }
+
+    .totales .total span,
+    .totales .total strong {
+        font-size: 1.15rem;
+    }
+
+    /* FOOTER */
+
+    .modal-footer {
+        flex-direction: column;
+        padding: 14px 18px;
+        gap: 10px;
+    }
+
+    .btn-pdf,
+    .btn-save {
+        width: 100%;
+        height: 46px;
+        font-size: 15px;
+    }
 }
