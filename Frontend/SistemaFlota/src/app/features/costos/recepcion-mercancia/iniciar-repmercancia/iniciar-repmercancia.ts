@@ -11,21 +11,17 @@ import { PermisosService } from '../../../../core/services/permisos.service';
 @Component({
   selector: 'app-iniciar-repmercancia',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './iniciar-repmercancia.html',
   styleUrl: './iniciar-repmercancia.scss',
 })
 export class IniciarRepmercancia implements OnInit {
-
   orden!: OrdenCompra;
   form!: FormGroup;
-
   totalItems = 0;
   totalKg = 0;
   totalBultos = 0;
+  guardando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -40,7 +36,6 @@ export class IniciarRepmercancia implements OnInit {
   }
 
   ngOnInit(): void {
-
     this.form = this.fb.group({
       conductor: ['', Validators.required],
       transportadora: ['', Validators.required],
@@ -51,11 +46,7 @@ export class IniciarRepmercancia implements OnInit {
       observaciones: [''],
       detalles: this.fb.array([])
     });
-
-    this.form.valueChanges.subscribe(() => {
-      this.calcularResumen();
-    });
-
+    this.form.valueChanges.subscribe(() => this.calcularResumen());
     this.cargarFormulario();
   }
 
@@ -64,94 +55,45 @@ export class IniciarRepmercancia implements OnInit {
   }
 
   cargarFormulario() {
-
-    this.recepcionService
-      .obtenerFormulario(this.orden.id)
-      .subscribe({
-
-        next: (data) => {
-
-          this.form.patchValue({
-            recibe: data.recibe ?? '',
-            cargo: data.cargo ?? ''
-          });
-
-          data.items.forEach((x: any) => {
-
-            this.detalles.push(
-
-              this.fb.group({
-
-                ordenCompraDetalleId: [x.ordenCompraDetalleId],
-                material: [x.material],
-                cantidadOrdenada: [x.cantidad],
-                bultosOrdenados: [x.bultos],
-                cantidadRecibidaAnterior: [x.cantidadRecibida],
-                bultosRecibidosAnterior: [x.bultosRecibidos],
-                cantidadPendiente: [x.cantidadPendiente],
-                bultosPendientes: [x.bultosPendientes],
-                seleccionado: [true],
-                cantidadRecibida: [
-                  x.cantidadPendiente,
-                  [
-                    Validators.required,
-                    Validators.min(0.01),
-                    Validators.max(x.cantidadPendiente)
-                  ]
-                ],
-
-                bultosRecibidos: [
-                  Number(x.bultosPendientes),
-                  [
-                    Validators.required,
-                    Validators.min(0.01),
-                    Validators.max(x.bultosPendientes)
-                  ]
-                ],
-                loteProveedor: [
-                  '',
-                  Validators.required
-                ],
-                estadoMaterial: [
-                  'Conforme',
-                  Validators.required
-                ],
-                observaciones: ['']
-              })
-            );
-          });
-          this.calcularResumen();
-        },
-
-        error: (error) => {
-
-          if (error.status === 409) {
-            this.toastr.warning(error.error.mensaje, 'Recepción');
-            this.dialogRef.close();
-            return;
-          }
-
-          this.toastr.error('No fue posible cargar los materiales');
+    this.recepcionService.obtenerFormulario(this.orden.id).subscribe({
+      next: (data) => {
+        this.form.patchValue({ recibe: data.recibe ?? '', cargo: data.cargo ?? '' });
+        data.items.forEach((x: any) => {
+          this.detalles.push(this.fb.group({
+            ordenCompraDetalleId: [x.ordenCompraDetalleId],
+            material: [x.material],
+            cantidadOrdenada: [x.cantidad],
+            bultosOrdenados: [x.bultos],
+            cantidadRecibidaAnterior: [x.cantidadRecibida],
+            bultosRecibidosAnterior: [x.bultosRecibidos],
+            cantidadPendiente: [x.cantidadPendiente],
+            bultosPendientes: [x.bultosPendientes],
+            seleccionado: [true],
+            cantidadRecibida: [x.cantidadPendiente, [Validators.required, Validators.min(0.01), Validators.max(x.cantidadPendiente)]],
+            bultosRecibidos: [Number(x.bultosPendientes), [Validators.required, Validators.min(0.01), Validators.max(x.bultosPendientes)]],
+            loteProveedor: ['', Validators.required],
+            estadoMaterial: ['Conforme', Validators.required],
+            observaciones: ['']
+          }));
+        });
+        this.calcularResumen();
+      },
+      error: (error) => {
+        if (error.status === 409) {
+          this.toastr.warning(error.error.mensaje, 'Recepción');
+          this.dialogRef.close();
+          return;
         }
-      });
+        this.toastr.error('No fue posible cargar los materiales');
+      }
+    });
   }
 
   calcularResumen(): void {
-
-    const items = this.detalles.controls
-      .filter(x => x.get('seleccionado')?.value);
-
+    const items = this.detalles.controls.filter(x => x.get('seleccionado')?.value);
     this.totalItems = items.length;
-
-    this.totalKg = items.reduce(
-      (a, b) => a + Number(b.get('cantidadRecibida')?.value || 0),
-      0
-    );
-
-    this.totalBultos = items.reduce(
-      (a, b) => a + Number(b.get('bultosRecibidos')?.value || 0),
-      0
-    );
+    this.totalKg = items.reduce((a, b) => a + Number(b.get('cantidadRecibida')?.value || 0), 0);
+    this.totalBultos = items.reduce((a, b) => a + Number(b.get('bultosRecibidos')?.value || 0), 0);
   }
 
   actualizarResumen(): void {
@@ -159,6 +101,7 @@ export class IniciarRepmercancia implements OnInit {
   }
 
   finalizarRecepcion(): void {
+    if (this.guardando) return;
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -167,7 +110,6 @@ export class IniciarRepmercancia implements OnInit {
     }
 
     const datos = this.form.getRawValue();
-
     const recepcion = {
       ordenCompraId: this.orden.id,
       ...datos,
@@ -187,49 +129,45 @@ export class IniciarRepmercancia implements OnInit {
       height: '85vh',
       disableClose: true
     }).afterClosed().subscribe(idsUsuarios => {
-
       if (!idsUsuarios?.length) {
         this.toastr.warning('Seleccione al menos un destinatario.', 'Correo');
         return;
       }
 
+      this.guardando = true;
       recepcion.usuarios = idsUsuarios;
 
       this.recepcionService.crear(recepcion).subscribe({
         next: respuesta => {
-
-          this.recepcionService.obtenerEtiquetas(respuesta.id).subscribe(pdf => {
-
-            const url = URL.createObjectURL(pdf);
-            window.open(url, '_blank');
-
-            this.toastr.success(
-              `${respuesta.totalBultos} bultos recibidos correctamente.`,
-              'Recepción Finalizada'
-            );
-
-            this.dialogRef.close(respuesta);
-
+          this.recepcionService.obtenerEtiquetas(respuesta.id).subscribe({
+            next: pdf => {
+              const url = URL.createObjectURL(pdf);
+              window.open(url, '_blank');
+              this.toastr.success(`${respuesta.totalBultos} bultos recibidos correctamente.`, 'Recepción Finalizada');
+              this.dialogRef.close(respuesta);
+            },
+            error: () => {
+              this.guardando = false;
+              this.toastr.warning('La recepción fue guardada, pero no fue posible generar las etiquetas.', 'Recepción');
+            }
           });
-
         },
         error: error => {
+          this.guardando = false;
 
           if (error.status === 409) {
-            this.toastr.warning(error.error.mensaje, 'Recepción');
+            this.toastr.warning(error.error?.mensaje ?? 'La solicitud ya está siendo procesada.', 'Recepción');
             return;
           }
 
           this.toastr.error('No fue posible guardar la recepción', 'Error');
-
         }
       });
-
     });
   }
 
   cerrar(): void {
+    if (this.guardando) return;
     this.dialogRef.close();
   }
-
 }

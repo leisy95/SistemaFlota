@@ -81,15 +81,22 @@ export class ListarOrdenCompra {
 
   nuevaOrden(): void {
 
-    this.dialog.open(CrearOrdenCompra, {
+    const dialog = this.dialog.open(CrearOrdenCompra, {
       width: '1200px',
       maxWidth: '95vw',
       maxHeight: '95vh',
       disableClose: true,
       autoFocus: false,
+      restoreFocus: false,
       panelClass: 'orden-compra-dialog'
     });
 
+    dialog.afterClosed().subscribe(resultado => {
+      if (resultado) {
+        this.pagina = 1;
+        this.cargar();
+      }
+    });
   }
 
   cargar(): void {

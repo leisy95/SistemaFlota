@@ -12,7 +12,8 @@ public static class EtiquetaComponent
         IContainer container,
         SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
         RecepcionMercanciaDetalle detalle,
-        int numeroEtiqueta)
+        int numeroBulto,
+        int totalBultos)
     {
         container
             .Border(1)
@@ -29,9 +30,9 @@ public static class EtiquetaComponent
                             info,
                             recepcion,
                             detalle,
-                            numeroEtiqueta);
+                            numeroBulto,
+                            totalBultos);
                     });
-
 
                 // 40% QR derecha
                 row.RelativeItem(4)
@@ -42,7 +43,7 @@ public static class EtiquetaComponent
                     {
                         QrComponent.Dibujar(
                             qr,
-                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id}");
+                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id};BULTO:{numeroBulto}/{totalBultos}");
                     });
             });
     }

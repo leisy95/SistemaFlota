@@ -64,6 +64,22 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             }
         }
 
+        // Validar fecha entrega
+        private void ValidarFechas(DateTime fechaOrden, DateTime? fechaEntrega)
+        {
+            if (!fechaEntrega.HasValue)
+                return;
+
+            var fechaMinimaEntrega = fechaOrden.AddMonths(1);
+
+            if (fechaEntrega.Value < fechaMinimaEntrega)
+            {
+                throw new Exception(
+                    $"La fecha de entrega debe ser como mínimo {fechaMinimaEntrega:dd/MM/yyyy}."
+                );
+            }
+        }
+
         private (
             decimal totalKg,
             decimal totalBultos,
@@ -185,32 +201,26 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                         .SelectMany(r => r.Detalles)
                         .Sum(d => (decimal?)d.CantidadRecibida) ?? 0,
 
-                    BultosRecibidos = _context.RecepcionesMercancias
+                                        BultosRecibidos = _context.RecepcionesMercancias
                         .Where(r => r.OrdenCompraId == x.Id)
                         .SelectMany(r => r.Detalles)
-                        .Sum(d => (decimal?)d.BultosRecibidos) ?? 0,
+                        .Sum(d => (decimal?)d.BultosRecibidos) ?? 0
+                                    })
+                    .ToListAsync();
 
-                                        KgPendientes = x.Estado == "Parcial"
-                        ? x.TotalKg -
-                          (
-                              _context.RecepcionesMercancias
-                                  .Where(r => r.OrdenCompraId == x.Id)
-                                  .SelectMany(r => r.Detalles)
-                                  .Sum(d => (decimal?)d.CantidadRecibida) ?? 0
-                          )
-                        : 0,
+            foreach (var item in items)
+            {
+                item.KgRecibidos = Math.Max(0, item.KgRecibidos);
+                item.BultosRecibidos = Math.Max(0, item.BultosRecibidos);
 
-                     BultosPendientes = x.Estado == "Parcial"
-                        ? x.TotalBultos -
-                          (
-                              _context.RecepcionesMercancias
-                                  .Where(r => r.OrdenCompraId == x.Id)
-                                  .SelectMany(r => r.Detalles)
-                                  .Sum(d => (decimal?)d.BultosRecibidos) ?? 0
-                          )
-                        : 0
-                })
-                .ToListAsync();
+                item.KgPendientes = item.Estado == "Parcial"
+                    ? Math.Max(0, item.TotalKg - item.KgRecibidos)
+                    : 0;
+
+                item.BultosPendientes = item.Estado == "Parcial"
+                    ? Math.Max(0, item.TotalBultos - item.BultosRecibidos)
+                    : 0;
+            }
 
             foreach (var item in items)
             {
@@ -290,6 +300,8 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             await ValidarProveedorAsync(dto.ProveedorId);
 
             await ValidarMaterialesAsync(dto.Detalles);
+
+            ValidarFechas(dto.FechaOrden, dto.FechaEntrega);
 
             var (
                  totalKg,
@@ -411,6 +423,8 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             await ValidarProveedorAsync(dto.ProveedorId);
 
             await ValidarMaterialesAsync(dto.Detalles);
+
+            ValidarFechas(dto.FechaOrden, dto.FechaEntrega);
 
             var orden = await _context.OrdenesCompra
                 .Include(x => x.Detalles)

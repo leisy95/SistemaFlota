@@ -31,27 +31,31 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
         var document = Document.Create(document =>
         {
-            int numeroEtiqueta = 1;
-
             foreach (var detalle in recepcion.Detalles)
             {
-                document.Page(page =>
+                // Cantidad de bultos recibidos para este ítem
+                int totalBultos = (int)detalle.BultosRecibidos;
+
+                // Una etiqueta por cada bulto
+                for (int numeroBulto = 1; numeroBulto <= totalBultos; numeroBulto++)
                 {
-                    page.Size(100, 50, Unit.Millimetre);
-                    page.Margin(2, Unit.Millimetre);
+                    document.Page(page =>
+                    {
+                        page.Size(100, 50, Unit.Millimetre);
+                        page.Margin(2, Unit.Millimetre);
 
-                    page.Content()
-                        .Element(container =>
-                        {
-                            EtiquetaComponent.Dibujar(
-                                container,
-                                recepcion,
-                                detalle,
-                                numeroEtiqueta);
-                        });
-                });
-
-                numeroEtiqueta++;
+                        page.Content()
+                            .Element(container =>
+                            {
+                                EtiquetaComponent.Dibujar(
+                                    container,
+                                    recepcion,
+                                    detalle,
+                                    numeroBulto,
+                                    totalBultos);
+                            });
+                    });
+                }
             }
         });
 

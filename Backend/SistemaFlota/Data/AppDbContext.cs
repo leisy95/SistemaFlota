@@ -6,6 +6,7 @@ using SistemaFlota.Models.Costos.Inventario.CortesInventario;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Models.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Models.Idempotencia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 namespace SistemaFlota
@@ -57,6 +58,9 @@ namespace SistemaFlota
         public DbSet<OpcionFormulario> OpcionesFormulario { get; set; }
         public DbSet<ConversacionFlotaChat> ConversacionesFlotaChat { get; set; }
 
+        // Idempotencia
+        public DbSet<IdempotencyLog> IdempotencyLogs { get; set; }
+
         //  --Costos--
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Material> Materiales { get; set; }
@@ -74,6 +78,10 @@ namespace SistemaFlota
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IdempotencyLog>()
+                .HasIndex(x => x.Key)
+                .IsUnique();
 
             modelBuilder.Entity<Material>()
                 .HasOne(m => m.Proveedor)

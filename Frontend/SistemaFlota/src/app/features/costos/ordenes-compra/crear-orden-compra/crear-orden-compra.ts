@@ -48,8 +48,8 @@ export class CrearOrdenCompra implements OnInit {
 
     proveedorId: 0,
     formaPago: 'Contado',
-    fechaOrden: new Date().toISOString().substring(0, 10),
-    fechaEntrega: new Date().toISOString().substring(0, 10),
+    fechaOrden: '',
+    fechaEntrega: '',
 
     lugarEntrega: 'Mercancía puesta en nuestras instalaciones',
     tipoImpuesto: 'IVA',
@@ -73,6 +73,12 @@ export class CrearOrdenCompra implements OnInit {
 
   ngOnInit(): void {
     this.modoEditar = this.data?.modo === 'editar';
+
+    if (!this.modoEditar) {
+      this.orden.fechaOrden = this.obtenerFechaHoy();
+      this.orden.fechaEntrega = this.obtenerFechaMasUnMes();
+    }
+
     this.obtenerProveedores();
     this.obtenerMateriales();
 
@@ -82,6 +88,17 @@ export class CrearOrdenCompra implements OnInit {
     } else {
       this.items.push(this.nuevoItem());
     }
+  }
+
+  private obtenerFechaHoy(): string {
+    return new Date().toISOString().substring(0, 10);
+  }
+
+  private obtenerFechaMasUnMes(): string {
+    const fecha = new Date();
+    fecha.setMonth(fecha.getMonth() + 1);
+
+    return fecha.toISOString().substring(0, 10);
   }
 
 

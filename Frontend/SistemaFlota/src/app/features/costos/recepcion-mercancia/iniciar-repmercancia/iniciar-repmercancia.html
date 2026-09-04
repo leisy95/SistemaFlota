@@ -258,9 +258,9 @@
                 Cancelar
             </button>
             <button *ngIf="permisos.puedeCrear('recepcion-mercancia')" class="btn-agregar"
-                (click)="finalizarRecepcion()" [disabled]="form.invalid">
-                <i class="fa-solid fa-qrcode"></i>
-                Finalizar Recepción y Generar Etiquetas
+                (click)="finalizarRecepcion()" [disabled]="form.invalid || guardando">
+                <i class="fa-solid" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-qrcode'"></i>
+                {{ guardando ? 'Procesando recepción...' : 'Finalizar Recepción y Generar Etiquetas' }}
             </button>
         </div>
     </div>

@@ -6,206 +6,160 @@
         <p>Sistema de marcado y registro de llegada de materiales</p>
     </section>
 
-    <!-- Buscar orden -->
-    <section class="card buscar-card">
+    <!-- FILTROS -->
+    <section class="card filtros-card">
+        <div class="filtros-header">
+            <div>
+                <h2>Filtros</h2>
+                <p>Filtra las órdenes disponibles para recepción</p>
+            </div>
+        </div>
 
-        <label>
-            Buscar Orden de Compra
-        </label>
+        <div class="filtros-grid">
 
-        <div class="buscar-content">
-
+            <!-- Buscar orden -->
             <div class="input-container">
+                <label>Buscar Orden de Compra</label>
+                <div class="input-wrapper">
+                    <span class="icon">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" placeholder="Ingrese número de orden de compra..." [(ngModel)]="buscar"
+                        (input)="buscarOrden()">
+                </div>
+            </div>
 
-                <span class="icon">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
+            <!-- Proveedor -->
+            <div class="input-container">
+                <label>Proveedor</label>
+                <select [(ngModel)]="proveedorId" (change)="aplicarFiltros()">
+                    <option [ngValue]="undefined">Todos los proveedores</option>
+                    <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.idProveedor">
+                        {{ proveedor.nombre }}
+                    </option>
+                </select>
+            </div>
 
-                <input type="text" placeholder="Ingrese número de orden de compra..." [(ngModel)]="buscar"
-                    (input)="buscarOrden()">
-
+            <!-- Estado -->
+            <div class="input-container">
+                <label>Estado</label>
+                <select [(ngModel)]="estado" (change)="aplicarFiltros()">
+                    <option [ngValue]="''">Todos los estados</option>
+                    <option *ngFor="let estadoItem of estados" [ngValue]="estadoItem">
+                        {{ estadoItem }}
+                    </option>
+                </select>
             </div>
 
         </div>
 
-        <!-- Orden Seleccionada -->
+        <!-- Orden seleccionada -->
         <div class="orden-seleccionada" *ngIf="ordenSeleccionada">
-
             <div class="orden-left">
-
                 <div class="check-icon">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
 
                 <div class="info">
-
                     <h3>{{ ordenSeleccionada.numero }}</h3>
-
-                    <p>
-                        Proveedor:
-                        {{ ordenSeleccionada.proveedor }}
-                    </p>
-
+                    <p>Proveedor: {{ ordenSeleccionada.proveedor }}</p>
                     <span>
-
-                        Items:
-                        {{ ordenSeleccionada.totalItems }}
-
-                        |
-
-                        Total:
-                        ${{ ordenSeleccionada.totalPagar | number:'1.0-0' }}
-
+                        Items: {{ ordenSeleccionada.totalItems }} |
+                        Total: ${{ ordenSeleccionada.totalPagar | number:'1.0-0' }}
                     </span>
-
                 </div>
-
             </div>
 
-            <button class="btn btn-agregar" (click)="ordenSeleccionada?.estado === 'Recepcionada'
-                    ? verRecepcion(ordenSeleccionada)
-                    : iniciarRecepcion()">
+            <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                (click)="ordenSeleccionada.estado?.toLowerCase() === 'recepcionada' ? verRecepcion(ordenSeleccionada) : iniciarRecepcion()">
 
-                <i class="fa-solid" [ngClass]="
-                    ordenSeleccionada?.estado === 'Parcial'
-                        ? 'fa-truck-ramp-box'
-                        : ordenSeleccionada?.estado === 'Recepcionada'
-                            ? 'fa-clipboard-check'
-                            : 'fa-cube'
-                ">
-                </i>
-
-                {{
-                ordenSeleccionada?.estado === 'Parcial'
-                ? 'Continuar Recepción'
-                : ordenSeleccionada?.estado === 'Recepcionada'
-                ? 'Revisar y Confirmar Recepción'
-                : 'Iniciar Recepción'
-                }}
-
+                <i class="fa-solid" [ngClass]="getIconoBoton(ordenSeleccionada)"></i>
+                {{ getTextoBoton(ordenSeleccionada) }}
             </button>
-
         </div>
 
+        <!-- Acciones -->
+        <div class="filtros-actions">
+            <button type="button" class="btn btn-limpiar" (click)="limpiarFiltros()">
+                <i class="fa-solid fa-rotate-left"></i>
+                Limpiar
+            </button>
+        </div>
     </section>
 
-    <!-- Lista de órdenes -->
+    <!-- LISTA DE ÓRDENES -->
     <section class="card ordenes-card">
-
-        <h2>
-            Órdenes Disponibles para Recepción
-        </h2>
+        <h2>Órdenes Disponibles para Recepción</h2>
 
         <div class="orden-item" [ngClass]="{
+                'orden-pendiente': orden.estado === 'Pendiente',
+                'orden-parcial': orden.estado === 'Parcial',
                 'orden-recepcionada': orden.estado === 'Recepcionada',
-                'orden-parcial': orden.estado === 'Parcial'
+                'orden-confirmada': orden.estado === 'Confirmada'
             }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
 
             <div class="orden-info">
-
                 <div class="icon-box">
                     <i class="fa-solid fa-box-open"></i>
                 </div>
 
                 <div>
+                    <h3>{{ orden.numero }}</h3>
+                    <p>{{ orden.proveedor }}</p>
 
-                    <h3>
-                        {{ orden.numero }}
-                    </h3>
-
-                    <p>
-                        {{ orden.proveedor }}
-                    </p>
-
-                    <!-- Estado -->
-                    <span class="badge-recepcion" *ngIf="orden.estado === 'Recepcionada'">
-
-                        <i class="fa-solid fa-circle-check"></i>
-                        Recepcionada
-
+                    <span class="badge-estado" [ngClass]="getClaseEstado(orden.estado)">
+                        <i class="fa-solid" [ngClass]="getIconoEstado(orden.estado)"></i>
+                        {{ orden.estado }}
                     </span>
 
-                    <!-- Recepción parcial -->
-                    <div class="recepcion-parcial" *ngIf="orden.estado === 'Parcial'">
-
-                        <span class="badge-parcial">
-                            <i class="fa-solid fa-truck-ramp-box"></i>
-                            Parcial
-                        </span>
-
+                    <div class="recepcion-parcial" *ngIf="orden.estado === 'Pendiente' || orden.estado === 'Parcial'">
                         <div class="recepcion-info">
-
                             <span>
                                 Pedido:
-                                <strong>
-                                    {{ orden.totalBultos | number:'1.0-2' }} bultos
-                                </strong>
-                                /
-                                <strong>
-                                    {{ orden.totalKg | number:'1.0-2' }} kg
-                                </strong>
+                                <strong>{{ orden.totalBultos | number:'1.0-2' }} bultos</strong> /
+                                <strong>{{ orden.totalKg | number:'1.0-2' }} kg</strong>
                             </span>
 
                             <span>
                                 Recibido:
-                                <strong>
-                                    {{ orden.bultosRecibidos | number:'1.0-2' }} bultos
-                                </strong>
-                                /
-                                <strong>
-                                    {{ orden.kgRecibidos | number:'1.0-2' }} kg
-                                </strong>
+                                <strong>{{ orden.bultosRecibidos | number:'1.0-2' }} bultos</strong> /
+                                <strong>{{ orden.kgRecibidos | number:'1.0-2' }} kg</strong>
                             </span>
 
                             <span>
                                 Pendiente:
-                                <strong>
-                                    {{ orden.bultosPendientes | number:'1.0-2' }} bultos
-                                </strong>
-                                /
-                                <strong>
-                                    {{ orden.kgPendientes | number:'1.0-2' }} kg
-                                </strong>
+                                <strong>{{ orden.bultosPendientes | number:'1.0-2' }} bultos</strong> /
+                                <strong>{{ orden.kgPendientes | number:'1.0-2' }} kg</strong>
                             </span>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
 
             <div class="orden-total">
-
-                <span>
-                    {{ orden.totalItems }} items
-                </span>
-
-                <strong>
-                    ${{ orden.totalPagar | number:'1.0-0' }}
-                </strong>
-
+                <span>{{ orden.totalItems }} items</span>
+                <strong>${{ orden.totalPagar | number:'1.0-0' }}</strong>
             </div>
-
         </div>
 
-        <div class="paginacion">
+        <!-- Sin resultados -->
+        <div class="sin-resultados" *ngIf="ordenes.length === 0">
+            <i class="fa-solid fa-box-open"></i>
+            <p>No hay órdenes disponibles.</p>
+        </div>
 
+        <!-- Paginación -->
+        <div class="paginacion" *ngIf="totalPaginas > 0">
             <button (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
                 Anterior
             </button>
 
-            <span>
-                Página {{ pagina }} de {{ totalPaginas }}
-            </span>
+            <span>Página {{ pagina }} de {{ totalPaginas }}</span>
 
             <button (click)="cambiarPagina(pagina + 1)" [disabled]="pagina >= totalPaginas">
                 Siguiente
             </button>
-
         </div>
-
     </section>
 
 </div>

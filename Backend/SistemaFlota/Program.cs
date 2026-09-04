@@ -6,6 +6,7 @@ using QuestPDF.Infrastructure;
 using SistemaFlota;
 using SistemaFlota.Authorization;
 using SistemaFlota.Configuracion;
+using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
@@ -309,6 +310,9 @@ app.UseStaticFiles();
 app.UseCors("AngularPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<IdempotencyMiddleware>();
+
 app.MapControllers();
 
 app.UseExceptionHandler(errorApp =>

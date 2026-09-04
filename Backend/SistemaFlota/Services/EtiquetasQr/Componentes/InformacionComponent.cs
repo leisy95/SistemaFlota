@@ -8,10 +8,11 @@ namespace SistemaFlota.Services.Pdf.EtiquetasQR.Components;
 public static class InformacionComponent
 {
     public static void Dibujar(
-    IContainer container,
-    SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
-    RecepcionMercanciaDetalle detalle,
-    int numeroEtiqueta)
+        IContainer container,
+        SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
+        RecepcionMercanciaDetalle detalle,
+        int numeroBulto,
+        int totalBultos)
     {
         container
             .AlignMiddle()
@@ -46,13 +47,17 @@ public static class InformacionComponent
 
                 // Bulto
                 info.Item()
-                    .Text($"Bulto: {detalle.BultosRecibidos:0.##}/{detalle.OrdenCompraDetalle?.Bultos:0.##}")
+                    .Text($"Bulto: {numeroBulto}/{totalBultos}")
                     .Bold()
                     .FontSize(10);
 
                 // Peso
+                var pesoPorBulto = totalBultos > 0
+                    ? detalle.CantidadRecibida / totalBultos
+                    : 0;
+
                 info.Item()
-                    .Text($"Peso: {detalle.CantidadRecibida:0.##} Kg")
+                    .Text($"Peso: {pesoPorBulto:0.##} Kg")
                     .Bold()
                     .FontSize(10);
             });

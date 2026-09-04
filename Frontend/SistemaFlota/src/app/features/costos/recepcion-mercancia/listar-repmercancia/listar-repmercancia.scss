@@ -5,10 +5,6 @@
     font-family: 'Segoe UI', sans-serif;
 }
 
-// ======================================================
-// ENCABEZADO
-// ======================================================
-
 .page-header {
     margin-bottom: 32px;
 
@@ -24,10 +20,6 @@
     }
 }
 
-// ======================================================
-// CARDS
-// ======================================================
-
 .card {
     background: var(--blanco);
     border: 1px solid var(--gris-medio);
@@ -35,42 +27,60 @@
     padding: 30px;
 }
 
-// ======================================================
-// BUSCAR ORDEN
-// ======================================================
+// FILTROS
 
-.buscar-card {
+.filtros-card {
     margin-bottom: 30px;
+}
 
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 1.25rem;
-        font-weight: 700;
+.filtros-header {
+    margin-bottom: 25px;
+
+    h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        color: var(--gris-oscuro);
+        font-weight: bold;
+    }
+
+    p {
+        margin: 8px 0 0;
+        font-size: 1rem;
         color: var(--gris-oscuro);
     }
 }
 
-.buscar-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.filtros-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 20px;
+    align-items: end;
 }
 
 .input-container {
     flex: 1;
     position: relative;
 
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--gris-oscuro);
+    }
+
     .icon {
         position: absolute;
         left: 18px;
         top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.375rem;
+        transform: translateY(-20%);
+        font-size: 1.2rem;
         color: var(--verde-oscuro);
+        z-index: 1;
     }
 
-    input {
+    input,
+    select {
         width: 100%;
         height: 45px;
         box-sizing: border-box;
@@ -78,24 +88,55 @@
         outline: none;
         background: var(--blanco);
         border-radius: 8px;
-        padding-left: 55px;
-        font-size: 1.1rem;
+        padding: 0 14px;
+        font-size: 1rem;
         color: var(--gris-oscuro);
-
-        &::placeholder {
-            color: var(--gris-medio);
-        }
 
         &:focus {
             background: #eef2ff;
             border-color: var(--verde-oscuro);
         }
     }
+
+    input {
+        padding-left: 55px;
+
+        &::placeholder {
+            color: var(--gris-medio);
+        }
+    }
 }
 
-// ======================================================
+.filtros-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-limpiar {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: var(--gris-medio);
+    color: var(--gris-oscuro);
+
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: 0.2s;
+
+    &:hover {
+        background: var(--gris-claro);
+        transform: translateY(-1px);
+    }
+}
+
 // ORDEN SELECCIONADA
-// ======================================================
 
 .orden-seleccionada {
     margin-top: 25px;
@@ -155,10 +196,6 @@
     }
 }
 
-// ======================================================
-// BOTÓN
-// ======================================================
-
 .btn-agregar {
     border: none;
     border-radius: 10px;
@@ -180,14 +217,17 @@
         background: var(--verde-oscuro);
         transform: translateY(-1px);
     }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
 }
 
-// ======================================================
-// LISTADO DE ÓRDENES
-// ======================================================
+// LISTADO DE ORDENES
 
 .ordenes-card {
-
     h2 {
         margin: 0 0 35px;
         font-size: 1.75rem;
@@ -221,10 +261,6 @@
     }
 }
 
-// ======================================================
-// INFORMACIÓN DE ORDEN
-// ======================================================
-
 .orden-info {
     display: flex;
     align-items: flex-start;
@@ -248,7 +284,6 @@
 
 .orden-info h3 {
     margin: 0;
-
     font-size: 19px;
     font-weight: 700;
     color: var(--gris-oscuro);
@@ -256,14 +291,9 @@
 
 .orden-info p {
     margin: 5px 0 0;
-
     font-size: 1.1rem;
     color: var(--gris-oscuro);
 }
-
-// ======================================================
-// TOTAL DE LA ORDEN
-// ======================================================
 
 .orden-total {
     display: flex;
@@ -285,68 +315,91 @@
     }
 }
 
-// ======================================================
-// ESTADO RECEPCIONADA
-// ======================================================
+// ESTADOS
 
-.orden-recepcionada {
-    background: var(--verde-suave);
-    border: 2px solid var(--verde-oscuro);
-}
-
-.badge-recepcion {
+.badge-estado {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-
-    margin-top: 6px;
-    padding: 4px 10px;
-
+    padding: 6px 12px;
     border-radius: 20px;
-
-    background: #22c55e;
-    color: #fff;
-
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-// ======================================================
-// RECEPCIÓN PARCIAL
-// ======================================================
+.estado-pendiente {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffe69c;
+}
+
+.estado-parcial {
+    background: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fdba74;
+}
+
+.estado-recepcionada {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.estado-confirmada {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.estado-default {
+    background: #e2e3e5;
+    color: #41464b;
+    border: 1px solid #c6c7c8;
+}
+
+// RECEPCION PARCIAL
+
+.recepcion-parcial {
+    margin-top: 8px;
+}
+
+.orden-pendiente {
+    border: 2px solid #facc15;
+    background: #fffef5;
+
+    &:hover {
+        background: #fffbea;
+    }
+}
 
 .orden-parcial {
     border: 2px solid #f59e0b;
     background: #fffbeb;
 
     &:hover {
-        background: #fffdf5;
+        background: #fff7e6;
     }
 }
 
-.recepcion-parcial {
-    margin-top: 8px;
+.orden-recepcionada {
+    border: 2px solid #3b82f6;
+    background: #eff6ff;
+
+    &:hover {
+        background: #eaf3ff;
+    }
 }
 
-// Badge PARCIAL
+.orden-confirmada {
+    border: 2px solid #22c55e;
+    background: #f0fdf4;
 
-.badge-parcial {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 4px 10px;
-
-    border-radius: 20px;
-
-    background: #f59e0b;
-    color: #fff;
-
-    font-size: 12px;
-    font-weight: 700;
+    &:hover {
+        background: #eafff0;
+    }
 }
 
-// Información de recepción
+// INFORMACION RECEPCION
 
 .recepcion-info {
     display: flex;
@@ -368,7 +421,6 @@
         color: var(--gris-oscuro);
     }
 
-    // Pendiente resaltado
     span:last-child {
         color: #d97706;
 
@@ -378,9 +430,7 @@
     }
 }
 
-// ======================================================
-// PAGINACIÓN
-// ======================================================
+// PAGINACION
 
 .paginacion {
     display: flex;
@@ -430,12 +480,9 @@
     }
 }
 
-/* ======================================================
-   RESPONSIVE
-====================================================== */
+// TABLET
 
 @media (max-width: 1024px) {
-
     .recepcion-container {
         margin-top: 70px;
         padding: 20px;
@@ -458,6 +505,14 @@
         padding: 24px;
     }
 
+    .filtros-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .filtros-grid .input-container:first-child {
+        grid-column: 1 / -1;
+    }
+
     .ordenes-card h2 {
         margin-bottom: 25px;
         font-size: 1.5rem;
@@ -476,15 +531,15 @@
     }
 }
 
+// MOVIL
 
 @media (max-width: 768px) {
-
     .recepcion-container {
         margin-top: 65px;
         padding: 15px;
     }
 
-    /* HEADER */
+    // HEADER
 
     .page-header {
         margin-bottom: 22px;
@@ -500,29 +555,53 @@
         }
     }
 
-    /* CARDS */
+    // CARDS
 
     .card {
         padding: 20px;
         border-radius: 16px;
     }
 
-    /* BUSCADOR */
+    // FILTROS
 
-    .buscar-card label {
-        font-size: 1.1rem;
+    .filtros-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
-    .buscar-content {
+    .filtros-grid .input-container:first-child {
+        grid-column: auto;
+    }
+
+    .filtros-header {
+        margin-bottom: 20px;
+
+        h2 {
+            font-size: 1.35rem;
+        }
+
+        p {
+            font-size: 0.9rem;
+        }
+    }
+
+    .filtros-actions {
+        justify-content: stretch;
+    }
+
+    .btn-limpiar {
         width: 100%;
+        justify-content: center;
     }
+
+    // BUSCADOR
 
     .input-container input {
         height: 48px;
         font-size: 1rem;
     }
 
-    /* ORDEN SELECCIONADA */
+    // ORDEN SELECCIONADA
 
     .orden-seleccionada {
         flex-direction: column;
@@ -545,7 +624,7 @@
     .info>span {
         display: block;
         margin-top: 8px;
-        font-size: .95rem;
+        font-size: 0.95rem;
         line-height: 1.5;
     }
 
@@ -555,7 +634,7 @@
         min-height: 46px;
     }
 
-    /* LISTADO */
+    // LISTADO
 
     .ordenes-card h2 {
         font-size: 1.35rem;
@@ -580,7 +659,7 @@
     }
 
     .orden-info p {
-        font-size: .95rem;
+        font-size: 0.95rem;
     }
 
     .icon-box {
@@ -589,7 +668,7 @@
         font-size: 22px;
     }
 
-    /* TOTAL */
+    // TOTAL
 
     .orden-total {
         width: 100%;
@@ -609,7 +688,7 @@
         font-size: 1.15rem;
     }
 
-    /* RECEPCIÓN PARCIAL */
+    // RECEPCION PARCIAL
 
     .recepcion-info {
         flex-direction: column;
@@ -622,7 +701,8 @@
         line-height: 1.5;
     }
 
-    /* PAGINACIÓN */
+    // PAGINACION
+
     .paginacion {
         display: flex;
         flex-direction: column;
@@ -634,7 +714,7 @@
     .paginacion span {
         width: 100%;
         text-align: center;
-        font-size: .9rem;
+        font-size: 0.9rem;
         order: 2;
     }
 
@@ -653,15 +733,15 @@
     }
 }
 
+// MOVIL PEQUEÑO
 
 @media (max-width: 480px) {
-
     .recepcion-container {
         margin-top: 60px;
         padding: 10px;
     }
 
-    /* HEADER */
+    // HEADER
 
     .page-header {
         margin-bottom: 18px;
@@ -672,29 +752,54 @@
         }
 
         p {
-            font-size: .9rem;
+            font-size: 0.9rem;
         }
     }
 
-    /* CARDS */
+    // CARDS
 
     .card {
         padding: 15px;
         border-radius: 14px;
     }
 
-    /* BUSCADOR */
+    // FILTROS
 
-    .buscar-card {
+    .filtros-card {
         margin-bottom: 20px;
     }
 
-    .buscar-card label {
-        font-size: 1rem;
+    .filtros-grid {
+        gap: 14px;
+    }
+
+    .filtros-header {
+        margin-bottom: 18px;
+
+        h2 {
+            font-size: 1.15rem;
+        }
+
+        p {
+            font-size: 0.82rem;
+        }
     }
 
     .input-container {
+        label {
+            font-size: 0.9rem;
+        }
 
+        input,
+        select {
+            height: 44px;
+            font-size: 0.85rem;
+        }
+    }
+
+    // BUSCADOR
+
+    .input-container {
         .icon {
             left: 14px;
             font-size: 1.1rem;
@@ -703,11 +808,11 @@
         input {
             height: 46px;
             padding-left: 42px;
-            font-size: .9rem;
+            font-size: 0.9rem;
         }
     }
 
-    /* ORDEN SELECCIONADA */
+    // ORDEN SELECCIONADA
 
     .orden-seleccionada {
         margin-top: 18px;
@@ -730,20 +835,20 @@
     }
 
     .info p {
-        font-size: .9rem;
+        font-size: 0.9rem;
         line-height: 1.4;
     }
 
     .info>span {
-        font-size: .85rem;
+        font-size: 0.85rem;
     }
 
     .btn-agregar {
         padding: 12px;
-        font-size: .9rem;
+        font-size: 0.9rem;
     }
 
-    /* LISTADO */
+    // LISTADO
 
     .ordenes-card h2 {
         font-size: 1.15rem;
@@ -773,14 +878,19 @@
     }
 
     .orden-info p {
-        font-size: .85rem;
+        font-size: 0.85rem;
         word-break: break-word;
     }
 
-    /* BADGES */
+    // BADGES
 
     .badge-recepcion,
     .badge-parcial {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .badge-estado {
         font-size: 11px;
         padding: 4px 8px;
     }
@@ -790,24 +900,24 @@
     }
 
     .recepcion-info span {
-        font-size: .78rem;
+        font-size: 0.78rem;
     }
 
-    /* TOTAL */
+    // TOTAL
 
     .orden-total {
         padding-top: 10px;
     }
 
     .orden-total span {
-        font-size: .85rem;
+        font-size: 0.85rem;
     }
 
     .orden-total strong {
         font-size: 1rem;
     }
 
-    /* PAGINACIÓN */
+    // PAGINACION
 
     .paginacion {
         justify-content: space-between;
@@ -815,13 +925,13 @@
     }
 
     .paginacion span {
-        font-size: .72rem;
+        font-size: 0.72rem;
         white-space: nowrap;
     }
 
     .paginacion button {
         height: 36px;
         padding: 0 10px;
-        font-size: .78rem;
+        font-size: 0.78rem;
     }
 }
