@@ -1,0 +1,23 @@
+<div class="dialog-confirmacion">
+    <div class="contenido">
+        <h2>{{ data.titulo }}</h2>
+        <p *ngIf="data.mensaje">{{ data.mensaje }}</p>
+
+        <div class="fg" style="margin-top: 12px; text-align: left;">
+            <label>{{ data.label }}</label>
+            <input type="text" [(ngModel)]="valor" [placeholder]="data.placeholder || ''" autofocus>
+        </div>
+    </div>
+
+    <div class="acciones">
+        <button class="btn-cancelar" (click)="cancelar()">
+            <i class="fa-solid fa-xmark"></i>
+            {{ data.textoCancelar || 'Cancelar' }}
+        </button>
+
+        <button class="btn-confirmar" (click)="confirmar()">
+            <i class="fa-solid fa-check"></i>
+            {{ data.textoConfirmar || 'Confirmar' }}
+        </button>
+    </div>
+</div>

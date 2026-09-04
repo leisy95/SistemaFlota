@@ -13,10 +13,13 @@ namespace SistemaFlota
     {
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-        public FormatoFGC008Controller(AppDbContext context, AuditoriaService auditoria)
+        private readonly EmpresaOrdenesService _empresaOrdenes;
+
+        public FormatoFGC008Controller(AppDbContext context, AuditoriaService auditoria, EmpresaOrdenesService empresaOrdenes)
         {
             _context = context;
             _auditoria = auditoria;
+            _empresaOrdenes = empresaOrdenes;
         }
         private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
         private string GetRol() => User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
@@ -117,7 +120,53 @@ namespace SistemaFlota
                 totalReal = registros.Sum(f => f.CantidadReal)
             });
         }
+        // POST api/FormatoFGC008/sincronizar/{op} — trae/actualiza CantidadOP y CantidadReal automáticamente
+        [HttpPost("sincronizar/{op}")]
+        public async Task<IActionResult> Sincronizar(string op)
+        {
+            var ordenEmpresa = await _empresaOrdenes.BuscarPorNumero(op);
+            if (ordenEmpresa == null)
+                return NotFound(new { mensaje = "No se encontró esa orden en producción" });
 
+            var cantidadReal = await _empresaOrdenes.ObtenerCantidadRealAsync(op);
+
+            var existente = await _context.FormatosFGC008
+                .FirstOrDefaultAsync(f => f.OrdenProduccion == op);
+
+            if (existente != null)
+            {
+                // Ya existe: solo actualiza las cantidades, no toca lo que el usuario ya revisó manualmente
+                existente.CantidadOP = ordenEmpresa.CantidadOP;
+                existente.CantidadReal = cantidadReal;
+                await _context.SaveChangesAsync();
+                return Ok(existente);
+            }
+
+            // No existe: crea el registro nuevo, con lo automático lleno y lo manual pendiente
+            var nuevo = new FormatoFGC008
+            {
+                OrdenProduccion = op,
+                Cliente = ordenEmpresa.Cliente,
+                Referencia = ordenEmpresa.Referencia,
+                CantidadOP = ordenEmpresa.CantidadOP,
+                CantidadReal = cantidadReal,
+                EtiquetasSI = false,
+                EmbalajeSI = false,
+                DefectosSI = false,
+                ListoBodega = false,
+                Despachado = null,
+                RevisadoPor = "Sistema (automático)",
+                FechaRevision = DateTime.Now
+            };
+
+            _context.FormatosFGC008.Add(nuevo);
+            await _context.SaveChangesAsync();
+
+            await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Crear-Automático", "FormatoFGC008",
+                $"Registro generado automáticamente para OP: {op}", nuevo.Id);
+
+            return Ok(nuevo);
+        }
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

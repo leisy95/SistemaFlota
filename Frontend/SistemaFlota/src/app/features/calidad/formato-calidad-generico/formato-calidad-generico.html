@@ -12,27 +12,38 @@
   <!-- VISTA LISTA -->
   <ng-container *ngIf="vista === 'lista'">
     <div class="filtros">
-      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
-      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
-      <div class="fg"><label>Orden de producción</label><input type="text" [(ngModel)]="filtroOP"
-          placeholder="Ej: 22310"></div>
-      <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
-      <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
-    </div>
+  <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
+  <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+  <div class="fg"><label>Orden de producción</label><input type="text" [(ngModel)]="filtroOP"
+      placeholder="Ej: 22310"></div>
+  <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+  <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+</div>
 
-    <div class="filtros" style="margin-top: 10px;">
-      <div class="fg"><label>Consultar desperdicio por orden</label><input type="text" [(ngModel)]="filtroOPDesperdicio"
-          placeholder="Ej: 22310"></div>
-      <button class="btn-filtrar" (click)="buscarDesperdicio()"><i class="fa-solid fa-magnifying-glass"></i>
-        Consultar</button>
+<div class="acordeon-desperdicio">
+  <button type="button" class="acordeon-titulo" (click)="desperdicioAbierto = !desperdicioAbierto">
+    <i class="fa-solid fa-trash"></i>
+    Consultar desperdicio por orden
+    <i class="fa-solid fa-chevron-down acordeon-flecha" [class.rotada]="desperdicioAbierto"></i>
+  </button>
+
+  <div class="acordeon-contenido" *ngIf="desperdicioAbierto">
+    <div class="fg">
+      <label>Número de orden</label>
+      <input type="text" [(ngModel)]="filtroOPDesperdicio" placeholder="Ej: 22310">
     </div>
-    <div class="op-info-box cliente-box" *ngIf="resultadoDesperdicio">
-      <span><i class="fa-solid fa-trash"></i> Desperdicio total de la orden {{ filtroOPDesperdicio }}</span>
-      <div class="op-info-grid">
-        <div><label>Total Desperdicio</label><strong>{{ resultadoDesperdicio.totalDesperdicio }} kg</strong></div>
-        <div><label>Registros encontrados</label><strong>{{ resultadoDesperdicio.totalRegistros }}</strong></div>
-      </div>
+    <button class="btn-filtrar" (click)="buscarDesperdicio()"><i class="fa-solid fa-magnifying-glass"></i>
+      Consultar</button>
+  </div>
+
+  <div class="op-info-box cliente-box acordeon-resultado" *ngIf="desperdicioAbierto && resultadoDesperdicio">
+    <span><i class="fa-solid fa-trash"></i> Desperdicio total de la orden {{ filtroOPDesperdicio }}</span>
+    <div class="op-info-grid">
+      <div><label>Total Desperdicio</label><strong>{{ resultadoDesperdicio.totalDesperdicio }} kg</strong></div>
+      <div><label>Registros encontrados</label><strong>{{ resultadoDesperdicio.totalRegistros }}</strong></div>
     </div>
+  </div>
+</div>
 
     <div class="cargando" *ngIf="cargando"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
 

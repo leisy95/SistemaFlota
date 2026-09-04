@@ -8,6 +8,9 @@ import { PermisosService } from '../../../core/services/permisos.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
+import { DialogInput } from '../../../shared/dialog-input/dialog-input';
 
 @Component({
     selector: 'app-formato-calidad-generico',
@@ -48,6 +51,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     filtroOP = '';
     filtroOPDesperdicio = '';
     resultadoDesperdicio: { totalDesperdicio: number; totalRegistros: number } | null = null;
+    desperdicioAbierto = false;
 
     // ── Formulario ──
     form = {
@@ -112,7 +116,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         private ordenesService: OrdenesProduccionService,
         private opcionesService: OpcionesFormularioService,
         private permisosService: PermisosService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private dialog: MatDialog
     ) { }
 
     ngOnInit(): void {
@@ -177,11 +182,20 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     cerrarTurnoOperario(indice: number) {
         const ronda = this.rondas[indice];
-        const kilos = prompt(`Cerrar turno de ${ronda.operario}\n\nIngrese los kilos de desperdicio:`);
-        if (kilos === null) return; // canceló
+        const dialogRef = this.dialog.open(DialogInput, {
+            data: {
+                titulo: `Cerrar turno de ${ronda.operario}`,
+                label: 'Ingrese los kilos de desperdicio',
+                placeholder: 'Ej: 5.5',
+                textoConfirmar: 'Aceptar'
+            }
+        });
 
-        ronda.cierreDeOperario = true;
-        ronda.kilosDesperdicio = kilos.trim();
+        dialogRef.afterClosed().subscribe((kilos: string | null) => {
+            if (kilos === null) return;
+            ronda.cierreDeOperario = true;
+            ronda.kilosDesperdicio = kilos;
+        });
     }
     anchoColumnaHora(): string {
         const totalRondas = this.rondas.length || 1;
@@ -197,15 +211,39 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     }
 
     marcarRondaFinal(indice: number) {
-        if (!confirm('¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.')) return;
-        this.rondas.forEach((r, i) => r.final = (i === indice));
-        this.tieneRondaFinal = true;
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Marcar verificación final',
+                mensaje: '¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.',
+                textoConfirmar: 'Aceptar',
+                textoCancelar: 'Cancelar',
+                tipo: 'warning'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.rondas.forEach((r, i) => r.final = (i === indice));
+            this.tieneRondaFinal = true;
+        });
     }
 
     quitarRonda(indice: number) {
-        if (!confirm('¿Quitar esta ronda de verificación?')) return;
-        this.rondas.splice(indice, 1);
-        if (!this.rondas.some(r => r.final)) this.tieneRondaFinal = false;
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Quitar verificación',
+                mensaje: '¿Quitar esta ronda de verificación?',
+                textoConfirmar: 'Quitar',
+                textoCancelar: 'Cancelar',
+                tipo: 'warning'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.rondas.splice(indice, 1);
+            if (!this.rondas.some(r => r.final)) this.tieneRondaFinal = false;
+        });
     }
 
     marcarValor(rondaIndice: number, caracteristicaId: number, valor: 'cumple' | 'noCumple' | 'na') {
@@ -214,9 +252,21 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.rondas[rondaIndice].valores[caracteristicaId] = nuevoValor;
 
         if (nuevoValor === 'noCumple') {
-            this.rondaModalPendiente = rondaIndice;
-            this.caracteristicaModalPendiente = caracteristicaId;
-            this.mostrarModalNoCumple = true;
+            const dialogRef = this.dialog.open(DialogConfirmacion, {
+                data: {
+                    titulo: 'Material fuera de especificación',
+                    mensaje: 'Este lote debe separarse de inmediato. Informa a producción o al jefe de planta antes de continuar.',
+                    textoConfirmar: 'Entendido, separar',
+                    textoCancelar: 'Deshacer',
+                    tipo: 'danger'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+                if (!confirmado) {
+                    this.rondas[rondaIndice].valores[caracteristicaId] = null;
+                }
+            });
         }
     }
 
@@ -316,8 +366,19 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         const cambiaron = JSON.stringify(this.variablesCriticas) !== JSON.stringify(this.valoresOriginalesSugeridos);
 
         if (cambiaron && !this.motivoCambioParametros) {
-            const motivo = prompt('Se detectó un cambio en los parámetros sugeridos.\n\nExplique el motivo del cambio:');
-            this.motivoCambioParametros = motivo?.trim() || 'No especificado';
+            const dialogRef = this.dialog.open(DialogInput, {
+                data: {
+                    titulo: 'Cambio en los parámetros sugeridos',
+                    mensaje: 'Se detectó un cambio en los parámetros sugeridos.',
+                    label: 'Explique el motivo del cambio',
+                    placeholder: 'Ej: Ajuste por variación de material',
+                    textoConfirmar: 'Aceptar'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((motivo: string | null) => {
+                this.motivoCambioParametros = motivo?.trim() || 'No especificado';
+            });
         }
     }
 
@@ -456,8 +517,20 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         setTimeout(() => this.iniciarCanvas(), 300);
     }
     eliminar(id: number) {
-        if (!confirm('¿Eliminar este registro?')) return;
-        this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Eliminar registro',
+                mensaje: '¿Está seguro de eliminar este registro? Esta acción no se puede deshacer.',
+                textoConfirmar: 'Eliminar',
+                textoCancelar: 'Cancelar',
+                tipo: 'danger'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
+        });
     }
     exportarPDF(registroUnico?: any) {
         const listaAExportar = registroUnico ? [registroUnico] : this.registros;

@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 export class FormatoFGC008Service {
   private apiUrl = `${environment.apiUrl}/FormatoFGC008`;
   constructor(private http: HttpClient) {}
-
+ 
   getRegistros(desde?: string, hasta?: string, op?: string): Observable<any[]> {
     let params = new HttpParams();
     if (desde) params = params.set('desde', desde);
@@ -20,4 +20,5 @@ export class FormatoFGC008Service {
   eliminarRegistro(id: number): Observable<any> { return this.http.delete(`${this.apiUrl}/${id}`); }
   editarRegistro(id: number, fd: FormData): Observable<any> { return this.http.put(`${this.apiUrl}/${id}`, fd); }
   buscarOP(op: string): Observable<any> { return this.http.get(`${this.apiUrl}/op/${op}`); }
+  sincronizar(op: string): Observable<any> { return this.http.post<any>(`${this.apiUrl}/sincronizar/${op}`, {}); }
 }

@@ -25,6 +25,8 @@ export class FormatoFGC008Component implements OnInit {
   filtroDesde = '';
   filtroHasta = '';
   filtroOP = '';
+  filtroOPSincronizar = '';
+  sincronizando = false;
   form = {
     ordenProduccion: '', cliente: '', referencia: '', etiquetasSI: false, embalajeSI: false,
     defectosSI: false, cantidadOP: 0, cantidadReal: 0,
@@ -113,6 +115,22 @@ export class FormatoFGC008Component implements OnInit {
     const canvas = document.getElementById('firmaCanvas') as HTMLCanvasElement;
     if (canvas) canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
     this.firmaDataUrl = null;
+  }
+
+  sincronizarConProduccion() {
+    if (!this.filtroOPSincronizar) { alert('Ingrese el número de orden'); return; }
+    this.sincronizando = true;
+    this.service.sincronizar(this.filtroOPSincronizar).subscribe({
+      next: () => {
+        this.sincronizando = false;
+        this.filtroOPSincronizar = '';
+        this.cargar();
+      },
+      error: (e) => {
+        this.sincronizando = false;
+        alert(e.error?.mensaje || 'No se pudo sincronizar esa orden');
+      }
+    });
   }
 
   buscarOP() {
@@ -286,7 +304,7 @@ export class FormatoFGC008Component implements OnInit {
     const cw = [27, 21, 9, 9, 9, 9, 9, 9, 18, 16, 14, 9, 9, 27];
     const rowH = 9;
 
-   doc.setTextColor(...NEGRO); doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5);
+    doc.setTextColor(...NEGRO); doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5);
     let x = M;
     doc.rect(x, y, cw[0], 18, 'D'); doc.text('ORDEN DE', x + cw[0] / 2, y + 7, { align: 'center' }); doc.text('PRODUCCION', x + cw[0] / 2, y + 11, { align: 'center' }); x += cw[0];
     doc.rect(x, y, cw[1], 18, 'D'); doc.text('Fecha', x + cw[1] / 2, y + 7, { align: 'center' }); doc.text('entrada', x + cw[1] / 2, y + 11, { align: 'center' }); x += cw[1];
@@ -333,10 +351,10 @@ export class FormatoFGC008Component implements OnInit {
         totalReal += r.cantidadReal;
         if (idx === 0) {
           doc.rect(x, startY, cw[0], rowH * filas.length);
-       const alturaGrupo = rowH * filas.length;
-        const centroY = startY + alturaGrupo / 2 + 1.5;
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
-        doc.text(op, x + cw[0] / 2, centroY, { align: 'center', maxWidth: cw[0] - 2 });
+          const alturaGrupo = rowH * filas.length;
+          const centroY = startY + alturaGrupo / 2 + 1.5;
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+          doc.text(op, x + cw[0] / 2, centroY, { align: 'center', maxWidth: cw[0] - 2 });
           doc.setFont('helvetica', 'normal'); doc.setFontSize(5);
           if (filas[0].cliente) doc.text(filas[0].cliente, x + cw[0] / 2, centroY + 0.5, { align: 'center', maxWidth: cw[0] - 2 });
           if (filas[0].referencia) doc.text(filas[0].referencia, x + cw[0] / 2, centroY + 3.5, { align: 'center', maxWidth: cw[0] - 2 });
@@ -398,7 +416,7 @@ export class FormatoFGC008Component implements OnInit {
     if (accionesTexto) doc.text(accionesTexto, M + 2, y + 8, { maxWidth: W - M * 2 - 4 });
     y += footerH + 2;
 
-  const fx = M + (W - M * 2) * 0.60;
+    const fx = M + (W - M * 2) * 0.60;
     const fw = (W - M * 2) * 0.40;
     const ultimoRegistro = this.registros[this.registros.length - 1];
 
