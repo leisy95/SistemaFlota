@@ -650,3 +650,147 @@ tbody {
     box-shadow: 0 0 0 2px rgba(26, 127, 90, 0.15);
   }
 }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-alerta {
+  background: white;
+  border-radius: 12px;
+  width: 360px;
+  max-width: 90vw;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-icono-alerta {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+
+  i {
+    font-size: 28px;
+    color: #dc2626;
+  }
+}
+
+.modal-titulo {
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 8px;
+  color: #1f2937;
+}
+
+.modal-texto {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.modal-botones {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+
+  button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-modal-confirmar {
+    background: #dc2626;
+    color: white;
+    border: none;
+  }
+}
+.vc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.vc-card {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.vc-card-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0 0 12px;
+
+  i { margin-right: 6px; }
+}
+
+.vc-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 8px;
+
+  .fg {
+    min-width: 0;
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+}
+.valor-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.badge-valor {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+
+  &:hover { opacity: 0.8; }
+}
+
+.badge-cumple.activo {
+  background: #dcfce7;
+  color: #16a34a;
+  border-color: #16a34a;
+}
+
+.badge-nocumple.activo {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.badge-na.activo {
+  background: #e5e7eb;
+  color: #4b5563;
+  border-color: #9ca3af;
+}

@@ -29,6 +29,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     registroSeleccionado: any = null;
     editandoId: number | null = null;
     menuAbiertoId: number | null = null;
+    mostrarModalNoCumple = false;
+    rondaModalPendiente: number | null = null;
+    caracteristicaModalPendiente: number | null = null;
 
     toggleMenu(id: number, event: Event) {
         event.stopPropagation();
@@ -43,6 +46,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     filtroDesde = '';
     filtroHasta = '';
     filtroOP = '';
+    filtroOPDesperdicio = '';
+    resultadoDesperdicio: { totalDesperdicio: number; totalRegistros: number } | null = null;
 
     // ── Formulario ──
     form = {
@@ -75,7 +80,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     variablesCriticas: any = {
         corona: '', molde: '',
         temperaturas: { zona1: '', zona2: '', zona3: '', zona4: '', zona5: '', zona6: '' },
-        velocidades: { maquina: '', halador: '', bobinador: '' },
+        velocidades: { maquina: '', maquina2: '', halador: '', bobinador: '' },
         aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: ''
     };
 
@@ -84,6 +89,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     clienteDetectado: string | null = null;
     referenciaDetectada: string | null = null;
     descripcionDetectada: string | null = null;
+    cantidadDetectada: number | null = null;
+    unidadDetectada: string | null = null;
     opcionesMaquina: any[] = [];
     opcionesCorona: any[] = [];
     opcionesMolde: any[] = [];
@@ -92,6 +99,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     get usuario(): string {
         const u = JSON.parse(sessionStorage.getItem('user') || '{}');
         return u.username ?? '';
+    }
+    get esCoextrusora(): boolean {
+        return (this.form.maquina || '').toLowerCase().includes('coextrusora');
     }
 
     get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
@@ -151,7 +161,12 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
         const valores: { [key: number]: 'cumple' | 'noCumple' | 'na' | null } = {};
         const valoresNumericos: { [key: number]: string } = {};
-        for (const c of this.caracteristicas) { valores[c.id] = null; valoresNumericos[c.id] = ''; }
+        const rondaAnterior = this.rondas.length > 0 ? this.rondas[this.rondas.length - 1] : null;
+
+        for (const c of this.caracteristicas) {
+            valores[c.id] = (rondaAnterior && rondaAnterior.valores[c.id] === 'na') ? 'na' : null;
+            valoresNumericos[c.id] = '';
+        }
 
         this.rondas.push({
             hora: horaTexto, final: false, operario: this.operarioRondaNueva,
@@ -195,7 +210,23 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     marcarValor(rondaIndice: number, caracteristicaId: number, valor: 'cumple' | 'noCumple' | 'na') {
         const actual = this.rondas[rondaIndice].valores[caracteristicaId];
-        this.rondas[rondaIndice].valores[caracteristicaId] = (actual === valor) ? null : valor;
+        const nuevoValor = (actual === valor) ? null : valor;
+        this.rondas[rondaIndice].valores[caracteristicaId] = nuevoValor;
+
+        if (nuevoValor === 'noCumple') {
+            this.rondaModalPendiente = rondaIndice;
+            this.caracteristicaModalPendiente = caracteristicaId;
+            this.mostrarModalNoCumple = true;
+        }
+    }
+
+    cerrarModalNoCumple(revertir: boolean) {
+        if (revertir && this.rondaModalPendiente !== null && this.caracteristicaModalPendiente !== null) {
+            this.rondas[this.rondaModalPendiente].valores[this.caracteristicaModalPendiente] = null;
+        }
+        this.mostrarModalNoCumple = false;
+        this.rondaModalPendiente = null;
+        this.caracteristicaModalPendiente = null;
     }
 
     cargar() {
@@ -203,6 +234,14 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.service.getRegistros(this.codigoFormato, this.filtroDesde, this.filtroHasta, this.filtroOP).subscribe({
             next: (d) => { this.registros = d; this.cargando = false; },
             error: (e) => { console.error(e); this.cargando = false; }
+        });
+    }
+
+    buscarDesperdicio() {
+        if (!this.filtroOPDesperdicio || !this.tipoFormato) return;
+        this.service.buscarDesperdicioPorOrden(this.filtroOPDesperdicio, this.tipoFormato.id).subscribe({
+            next: (data) => { this.resultadoDesperdicio = data; },
+            error: () => { this.resultadoDesperdicio = null; alert('No se encontró información para esa orden'); }
         });
     }
 
@@ -242,13 +281,17 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                         this.clienteDetectado = data.cliente;
                         this.referenciaDetectada = data.referencia;
                         this.descripcionDetectada = data.descripcion;
+                        this.cantidadDetectada = data.cantidadOP;
+                        this.unidadDetectada = data.unidad;
                     },
-                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; }
+                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; this.cantidadDetectada = null; this.unidadDetectada = null; }
                 });
             }
         });
     }
     sugerenciaAplicada = false;
+    valoresOriginalesSugeridos: any = null;
+    motivoCambioParametros: string | null = null;
 
     buscarSugerenciaMejorRendimiento() {
         if (!this.tipoFormato?.tieneVariablesCriticas) return; // solo aplica a Extrusión
@@ -260,9 +303,22 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 const vc = JSON.parse(data.mejor.variablesCriticasJson);
                 this.variablesCriticas = vc;
                 this.sugerenciaAplicada = true;
+                this.valoresOriginalesSugeridos = JSON.parse(JSON.stringify(vc));
+                this.motivoCambioParametros = null;
             },
             error: () => { /* sin historial, no pasa nada */ }
         });
+    }
+
+    onCambioVariableCritica() {
+        if (!this.sugerenciaAplicada || !this.valoresOriginalesSugeridos) return;
+
+        const cambiaron = JSON.stringify(this.variablesCriticas) !== JSON.stringify(this.valoresOriginalesSugeridos);
+
+        if (cambiaron && !this.motivoCambioParametros) {
+            const motivo = prompt('Se detectó un cambio en los parámetros sugeridos.\n\nExplique el motivo del cambio:');
+            this.motivoCambioParametros = motivo?.trim() || 'No especificado';
+        }
     }
 
     nuevo() {
@@ -324,7 +380,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             operarios: this.form.operarios,
             hora: this.form.hora,
             maquina: this.form.maquina,
-            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas ? JSON.stringify(this.variablesCriticas) : null,
+            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
+                ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
+                : null,
             resultadosJson: JSON.stringify(resultadosData)
         };
 

@@ -127,7 +127,9 @@ builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>()
 // -- TWILIO --------------------------------------------------------------------
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
-builder.Services.AddScoped<IProveedorOrdenesProduccion, ImportacionExcelOrdenesService>();
+builder.Services.AddScoped<EmpresaOrdenesService>();
+builder.Services.AddScoped<ImportacionExcelOrdenesService>();
+builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConContingencia>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 

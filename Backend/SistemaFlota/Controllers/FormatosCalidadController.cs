@@ -188,7 +188,50 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
             return Ok();
         }
+        // GET api/FormatosCalidad/desperdicio-orden?op=22310&tipoFormatoId=1
+        [HttpGet("desperdicio-orden")]
+        public async Task<IActionResult> DesperdicioPorOrden([FromQuery] string op, [FromQuery] int tipoFormatoId)
+        {
+            if (string.IsNullOrWhiteSpace(op))
+                return BadRequest(new { mensaje = "Debe indicar el número de orden" });
 
+            var registros = await _context.RegistrosFormatoCalidad
+                .Where(r => r.OrdenProduccion == op && r.TipoFormatoId == tipoFormatoId)
+                .ToListAsync();
+
+            if (!registros.Any())
+                return Ok(new { ordenProduccion = op, totalDesperdicio = 0m, totalRegistros = 0 });
+
+            decimal totalDesperdicio = 0;
+
+            foreach (var r in registros)
+            {
+                try
+                {
+                    var datos = System.Text.Json.JsonDocument.Parse(r.ResultadosJson ?? "{}");
+                    if (datos.RootElement.TryGetProperty("rondas", out var rondas))
+                    {
+                        foreach (var ronda in rondas.EnumerateArray())
+                        {
+                            if (ronda.TryGetProperty("cierreDeOperario", out var cierre) && cierre.GetBoolean() &&
+                                ronda.TryGetProperty("kilosDesperdicio", out var kdEl))
+                            {
+                                var kdTexto = kdEl.GetString();
+                                if (decimal.TryParse(kdTexto, out var kd)) totalDesperdicio += kd;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            return Ok(new
+            {
+                ordenProduccion = op,
+                totalDesperdicio,
+                totalRegistros = registros.Count
+            });
+        }
 
         // GET api/FormatosCalidad/mejor-rendimiento?referencia=XXX
         [HttpGet("mejor-rendimiento")]
