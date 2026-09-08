@@ -85,7 +85,7 @@
                     <tr *ngFor="let item of materiales" (click)="seleccionarMaterial(item)"
                         [class.fila-activa]="materialSeleccionado?.idMaterial === item.idMaterial">
 
-                        <td data-label="Codigo" class="col-codigo">{{ item.idMaterial }}</td>
+                        <td data-label="Codigo" class="col-codigo">{{ item.codigo }}</td>
 
                         <td data-label="Proveedor" class="col-material">
                             {{ item.proveedor }}
@@ -164,7 +164,7 @@
             <div class="drawer-body">
                 <div class="detalle-header">
                     <h2>{{ materialSeleccionado.nombreMaterial }}</h2>
-                    <span class="codigo-badge">ID: {{ materialSeleccionado.idMaterial }}</span>
+                    <span class="codigo-badge">Código: {{ materialSeleccionado.codigo }}</span>
                 </div>
 
                 <hr />

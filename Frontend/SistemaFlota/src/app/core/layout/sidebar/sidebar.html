@@ -1,52 +1,79 @@
-<aside class="sidebar" [class.abierto]="abierto">
+<aside class="sidebar" [class.abierto]="abierto" [class.colapsado]="colapsado">
+
+    <button class="btn-colapsar" (click)="toggleColapso.emit()" [title]="colapsado ? 'Expandir menú' : 'Contraer menú'">
+        <i class="fa-solid" [class.fa-chevron-right]="!colapsado" [class.fa-chevron-left]="colapsado"> </i> </button>
 
     <div class="sidebar-header">
 
-        <div class="logo-empresa" (click)="irAlInicio()" role="button" tabindex="0">
+        <div class="logo-empresa" (click)="irAlInicio()" role="button" tabindex="0" title="Inicio">
+
             <div class="logo-img-wrapper" *ngIf="empresaLogo">
-                <img [src]="empresaLogo" alt="Logo {{ empresaNombre }}" class="logo-img">
+                <img [src]="empresaLogo" [alt]="'Logo ' + empresaNombre" class="logo-img">
             </div>
 
-            <h2 class="logo-texto">
-                <i *ngIf="!empresaLogo" class="fa-solid fa-truck-fast logo-icono"></i>
-                <span>{{ empresaNombre }}</span>
-            </h2>
+            <div class="logo-placeholder" *ngIf="!empresaLogo">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+
+            <div class="logo-info">
+                <h2>{{ empresaNombre }}</h2>
+                <span>Sistema de gestión</span>
+            </div>
+
         </div>
+
     </div>
+
     <nav>
 
         <button *ngFor="let modulo of modulosVisibles" (click)="cambiarModulo(modulo.ruta)"
-            [class.activo]="moduloActivo === modulo.ruta"> <i [class]="modulo.icon"></i> <span>
+            [class.activo]="moduloActivo === modulo.ruta" [title]="colapsado ? modulo.label : ''">
+
+            <i [class]="modulo.icon"></i>
+
+            <span class="menu-texto">
                 {{ modulo.label }}
-            </span> </button>
+            </span>
+
+        </button>
+
         <div class="flotachat-btn-container">
 
-            <a href="https://chat.gecobagsci.com" target="_blank" class="flotachat-btn"> <i
-                    class="fa-solid fa-comments"></i> <span>
+            <a href="https://chat.gecobagsci.com" target="_blank" class="flotachat-btn" title="FlotaChat">
+
+                <i class="fa-solid fa-comments"></i>
+
+                <span class="flotachat-texto">
                     FlotaChat
-                </span> </a>
+                </span>
+
+            </a>
 
         </div>
+
     </nav>
+
     <div class="sidebar-footer">
+
         <div class="usuario-avatar">
-
             <i class="fa-solid fa-circle-user"></i>
-
         </div>
-        <div class="usuario-info"> <span class="usuario-nombre">
 
+        <div class="usuario-info">
+
+            <span class="usuario-nombre">
                 {{ usuario }}
-
-            </span> <span class="usuario-rol">
-
-                <i class="fa-solid fa-shield-halved"></i>
-
-                {{ rol }}
-
             </span>
+
+            <span class="usuario-rol">
+                <i class="fa-solid fa-shield-halved"></i>
+                {{ rol }}
+            </span>
+
         </div>
+
     </div>
+
 </aside>
 
 <div class="sidebar-overlay" [class.activo]="abierto" (click)="cerrar.emit()">

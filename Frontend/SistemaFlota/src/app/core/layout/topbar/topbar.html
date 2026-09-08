@@ -1,14 +1,20 @@
-<header class="topbar">
+<header class="topbar" [class.colapsado]="colapsado">
 
     <div class="topbar-left">
 
-        <button class="btn-hamburguesa" (click)="toggleSidebar.emit()">
+        <button class="btn-hamburguesa" (click)="toggleMenu.emit()"
+            [title]="colapsado ? 'Expandir menú' : 'Contraer menú'">
+
             <i class="fa-solid fa-bars"></i>
+
         </button>
 
         <div class="topbar-modulo">
+
             <i [class]="iconoModulo"></i>
+
             <span>{{ nombreModulo }}</span>
+
         </div>
 
     </div>
@@ -41,7 +47,9 @@
             </div>
 
             <button class="btn-salir" (click)="cerrarSesion()">
+
                 <i class="fa-solid fa-right-from-bracket"></i>
+
             </button>
 
         </div>

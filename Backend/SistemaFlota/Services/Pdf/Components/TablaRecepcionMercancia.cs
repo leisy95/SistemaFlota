@@ -8,8 +8,8 @@ namespace SistemaFlota.Services.Pdf.Components;
 public static class TablaRecepcionMercancia
 {
     public static void Dibujar(
-    IContainer container,
-    IEnumerable<RecepcionMercanciaDetalle> detalles)
+        IContainer container,
+        IEnumerable<RecepcionMercanciaDetalle> detalles)
     {
         container.Column(col =>
         {
@@ -19,16 +19,19 @@ public static class TablaRecepcionMercancia
                 .Style(PdfStyles.Subtitulo);
 
             col.Item()
+                .Border(1)
+                .BorderColor(PdfColors.GrisClaro)
+                .CornerRadius(6)
                 .Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(3); // Material
-                        columns.RelativeColumn(1); // Color
-                        columns.ConstantColumn(55); // KG
-                        columns.ConstantColumn(55); // Bultos
-                        columns.RelativeColumn(2); // Lote
-                        columns.RelativeColumn(2); // Estado
+                        columns.RelativeColumn(3);
+                        columns.RelativeColumn(1);
+                        columns.ConstantColumn(55);
+                        columns.ConstantColumn(55);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(2);
                     });
 
                     table.Header(header =>
@@ -42,10 +45,12 @@ public static class TablaRecepcionMercancia
                             .Style(PdfStyles.HeaderTabla);
 
                         header.Cell().Element(HeaderCell)
+                            .AlignCenter()
                             .Text("KG")
                             .Style(PdfStyles.HeaderTabla);
 
                         header.Cell().Element(HeaderCell)
+                            .AlignCenter()
                             .Text("Bultos")
                             .Style(PdfStyles.HeaderTabla);
 
@@ -54,6 +59,7 @@ public static class TablaRecepcionMercancia
                             .Style(PdfStyles.HeaderTabla);
 
                         header.Cell().Element(HeaderCell)
+                            .AlignCenter()
                             .Text("Estado")
                             .Style(PdfStyles.HeaderTabla);
                     });
@@ -79,13 +85,15 @@ public static class TablaRecepcionMercancia
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
-                            .Text(item.LoteProveedor)
+                            .Text(item.LoteProveedor ?? "-")
                             .Style(PdfStyles.CeldaTabla);
 
-                        table.Cell().Element(BodyCell).Element(x =>
-                        {
-                            EstadoBadge.Dibujar(x, item.EstadoMaterial);
-                        });
+                        table.Cell().Element(BodyCell)
+                            .AlignCenter()
+                            .Element(x =>
+                            {
+                                EstadoBadge.Dibujar(x, item.EstadoMaterial);
+                            });
                     }
                 });
         });
@@ -95,7 +103,7 @@ public static class TablaRecepcionMercancia
     {
         return container
             .Background(PdfColors.AzulOscuro)
-            .Border(1)
+            .BorderBottom(1)
             .BorderColor(PdfColors.GrisClaro)
             .PaddingVertical(6)
             .PaddingHorizontal(4)

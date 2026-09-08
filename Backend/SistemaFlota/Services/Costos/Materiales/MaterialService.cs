@@ -81,6 +81,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                         ? m.Proveedor.Nombre
                         : string.Empty,
 
+                    Codigo = m.Codigo,
                     NombreMaterial = m.NombreMaterial,
                     DescripcionCompra = m.DescripcionCompra,
                     Densidad = m.Densidad,
@@ -143,7 +144,7 @@ namespace SistemaFlota.Services.Costos.Materiales
         // Crear Material
         public async Task<MaterialDto> CrearAsync(CrearMaterialDto dto)
         {
-
+            dto.Codigo = dto.Codigo.Trim();
             dto.NombreMaterial = dto.NombreMaterial.Trim();
             dto.DescripcionCompra = dto.DescripcionCompra?.Trim();
             dto.Densidad = dto.Densidad.Trim();
@@ -161,6 +162,17 @@ namespace SistemaFlota.Services.Costos.Materiales
             if (proveedor == null)
             {
                 throw new InvalidOperationException("El proveedor seleccionado no existe.");
+            }
+
+            // Validar que no se repita el codigo 
+            bool existeCodigo = await _context.Materiales
+                 .AnyAsync(m => m.Codigo == dto.Codigo);
+
+            if (existeCodigo)
+            {
+                throw new InvalidOperationException(
+                    "Ya existe un material con ese código."
+                );
             }
 
             // Validar que no exista el mismo material para el proveedor
@@ -206,6 +218,7 @@ namespace SistemaFlota.Services.Costos.Materiales
             var material = new Material
             {
                 IdProveedor = dto.IdProveedor,
+                Codigo = dto.Codigo,
                 NombreMaterial = dto.NombreMaterial,
                 DescripcionCompra = dto.DescripcionCompra,
                 Densidad = dto.Densidad,
@@ -228,6 +241,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                 IdMaterial = material.IdMaterial,
                 IdProveedor = material.IdProveedor,
                 Proveedor = proveedor.Nombre,
+                Codigo = material.Codigo,
                 NombreMaterial = material.NombreMaterial,
                 DescripcionCompra = material.DescripcionCompra,
                 Densidad = material.Densidad,
@@ -254,6 +268,7 @@ namespace SistemaFlota.Services.Costos.Materiales
 
 
             // Limpiar textos
+            dto.Codigo = dto.Codigo.Trim();
             dto.NombreMaterial = dto.NombreMaterial.Trim();
             dto.DescripcionCompra = dto.DescripcionCompra?.Trim();
             dto.Densidad = dto.Densidad.Trim();
@@ -262,6 +277,19 @@ namespace SistemaFlota.Services.Costos.Materiales
             dto.TipoProduccion = dto.TipoProduccion?.Trim();
             dto.Unidad = dto.Unidad.Trim();
 
+
+            // Validar si existe codigo 
+            bool existeCodigo = await _context.Materiales
+                .AnyAsync(m =>
+                    m.Codigo == dto.Codigo &&
+                    m.IdMaterial != id);
+
+            if (existeCodigo)
+            {
+                throw new InvalidOperationException(
+                    "Ya existe un material con ese código."
+                );
+            }
 
             // Validar proveedor
             bool proveedorExiste = await _context.Proveedores
@@ -323,6 +351,7 @@ namespace SistemaFlota.Services.Costos.Materiales
 
 
             material.IdProveedor = dto.IdProveedor;
+            material.Codigo = dto.Codigo;
             material.NombreMaterial = dto.NombreMaterial;
             material.DescripcionCompra = dto.DescripcionCompra;
             material.Densidad = dto.Densidad;

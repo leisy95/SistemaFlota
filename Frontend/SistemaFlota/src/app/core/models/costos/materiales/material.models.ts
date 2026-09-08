@@ -2,6 +2,7 @@ export interface Material {
     idMaterial?: number;
     idProveedor: number;
     proveedor?: string;
+    codigo: string;
     nombreMaterial: string;
     descripcionCompra?: string;
     densidad: string;

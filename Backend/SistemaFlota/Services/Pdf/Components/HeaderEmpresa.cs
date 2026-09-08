@@ -16,124 +16,112 @@ namespace SistemaFlota.Services.Pdf.Components
         {
             container
                 .Background(PdfColors.VerdePrincipal)
-                .Padding(18)
+                .Padding(15)
                 .Row(row =>
                 {
-                   // LOGO
-                   row.ConstantItem(120)
+                    // LOGO
+                    row.ConstantItem(110)
                         .Background(Colors.White)
-                        .CornerRadius(10)
-                        .Padding(10)
+                        .CornerRadius(7)
+                        .Padding(9)
                         .AlignMiddle()
                         .Element(x =>
                         {
                             if (File.Exists(logo))
                             {
-                                x.Image(logo)
-                                 .FitArea();
+                                x.Image(logo).FitArea();
                             }
                             else
                             {
-                                x.Text("LOGO")
-                                 .Bold()
-                                 .FontColor(PdfColors.AzulOscuro);
+                                x.AlignCenter()
+                                    .AlignMiddle()
+                                    .Text("LOGO")
+                                    .Bold()
+                                    .FontSize(12)
+                                    .FontColor(PdfColors.AzulOscuro);
                             }
                         });
 
+                    // SEPARACIÓN
+                    row.ConstantItem(18);
 
-                    // separación
-                    row.ConstantItem(25);
-
-
-                    // INFORMACION EMPRESA
+                    // INFORMACIÓN EMPRESA
                     row.RelativeItem()
                         .AlignMiddle()
                         .Column(col =>
                         {
-                            col.Spacing(5);
-
+                            col.Spacing(3);
 
                             col.Item()
                                 .Text(empresa.NombreEmpresa.ToUpper())
-                                .FontSize(16)
+                                .FontSize(15)
                                 .Bold()
                                 .FontColor(Colors.White);
 
-
                             col.Item()
                                 .Text($"NIT: {empresa.NIT}")
-                                .FontSize(12)
+                                .FontSize(9)
                                 .FontColor(Colors.White);
-
 
                             col.Item()
                                 .Text(empresa.Direccion)
-                                .FontSize(12)
+                                .FontSize(9)
                                 .FontColor(Colors.White);
-
 
                             col.Item()
                                 .Text($"Tel: {empresa.Telefono}")
-                                .FontSize(12)
+                                .FontSize(9)
                                 .FontColor(Colors.White);
-
 
                             col.Item()
                                 .Text(empresa.Email)
-                                .FontSize(12)
+                                .FontSize(9)
                                 .FontColor(Colors.White);
-
 
                             if (!string.IsNullOrWhiteSpace(empresa.SitioWeb))
                             {
                                 col.Item()
                                     .Text(empresa.SitioWeb)
-                                    .FontSize(12)
+                                    .FontSize(9)
                                     .FontColor(Colors.White);
                             }
 
-
                             col.Item()
                                 .Text("Dosquebradas - Risaralda")
-                                .FontSize(12)
+                                .FontSize(9)
                                 .FontColor(Colors.White);
                         });
 
-                    // separación
-                    row.ConstantItem(25);
+                    // SEPARACIÓN
+                    row.ConstantItem(18);
 
-                    // INFORMACION DOCUMENTO
-                    row.ConstantItem(120)
+                    // INFORMACIÓN DEL DOCUMENTO
+                    row.ConstantItem(115)
                         .Background(Colors.White)
-                        .CornerRadius(10)
-                        .Padding(10)
+                        .CornerRadius(7)
+                        .Padding(9)
                         .AlignMiddle()
                         .Column(col =>
                         {
-                            col.Spacing(8);
+                            col.Spacing(6);
 
                             col.Item()
                                 .AlignCenter()
-                                .Text(tituloDocumento)
-                                .FontSize(16)
+                                .Text(tituloDocumento.ToUpper())
+                                .FontSize(11)
                                 .Bold()
-                                .FontColor("#15803D");
-
+                                .FontColor(PdfColors.VerdePrincipal);
 
                             col.Item()
                                 .LineHorizontal(1)
-                                .LineColor("#E5E7EB");
-
+                                .LineColor(PdfColors.GrisClaro);
 
                             col.Item()
                                 .AlignCenter()
-                                .Text(text =>
-                                {
-                                    text.Span(numeroDocumento)
-                                        .FontSize(14)
-                                        .Bold();
-                                });
-
+                                .Text(numeroDocumento)
+                                .FontSize(12)
+                                .Bold()
+                                .FontColor(PdfColors.AzulOscuro);
                         });
                 });
         }

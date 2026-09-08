@@ -12,6 +12,7 @@ import { AjusteInventario } from '../ajuste-inventario/ajuste-inventario';
 import { HistorialInventario } from '../historial-inventario/historial-inventario';
 import { HistorialCorteInventario } from '../historial-corte-inventario/historial-corte-inventario';
 import { PermisosService } from '../../../../core/services/permisos.service';
+import { DialogRef } from '@angular/cdk/dialog';
 
 @Component({
   selector: 'app-listar-inventario',
@@ -285,7 +286,7 @@ export class ListarInventario {
 
   editar(material: Inventario_Costos): void {
 
-    this.dialog.open(AjusteInventario, {
+    const dialogRef = this.dialog.open(AjusteInventario, {
       width: '650px',
       maxWidth: '95vw',
       maxHeight: '95vh',
@@ -294,7 +295,16 @@ export class ListarInventario {
       data: material.id
     });
 
+    dialogRef.afterClosed().subscribe(resultado => {
+
+      if (resultado === true) {
+        this.cargarInventario();
+      }
+
+    });
+
   }
+
 
   historial(material: Inventario_Costos): void {
 

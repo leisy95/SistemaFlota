@@ -37,10 +37,22 @@
             <div class="grid2">
 
                 <div class="campo">
+                    <label>Código</label>
+
+                    <input type="text" name="codigo" [(ngModel)]="material.codigo" placeholder="Ej: AD/AX/CPA"
+                        maxlength="50">
+                </div>
+
+                <div class="campo">
                     <label>Nombre Material</label>
+
                     <input type="text" name="nombreMaterial" [(ngModel)]="material.nombreMaterial"
                         placeholder="Ej: Polietileno de Baja Densidad">
                 </div>
+
+            </div>
+
+            <div class="grid2">
 
                 <div class="campo">
                     <label>Densidad</label>
@@ -50,8 +62,14 @@
                         <option>Baja</option>
                         <option>Alta</option>
                         <option>Otro</option>
-
                     </select>
+                </div>
+
+                <div class="campo">
+                    <label>Categoría</label>
+
+                    <input type="text" name="categoria" [(ngModel)]="material.categoria"
+                        placeholder="Ej. Resina plástica">
                 </div>
 
             </div>
@@ -63,23 +81,6 @@
                 <textarea name="descripcionCompra" [(ngModel)]="material.descripcionCompra"
                     placeholder="Ej. Polietileno negro para fabricación de bolsas industriales." rows="3">
                 </textarea>
-            </div>
-
-            <div class="grid2">
-
-                <div class="campo">
-                    <label>Categoría</label>
-
-                    <input type="text" name="categoria" [(ngModel)]="material.categoria"
-                        placeholder="Ej. Resina plástica">
-                </div>
-
-                <div class="campo">
-                    <label>Color</label>
-
-                    <input type="text" name="color" [(ngModel)]="material.color" placeholder="Ej. Negro">
-                </div>
-
             </div>
 
             <div class="grid2">

@@ -10,6 +10,10 @@ namespace SistemaFlota.Models.Prov_Materiales.Materiales
         public int IdMaterial { get; set; }
 
         [Required]
+        [StringLength(50)]
+        public string Codigo { get; set; } = string.Empty;
+
+        [Required]
         public int IdProveedor { get; set; }
 
         [ForeignKey(nameof(IdProveedor))]
@@ -42,8 +46,6 @@ namespace SistemaFlota.Models.Prov_Materiales.Materiales
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioBaseKg { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
 
         public bool Activo { get; set; } = true;
 

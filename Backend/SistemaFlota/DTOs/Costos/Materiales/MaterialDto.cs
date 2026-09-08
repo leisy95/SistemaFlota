@@ -8,6 +8,8 @@
 
         public string Proveedor { get; set; } = string.Empty;
 
+        public string Codigo { get; set; } = string.Empty;
+
         public string NombreMaterial { get; set; } = string.Empty;
 
         public string? DescripcionCompra { get; set; }

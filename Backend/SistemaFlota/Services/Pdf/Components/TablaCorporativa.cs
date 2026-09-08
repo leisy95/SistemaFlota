@@ -8,19 +8,20 @@ namespace SistemaFlota.Services.Pdf.Components;
 public static class TablaCorporativa
 {
     public static void Dibujar(
-    IContainer container,
-    IEnumerable<OrdenCompraDetalle> detalles)
+        IContainer container,
+        IEnumerable<OrdenCompraDetalle> detalles)
     {
         container.Column(col =>
         {
-            // Título
             col.Item()
                 .PaddingBottom(8)
                 .Text("MATERIALES")
                 .Style(PdfStyles.Subtitulo);
 
-            // Tabla
             col.Item()
+                .Border(1)
+                .BorderColor(PdfColors.GrisClaro)
+                .CornerRadius(6)
                 .Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -36,16 +37,40 @@ public static class TablaCorporativa
 
                     table.Header(header =>
                     {
-                        header.Cell().Element(HeaderCell).Text("Material").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Color").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("KG").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("KG/Bulto").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Bultos").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Costo/KG").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Subtotal").Style(PdfStyles.HeaderTabla);
+                        header.Cell().Element(HeaderCell)
+                            .Text("Material")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .Text("Color")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("KG")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("KG/Bulto")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("Bultos")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignRight()
+                            .Text("Costo/KG")
+                            .Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignRight()
+                            .Text("Subtotal")
+                            .Style(PdfStyles.HeaderTabla);
                     });
 
-                    // Filas
                     foreach (var item in detalles)
                     {
                         table.Cell().Element(BodyCell)
@@ -53,7 +78,7 @@ public static class TablaCorporativa
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
-                            .Text(item.Color)
+                            .Text(item.Color ?? "-")
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
@@ -89,7 +114,7 @@ public static class TablaCorporativa
     {
         return container
             .Background(PdfColors.VerdePrincipal)
-            .Border(1)
+            .BorderBottom(1)
             .BorderColor(PdfColors.GrisClaro)
             .PaddingVertical(6)
             .PaddingHorizontal(4)

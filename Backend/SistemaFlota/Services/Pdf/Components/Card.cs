@@ -1,5 +1,4 @@
 ﻿using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Services.Pdf.Styles;
 
@@ -15,6 +14,7 @@ public static class Card
         container
             .Border(1)
             .BorderColor(PdfColors.GrisClaro)
+            .CornerRadius(6)
             .Column(col =>
             {
                 // Encabezado

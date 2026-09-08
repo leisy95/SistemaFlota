@@ -36,6 +36,7 @@ export class CrearMateriales implements OnInit {
 
   material: Material = {
     idProveedor: 0,
+    codigo: '',
     nombreMaterial: '',
     descripcionCompra: '',
     densidad: '',
@@ -81,6 +82,7 @@ export class CrearMateriales implements OnInit {
     const formData = new FormData();
 
     formData.append('idProveedor', this.material.idProveedor.toString());
+    formData.append('codigo', this.material.codigo);
     formData.append('nombreMaterial', this.material.nombreMaterial);
     formData.append('descripcionCompra', this.material.descripcionCompra ?? '');
     formData.append('densidad', this.material.densidad);

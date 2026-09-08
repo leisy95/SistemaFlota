@@ -68,7 +68,6 @@ export class ListarMateriales {
     this.menuAbierto = this.menuAbierto === id ? null : id;
   }
 
-  // --- LÓGICA DEL DRAWER ---
   seleccionarMaterial(material: Material): void {
     // Si da clic en el mismo material abierto, lo cierra; si no, abre el nuevo
     if (this.materialSeleccionado?.idMaterial === material.idMaterial) {
@@ -81,7 +80,6 @@ export class ListarMateriales {
   cerrarDrawer(): void {
     this.materialSeleccionado = null;
   }
-  // -------------------------
 
   cargarFiltros(): void {
     this.materialService.obtenerFiltros().subscribe({
@@ -160,7 +158,7 @@ export class ListarMateriales {
 
   editar(item: Material, event?: Event): void {
     if (event) {
-      event.stopPropagation(); // Evita selecciones indeseadas si se da clic desde la tabla
+      event.stopPropagation();
     }
     this.menuAbierto = null;
 

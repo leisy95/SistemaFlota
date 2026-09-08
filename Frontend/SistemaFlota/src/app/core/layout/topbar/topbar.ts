@@ -1,19 +1,23 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { MENU_MODULOS } from '../../menu.config';
 import { filter } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { Sidebar } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-topbar',
+  standalone: true,
   imports: [],
   templateUrl: './topbar.html',
   styleUrl: './topbar.scss',
 })
 export class Topbar implements OnInit {
+  @Input() colapsado = false;
 
   @Output() logout = new EventEmitter<void>();
-  @Output() toggleSidebar = new EventEmitter<void>();
+  @Output() toggleMenu = new EventEmitter<void>();
 
   usuario = '';
   rol = '';
@@ -27,7 +31,6 @@ export class Topbar implements OnInit {
   ) { }
 
   ngOnInit(): void {
-
     const sesion = this.authService.obtenerUsuarioActual();
 
     if (sesion) {
@@ -40,13 +43,10 @@ export class Topbar implements OnInit {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => this.actualizarModulo());
-
   }
 
   actualizarModulo(): void {
-
     const ruta = this.router.url;
-
     const menu = MENU_MODULOS.find(m => m.ruta === ruta);
 
     if (menu) {
@@ -56,11 +56,9 @@ export class Topbar implements OnInit {
       this.nombreModulo = 'Panel de control';
       this.iconoModulo = 'fa-solid fa-gauge-high';
     }
-
   }
 
   cerrarSesion(): void {
-
     this.authService.logout(
       this.authService.username,
       this.authService.rol
@@ -70,12 +68,9 @@ export class Topbar implements OnInit {
         this.router.navigate(['/']);
       },
       error: () => {
-        // Aunque falle el logout del servidor,
-        // se cierra la sesión local.
         this.authService.limpiarSesion();
         this.router.navigate(['/']);
       }
     });
-
   }
 }

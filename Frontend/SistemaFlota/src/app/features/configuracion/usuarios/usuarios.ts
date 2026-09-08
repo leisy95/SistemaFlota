@@ -65,15 +65,23 @@ export class UsuariosComponent implements OnInit {
     { key: 'centro-informacion', label: 'Centro de Información' },
     { key: 'pedidos', label: 'Pedidos' },
     { key: 'rrhh-seguimientos', label: 'Seguimientos RRHH' },
-    { key: 'calidad-cyreles', label: 'Cyreles' },
-    { key: 'calidad-formatos', label: 'Formatos' },
 
-    // COSTOS
+    // MATERIALES - PROVEEDORES
     { key: 'proveedores-materiales', label: 'Proveedores y Materiales' },
     { key: 'orden-compra', label: 'Órdenes de Compra' },
     { key: 'recepcion-mercancia', label: 'Recepción de Mercancía' },
     { key: 'inventario', label: 'Inventario' },
     { key: 'traslados', label: 'Traslados' },
+
+    // CALIDAD
+    { key: 'calidad-cyreles', label: 'Cyreles' },
+    { key: 'calidad-formatos', label: 'Formatos' },
+    { key: 'extrusion', label: 'Extrusión' },
+    { key: 'impresion', label: 'Impresión' },
+    { key: 'sellado', label: 'Sellado' },
+    { key: 'precorte', label: 'Precorte' },
+    { key: 'opciones-formulario', label: 'Opciones de Formularios' },
+
   ];
 
   readonly roles = [

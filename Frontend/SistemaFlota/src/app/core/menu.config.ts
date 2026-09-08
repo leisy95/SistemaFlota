@@ -6,7 +6,6 @@ export interface MenuItem {
     modulo?: string;
 }
 
-
 export const MENU_MODULOS: MenuItem[] = [
 
     // FLOTA
@@ -62,7 +61,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'reporte-ruta',
         label: 'Reporte en Ruta',
-        icon: 'fa-solid fa-triangle-exclamation',
+        icon: 'fa-solid fa-route',
         ruta: '/flota/reporte-ruta',
         modulo: 'flota'
     },
@@ -78,7 +77,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'cambio-ruta',
         label: 'Cambio Ruta',
-        icon: 'fa-solid fa-id-card',
+        icon: 'fa-solid fa-map-location-dot',
         ruta: '/flota/cambio-ruta',
         modulo: 'flota'
     },
@@ -86,7 +85,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'solicitud-taller',
         label: 'Solicitud taller',
-        icon: 'fa-solid fa-wrench',
+        icon: 'fa-solid fa-screwdriver-wrench',
         ruta: '/flota/solicitud-taller',
         modulo: 'flota'
     },
@@ -94,7 +93,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'mantenimiento',
         label: 'Mantenimiento',
-        icon: 'fa-solid fa-wrench',
+        icon: 'fa-solid fa-gears',
         ruta: '/flota/mantenimiento',
         modulo: 'flota'
     },
@@ -110,7 +109,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'encuesta-fatiga',
         label: 'Encuesta fatiga',
-        icon: 'fa-solid fa-folder-open',
+        icon: 'fa-solid fa-clipboard-question',
         ruta: '/flota/encuesta-fatiga',
         modulo: 'flota'
     },
@@ -118,7 +117,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'checklist',
         label: 'Checklist',
-        icon: 'fa-solid fa-box',
+        icon: 'fa-solid fa-list-check',
         ruta: '/flota/checklist',
         modulo: 'flota'
     },
@@ -126,22 +125,23 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'centro-informacion',
         label: 'Centro informacion',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-circle-info',
         ruta: '/configuracion/centro-informacion',
         modulo: 'flota'
     },
 
-    //  SST / RRHH
+    // SST / RRHH
 
     {
         key: 'rrhh-seguimientos',
         label: 'Seguimientos SST',
-        icon: 'fa-solid fa-clipboard-list',
+        icon: 'fa-solid fa-people-group',
         ruta: '/rrhh/rrhh-seguimientos',
         modulo: 'rrhh'
     },
 
-    //  CALIDAD
+    // CALIDAD
+
     {
         key: 'calidad-cyreles',
         label: 'Cyreles',
@@ -149,6 +149,7 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/calidad-cyreles',
         modulo: 'calidad'
     },
+
     {
         key: 'calidad-formatos',
         label: 'Formatos',
@@ -156,55 +157,61 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/calidad/calidad-formatos',
         modulo: 'calidad'
     },
+
     {
-        key: 'calidad-extrusion',
+        key: 'extrusion',
         label: 'Extrusión',
         icon: 'fa-solid fa-industry',
         ruta: '/calidad/extrusion',
         modulo: 'calidad'
     },
+
     {
-        key: 'calidad-impresion',
+        key: 'impresion',
         label: 'Impresión',
         icon: 'fa-solid fa-print',
         ruta: '/calidad/impresion',
         modulo: 'calidad'
     },
+
     {
-        key: 'calidad-sellado',
+        key: 'sellado',
         label: 'Sellado',
         icon: 'fa-solid fa-stamp',
         ruta: '/calidad/sellado',
         modulo: 'calidad'
     },
+
     {
-        key: 'calidad-precorte',
+        key: 'precorte',
         label: 'Precorte',
         icon: 'fa-solid fa-scissors',
         ruta: '/calidad/precorte',
         modulo: 'calidad'
     },
+
     {
-        key: 'admin-opciones-formulario',
+        key: 'opciones-formulario',
         label: 'Opciones de Formularios',
         icon: 'fa-solid fa-sliders',
         ruta: '/calidad/admin-opciones-formulario',
         modulo: 'calidad'
     },
+
     {
         key: 'mejor-rendimiento',
         label: 'Mejor Rendimiento',
-        icon: 'fa-solid fa-magnifying-glass-chart',
+        icon: 'fa-solid fa-chart-line',
         ruta: '/calidad/mejor-rendimiento',
         modulo: 'calidad'
     },
 
-    // Control envios
+    // CONTROL DE ENVÍOS
 
     {
         key: 'trazabilidad',
         label: 'Trazabilidad',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-route',
         ruta: '/control-envios/trazabilidad',
         modulo: 'control-envios'
     },
@@ -212,7 +219,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'costos-flete',
         label: 'Costos Flete',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-money-bill-transfer',
         ruta: '/control-envios/costos-flete',
         modulo: 'control-envios'
     },
@@ -220,27 +227,27 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'pedidos',
         label: 'Pedidos',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-file-invoice',
         ruta: '/control-envios/pedidos',
         modulo: 'control-envios'
     },
 
-    // Reportes
+    // REPORTES
 
     {
         key: 'auditoria',
         label: 'Auditoria',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-magnifying-glass-chart',
         ruta: '/reportes/auditoria',
         modulo: 'reportes'
     },
 
-    // Configuracion
+    // CONFIGURACIÓN
 
     {
         key: 'configuracion',
         label: 'Configuracion',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-gear',
         ruta: '/configuracion/configuracion',
         modulo: 'configuracion'
     },
@@ -248,7 +255,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'contactos-notificacion',
         label: 'Contactos',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-address-book',
         ruta: '/configuracion/contactos-notificacion',
         modulo: 'configuracion'
     },
@@ -264,17 +271,16 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'usuarios',
         label: 'Usuarios',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-users',
         ruta: '/configuracion/usuarios',
         modulo: 'configuracion'
     },
 
-    // Costos
-
+    // MATERIALES - PROVEEDORES
     {
         key: 'proveedores-materiales',
         label: 'Prov - Materiales',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-truck-field',
         ruta: '/costos/proveedores-materiales',
         modulo: 'costos'
     },
@@ -282,7 +288,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'orden-compra',
         label: 'Ord - Compra',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-cart-shopping',
         ruta: '/costos/orden-compra',
         modulo: 'costos'
     },
@@ -290,7 +296,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'recepcion-mercancia',
         label: 'Re - Mercancia',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-boxes-stacked',
         ruta: '/costos/recepcion-mercancia',
         modulo: 'costos'
     },
@@ -298,7 +304,7 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'inventario',
         label: 'Inventario',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-warehouse',
         ruta: '/costos/inventario',
         modulo: 'costos'
     },
@@ -306,8 +312,8 @@ export const MENU_MODULOS: MenuItem[] = [
     {
         key: 'traslados',
         label: 'Traslados',
-        icon: 'fa-solid fa-file-lines',
+        icon: 'fa-solid fa-arrow-right-arrow-left',
         ruta: '/costos/traslados',
         modulo: 'costos'
-    },
+    }
 ];

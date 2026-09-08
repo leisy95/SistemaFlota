@@ -1,17 +1,22 @@
 <div class="layout">
 
-    <app-sidebar [abierto]="sidebarAbierto" (cerrar)="cerrarSidebar()">
+    <app-sidebar [abierto]="sidebarAbierto" [colapsado]="sidebarColapsado" (cerrar)="cerrarSidebar()"
+        (toggleColapso)="toggleColapsoSidebar()">
     </app-sidebar>
 
-    <app-topbar (toggleSidebar)="toggleSidebar()">
+    <app-topbar [colapsado]="sidebarColapsado" (toggleMenu)="toggleMenu()">
     </app-topbar>
 
-    <div class="main">
+    <div class="main" [class.sidebar-colapsado]="sidebarColapsado">
+
         <main class="content">
+
             <div class="router-container">
-                <router-outlet #outlet="outlet"></router-outlet>
+                <router-outlet></router-outlet>
             </div>
+
         </main>
+
     </div>
 
 </div>

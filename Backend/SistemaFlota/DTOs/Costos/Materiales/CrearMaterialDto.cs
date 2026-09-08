@@ -8,6 +8,10 @@ namespace SistemaFlota.DTOs.Costos.Materiales
         public int IdProveedor { get; set; }
 
         [Required]
+        [StringLength(50)]
+        public string Codigo { get; set; } = string.Empty;
+
+        [Required]
         [StringLength(150)]
         public string NombreMaterial { get; set; } = string.Empty;
 
