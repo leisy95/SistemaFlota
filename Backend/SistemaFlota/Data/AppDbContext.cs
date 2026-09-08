@@ -9,6 +9,7 @@ using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.Idempotencia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
+using SistemaFlota.Models.VistasInventarios;
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
@@ -74,6 +75,13 @@ namespace SistemaFlota
         public DbSet<OrdenTraslado> OrdenesTraslado { get; set; }
         public DbSet<OrdenTrasladoDetalle> OrdenesTrasladoDetalle { get; set; }
         public DbSet<Consecutivo> Consecutivos { get; set; }
+
+        // Vistas - Inventarios
+
+        public DbSet<VInvReferencia> VInvReferencias { get; set; }
+        public DbSet<VInvRegistroProduccion> VInvRegistroProduccion { get; set; }
+        public DbSet<VInvOrdenProduccion> VInvOrdenesProduccion { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -211,7 +219,22 @@ namespace SistemaFlota
                 .HasIndex(x => x.Modulo)
                 .IsUnique();
 
-         
+            // Vista - Inventarios
+
+            // Vistas - Inventarios
+
+            modelBuilder.Entity<VInvReferencia>()
+                .HasNoKey()
+                .ToView("inventarios.v_inv_referencias");
+
+            modelBuilder.Entity<VInvRegistroProduccion>()
+                .HasNoKey()
+                .ToView("inventarios.v_inv_registroproduccion");
+
+            modelBuilder.Entity<VInvOrdenProduccion>()
+                .HasNoKey()
+                .ToView("inventarios.v_inv_ordenesproduccion"); ;
+
         }
     }
 }

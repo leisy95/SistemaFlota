@@ -76,8 +76,6 @@ builder.Services
     });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($">>> Ambiente: {builder.Environment.EnvironmentName}");
-Console.WriteLine($">>> Tiene conexion: {!string.IsNullOrEmpty(connectionString)}");
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email"));
@@ -137,7 +135,7 @@ builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 // -- Zona horaria Colombia UTC-5 -----------------------------------------------
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
-//  Puerto â€” solo Railway en produccion 
+//  Puerto solo Railway en produccion 
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -210,7 +208,6 @@ using (var scope = app.Services.CreateScope())
 
         db.Set<CaracteristicaFormato>().AddRange(caracteristicas);
         db.SaveChanges();
-        Console.WriteLine("? Tipos de Formato de Calidad precargados");
     }
 
     // -- Semilla: Opciones de Formulario (Máquina, Corona, Molde, Operario) --
@@ -259,7 +256,6 @@ using (var scope = app.Services.CreateScope())
             });
             await db.SaveChangesAsync();
 
-            Console.WriteLine(" Usuario admin creado");
         }
 
         var existeMaestro = await db.Usuarios.AnyAsync(u => u.Username == "maestro_sf");
@@ -327,9 +323,6 @@ app.UseExceptionHandler(errorApp =>
             .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
         if (error != null)
         {
-            Console.WriteLine($"? ERROR GLOBAL: {error.Error.Message}");
-            Console.WriteLine($"? STACK: {error.Error.StackTrace}");
-
             await context.Response.WriteAsync(
                 System.Text.Json.JsonSerializer.Serialize(
                     new { error = error.Error.Message }

@@ -26,9 +26,7 @@ namespace SistemaFlota
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        // =====================================
         // GET TODAS — con paginación y filtros
-        // =====================================
         [HttpGet]
         public async Task<IActionResult> Get(
             [FromQuery] int pagina = 1,
@@ -89,9 +87,7 @@ namespace SistemaFlota
             });
         }
 
-        // =====================================
         // GET POR ID
-        // =====================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -106,9 +102,7 @@ namespace SistemaFlota
             return Ok(t);
         }
 
-        // =====================================
         // POST — CREAR
-        // =====================================
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CrearTrazabilidadDto dto)
         {
@@ -144,9 +138,7 @@ namespace SistemaFlota
             return Ok(trazabilidad);
         }
 
-        // =====================================
         // PUT — EDITAR
-        // =====================================
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearTrazabilidadDto dto)
         {
@@ -182,9 +174,7 @@ namespace SistemaFlota
             return Ok(t);
         }
 
-        // =====================================
         // DELETE
-        // =====================================
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
@@ -209,9 +199,7 @@ namespace SistemaFlota
             return Ok();
         }
 
-        // =====================================
         // GET NOTAS
-        // =====================================
         [HttpGet("{id}/notas")]
         public async Task<IActionResult> GetNotas(int id)
         {
@@ -222,9 +210,7 @@ namespace SistemaFlota
             return Ok(notas);
         }
 
-        // =====================================
         // POST NOTA
-        // =====================================
         [HttpPost("{id}/notas")]
         public async Task<IActionResult> AgregarNota(int id, [FromBody] CrearNotaDto dto)
         {
@@ -272,9 +258,7 @@ namespace SistemaFlota
             return Ok(nota);
         }
 
-        // =====================================
         // PUT NOTA
-        // =====================================
         [HttpPut("notas/{notaId}")]
         public async Task<IActionResult> EditarNota(int notaId, [FromBody] CrearNotaDto dto)
         {
@@ -291,9 +275,7 @@ namespace SistemaFlota
             return Ok(nota);
         }
 
-        // =====================================
         // DELETE NOTA
-        // =====================================
         [HttpDelete("notas/{notaId}")]
         public async Task<IActionResult> EliminarNota(int notaId)
         {
@@ -305,9 +287,7 @@ namespace SistemaFlota
             return Ok();
         }
 
-        // =====================================
         // GET AUTORIZACIONES PARA IMPORTAR
-        // =====================================
         [HttpGet("autorizaciones-disponibles")]
         public async Task<IActionResult> GetAutorizacionesDisponibles()
         {
@@ -335,9 +315,7 @@ namespace SistemaFlota
         }
     }
 
-    // =====================================
     // DTOs
-    // =====================================
     public class CrearTrazabilidadDto
     {
         public int? AutorizacionId { get; set; }

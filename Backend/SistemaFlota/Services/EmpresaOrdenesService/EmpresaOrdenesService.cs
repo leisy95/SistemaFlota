@@ -1,88 +1,82 @@
-﻿using MySqlConnector;
+﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+
 namespace SistemaFlota
 {
     public class EmpresaOrdenesService : IProveedorOrdenesProduccion
     {
-        private readonly string _connectionString;
-        public EmpresaOrdenesService(IConfiguration configuration)
+        private readonly AppDbContext _context;
+
+        public EmpresaOrdenesService(AppDbContext context)
         {
-            _connectionString = configuration.GetConnectionString("EmpresaConnection")
-                ?? throw new InvalidOperationException("No se encontró 'EmpresaConnection' en la configuración.");
+            _context = context;
         }
+
+        // BUSCAR ORDEN DE PRODUCCIÓN
         public async Task<OrdenProduccionExterna?> BuscarPorNumero(string numeroOP)
         {
-            const string sql = @"
-                SELECT numop, nombrecliente, refer, descrip, canprog, um
-                FROM v_inv_ordenesproduccion
-                WHERE numop = @numeroOP
-                LIMIT 1";
-            await using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-            await using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@numeroOP", numeroOP);
-            await using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            if (!int.TryParse(numeroOP, out int numero))
+                return null;
+
+            try
             {
+                var data = await _context.VInvOrdenesProduccion
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Numop == numero);
+
+                if (data == null)
+                    return null;
+
                 return new OrdenProduccionExterna
                 {
-                    NumeroOP = reader["numop"]?.ToString() ?? "",
-                    Cliente = reader["nombrecliente"]?.ToString(),
-                    Referencia = reader["refer"]?.ToString(),
-                    Descripcion = reader["descrip"]?.ToString(),
-                    CantidadOP = reader["canprog"] != DBNull.Value
-                        ? Convert.ToInt32(reader["canprog"])
-                        : 0,
-                    Unidad = reader["um"]?.ToString(),
+                    NumeroOP = data.Numop.ToString(),
+                    Cliente = data.Nombrecliente,
+                    Referencia = data.Refer,
+                    Descripcion = data.Descrip,
+                    CantidadOP = Convert.ToInt32(data.Canprog),
+                    Unidad = data.Um,
                     FechaImportacion = DateTime.Now
                 };
             }
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine("======================================");
+                Console.WriteLine("ERROR CONSULTANDO OP");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("======================================");
+
+                throw;
+            }
         }
 
+        // OBTENER CANTIDAD REAL PRODUCIDA
         public async Task<decimal> ObtenerCantidadRealAsync(string numeroOP)
         {
-            const string sql = @"
-                SELECT COALESCE(SUM(kilos), 0) AS total
-                FROM v_inv_registroproduccion
-                WHERE numop = @numeroOP";
+            if (!int.TryParse(numeroOP, out int numero))
+                return 0;
 
-            await using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
+            var cantidad = await _context.VInvRegistroProduccion
+                .AsNoTracking()
+                .Where(x => x.Numop == numero)
+                .SumAsync(x => (decimal?)x.Kilos);
 
-            await using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@numeroOP", numeroOP);
-
-            var resultado = await command.ExecuteScalarAsync();
-            return resultado != null && resultado != DBNull.Value ? Convert.ToDecimal(resultado) : 0;
+            return cantidad ?? 0;
         }
 
+        // BUSCAR REFERENCIAS POR DESCRIPCIÓN
         public async Task<List<string>> BuscarReferenciasPorDescripcion(string texto)
         {
-            const string sql = @"
-        SELECT codigo
-        FROM v_inv_referencias
-        WHERE descrip LIKE @texto";
-
-            var resultado = new List<string>();
-
-            await using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            await using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@texto", $"%{texto}%");
-
-            await using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                resultado.Add(reader["codigo"]?.ToString() ?? "");
-            }
-
-            return resultado;
+            return await _context.VInvReferencias
+                .AsNoTracking()
+                .Where(x => x.Descrip.Contains(texto))
+                .Select(x => x.Codigo)
+                .ToListAsync();
         }
 
-        // Esta fuente no soporta importación por archivo — no aplica aquí.
-        public Task<List<OrdenProduccionExterna>> ImportarDesdeArchivo(Stream archivo, string nombreArchivo)
+        // IMPORTAR DESDE ARCHIVO
+        public Task<List<OrdenProduccionExterna>> ImportarDesdeArchivo(
+            Stream archivo,
+            string nombreArchivo)
         {
             throw new NotSupportedException(
                 "La importación desde archivo no aplica para la fuente de base de datos de la empresa.");
