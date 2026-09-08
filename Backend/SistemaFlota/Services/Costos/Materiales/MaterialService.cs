@@ -125,6 +125,7 @@ namespace SistemaFlota.Services.Costos.Materiales
                     Proveedor = m.Proveedor != null
                         ? m.Proveedor.Nombre
                         : string.Empty,
+                    Codigo = m.Codigo,
                     NombreMaterial = m.NombreMaterial,
                     DescripcionCompra = m.DescripcionCompra,
                     Densidad = m.Densidad,
