@@ -8,6 +8,9 @@ import { PermisosService } from '../../../core/services/permisos.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
+import { DialogInput } from '../../../shared/dialog-input/dialog-input';
 
 @Component({
     selector: 'app-formato-calidad-generico',
@@ -29,6 +32,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     registroSeleccionado: any = null;
     editandoId: number | null = null;
     menuAbiertoId: number | null = null;
+    mostrarModalNoCumple = false;
+    rondaModalPendiente: number | null = null;
+    caracteristicaModalPendiente: number | null = null;
 
     toggleMenu(id: number, event: Event) {
         event.stopPropagation();
@@ -43,6 +49,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     filtroDesde = '';
     filtroHasta = '';
     filtroOP = '';
+    filtroOPDesperdicio = '';
+    resultadoDesperdicio: { totalDesperdicio: number; totalRegistros: number } | null = null;
+    desperdicioAbierto = false;
 
     // ── Formulario ──
     form = {
@@ -73,10 +82,17 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     // Variables críticas (solo si tipoFormato.tieneVariablesCriticas)
     variablesCriticas: any = {
+        // Extrusión (F-GC-004)
         corona: '', molde: '',
         temperaturas: { zona1: '', zona2: '', zona3: '', zona4: '', zona5: '', zona6: '' },
-        velocidades: { maquina: '', halador: '', bobinador: '' },
-        aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: ''
+        velocidades: { maquina: '', maquina2: '', halador: '', bobinador: '' },
+        aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: '',
+        // Impresión (F-GC-005)
+        maquinaImpresion: '', metrosPorMinuto: '', velocidadMaquinaHz: '',
+        // Sellado (F-GC-006)
+        maquinaSellado: '', golpesPorMinuto: '', bolsasPorMinuto: '', temperaturaSuperior: '', temperaturaInferior: '',
+        // Precorte (F-GC-007)
+        maquinaPrecorte: '', temperaturaPrecorte: ''
     };
 
     firmaDataUrl: string | null = null;
@@ -84,6 +100,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     clienteDetectado: string | null = null;
     referenciaDetectada: string | null = null;
     descripcionDetectada: string | null = null;
+    cantidadDetectada: number | null = null;
+    unidadDetectada: string | null = null;
     opcionesMaquina: any[] = [];
     opcionesCorona: any[] = [];
     opcionesMolde: any[] = [];
@@ -92,6 +110,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     get usuario(): string {
         const u = JSON.parse(sessionStorage.getItem('user') || '{}');
         return u.username ?? '';
+    }
+    get esCoextrusora(): boolean {
+        return (this.form.maquina || '').toLowerCase().includes('coextrusora');
     }
 
     get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
@@ -102,7 +123,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         private ordenesService: OrdenesProduccionService,
         private opcionesService: OpcionesFormularioService,
         private permisosService: PermisosService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private dialog: MatDialog
     ) { }
 
     ngOnInit(): void {
@@ -146,12 +168,45 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         if (this.tieneRondaFinal) { alert('Ya se marcó la verificación final, no se pueden agregar más horas'); return; }
         if (!this.operarioRondaNueva) { alert('Seleccione el operario que realiza esta verificación'); return; }
 
+        const operarioSeleccionado = this.opcionesOperario.find(o => o.valor === this.operarioRondaNueva);
+
+        if (operarioSeleccionado?.codigo) {
+            const dialogRef = this.dialog.open(DialogInput, {
+                data: {
+                    titulo: `Verificación de identidad`,
+                    mensaje: `Ingrese el código de ${this.operarioRondaNueva} para continuar`,
+                    label: 'Código',
+                    placeholder: 'Ej: 1234',
+                    textoConfirmar: 'Confirmar'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((codigoIngresado: string | null) => {
+                if (codigoIngresado === null) return;
+                if (codigoIngresado.trim() !== operarioSeleccionado.codigo) {
+                    alert('Código incorrecto. No se agregó la verificación.');
+                    return;
+                }
+                this.crearRondaHora();
+            });
+        } else {
+            // Operario sin código asignado, se permite igual (compatibilidad con operarios viejos sin PIN)
+            this.crearRondaHora();
+        }
+    }
+
+    private crearRondaHora() {
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
 
         const valores: { [key: number]: 'cumple' | 'noCumple' | 'na' | null } = {};
         const valoresNumericos: { [key: number]: string } = {};
-        for (const c of this.caracteristicas) { valores[c.id] = null; valoresNumericos[c.id] = ''; }
+        const rondaAnterior = this.rondas.length > 0 ? this.rondas[this.rondas.length - 1] : null;
+
+        for (const c of this.caracteristicas) {
+            valores[c.id] = (rondaAnterior && rondaAnterior.valores[c.id] === 'na') ? 'na' : null;
+            valoresNumericos[c.id] = '';
+        }
 
         this.rondas.push({
             hora: horaTexto, final: false, operario: this.operarioRondaNueva,
@@ -159,14 +214,22 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         });
         this.operarioRondaNueva = '';
     }
-
     cerrarTurnoOperario(indice: number) {
         const ronda = this.rondas[indice];
-        const kilos = prompt(`Cerrar turno de ${ronda.operario}\n\nIngrese los kilos de desperdicio:`);
-        if (kilos === null) return; // canceló
+        const dialogRef = this.dialog.open(DialogInput, {
+            data: {
+                titulo: `Cerrar turno de ${ronda.operario}`,
+                label: 'Ingrese los kilos de desperdicio',
+                placeholder: 'Ej: 5.5',
+                textoConfirmar: 'Aceptar'
+            }
+        });
 
-        ronda.cierreDeOperario = true;
-        ronda.kilosDesperdicio = kilos.trim();
+        dialogRef.afterClosed().subscribe((kilos: string | null) => {
+            if (kilos === null) return;
+            ronda.cierreDeOperario = true;
+            ronda.kilosDesperdicio = kilos;
+        });
     }
     anchoColumnaHora(): string {
         const totalRondas = this.rondas.length || 1;
@@ -182,20 +245,72 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     }
 
     marcarRondaFinal(indice: number) {
-        if (!confirm('¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.')) return;
-        this.rondas.forEach((r, i) => r.final = (i === indice));
-        this.tieneRondaFinal = true;
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Marcar verificación final',
+                mensaje: '¿Marcar esta hora como la verificación FINAL? Ya no se podrán agregar más horas.',
+                textoConfirmar: 'Aceptar',
+                textoCancelar: 'Cancelar',
+                tipo: 'warning'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.rondas.forEach((r, i) => r.final = (i === indice));
+            this.tieneRondaFinal = true;
+        });
     }
 
     quitarRonda(indice: number) {
-        if (!confirm('¿Quitar esta ronda de verificación?')) return;
-        this.rondas.splice(indice, 1);
-        if (!this.rondas.some(r => r.final)) this.tieneRondaFinal = false;
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Quitar verificación',
+                mensaje: '¿Quitar esta ronda de verificación?',
+                textoConfirmar: 'Quitar',
+                textoCancelar: 'Cancelar',
+                tipo: 'warning'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.rondas.splice(indice, 1);
+            if (!this.rondas.some(r => r.final)) this.tieneRondaFinal = false;
+        });
     }
 
     marcarValor(rondaIndice: number, caracteristicaId: number, valor: 'cumple' | 'noCumple' | 'na') {
         const actual = this.rondas[rondaIndice].valores[caracteristicaId];
-        this.rondas[rondaIndice].valores[caracteristicaId] = (actual === valor) ? null : valor;
+        const nuevoValor = (actual === valor) ? null : valor;
+        this.rondas[rondaIndice].valores[caracteristicaId] = nuevoValor;
+
+        if (nuevoValor === 'noCumple') {
+            const dialogRef = this.dialog.open(DialogConfirmacion, {
+                data: {
+                    titulo: 'Material fuera de especificación',
+                    mensaje: 'Este lote debe separarse de inmediato. Informa a producción o al jefe de planta antes de continuar.',
+                    textoConfirmar: 'Entendido, separar',
+                    textoCancelar: 'Deshacer',
+                    tipo: 'danger'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+                if (!confirmado) {
+                    this.rondas[rondaIndice].valores[caracteristicaId] = null;
+                }
+            });
+        }
+    }
+
+    cerrarModalNoCumple(revertir: boolean) {
+        if (revertir && this.rondaModalPendiente !== null && this.caracteristicaModalPendiente !== null) {
+            this.rondas[this.rondaModalPendiente].valores[this.caracteristicaModalPendiente] = null;
+        }
+        this.mostrarModalNoCumple = false;
+        this.rondaModalPendiente = null;
+        this.caracteristicaModalPendiente = null;
     }
 
     cargar() {
@@ -203,6 +318,14 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.service.getRegistros(this.codigoFormato, this.filtroDesde, this.filtroHasta, this.filtroOP).subscribe({
             next: (d) => { this.registros = d; this.cargando = false; },
             error: (e) => { console.error(e); this.cargando = false; }
+        });
+    }
+
+    buscarDesperdicio() {
+        if (!this.filtroOPDesperdicio || !this.tipoFormato) return;
+        this.service.buscarDesperdicioPorOrden(this.filtroOPDesperdicio, this.tipoFormato.id).subscribe({
+            next: (data) => { this.resultadoDesperdicio = data; },
+            error: () => { this.resultadoDesperdicio = null; alert('No se encontró información para esa orden'); }
         });
     }
 
@@ -242,13 +365,17 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                         this.clienteDetectado = data.cliente;
                         this.referenciaDetectada = data.referencia;
                         this.descripcionDetectada = data.descripcion;
+                        this.cantidadDetectada = data.cantidadOP;
+                        this.unidadDetectada = data.unidad;
                     },
-                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; }
+                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; this.cantidadDetectada = null; this.unidadDetectada = null; }
                 });
             }
         });
     }
     sugerenciaAplicada = false;
+    valoresOriginalesSugeridos: any = null;
+    motivoCambioParametros: string | null = null;
 
     buscarSugerenciaMejorRendimiento() {
         if (!this.tipoFormato?.tieneVariablesCriticas) return; // solo aplica a Extrusión
@@ -260,9 +387,33 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 const vc = JSON.parse(data.mejor.variablesCriticasJson);
                 this.variablesCriticas = vc;
                 this.sugerenciaAplicada = true;
+                this.valoresOriginalesSugeridos = JSON.parse(JSON.stringify(vc));
+                this.motivoCambioParametros = null;
             },
             error: () => { /* sin historial, no pasa nada */ }
         });
+    }
+
+    onCambioVariableCritica() {
+        if (!this.sugerenciaAplicada || !this.valoresOriginalesSugeridos) return;
+
+        const cambiaron = JSON.stringify(this.variablesCriticas) !== JSON.stringify(this.valoresOriginalesSugeridos);
+
+        if (cambiaron && !this.motivoCambioParametros) {
+            const dialogRef = this.dialog.open(DialogInput, {
+                data: {
+                    titulo: 'Cambio en los parámetros sugeridos',
+                    mensaje: 'Se detectó un cambio en los parámetros sugeridos.',
+                    label: 'Explique el motivo del cambio',
+                    placeholder: 'Ej: Ajuste por variación de material',
+                    textoConfirmar: 'Aceptar'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((motivo: string | null) => {
+                this.motivoCambioParametros = motivo?.trim() || 'No especificado';
+            });
+        }
     }
 
     nuevo() {
@@ -324,7 +475,9 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             operarios: this.form.operarios,
             hora: this.form.hora,
             maquina: this.form.maquina,
-            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas ? JSON.stringify(this.variablesCriticas) : null,
+            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
+                ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
+                : null,
             resultadosJson: JSON.stringify(resultadosData)
         };
 
@@ -398,8 +551,20 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         setTimeout(() => this.iniciarCanvas(), 300);
     }
     eliminar(id: number) {
-        if (!confirm('¿Eliminar este registro?')) return;
-        this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Eliminar registro',
+                mensaje: '¿Está seguro de eliminar este registro? Esta acción no se puede deshacer.',
+                textoConfirmar: 'Eliminar',
+                textoCancelar: 'Cancelar',
+                tipo: 'danger'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+            this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
+        });
     }
     exportarPDF(registroUnico?: any) {
         const listaAExportar = registroUnico ? [registroUnico] : this.registros;
@@ -422,7 +587,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         doc.rect(W - M - 42, y, 42, 20);
         doc.setFontSize(7); doc.setFont('helvetica', 'normal');
         doc.text('Codigo: ' + this.codigoFormato, W - M - 40, y + 6);
-        doc.text('Version: 001', W - M - 40, y + 13);
+        doc.text('Version: 002', W - M - 40, y + 13);
         doc.text('Fecha: 15/09/2024', W - M - 40, y + 18);
         y += 24;
 

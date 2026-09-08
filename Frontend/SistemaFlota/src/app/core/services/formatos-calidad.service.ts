@@ -45,11 +45,15 @@ export class FormatosCalidadService {
     return this.http.get<any>(`${this.api}/registros/op/${op}?tipoFormatoId=${tipoFormatoId}`, { headers: this.headers });
   }
 
-  buscarMejorRendimiento(referencia: string, maquina?: string) {
-    let url = `${this.api}/mejor-rendimiento?referencia=${encodeURIComponent(referencia)}`;
+  buscarDesperdicioPorOrden(op: string, tipoFormatoId: number) {
+    return this.http.get<any>(`${this.api}/desperdicio-orden?op=${encodeURIComponent(op)}&tipoFormatoId=${tipoFormatoId}`, { headers: this.headers });
+}
+
+ buscarMejorRendimiento(texto: string, maquina?: string) {
+    let url = `${this.api}/mejor-rendimiento?texto=${encodeURIComponent(texto)}`;
     if (maquina) url += `&maquina=${encodeURIComponent(maquina)}`;
     return this.http.get<any>(url, { headers: this.headers });
-  }
+}
   
   constructor(private http: HttpClient) {}
 }

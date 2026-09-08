@@ -28,9 +28,9 @@ namespace SistemaFlota.Controllers
                     (o.TipoFormatoId == null || o.TipoFormatoId == tipoFormatoId));
 
             var lista = await query
-                .OrderBy(o => o.Orden)
-                .Select(o => new { o.Id, o.Valor, o.TipoFormatoId })
-                .ToListAsync();
+    .OrderBy(o => o.Orden)
+    .Select(o => new { o.Id, o.Valor, o.TipoFormatoId, o.Codigo })
+    .ToListAsync();
 
             return Ok(lista);
         }
@@ -77,6 +77,7 @@ namespace SistemaFlota.Controllers
                 TipoFormatoId = dto.TipoFormatoId,
                 Valor = dto.Valor,
                 Orden = dto.Orden,
+                Codigo = dto.Codigo,
                 Activo = true
             };
             _context.OpcionesFormulario.Add(opcion);
@@ -95,6 +96,7 @@ namespace SistemaFlota.Controllers
             opcion.TipoFormatoId = dto.TipoFormatoId;
             opcion.Valor = dto.Valor;
             opcion.Orden = dto.Orden;
+            opcion.Codigo = dto.Codigo;
 
             await _context.SaveChangesAsync();
             return Ok(opcion);

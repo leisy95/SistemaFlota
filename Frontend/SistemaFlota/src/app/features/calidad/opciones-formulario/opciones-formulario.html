@@ -29,13 +29,20 @@
       <table>
         <thead>
           <tr>
-            <th>Categoría</th><th>Valor</th><th>Aplica a</th><th>Orden</th><th>Estado</th><th>Acciones</th>
+            <th>Categoría</th>
+            <th>Valor</th>
+            <th>Código</th>
+            <th>Aplica a</th>
+            <th>Orden</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let o of opcionesFiltradas">
             <td data-label="Categoría"><span class="cat-badge">{{ o.categoria }}</span></td>
             <td data-label="Valor"><strong>{{ o.valor }}</strong></td>
+            <td data-label="Código">{{ o.codigo || '-' }}</td>
             <td data-label="Aplica a">{{ o.tipoFormatoNombre || 'Todos los formatos' }}</td>
             <td data-label="Orden">{{ o.orden }}</td>
             <td data-label="Estado">
@@ -89,6 +96,11 @@
       <div class="fg">
         <label>Valor *</label>
         <input type="text" [(ngModel)]="form.valor" placeholder="Ej: Coextrusora 50">
+      </div>
+
+      <div class="fg" *ngIf="form.categoria === 'Operario'">
+        <label>Código (PIN)</label>
+        <input type="text" [(ngModel)]="form.codigo" placeholder="Ej: 1234" maxlength="10">
       </div>
 
       <div class="fg">

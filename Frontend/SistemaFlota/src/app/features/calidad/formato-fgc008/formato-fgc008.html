@@ -25,6 +25,16 @@
         <label>Orden de produccion</label>
         <input type="text" [(ngModel)]="filtroOP" placeholder="OP-001">
       </div>
+
+      <div class="filtros" style="margin-top: 10px;">
+        <div class="fg">
+          <label>Sincronizar orden con producción</label>
+          <input type="text" [(ngModel)]="filtroOPSincronizar" placeholder="Ej: 22310">
+        </div>
+        <button class="btn-filtrar" [disabled]="sincronizando" (click)="sincronizarConProduccion()">
+          <i class="fa-solid fa-rotate"></i> {{ sincronizando ? 'Sincronizando...' : 'Sincronizar' }}
+        </button>
+      </div>
       <button class="btn-filtrar" (click)="cargar()">Filtrar</button>
       <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
       <button class="btn-importar" *ngIf="puedeCrear" (click)="mostrarModalImportar = true">

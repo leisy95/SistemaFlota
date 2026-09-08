@@ -8,6 +8,7 @@ namespace SistemaFlota.Models
         [MaxLength(200)] public string? Cliente { get; set; }
         public int CantidadOP { get; set; }
         [MaxLength(200)] public string? Referencia { get; set; }
+        [MaxLength(20)] public string? Unidad { get; set; }
         public string? Descripcion { get; set; }
         public DateTime FechaImportacion { get; set; } = DateTime.Now;
     }

@@ -13,5 +13,6 @@ namespace SistemaFlota.Models
 
         [ForeignKey("TipoFormatoId")]
         public TipoFormatoCalidad? TipoFormato { get; set; }
+        [MaxLength(10)] public string? Codigo { get; set; }
     }
 }

@@ -24,7 +24,7 @@ export class OpcionesFormularioComponent implements OnInit {
   editando = false;
   editandoId: number | null = null;
 
-  form = { categoria: '', tipoFormatoId: null as number | null, valor: '', orden: 0 };
+  form = { categoria: '', tipoFormatoId: null as number | null, valor: '', orden: 0, codigo: '' };
 
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
   get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('calidad-formatos'); }
@@ -73,16 +73,16 @@ export class OpcionesFormularioComponent implements OnInit {
   agregar() {
     this.editando = false;
     this.editandoId = null;
-    this.form = { categoria: this.filtroCategoria || '', tipoFormatoId: null, valor: '', orden: 0 };
+    this.form = { categoria: this.filtroCategoria || '', tipoFormatoId: null, valor: '', orden: 0, codigo: '' };
     this.mostrarModal = true;
-  }
+}
 
   editar(o: any) {
     this.editando = true;
     this.editandoId = o.id;
-    this.form = { categoria: o.categoria, tipoFormatoId: o.tipoFormatoId, valor: o.valor, orden: o.orden };
+    this.form = { categoria: o.categoria, tipoFormatoId: o.tipoFormatoId, valor: o.valor, orden: o.orden, codigo: o.codigo || '' };
     this.mostrarModal = true;
-  }
+}
 
   guardar() {
     if (!this.form.categoria || !this.form.valor.trim()) { alert('Complete categoría y valor'); return; }
