@@ -2,18 +2,22 @@
   <div class="header">
     <div>
       <h1><i class="fa-solid fa-magnifying-glass-chart"></i> Mejor Rendimiento</h1>
-      <p>Busca una referencia y encuentra los parámetros que dieron mejor resultado (más producción, menos desperdicio)</p>
+      <p>Busca una referencia y encuentra los parámetros que dieron mejor resultado (más producción, menos desperdicio)
+      </p>
     </div>
   </div>
 
   <div class="buscador">
-    <input type="text" [(ngModel)]="referenciaBusqueda" placeholder="Ej: 0018.0*020.0*1.50 o parte de la referencia" (keyup.enter)="buscar()">
-    <button class="btn-buscar" (click)="buscar()" [disabled]="buscando">
-      <i class="fa-solid" [class.fa-spinner]="buscando" [class.fa-spin]="buscando" [class.fa-magnifying-glass]="!buscando"></i>
-      {{ buscando ? 'Buscando...' : 'Buscar' }}
-    </button>
-  </div>
-
+  <input type="text" [(ngModel)]="referenciaBusqueda" placeholder="Orden, referencia o cliente" (keyup.enter)="buscar()">
+  <select [(ngModel)]="maquinaBusqueda" style="max-width: 200px;">
+    <option [ngValue]="''">Todas las máquinas</option>
+    <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
+  </select>
+  <button class="btn-buscar" (click)="buscar()" [disabled]="buscando">
+    <i class="fa-solid" [class.fa-spinner]="buscando" [class.fa-spin]="buscando" [class.fa-magnifying-glass]="!buscando"></i>
+    {{ buscando ? 'Buscando...' : 'Buscar' }}
+  </button>
+</div>
   <div class="vacio" *ngIf="mensajeVacio">
     <p><i class="fa-solid fa-inbox"></i> {{ mensajeVacio }}</p>
   </div>
@@ -29,7 +33,8 @@
       <div class="tarjeta-mejor-header">
         <i class="fa-solid fa-trophy" *ngIf="seleccionado.id === resultado.mejor.id"></i>
         <i class="fa-solid fa-clipboard-list" *ngIf="seleccionado.id !== resultado.mejor.id"></i>
-        <h2>{{ seleccionado.id === resultado.mejor.id ? 'Mejor combinación encontrada' : 'Parámetros de la orden ' + seleccionado.ordenProduccion }}</h2>
+        <h2>{{ seleccionado.id === resultado.mejor.id ? 'Mejor combinación encontrada' : 'Parámetros de la orden ' +
+          seleccionado.ordenProduccion }}</h2>
       </div>
 
       <div class="metricas-grid">
@@ -74,12 +79,14 @@
         <div class="variables-grid">
           <div class="variable-item"><label>Máquina</label><strong>{{ vc.velocidades?.maquina || '-' }}</strong></div>
           <div class="variable-item"><label>Halador</label><strong>{{ vc.velocidades?.halador || '-' }}</strong></div>
-          <div class="variable-item"><label>Bobinador</label><strong>{{ vc.velocidades?.bobinador || '-' }}</strong></div>
+          <div class="variable-item"><label>Bobinador</label><strong>{{ vc.velocidades?.bobinador || '-' }}</strong>
+          </div>
         </div>
         <div class="variables-grid">
           <div class="variable-item"><label>Aire (H)</label><strong>{{ vc.aire || '-' }}</strong></div>
           <div class="variable-item"><label>Amperaje (A)</label><strong>{{ vc.amperaje || '-' }}</strong></div>
-          <div class="variable-item"><label>Altura Burbuja (Cm)</label><strong>{{ vc.alturaBurbuja || '-' }}</strong></div>
+          <div class="variable-item"><label>Altura Burbuja (Cm)</label><strong>{{ vc.alturaBurbuja || '-' }}</strong>
+          </div>
         </div>
       </div>
     </div>
@@ -90,11 +97,16 @@
       <table>
         <thead>
           <tr>
-            <th>Orden</th><th>Fecha</th><th>Kg/h</th><th>Desperdicio</th><th>Puntaje</th>
+            <th>Orden</th>
+            <th>Fecha</th>
+            <th>Kg/h</th>
+            <th>Desperdicio</th>
+            <th>Puntaje</th>
           </tr>
         </thead>
         <tbody>
-         <tr *ngFor="let r of resultado.todos; let i = index" [class.fila-mejor]="i === 0" [class.fila-seleccionada]="seleccionado.id === r.id" (click)="seleccionar(r)">
+          <tr *ngFor="let r of resultado.todos; let i = index" [class.fila-mejor]="i === 0"
+            [class.fila-seleccionada]="seleccionado.id === r.id" (click)="seleccionar(r)">
             <td data-label="Orden">{{ r.ordenProduccion }} <span *ngIf="i === 0" class="badge-top">🏆 Mejor</span></td>
             <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy' }}</td>
             <td data-label="Kg/h">{{ r.kgHora }}</td>

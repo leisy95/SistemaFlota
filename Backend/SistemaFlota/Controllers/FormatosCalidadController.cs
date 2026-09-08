@@ -15,12 +15,14 @@ namespace SistemaFlota
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
         private readonly IMensajeriaService _mensajeria;
+        private readonly EmpresaOrdenesService _empresaOrdenes;
 
-        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria, IMensajeriaService twilio)
+        public FormatosCalidadController(AppDbContext context, AuditoriaService auditoria, IMensajeriaService twilio, EmpresaOrdenesService empresaOrdenes)
         {
             _context = context;
             _auditoria = auditoria;
             _mensajeria = twilio;
+            _empresaOrdenes = empresaOrdenes;
         }
 
         private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
@@ -233,21 +235,28 @@ namespace SistemaFlota
             });
         }
 
-        // GET api/FormatosCalidad/mejor-rendimiento?referencia=XXX
+        // GET api/FormatosCalidad/mejor-rendimiento?texto=XXX&maquina=YYY
         [HttpGet("mejor-rendimiento")]
-        public async Task<IActionResult> MejorRendimiento([FromQuery] string referencia, [FromQuery] string? maquina = null)
+        public async Task<IActionResult> MejorRendimiento([FromQuery] string texto, [FromQuery] string? maquina = null)
         {
-            if (string.IsNullOrWhiteSpace(referencia))
-                return BadRequest(new { mensaje = "Debe indicar una referencia para buscar" });
+            if (string.IsNullOrWhiteSpace(texto))
+                return BadRequest(new { mensaje = "Debe indicar un texto para buscar" });
 
             var tipoExtrusion = await _context.TiposFormatoCalidad
-                .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
+    .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
             if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo Extrusión no configurado" });
+
+            var referenciasPorDescripcion = await _empresaOrdenes.BuscarReferenciasPorDescripcion(texto);
 
             var query = _context.RegistrosFormatoCalidad
                 .Where(r => r.TipoFormatoId == tipoExtrusion.Id &&
-                            r.Referencia != null && r.Referencia.Contains(referencia) &&
-                            r.ProduccionKgHora != null);
+                            r.ProduccionKgHora != null &&
+                            (
+                                (r.OrdenProduccion != null && r.OrdenProduccion.Contains(texto)) ||
+                                (r.Referencia != null && r.Referencia.Contains(texto)) ||
+                                (r.Cliente != null && r.Cliente.Contains(texto)) ||
+                                (r.Referencia != null && referenciasPorDescripcion.Contains(r.Referencia))
+                            ));
 
             if (!string.IsNullOrWhiteSpace(maquina))
                 query = query.Where(r => r.Maquina == maquina);
@@ -255,7 +264,7 @@ namespace SistemaFlota
             var registros = await query.ToListAsync();
 
             if (!registros.Any())
-                return Ok(new { mensaje = "No hay registros históricos para esta referencia", resultados = new List<object>() });
+                return Ok(new { mensaje = "No hay registros históricos para esta búsqueda", resultados = new List<object>() });
 
             var calculados = registros.Select(r =>
             {
@@ -298,7 +307,6 @@ namespace SistemaFlota
 
             var conPuntaje = calculados.Select(c => new
             {
-
                 c.Id,
                 c.OrdenProduccion,
                 c.Referencia,
@@ -320,7 +328,12 @@ namespace SistemaFlota
                 todos = conPuntaje
             });
         }
+
     }
+
 }
+
+
+
 
 

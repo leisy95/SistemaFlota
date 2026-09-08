@@ -6,5 +6,6 @@
         public int? TipoFormatoId { get; set; }
         public string Valor { get; set; } = string.Empty;
         public int Orden { get; set; } = 0;
+        public string? Codigo { get; set; }
     }
 }

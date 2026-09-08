@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormatosCalidadService } from '../../../core/services/formatos-calidad.service';
+import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
 
 @Component({
   selector: 'app-mejor-rendimiento',
@@ -10,22 +11,38 @@ import { FormatosCalidadService } from '../../../core/services/formatos-calidad.
   templateUrl: './mejor-rendimiento.html',
   styleUrls: ['./mejor-rendimiento.scss']
 })
-export class MejorRendimientoComponent {
+export class MejorRendimientoComponent implements OnInit {
   referenciaBusqueda = '';
+  maquinaBusqueda = '';
+  opcionesMaquina: any[] = [];
   buscando = false;
   resultado: any = null;
   mensajeVacio = '';
 
-  constructor(private service: FormatosCalidadService) {}
+  constructor(
+    private service: FormatosCalidadService,
+    private opcionesService: OpcionesFormularioService
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarOpcionesMaquina();
+  }
+
+  cargarOpcionesMaquina() {
+    this.opcionesService.getOpciones('Maquina').subscribe({
+      next: (d) => this.opcionesMaquina = d,
+      error: (e) => console.error('Error cargando máquinas', e)
+    });
+  }
 
   buscar() {
-    if (!this.referenciaBusqueda.trim()) { alert('Ingrese una referencia'); return; }
+    if (!this.referenciaBusqueda.trim()) { alert('Ingrese orden, referencia o cliente'); return; }
 
     this.buscando = true;
     this.resultado = null;
     this.mensajeVacio = '';
 
-    this.service.buscarMejorRendimiento(this.referenciaBusqueda.trim()).subscribe({
+    this.service.buscarMejorRendimiento(this.referenciaBusqueda.trim(), this.maquinaBusqueda || undefined).subscribe({
       next: (data: any) => {
         this.buscando = false;
         if (!data.mejor) { this.mensajeVacio = data.mensaje || 'No hay registros'; return; }

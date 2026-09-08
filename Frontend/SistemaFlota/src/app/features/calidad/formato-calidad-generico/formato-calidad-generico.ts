@@ -82,10 +82,17 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     // Variables críticas (solo si tipoFormato.tieneVariablesCriticas)
     variablesCriticas: any = {
+        // Extrusión (F-GC-004)
         corona: '', molde: '',
         temperaturas: { zona1: '', zona2: '', zona3: '', zona4: '', zona5: '', zona6: '' },
         velocidades: { maquina: '', maquina2: '', halador: '', bobinador: '' },
-        aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: ''
+        aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: '',
+        // Impresión (F-GC-005)
+        maquinaImpresion: '', metrosPorMinuto: '', velocidadMaquinaHz: '',
+        // Sellado (F-GC-006)
+        maquinaSellado: '', golpesPorMinuto: '', bolsasPorMinuto: '', temperaturaSuperior: '', temperaturaInferior: '',
+        // Precorte (F-GC-007)
+        maquinaPrecorte: '', temperaturaPrecorte: ''
     };
 
     firmaDataUrl: string | null = null;
@@ -161,6 +168,34 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         if (this.tieneRondaFinal) { alert('Ya se marcó la verificación final, no se pueden agregar más horas'); return; }
         if (!this.operarioRondaNueva) { alert('Seleccione el operario que realiza esta verificación'); return; }
 
+        const operarioSeleccionado = this.opcionesOperario.find(o => o.valor === this.operarioRondaNueva);
+
+        if (operarioSeleccionado?.codigo) {
+            const dialogRef = this.dialog.open(DialogInput, {
+                data: {
+                    titulo: `Verificación de identidad`,
+                    mensaje: `Ingrese el código de ${this.operarioRondaNueva} para continuar`,
+                    label: 'Código',
+                    placeholder: 'Ej: 1234',
+                    textoConfirmar: 'Confirmar'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe((codigoIngresado: string | null) => {
+                if (codigoIngresado === null) return;
+                if (codigoIngresado.trim() !== operarioSeleccionado.codigo) {
+                    alert('Código incorrecto. No se agregó la verificación.');
+                    return;
+                }
+                this.crearRondaHora();
+            });
+        } else {
+            // Operario sin código asignado, se permite igual (compatibilidad con operarios viejos sin PIN)
+            this.crearRondaHora();
+        }
+    }
+
+    private crearRondaHora() {
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
 
@@ -179,7 +214,6 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         });
         this.operarioRondaNueva = '';
     }
-
     cerrarTurnoOperario(indice: number) {
         const ronda = this.rondas[indice];
         const dialogRef = this.dialog.open(DialogInput, {
@@ -553,7 +587,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         doc.rect(W - M - 42, y, 42, 20);
         doc.setFontSize(7); doc.setFont('helvetica', 'normal');
         doc.text('Codigo: ' + this.codigoFormato, W - M - 40, y + 6);
-        doc.text('Version: 001', W - M - 40, y + 13);
+        doc.text('Version: 002', W - M - 40, y + 13);
         doc.text('Fecha: 15/09/2024', W - M - 40, y + 18);
         y += 24;
 

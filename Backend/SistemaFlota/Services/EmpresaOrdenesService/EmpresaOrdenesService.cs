@@ -57,6 +57,30 @@ namespace SistemaFlota
             return resultado != null && resultado != DBNull.Value ? Convert.ToDecimal(resultado) : 0;
         }
 
+        public async Task<List<string>> BuscarReferenciasPorDescripcion(string texto)
+        {
+            const string sql = @"
+        SELECT codigo
+        FROM v_inv_referencias
+        WHERE descrip LIKE @texto";
+
+            var resultado = new List<string>();
+
+            await using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            await using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@texto", $"%{texto}%");
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                resultado.Add(reader["codigo"]?.ToString() ?? "");
+            }
+
+            return resultado;
+        }
+
         // Esta fuente no soporta importación por archivo — no aplica aquí.
         public Task<List<OrdenProduccionExterna>> ImportarDesdeArchivo(Stream archivo, string nombreArchivo)
         {
