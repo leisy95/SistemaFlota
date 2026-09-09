@@ -10,19 +10,14 @@ import { AccionesOrdenCompra } from '../acciones-orden-compra/acciones-orden-com
 import { Proveedor } from '../../../../core/models/costos/proveedores/proveedores.model';
 import { ProveedorService } from '../../../../core/services/costos/proveedores/proveedor.service';
 
-
 @Component({
   selector: 'app-listar-orden-compra',
   standalone: true,
-  imports: [
-    FormsModule,
-    CommonModule,
-  ],
+  imports: [FormsModule, CommonModule],
   templateUrl: './listar-orden-compra.html',
   styleUrl: './listar-orden-compra.scss',
 })
 export class ListarOrdenCompra {
-
   buscar = '';
   proveedorFiltro?: number;
   estadoFiltro = '';
@@ -49,38 +44,34 @@ export class ListarOrdenCompra {
     return this.ordenes.filter(x => x.estado === 'Pendiente').length;
   }
 
-  get recibidas(): number {
-    return this.ordenes.filter(x => x.estado === 'Recibida').length;
+  get recepcionada(): number {
+    return this.ordenes.filter(x => x.estado === 'Recepcionada').length;
+  }
+
+  get parcial(): number {
+    return this.ordenes.filter(x => x.estado === 'Parcial').length;
+  }
+
+  get confirmada(): number {
+    return this.ordenes.filter(x => x.estado === 'Confirmada').length;
   }
 
   get valorTotal(): number {
-    return this.ordenes.reduce(
-      (total, item) => total + item.totalPagar,
-      0
-    );
+    return this.ordenes.reduce((total, item) => total + item.totalPagar, 0);
   }
 
   obtenerProveedores(): void {
-
-    this.proveedorService
-      .obtener('', '', 'nombre', 1, 1000)
-      .subscribe({
-
-        next: (respuesta) => {
-          this.proveedores = respuesta.datos;
-        },
-
-        error: () => {
-          this.toastr.error(
-            'No fue posible cargar los proveedores.',
-            'Error'
-          );
-        }
-      });
+    this.proveedorService.obtener('', '', 'nombre', 1, 1000).subscribe({
+      next: respuesta => {
+        this.proveedores = respuesta.datos;
+      },
+      error: () => {
+        this.toastr.error('No fue posible cargar los proveedores.', 'Error');
+      }
+    });
   }
 
   nuevaOrden(): void {
-
     const dialog = this.dialog.open(CrearOrdenCompra, {
       width: '1200px',
       maxWidth: '95vw',
@@ -102,55 +93,36 @@ export class ListarOrdenCompra {
   cargar(): void {
     console.log('🔄 CARGANDO ÓRDENES...');
 
-    this.ordenCompraService
-      .obtener(
-        this.pagina,
-        this.pageSize,
-        this.buscar,
-        this.estadoFiltro,
-        this.proveedorFiltro
-          ? Number(this.proveedorFiltro)
-          : undefined
-      )
-      .subscribe({
-        next: resp => {
+    this.ordenCompraService.obtener(
+      this.pagina,
+      this.pageSize,
+      this.buscar,
+      this.estadoFiltro,
+      this.proveedorFiltro ? Number(this.proveedorFiltro) : undefined
+    ).subscribe({
+      next: resp => {
+        this.ordenes = resp.items.map(item => ({ ...item }));
+        this.total = resp.total;
 
-          this.ordenes = resp.items.map(item => ({
-            ...item
-          }));
-
-          this.total = resp.total;
-
-          console.table(
-            this.ordenes.map(x => ({
-              id: x.id,
-              numero: x.numero,
-              formaPago: x.formaPago,
-              totalPagar: x.totalPagar
-            }))
-          );
-        },
-
-        error: err => {
-          console.error('ERROR:', err);
-
-          this.toastr.error(
-            'No fue posible cargar las órdenes.'
-          );
-        }
-      });
+        console.table(this.ordenes.map(x => ({
+          id: x.id,
+          numero: x.numero,
+          formaPago: x.formaPago,
+          totalPagar: x.totalPagar
+        })));
+      },
+      error: err => {
+        console.error('ERROR:', err);
+        this.toastr.error('No fue posible cargar las órdenes.');
+      }
+    });
   }
 
   verOrden(item: OrdenCompra): void {
-
-    this.toastr.info(
-      `Consultando ${item.numero}`,
-      'Orden'
-    );
+    this.toastr.info(`Consultando ${item.numero}`, 'Orden');
   }
 
   abrirAcciones(item: OrdenCompra): void {
-
     const dialog = this.dialog.open(AccionesOrdenCompra, {
       width: '380px',
       autoFocus: false,
@@ -160,17 +132,14 @@ export class ListarOrdenCompra {
     });
 
     dialog.afterClosed().subscribe(accion => {
-
       if (!accion) return;
 
       switch (accion) {
-
         case 'detalle':
           this.verOrden(item);
           break;
 
         case 'editar':
-
           const dialogEditar = this.dialog.open(CrearOrdenCompra, {
             width: '1200px',
             maxWidth: '95vw',
@@ -179,7 +148,6 @@ export class ListarOrdenCompra {
             autoFocus: false,
             restoreFocus: false,
             panelClass: 'orden-compra-dialog',
-
             data: {
               modo: 'editar',
               id: item.id
@@ -187,14 +155,9 @@ export class ListarOrdenCompra {
           });
 
           dialogEditar.afterClosed().subscribe(resultado => {
-
-            if (!resultado?.actualizado) {
-              return;
-            }
-
+            if (!resultado?.actualizado) return;
             this.cargar();
           });
-
           break;
 
         case 'imprimir':
@@ -207,7 +170,6 @@ export class ListarOrdenCompra {
           break;
       }
     });
-
   }
 
   paginaAnterior(): void {
@@ -229,9 +191,7 @@ export class ListarOrdenCompra {
   }
 
   get registrosInicio(): number {
-    return this.total === 0
-      ? 0
-      : (this.pagina - 1) * this.pageSize + 1;
+    return this.total === 0 ? 0 : (this.pagina - 1) * this.pageSize + 1;
   }
 
   get registrosFin(): number {
@@ -239,15 +199,11 @@ export class ListarOrdenCompra {
   }
 
   limpiarFiltros(): void {
-
     this.buscar = '';
     this.proveedorFiltro = undefined;
     this.estadoFiltro = '';
     this.pagina = 1;
     this.cargar();
-    this.toastr.success(
-      'Filtros limpiados',
-      'OK'
-    );
+    this.toastr.success('Filtros limpiados', 'OK');
   }
 }

@@ -21,37 +21,137 @@
 }
 
 .stats-container {
-    margin-top: 30px;
+    margin-top: 24px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
 }
 
-
 .stat-card {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 14px;
+    background: var(--blanco);
     border: 1px solid var(--gris-claro);
-    box-shadow: 0 2px 8px var(--gris-medio);
-    border-radius: 18px;
-    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.09);
+    }
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.stat-content {
+    min-width: 0;
 
     span {
+        display: block;
         color: var(--gris-oscuro);
-        font-size: 1.125rem;
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     strong {
         display: block;
-        margin-top: 35px;
-        font-size: 1.875rem;
+        margin-top: 3px;
+        color: var(--gris-oscuro);
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
     }
 }
 
-.orange {
+/* ICONOS */
+
+.stat-icon.total {
+    background: #eaf2ff;
+    color: #3478db;
+}
+
+.stat-icon.pendiente {
+    background: #fff3df;
     color: #ef8700;
 }
 
-.green {
+.stat-icon.recepcionada {
+    background: #e8f7ef;
+    color: #24965b;
+}
+
+.stat-icon.parcial {
+    background: #f1edff;
+    color: #7357c8;
+}
+
+.stat-icon.confirmada {
+    background: #e5f7f4;
+    color: #168b7a;
+}
+
+.stat-icon.valor {
+    background: #eaf6eb;
     color: var(--verde-oscuro);
+}
+
+/* COLORES DE LOS VALORES */
+
+.stat-card:nth-child(2) strong {
+    color: #ef8700;
+}
+
+.stat-card:nth-child(3) strong {
+    color: #24965b;
+}
+
+.stat-card:nth-child(4) strong {
+    color: #7357c8;
+}
+
+.stat-card:nth-child(5) strong {
+    color: #168b7a;
+}
+
+.stat-card:nth-child(6) strong {
+    color: var(--verde-oscuro);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+    .stats-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
 }
 
 .filter-card {

@@ -1,138 +1,122 @@
 <div class="page-container">
-
     <!-- HEADER -->
     <section class="header-card">
-
         <div>
             <h1>Órdenes de Compra</h1>
         </div>
-
         <button class="btn-agregar" (click)="nuevaOrden()">
             <i class="fa-solid fa-plus"></i>
             Nueva Orden
         </button>
-
     </section>
-
 
     <!-- CARDS RESUMEN -->
+    <!-- CARDS RESUMEN -->
     <section class="stats-container">
-
         <div class="stat-card">
-            <span>Total Órdenes</span>
-            <strong>{{total}}</strong>
+            <div class="stat-icon total">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div class="stat-content">
+                <span>Total Órdenes</span>
+                <strong>{{ total }}</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-            <span>Pendientes</span>
-            <strong class="orange">
-                {{pendientes}}
-            </strong>
+            <div class="stat-icon pendiente">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <span>Pendientes</span>
+                <strong>{{ pendientes }}</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-            <span>Recibidas</span>
-            <strong class="green">
-                {{recibidas}}
-            </strong>
+            <div class="stat-icon recepcionada">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <div class="stat-content">
+                <span>Recepcionadas</span>
+                <strong>{{ recepcionada }}</strong>
+            </div>
         </div>
 
-
         <div class="stat-card">
-            <span>Valor Total</span>
-            <strong class="green">
-                ${{ valorTotal | number:'1.0-0' }}
-            </strong>
+            <div class="stat-icon parcial">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div class="stat-content">
+                <span>Parcial</span>
+                <strong>{{ parcial }}</strong>
+            </div>
         </div>
 
+        <div class="stat-card">
+            <div class="stat-icon confirmada">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-content">
+                <span>Confirmadas</span>
+                <strong>{{ confirmada }}</strong>
+            </div>
+        </div>
 
+        <div class="stat-card">
+            <div class="stat-icon valor">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="stat-content">
+                <span>Valor Total</span>
+                <strong>${{ valorTotal | number:'1.0-0' }}</strong>
+            </div>
+        </div>
     </section>
-
-
 
     <!-- FILTROS -->
     <section class="filter-card">
-
-
         <div class="field">
             <label>Buscar Orden</label>
-
             <div class="input-icon">
                 <i class="fa-solid fa-magnifying-glass"></i>
-
                 <input type="text" placeholder="Número de orden o proveedor..." [(ngModel)]="buscar"
                     (ngModelChange)="cargar()">
             </div>
-
         </div>
 
-
-
         <div class="field">
-
             <label>Proveedor</label>
-
             <select [(ngModel)]="proveedorFiltro" (change)="cargar()">
-                <option [ngValue]="undefined">
-                    Todos
-                </option>
+                <option [ngValue]="undefined">Todos</option>
                 <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.idProveedor">
-
                     {{ proveedor.nombre }}
                 </option>
             </select>
-
         </div>
 
-
-
         <div class="field">
-
             <label>Estado</label>
-
             <select [(ngModel)]="estadoFiltro" (change)="cargar()">
                 <option value="">Todos</option>
                 <option value="Pendiente">Pendiente</option>
                 <option value="Recibida">Recibida</option>
             </select>
-
         </div>
 
-
-
         <button class="btn-filter" (click)="limpiarFiltros()">
-
             <i class="fa-solid fa-filter"></i>
-
             Limpiar Filtros
-
         </button>
-
-
     </section>
 
-
-
     <!-- TABLA -->
-
     <section class="table-card">
-
-
-        <h2>
-            Listado de Órdenes ({{total}})
-        </h2>
-
-
+        <h2>Listado de Órdenes ({{total}})</h2>
 
         <div class="tabla">
-
             <table>
-
-
                 <thead>
-
                     <tr>
                         <th>Número</th>
                         <th>Proveedor</th>
@@ -144,68 +128,29 @@
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
-
                 </thead>
 
-
-
                 <tbody>
-
-
                     <tr *ngFor="let item of ordenes">
-
-
-                        <td data-label="Número" class="numero">
-                            {{item.numero}}
-                        </td>
-
-
-                        <td data-label="Proveedor">
-                            {{item.proveedor}}
-                        </td>
-
-
+                        <td data-label="Número" class="numero">{{item.numero}}</td>
+                        <td data-label="Proveedor">{{item.proveedor}}</td>
                         <td data-label="Fecha">
                             <i class="fa-regular fa-calendar"></i>
                             {{item.fechaOrden | date:'dd/MM/yyyy'}}
                         </td>
-
-
-                        <td data-label="Entrega">
-                            {{item.fechaEntrega | date:'dd/MM/yyyy'}}
-                        </td>
-
-
-                        <td data-label="Forma de Pago">
-                            {{item.formaPago}}
-                        </td>
-
-
-                        <td data-label="Items" class="center">
-                            {{item.totalItems}}
-                        </td>
-
-
-                        <td data-label="Total" class="total">
-                            {{item.totalPagar | number}}
-                        </td>
-
-
+                        <td data-label="Entrega">{{item.fechaEntrega | date:'dd/MM/yyyy'}}</td>
+                        <td data-label="Forma de Pago">{{item.formaPago}}</td>
+                        <td data-label="Items" class="center">{{item.totalItems}}</td>
+                        <td data-label="Total" class="total">{{item.totalPagar | number}}</td>
                         <td data-label="Estado">
-
                             <span class="badge" [ngClass]="item.estado.toLowerCase()">
-
                                 {{item.estado}}
-
                             </span>
                         </td>
-
                         <td data-label="Acciones" class="acciones">
-
                             <button title="Más acciones" (click)="abrirAcciones(item)">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                             </button>
-
                         </td>
                     </tr>
                 </tbody>
@@ -213,35 +158,23 @@
         </div>
 
         <div class="paginacion" *ngIf="total > 0">
-
             <div class="info">
-                Mostrando
-                {{ registrosInicio }}
-                -
-                {{ registrosFin }}
-                de
-                {{ total }}
-                órdenes
+                Mostrando {{ registrosInicio }} - {{ registrosFin }} de {{ total }} órdenes
             </div>
 
             <div class="controles">
-
                 <button class="btn-pagina" [disabled]="pagina === 1" (click)="paginaAnterior()">
                     <i class="fa-solid fa-chevron-left"></i>
                     Anterior
                 </button>
 
-                <span>
-                    Página {{ pagina }} de {{ totalPaginas }}
-                </span>
+                <span>Página {{ pagina }} de {{ totalPaginas }}</span>
 
                 <button class="btn-pagina" [disabled]="pagina >= totalPaginas" (click)="paginaSiguiente()">
                     Siguiente
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
-
             </div>
-
         </div>
     </section>
 </div>
