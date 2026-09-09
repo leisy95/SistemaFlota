@@ -58,7 +58,7 @@
                         </div>
 
                         <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.tipo" (change)="seleccionarMaterial()">
+                            <select [(ngModel)]="materialActual.tipoProduccion" (change)="seleccionarMaterial()">
 
                                 <option value="">Tipo de Material</option>
 
@@ -123,7 +123,7 @@
                         <div class="material-info">
                             <strong>{{ material.proveedor }}</strong>
                             <span>
-                                {{ material.tipo }}
+                                {{ material.tipoProduccion }}
                                 {{ material.densidad }}
                                 {{ material.cantidadKg }} kg /
                                 {{ material.bultos }} bultos

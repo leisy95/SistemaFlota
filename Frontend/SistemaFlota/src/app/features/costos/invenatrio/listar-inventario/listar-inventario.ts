@@ -279,7 +279,7 @@ export class ListarInventario {
 
   imprimir(material: any): void {
     this.toastr.success(
-      `Imprimiendo ${material.tipo}.`,
+      `Imprimiendo ${material.tipoProduccion}.`,
       'Inventario'
     );
   }

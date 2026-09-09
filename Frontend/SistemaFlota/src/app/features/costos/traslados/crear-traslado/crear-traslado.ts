@@ -35,7 +35,7 @@ export class CrearTraslado {
   materialActual: CrearOrdenTrasladoDetalle = {
     materialId: null,
     proveedor: '',
-    tipo: '',
+    tipoProduccion: '',
     densidad: '',
     color: '',
     cantidadKg: 0,
@@ -99,7 +99,7 @@ export class CrearTraslado {
     this.tiposMaterial = [
       ...new Set(
         this.inventarios
-          .map(x => x.tipo)
+          .map(x => x.tipoProduccion)
           .filter(x => !!x)
       )
     ];
@@ -125,8 +125,8 @@ export class CrearTraslado {
     return this.inventarios.filter(x =>
       (!this.materialActual.proveedor ||
         x.proveedor === this.materialActual.proveedor) &&
-      (!this.materialActual.tipo ||
-        x.tipo === this.materialActual.tipo) &&
+      (!this.materialActual.tipoProduccion ||
+        x.tipoProduccion === this.materialActual.tipoProduccion) &&
       (!this.materialActual.densidad ||
         x.densidad === this.materialActual.densidad) &&
       (!this.materialActual.color ||
@@ -154,7 +154,7 @@ export class CrearTraslado {
     this.materialActual.materialId = inventario.materialId;
 
     this.materialActual.proveedor = inventario.proveedor;
-    this.materialActual.tipo = inventario.tipo;
+    this.materialActual.tipoProduccion = inventario.tipoProduccion;
     this.materialActual.densidad = inventario.densidad;
     this.materialActual.color = inventario.color;
   }
@@ -177,7 +177,7 @@ export class CrearTraslado {
 
     if (
       !this.materialActual.proveedor ||
-      !this.materialActual.tipo ||
+      !this.materialActual.tipoProduccion ||
       !this.materialActual.densidad ||
       !this.materialActual.color
     ) {
@@ -236,7 +236,7 @@ export class CrearTraslado {
     this.materialActual = {
       materialId: null,
       proveedor: '',
-      tipo: '',
+      tipoProduccion: '',
       densidad: '',
       color: '',
       cantidadKg: 0,

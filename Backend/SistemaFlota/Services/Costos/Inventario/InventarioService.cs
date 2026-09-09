@@ -139,7 +139,7 @@ namespace SistemaFlota.Services.Costos.Inventario
                     MaterialId = i.MaterialId,
                     Material = i.Material!.DescripcionCompra ?? "",
                     Proveedor = i.Material.Proveedor!.Nombre,
-                    Tipo = i.Material.Categoria,
+                    TipoProduccion = i.Material.TipoProduccion,
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
                     StockActual = i.StockActual,
@@ -207,7 +207,9 @@ namespace SistemaFlota.Services.Costos.Inventario
                      i.Material.DescripcionCompra.Contains(search)) ||
                     i.Material.Proveedor!.Nombre.Contains(search) ||
                     i.Color.Contains(search) ||
-                    i.Material.Categoria.Contains(search));
+                    i.Material.Categoria.Contains(search) ||
+                    (i.Material.TipoProduccion != null &&
+                     i.Material.TipoProduccion.Contains(search)));
             }
 
             if (proveedorId.HasValue)
