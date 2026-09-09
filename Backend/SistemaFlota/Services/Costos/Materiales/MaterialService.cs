@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.Materiales;
 using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
+using SistemaFlota.Models.Categorias;
+using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 
 namespace SistemaFlota.Services.Costos.Materiales
@@ -419,6 +421,25 @@ namespace SistemaFlota.Services.Costos.Materiales
                 Proveedores = proveedores,
                 Colores = colores
             };
+        }
+
+        // Obtener colores 
+        public async Task<List<Color>> ObtenerColoresAsync()
+        {
+            return await _context.Colores
+                .AsNoTracking()
+                .Where(c => c.Activo)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+        }
+
+        public async Task<List<Categoria>> ObtenerCategoriasAsync()
+        {
+            return await _context.Categorias
+                .AsNoTracking()
+                .Where(c => c.Activo)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
         }
 
         public Task<bool> EliminarAsync(int id)

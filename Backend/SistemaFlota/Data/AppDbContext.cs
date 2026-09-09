@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+using SistemaFlota.Models.Categorias;
+using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.Consecutivo;
 using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
@@ -9,6 +11,7 @@ using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.Idempotencia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
+
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
@@ -74,6 +77,8 @@ namespace SistemaFlota
         public DbSet<OrdenTraslado> OrdenesTraslado { get; set; }
         public DbSet<OrdenTrasladoDetalle> OrdenesTrasladoDetalle { get; set; }
         public DbSet<Consecutivo> Consecutivos { get; set; }
+        public DbSet<Color> Colores { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

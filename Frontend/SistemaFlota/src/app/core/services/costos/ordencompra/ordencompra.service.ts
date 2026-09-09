@@ -29,10 +29,10 @@ export class OrdenCompraService {
         fechaInicio?: string,
         fechaFin?: string
     ) {
-
         let params = new HttpParams()
             .set('page', page)
-            .set('pageSize', pageSize);
+            .set('pageSize', pageSize)
+            .set('_t', Date.now().toString());
 
         if (search)
             params = params.set('search', search);
@@ -52,7 +52,10 @@ export class OrdenCompraService {
         if (fechaFin)
             params = params.set('fechaFin', fechaFin);
 
-        return this.http.get<OrdenCompraPaginado>(this.api, { params });
+        return this.http.get<OrdenCompraPaginado>(
+            this.api,
+            { params }
+        );
     }
 
     obtenerPorId(id: number) {
@@ -68,8 +71,11 @@ export class OrdenCompraService {
 
     }
 
-    actualizar(id: number, modelo: CrearOrdenCompraRequest): Observable<void> {
-        return this.http.put<void>(
+    actualizar(
+        id: number,
+        modelo: CrearOrdenCompraRequest
+    ): Observable<boolean> {
+        return this.http.put<boolean>(
             `${this.api}/${id}`,
             modelo
         );

@@ -8,6 +8,8 @@ import { Proveedor } from '../../../../../core/models/costos/proveedores/proveed
 import { MaterialService } from '../../../../../core/services/costos/materiales/materiales.service';
 import { ProveedorService } from '../../../../../core/services/costos/proveedores/proveedor.service';
 import { ToastrService } from 'ngx-toastr';
+import { Color } from '../../../../../core/models/costos/colores/color.model';
+import { Categoria } from '../../../../../core/models/costos/categorias/categoria.models';
 @Component({
   selector: 'app-crear-materiales',
   standalone: true,
@@ -49,9 +51,13 @@ export class CrearMateriales implements OnInit {
   };
 
   proveedores: Proveedor[] = [];
+  colores: Color[] = [];
+  categorias: Categoria[] = [];
 
   ngOnInit(): void {
     this.obtenerProveedores();
+    this.obtenerColores();
+    this.obtenerCategorias();
 
     if (this.data) {
       this.material = { ...this.data };
@@ -75,6 +81,38 @@ export class CrearMateriales implements OnInit {
           );
         }
       });
+  }
+
+  obtenerColores(): void {
+
+    this.materialService.obtenerColores().subscribe({
+
+      next: (respuesta) => {
+        this.colores = respuesta;
+      },
+
+      error: () => {
+        this.toastr.error(
+          'No fue posible cargar los colores.',
+          'Error'
+        );
+      }
+
+    });
+  }
+
+  obtenerCategorias(): void {
+    this.materialService.obtenerCategorias().subscribe({
+      next: (respuesta) => {
+        this.categorias = respuesta;
+      },
+      error: () => {
+        this.toastr.error(
+          'No fue posible cargar las categorías.',
+          'Error'
+        );
+      }
+    });
   }
 
   guardar(): void {

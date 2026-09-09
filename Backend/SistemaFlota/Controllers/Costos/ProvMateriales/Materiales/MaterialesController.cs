@@ -55,6 +55,25 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
             return Ok(material);
         }
 
+        // Obtener Colores
+        [HttpGet("colores")]
+        [Permiso("proveedores-materiales", "ver")]
+        public async Task<IActionResult> ObtenerColores()
+        {
+            var colores = await _materialesService.ObtenerColoresAsync();
+
+            return Ok(colores);
+        }
+
+        [HttpGet("categorias")]
+        [Permiso("proveedores-materiales", "ver")]
+        public async Task<IActionResult> ObtenerCategorias()
+        {
+            var categorias = await _materialesService.ObtenerCategoriasAsync();
+
+            return Ok(categorias);
+        }
+
         // Filtros
         [HttpGet("filtros")]
         [Permiso("proveedores-materiales", "ver")]

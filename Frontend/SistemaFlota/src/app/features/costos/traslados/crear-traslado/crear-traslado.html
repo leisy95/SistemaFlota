@@ -102,8 +102,9 @@
                         <input class="input-material" type="number" [(ngModel)]="materialActual.cantidadKg"
                             placeholder="Cantidad (Kg)" min="1" />
 
-                        <input class="input-material" type="number" [(ngModel)]="materialActual.bultos"
-                            placeholder="Bultos" min="1" />
+                        <input class="input-material" type="number"
+                            [value]="materialActual.cantidadKg ? materialActual.cantidadKg / 25 : 0"
+                            placeholder="Bultos" readonly />
 
                     </div>
 

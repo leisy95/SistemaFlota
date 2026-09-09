@@ -1,7 +1,7 @@
 <div class="modal-overlay">
     <div class="orden-modal">
 
-        <!-- Header -->
+        <!-- HEADER -->
         <div class="modal-header">
             <div>
                 <h2>
@@ -15,80 +15,141 @@
             </button>
         </div>
 
+        <!-- BODY -->
         <div class="modal-body">
 
-            <!-- Información General -->
+            <!-- INFORMACIÓN GENERAL -->
             <div class="card">
 
                 <h3>Información General</h3>
 
                 <div class="form-grid">
 
+                    <!-- PROVEEDOR -->
                     <div class="form-group span-2">
                         <label>Proveedor *</label>
 
-                        <select [(ngModel)]="orden.proveedorId">
+                        <select [(ngModel)]="orden.proveedorId" (ngModelChange)="obtenerMaterialesPorProveedor($event)"
+                            [class.input-error]="mostrarErrores && !orden.proveedorId">
 
-                            <option [value]="0">
+                            <option [ngValue]="0">
                                 Seleccione
                             </option>
 
                             <option *ngFor="let p of proveedores" [ngValue]="p.idProveedor">
 
-                                {{p.nombre}}
+                                {{ p.nombre }}
 
                             </option>
 
                         </select>
 
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.proveedorId">
+
+                            Debe seleccionar un proveedor.
+
+                        </div>
                     </div>
 
+                    <!-- FORMA DE PAGO -->
                     <div class="form-group">
                         <label>Forma de Pago *</label>
 
-                        <select [(ngModel)]="orden.formaPago">
+                        <select [(ngModel)]="orden.formaPago" [class.input-error]="mostrarErrores && !orden.formaPago">
+
                             <option *ngFor="let forma of formasPago" [value]="forma">
                                 {{ forma }}
                             </option>
+
                         </select>
+
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.formaPago">
+
+                            Debe seleccionar una forma de pago.
+
+                        </div>
                     </div>
 
+                    <!-- TIPO IMPUESTO -->
                     <div class="form-group">
-
                         <label>Tipo de impuesto</label>
 
                         <input type="text" [(ngModel)]="orden.tipoImpuesto"
                             placeholder="Ej: IVA, Impoconsumo, Retefuente">
-
                     </div>
 
+                    <!-- PORCENTAJE -->
                     <div class="form-group">
-
                         <label>Porcentaje (%)</label>
 
-                        <input type="number" min="0" [(ngModel)]="orden.porcentajeImpuesto"
-                            (input)="actualizarTotales()">
+                        <input type="number" min="0" max="100" [(ngModel)]="orden.porcentajeImpuesto"
+                            (input)="actualizarTotales()" [class.input-error]="
+                                mostrarErrores &&
+                                (
+                                    orden.porcentajeImpuesto < 0 ||
+                                    orden.porcentajeImpuesto > 100
+                                )
+                            ">
 
+                        <div class="error-message" *ngIf="
+                                mostrarErrores &&
+                                (
+                                    orden.porcentajeImpuesto < 0 ||
+                                    orden.porcentajeImpuesto > 100
+                                )
+                            ">
+
+                            El porcentaje debe estar entre 0 y 100.
+
+                        </div>
                     </div>
 
+                    <!-- FECHA ORDEN -->
                     <div class="form-group">
-
                         <label>Fecha de Orden</label>
 
-                        <input type="date" [(ngModel)]="orden.fechaOrden">
+                        <input type="date" [(ngModel)]="orden.fechaOrden"
+                            [class.input-error]="mostrarErrores && !orden.fechaOrden">
 
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.fechaOrden">
+
+                            La fecha de orden es obligatoria.
+
+                        </div>
                     </div>
 
+                    <!-- FECHA ENTREGA -->
                     <div class="form-group">
-
                         <label>Fecha de Entrega</label>
 
-                        <input type="date" [(ngModel)]="orden.fechaEntrega">
+                        <input type="date" [(ngModel)]="orden.fechaEntrega" [class.input-error]="
+                                mostrarErrores &&
+                                (
+                                    !orden.fechaEntrega ||
+                                    orden.fechaEntrega < orden.fechaOrden
+                                )
+                            ">
 
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.fechaEntrega">
+
+                            La fecha de entrega es obligatoria.
+
+                        </div>
+
+                        <div class="error-message" *ngIf="
+                                mostrarErrores &&
+                                orden.fechaEntrega &&
+                                orden.fechaOrden &&
+                                orden.fechaEntrega < orden.fechaOrden
+                            ">
+
+                            La fecha de entrega no puede ser anterior a la fecha de orden.
+
+                        </div>
                     </div>
 
+                    <!-- LUGAR ENTREGA -->
                     <div class="form-group span-2">
-
                         <label>Lugar de entrega *</label>
 
                         <select [(ngModel)]="orden.lugarEntrega">
@@ -102,17 +163,15 @@
                             </option>
 
                         </select>
-
                     </div>
 
+                    <!-- OBSERVACIONES -->
                     <div class="form-group span-4">
-
                         <label>Observaciones</label>
 
                         <textarea [(ngModel)]="orden.observaciones" rows="3"
                             placeholder="Ingrese observaciones de la orden">
                         </textarea>
-
                     </div>
 
                 </div>
@@ -120,7 +179,6 @@
             </div>
 
             <!-- ITEMS -->
-
             <div class="card">
 
                 <div class="card-header">
@@ -130,7 +188,6 @@
                     <button class="btn-agregar" (click)="agregarItem()">
 
                         <i class="fa-solid fa-plus"></i>
-
                         Agregar Item
 
                     </button>
@@ -142,7 +199,6 @@
                     <table>
 
                         <thead>
-
                             <tr>
                                 <th>Tipo Material</th>
                                 <th>Color</th>
@@ -153,53 +209,113 @@
                                 <th>Subtotal</th>
                                 <th>Acción</th>
                             </tr>
-
                         </thead>
 
                         <tbody>
 
-                            <tr *ngFor="let item of items; let i=index">
+                            <tr *ngFor="let item of items; let i = index">
 
+                                <!-- MATERIAL -->
                                 <td data-label="Tipo Material">
-                                    <select [(ngModel)]="item.materialId">
-                                        <option [ngValue]="0">Seleccione</option>
+
+                                    <select [(ngModel)]="item.materialId"
+                                        (ngModelChange)="seleccionarMaterial(i, $event)"
+                                        [class.input-error]="mostrarErrores && !item.materialId">
+
+                                        <option [ngValue]="0">
+                                            Seleccione
+                                        </option>
 
                                         <option *ngFor="let m of materiales" [ngValue]="m.idMaterial">
-                                            {{m.nombreMaterial}}
+
+                                            {{ m.nombreMaterial }}
+
                                         </option>
+
                                     </select>
+
+                                    <div class="error-message" *ngIf="mostrarErrores && !item.materialId">
+
+                                        Seleccione un material.
+
+                                    </div>
+
                                 </td>
 
+                                <!-- COLOR -->
                                 <td data-label="Color">
-                                    <input type="text" [(ngModel)]="item.color" placeholder="Ingrese color">
+
+                                    <input type="text" [(ngModel)]="item.color" readonly>
+
                                 </td>
 
+                                <!-- CANTIDAD KG -->
                                 <td data-label="Cantidad (KG)">
-                                    <input type="number" [(ngModel)]="item.kilos" (input)="calcular(i)">
+
+                                    <input type="number" min="0" [(ngModel)]="item.kilos" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.kilos <= 0">
+
+                                    <div class="error-message" *ngIf="mostrarErrores && item.kilos <= 0">
+
+                                        La cantidad debe ser mayor a 0.
+
+                                    </div>
+
                                 </td>
 
+                                <!-- KG BULTO -->
                                 <td data-label="KG/Bulto">
-                                    <input type="number" [(ngModel)]="item.kgBulto" (input)="calcular(i)">
+
+                                    <input type="number" min="0" [(ngModel)]="item.kgBulto" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.kgBulto <= 0">
+
+                                    <div class="error-message" *ngIf="mostrarErrores && item.kgBulto <= 0">
+
+                                        Los KG por bulto deben ser mayores a 0.
+
+                                    </div>
+
                                 </td>
 
+                                <!-- BULTOS -->
                                 <td data-label="Bultos">
+
                                     <span class="valor">
-                                        {{item.bultos}}
+                                        {{ item.bultos }}
                                     </span>
+
                                 </td>
 
+                                <!-- COSTO -->
                                 <td data-label="Costo/KG">
-                                    <input type="number" [(ngModel)]="item.costo" (input)="calcular(i)">
+
+                                    <input type="number" min="0" [(ngModel)]="item.costo" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.costo <= 0">
+
+                                    <div class="error-message" *ngIf="mostrarErrores && item.costo <= 0">
+
+                                        El costo debe ser mayor a 0.
+
+                                    </div>
+
                                 </td>
 
+                                <!-- SUBTOTAL -->
                                 <td data-label="Subtotal" class="subtotal">
+
                                     {{ item.subtotal | currency:'COP':'symbol':'1.0-0' }}
+
                                 </td>
 
+                                <!-- ACCIÓN -->
                                 <td data-label="Acción">
+
                                     <button class="btn-eliminar" (click)="eliminarItem(i)">
+
                                         <i class="fa-solid fa-trash"></i>
+
                                     </button>
+
                                 </td>
 
                             </tr>
@@ -211,43 +327,48 @@
                 </div>
 
                 <!-- RESUMEN -->
-
                 <div class="summary">
 
-                    <!-- Total Items -->
+                    <!-- TOTAL ITEMS -->
                     <div class="card-resumen">
 
                         <i class="fa-solid fa-boxes-stacked icono"></i>
 
                         <small>Total Items</small>
 
-                        <h2>{{ items.length }}</h2>
+                        <h2>
+                            {{ items.length }}
+                        </h2>
 
                     </div>
 
-                    <!-- Total KG -->
+                    <!-- TOTAL KG -->
                     <div class="card-resumen">
 
                         <i class="fa-solid fa-weight-hanging icono"></i>
 
                         <small>Total KG</small>
 
-                        <h2>{{ totalKg }}</h2>
+                        <h2>
+                            {{ totalKg }}
+                        </h2>
 
                     </div>
 
-                    <!-- Total Bultos -->
+                    <!-- TOTAL BULTOS -->
                     <div class="card-resumen">
 
                         <i class="fa-solid fa-sack-dollar icono"></i>
 
                         <small>Total Bultos</small>
 
-                        <h2>{{ totalBultos }}</h2>
+                        <h2>
+                            {{ totalBultos }}
+                        </h2>
 
                     </div>
 
-                    <!-- Totales -->
+                    <!-- TOTALES -->
                     <div class="totales">
 
                         <h3>
@@ -256,11 +377,19 @@
                         </h3>
 
                         <div class="fila">
-                            <span>Subtotal</span>
-                            <strong>{{ subtotal | currency:'COP':'symbol':'1.0-0' }}</strong>
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong>
+                                {{ subtotal | currency:'COP':'symbol':'1.0-0' }}
+                            </strong>
+
                         </div>
 
                         <div class="fila">
+
                             <span>
                                 {{ orden.tipoImpuesto }}
                                 ({{ orden.porcentajeImpuesto }}%)
@@ -269,16 +398,21 @@
                             <strong>
                                 {{ valorImpuesto | currency:'COP':'symbol':'1.0-0' }}
                             </strong>
+
                         </div>
 
                         <hr>
 
                         <div class="fila total">
-                            <span>TOTAL</span>
+
+                            <span>
+                                TOTAL
+                            </span>
 
                             <strong>
                                 {{ totalPagar | currency:'COP':'symbol':'1.0-0' }}
                             </strong>
+
                         </div>
 
                     </div>
@@ -290,7 +424,6 @@
         </div>
 
         <!-- FOOTER -->
-
         <div class="modal-footer">
 
             <button class="btn-pdf" (click)="generarPdf()">
@@ -301,17 +434,21 @@
 
             </button>
 
-            <button class="btn-save" (click)="guardarOrden()">
+            <button class="btn-save" (click)="guardarOrden()" [disabled]="guardando">
 
-                <i class="fa-solid" [class.fa-file-circle-check]="!modoEditar" [class.fa-floppy-disk]="modoEditar">
+                <i class="fa-solid" [class.fa-file-circle-check]="!modoEditar && !guardando"
+                    [class.fa-floppy-disk]="modoEditar && !guardando" [class.fa-spinner]="guardando"
+                    [class.fa-spin]="guardando">
                 </i>
 
-                {{ modoEditar ? 'Actualizar Orden' : 'Guardar Orden' }}
+                {{ guardando
+                ? 'Guardando...'
+                : (modoEditar ? 'Actualizar Orden' : 'Guardar Orden')
+                }}
 
             </button>
 
         </div>
 
     </div>
-
 </div>

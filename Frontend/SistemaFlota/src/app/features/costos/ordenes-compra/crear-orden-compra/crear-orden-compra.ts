@@ -70,6 +70,8 @@ export class CrearOrdenCompra implements OnInit {
   totalPagar = 0;
 
   modoEditar = false;
+  mostrarErrores = false;
+  guardando = false;
 
   ngOnInit(): void {
     this.modoEditar = this.data?.modo === 'editar';
@@ -80,7 +82,6 @@ export class CrearOrdenCompra implements OnInit {
     }
 
     this.obtenerProveedores();
-    this.obtenerMateriales();
 
     if (this.modoEditar) {
       this.cargarOrden(this.data.id);
@@ -121,18 +122,34 @@ export class CrearOrdenCompra implements OnInit {
       });
   }
 
-  obtenerMateriales(): void {
+  obtenerMaterialesPorProveedor(proveedorId: number): void {
+
+    if (!proveedorId || proveedorId === 0) {
+      this.materiales = [];
+      return;
+    }
 
     this.materialService
-      .obtener('', '', '', '', '', 1, 1000)
+      .obtener(
+        '',
+        '',
+        '',
+        proveedorId.toString(),
+        '',
+        1,
+        1000
+      )
       .subscribe({
 
         next: (respuesta) => {
           this.materiales = respuesta.datos;
         },
+
         error: () => {
+          this.materiales = [];
+
           this.toastr.error(
-            'No fue posible cargar los materiales.',
+            'No fue posible cargar los materiales del proveedor.',
             'Error'
           );
         }
@@ -150,6 +167,22 @@ export class CrearOrdenCompra implements OnInit {
       costo: 0,
       subtotal: 0
     };
+  }
+
+  seleccionarMaterial(index: number, materialId: number): void {
+
+    const item = this.items[index];
+
+    const material = this.materiales.find(
+      m => m.idMaterial === materialId
+    );
+
+    if (!material) {
+      item.color = '';
+      return;
+    }
+
+    item.color = material.color ?? '';
   }
 
   agregarItem(): void {
@@ -212,6 +245,7 @@ export class CrearOrdenCompra implements OnInit {
             detalles: orden.detalles ?? []
           };
 
+          this.obtenerMaterialesPorProveedor(this.orden.proveedorId);
 
           this.items = orden.detalles.map(detalle => ({
             materialId: detalle.materialId,
@@ -249,50 +283,83 @@ export class CrearOrdenCompra implements OnInit {
 
   }
 
-  guardarOrden(): void {
+  // Validaciones
+  validarFormulario(): boolean {
+    this.mostrarErrores = true;
 
+    if (!this.orden.proveedorId) return false;
+    if (!this.orden.formaPago?.trim()) return false;
+    if (!this.orden.fechaOrden) return false;
+    if (!this.orden.fechaEntrega) return false;
+    if (this.orden.fechaEntrega < this.orden.fechaOrden) return false;
+    if (!this.orden.lugarEntrega?.trim()) return false;
+
+    const impuesto = Number(this.orden.porcentajeImpuesto);
+    if (impuesto < 0 || impuesto > 100) return false;
+
+    if (this.items.length === 0) return false;
+
+    for (const item of this.items) {
+      if (!item.materialId) return false;
+      if (item.kilos <= 0) return false;
+      if (item.kgBulto <= 0) return false;
+      if (item.costo <= 0) return false;
+    }
+
+    return true;
+  }
+
+  guardarOrden(): void {
+    if (!this.validarFormulario()) {
+      this.toastr.warning(
+        'Revise los campos marcados antes de guardar.',
+        'Formulario incompleto'
+      );
+      return;
+    }
+
+    if (this.guardando) return;
+
+    this.guardando = true;
     this.prepararDetalles();
 
     if (this.modoEditar) {
+      this.ordenCompraService.actualizar(this.orden.id!, this.orden).subscribe({
+        next: () => {
+          this.toastr.success(
+            'La orden fue actualizada correctamente.',
+            'Éxito'
+          );
 
-      this.ordenCompraService
-        .actualizar(this.orden.id!, this.orden)
-        .subscribe({
-          next: (ordenCreada) => {
-            this.toastr.success(
-              'La orden fue actualizada correctamente.',
-              'Éxito'
-            );
-            this.dialogRef.close(ordenCreada);
-          },
-          error: () => {
-            this.toastr.error(
-              'No fue posible actualizar la orden.',
-              'Error'
-            );
-          }
-        });
-
+          this.dialogRef.close({
+            actualizado: true
+          });
+        },
+        error: () => {
+          this.guardando = false;
+          this.toastr.error(
+            'No fue posible actualizar la orden.',
+            'Error'
+          );
+        }
+      });
     } else {
-
-      this.ordenCompraService
-        .crear(this.orden)
-        .subscribe({
-          next: (respuesta) => {
-            this.toastr.success(
-              `Orden ${respuesta.numero} creada correctamente.`,
-              'Éxito'
-            );
-            this.dialogRef.close(true);
-          },
-          error: () => {
-            this.toastr.error(
-              'No fue posible crear la orden.',
-              'Error'
-            );
-          }
-        });
-
+      this.ordenCompraService.crear(this.orden).subscribe({
+        next: (respuesta) => {
+          this.toastr.success(
+            `Orden ${respuesta.numero} creada correctamente.`,
+            'Éxito'
+          );
+          this.dialogRef.close(true);
+        },
+        error: () => {
+          this.guardando = false;
+          this.toastr.error(
+            'No fue posible crear la orden.',
+            'Error'
+          );
+        }
+      });
     }
   }
 

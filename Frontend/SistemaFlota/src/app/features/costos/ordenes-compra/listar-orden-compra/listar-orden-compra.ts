@@ -100,6 +100,7 @@ export class ListarOrdenCompra {
   }
 
   cargar(): void {
+    console.log('🔄 CARGANDO ÓRDENES...');
 
     this.ordenCompraService
       .obtener(
@@ -107,27 +108,40 @@ export class ListarOrdenCompra {
         this.pageSize,
         this.buscar,
         this.estadoFiltro,
-        this.proveedorFiltro ? Number(this.proveedorFiltro) : undefined
+        this.proveedorFiltro
+          ? Number(this.proveedorFiltro)
+          : undefined
       )
       .subscribe({
-
         next: resp => {
-          this.ordenes = resp.items;
+
+          this.ordenes = resp.items.map(item => ({
+            ...item
+          }));
+
           this.total = resp.total;
+
+          console.table(
+            this.ordenes.map(x => ({
+              id: x.id,
+              numero: x.numero,
+              formaPago: x.formaPago,
+              totalPagar: x.totalPagar
+            }))
+          );
         },
 
-        error: () => {
+        error: err => {
+          console.error('ERROR:', err);
+
           this.toastr.error(
             'No fue posible cargar las órdenes.'
           );
-
         }
       });
-
   }
 
   verOrden(item: OrdenCompra): void {
-    console.log(item);
 
     this.toastr.info(
       `Consultando ${item.numero}`,
@@ -173,9 +187,12 @@ export class ListarOrdenCompra {
           });
 
           dialogEditar.afterClosed().subscribe(resultado => {
-            if (resultado) {
-              this.cargar();
+
+            if (!resultado?.actualizado) {
+              return;
             }
+
+            this.cargar();
           });
 
           break;

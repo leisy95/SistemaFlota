@@ -66,10 +66,35 @@
                 </div>
 
                 <div class="campo">
+                    <label>Color</label>
+
+                    <select name="color" [(ngModel)]="material.color">
+
+                        <option value="">
+                            Seleccione un color
+                        </option>
+
+                        <option *ngFor="let color of colores" [value]="color.nombre">
+
+                            {{ color.nombre }}
+
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="campo">
                     <label>Categoría</label>
 
-                    <input type="text" name="categoria" [(ngModel)]="material.categoria"
-                        placeholder="Ej. Resina plástica">
+                    <select name="categoria" [(ngModel)]="material.categoria">
+                        <option value="">
+                            Seleccione una categoría
+                        </option>
+
+                        <option *ngFor="let categoria of categorias" [value]="categoria.nombre">
+                            {{ categoria.nombre }}
+                        </option>
+                    </select>
                 </div>
 
             </div>
@@ -88,8 +113,21 @@
                 <div class="campo">
                     <label>Tipo</label>
 
-                    <input type="text" name="tipoProduccion" [(ngModel)]="material.tipoProduccion"
-                        placeholder="Ej. Extrusión">
+                    <select name="tipoProduccion" [(ngModel)]="material.tipoProduccion">
+
+                        <option value="">
+                            Seleccione el tipo
+                        </option>
+
+                        <option value="Almacenable">
+                            Almacenable
+                        </option>
+
+                        <option value="Consumible">
+                            Consumible
+                        </option>
+
+                    </select>
                 </div>
 
                 <!-- NUEVO -->

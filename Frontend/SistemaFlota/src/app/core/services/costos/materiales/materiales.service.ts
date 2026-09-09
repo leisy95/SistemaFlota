@@ -5,6 +5,8 @@ import { environment } from '../../../../../environments/environment';
 import { MaterialPaginado } from '../../../models/costos/materiales/material.pag.models';
 import { Material } from '../../../models/costos/materiales/material.models';
 import { FiltrosMaterial } from '../../../models/costos/materiales/filtros-material.models';
+import { Color } from '../../../models/costos/colores/color.model';
+import { Categoria } from '../../../models/costos/categorias/categoria.models';
 
 @Injectable({
     providedIn: 'root'
@@ -60,6 +62,17 @@ export class MaterialService {
         );
     }
 
+    obtenerColores(): Observable<Color[]> {
+        return this.http.get<Color[]>(
+            `${this.apiUrl}/colores`
+        );
+    }
+
+    obtenerCategorias(): Observable<Categoria[]> {
+        return this.http.get<Categoria[]>(
+            `${this.apiUrl}/categorias`
+        );
+    }
 
     eliminar(id: number): Observable<void> {
 

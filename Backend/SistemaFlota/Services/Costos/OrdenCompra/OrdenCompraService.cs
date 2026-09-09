@@ -2,6 +2,7 @@
 using SistemaFlota.DTOs.Costos.OrdenCompra;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.OrdenesCompras;
+using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Email;
@@ -43,24 +44,43 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 throw new Exception("El proveedor seleccionado no existe.");
         }
 
-        private async Task ValidarMaterialesAsync(List<CrearOrdenCompraDetalleDto> detalles)
+        private async Task ValidarMaterialesAsync(
+            int proveedorId,
+            List<CrearOrdenCompraDetalleDto> detalles)
         {
             var ids = detalles
                 .Select(x => x.MaterialId)
                 .Distinct()
                 .ToList();
 
-            var existentes = await _context.Materiales
+            var materiales = await _context.Materiales
                 .Where(x => ids.Contains(x.IdMaterial))
-                .Select(x => x.IdMaterial)
+                .Select(x => new
+                {
+                    x.IdMaterial,
+                    x.IdProveedor
+                })
                 .ToListAsync();
 
-            var faltantes = ids.Except(existentes).ToList();
+            var faltantes = ids
+                .Except(materiales.Select(x => x.IdMaterial))
+                .ToList();
 
             if (faltantes.Any())
             {
                 throw new Exception(
                     $"No existen los materiales: {string.Join(", ", faltantes)}");
+            }
+
+            var materialesOtroProveedor = materiales
+                .Where(x => x.IdProveedor != proveedorId)
+                .Select(x => x.IdMaterial)
+                .ToList();
+
+            if (materialesOtroProveedor.Any())
+            {
+                throw new Exception(
+                    "Uno o más materiales no pertenecen al proveedor seleccionado.");
             }
         }
 
@@ -299,7 +319,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         {
             await ValidarProveedorAsync(dto.ProveedorId);
 
-            await ValidarMaterialesAsync(dto.Detalles);
+            await ValidarMaterialesAsync(
+                dto.ProveedorId,
+                dto.Detalles
+                );
 
             ValidarFechas(dto.FechaOrden, dto.FechaEntrega);
 
@@ -422,7 +445,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         {
             await ValidarProveedorAsync(dto.ProveedorId);
 
-            await ValidarMaterialesAsync(dto.Detalles);
+            await ValidarMaterialesAsync(
+                dto.ProveedorId,
+                dto.Detalles
+                );
 
             ValidarFechas(dto.FechaOrden, dto.FechaEntrega);
 
@@ -454,10 +480,8 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             orden.FechaOrden = dto.FechaOrden;
             orden.FechaEntrega = dto.FechaEntrega;
             orden.FormaPago = dto.FormaPago;
-
+            orden.LugarEntrega = dto.LugarEntrega;
             orden.Observaciones = dto.Observaciones;
-            orden.Estado = dto.Estado;
-
             orden.TotalItems = dto.Detalles.Count;
             orden.TotalKg = totalKg;
             orden.TotalBultos = totalBultos;

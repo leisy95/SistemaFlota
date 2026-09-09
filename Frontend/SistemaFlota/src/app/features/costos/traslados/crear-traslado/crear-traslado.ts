@@ -175,10 +175,12 @@ export class CrearTraslado {
 
   agregarMaterial(): void {
 
-    if (!this.materialActual.proveedor ||
+    if (
+      !this.materialActual.proveedor ||
       !this.materialActual.tipo ||
       !this.materialActual.densidad ||
-      !this.materialActual.color) {
+      !this.materialActual.color
+    ) {
 
       this.toastr.warning(
         'Complete todos los datos del material.',
@@ -198,8 +200,9 @@ export class CrearTraslado {
       return;
     }
 
-    if (!this.materialActual.cantidadKg ||
-      this.materialActual.cantidadKg <= 0) {
+    const cantidadKg = Number(this.materialActual.cantidadKg);
+
+    if (!cantidadKg || cantidadKg <= 0) {
 
       this.toastr.warning(
         'La cantidad debe ser mayor a cero.',
@@ -209,21 +212,27 @@ export class CrearTraslado {
       return;
     }
 
-    if (!this.materialActual.bultos ||
-      this.materialActual.bultos <= 0) {
+    // Cada bulto pesa 25 KG
+    if (cantidadKg % 25 !== 0) {
 
       this.toastr.warning(
-        'Los bultos deben ser mayores a cero.',
-        'Bultos inválidos'
+        'La cantidad debe ser múltiplo de 25 kg.',
+        'Cantidad inválida'
       );
 
       return;
     }
 
+    // Calcular bultos automáticamente
+    const bultos = cantidadKg / 25;
+
     this.materiales.push({
-      ...this.materialActual
+      ...this.materialActual,
+      cantidadKg: cantidadKg,
+      bultos: bultos
     });
 
+    // Limpiar formulario
     this.materialActual = {
       materialId: null,
       proveedor: '',
