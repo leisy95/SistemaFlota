@@ -163,7 +163,7 @@ namespace SistemaFlota.Services.Costos.Inventario
                     MaterialId = i.MaterialId,
                     Material = i.Material!.DescripcionCompra ?? "",
                     Proveedor = i.Material.Proveedor!.Nombre,
-                    TipoProduccion = i.Material.TipoProduccion,
+                    Categoria = i.Material.Categoria,
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
                     StockActual = i.StockActual,

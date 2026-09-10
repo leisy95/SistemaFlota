@@ -87,7 +87,7 @@ export class UsuariosComponent implements OnInit {
   readonly roles = [
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
     'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
-    'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST'
+    'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST', 'Compras'
   ];
 
   constructor(private usuariosService: UsuariosService) { }
@@ -247,6 +247,7 @@ export class UsuariosComponent implements OnInit {
       case 'Vendedor': return 'badge-vendedor';
       case 'Calidad': return 'badge-calidad';
       case 'Impresion': return 'badge-impresion';
+      case 'Compras': return 'badge-compras';
       default: return 'badge-auxiliar';
     }
   }

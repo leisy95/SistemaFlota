@@ -1,7 +1,8 @@
 export interface CrearOrdenTrasladoDetalle {
     materialId: number | null;
+    material: string;
     proveedor: string;
-    tipoProduccion: string;
+    tipo: string;
     densidad: string;
     color: string;
     cantidadKg: number;

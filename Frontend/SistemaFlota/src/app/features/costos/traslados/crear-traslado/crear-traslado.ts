@@ -26,6 +26,7 @@ export class CrearTraslado {
   cargandoInventario = false;
 
   inventarios: Inventario_Costos[] = [];
+  materialesDisponibles: Inventario_Costos[] = [];
 
   proveedores: string[] = [];
   tiposMaterial: string[] = [];
@@ -34,8 +35,9 @@ export class CrearTraslado {
 
   materialActual: CrearOrdenTrasladoDetalle = {
     materialId: null,
+    material: '',
     proveedor: '',
-    tipoProduccion: '',
+    tipo: '',
     densidad: '',
     color: '',
     cantidadKg: 0,
@@ -99,7 +101,7 @@ export class CrearTraslado {
     this.tiposMaterial = [
       ...new Set(
         this.inventarios
-          .map(x => x.tipoProduccion)
+          .map(x => x.categoria)
           .filter(x => !!x)
       )
     ];
@@ -123,38 +125,29 @@ export class CrearTraslado {
 
   get inventariosFiltrados(): Inventario_Costos[] {
     return this.inventarios.filter(x =>
-      (!this.materialActual.proveedor ||
-        x.proveedor === this.materialActual.proveedor) &&
-      (!this.materialActual.tipoProduccion ||
-        x.tipoProduccion === this.materialActual.tipoProduccion) &&
-      (!this.materialActual.densidad ||
-        x.densidad === this.materialActual.densidad) &&
-      (!this.materialActual.color ||
-        x.color === this.materialActual.color)
+      (!this.materialActual.proveedor || x.proveedor === this.materialActual.proveedor) &&
+      (!this.materialActual.tipo || x.categoria === this.materialActual.tipo) && // Corrección: x.categoria
+      (!this.materialActual.densidad || x.densidad === this.materialActual.densidad) &&
+      (!this.materialActual.color || x.color === this.materialActual.color)
     );
   }
 
   seleccionarMaterial(): void {
-
-    const inventarios = this.inventariosFiltrados;
-
-    if (inventarios.length === 0) {
-      this.materialActual.materialId = null;
+    if (!this.materialActual.materialId) {
       return;
     }
 
-    if (inventarios.length > 1) {
-      this.materialActual.materialId = null;
+    const inventario = this.inventarios.find(
+      x => x.materialId === this.materialActual.materialId
+    );
 
+    if (!inventario) {
       return;
     }
 
-    const inventario = inventarios[0];
-
-    this.materialActual.materialId = inventario.materialId;
-
+    this.materialActual.material = inventario.material || inventario.categoria;
     this.materialActual.proveedor = inventario.proveedor;
-    this.materialActual.tipoProduccion = inventario.tipoProduccion;
+    this.materialActual.tipo = inventario.categoria;
     this.materialActual.densidad = inventario.densidad;
     this.materialActual.color = inventario.color;
   }
@@ -177,7 +170,7 @@ export class CrearTraslado {
 
     if (
       !this.materialActual.proveedor ||
-      !this.materialActual.tipoProduccion ||
+      !this.materialActual.tipo ||
       !this.materialActual.densidad ||
       !this.materialActual.color
     ) {
@@ -235,8 +228,9 @@ export class CrearTraslado {
     // Limpiar formulario
     this.materialActual = {
       materialId: null,
+      material: '',
       proveedor: '',
-      tipoProduccion: '',
+      tipo: '',
       densidad: '',
       color: '',
       cantidadKg: 0,

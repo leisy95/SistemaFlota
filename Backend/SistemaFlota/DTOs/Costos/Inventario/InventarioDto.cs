@@ -10,7 +10,7 @@
 
         public string Proveedor { get; set; } = string.Empty;
 
-        public string TipoProduccion { get; set; } = string.Empty;
+        public string? Categoria { get; set; }
 
         public string Color { get; set; } = string.Empty;
 

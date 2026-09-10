@@ -3,6 +3,7 @@ export interface Inventario_Costos {
     materialId: number;
     material: string;
     proveedor: string;
+    categoria: string;
     tipoProduccion: string;
     color: string;
     densidad: string;

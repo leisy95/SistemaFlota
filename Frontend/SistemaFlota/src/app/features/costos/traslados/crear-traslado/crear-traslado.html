@@ -58,45 +58,23 @@
                         </div>
 
                         <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.tipoProduccion" (change)="seleccionarMaterial()">
-
-                                <option value="">Tipo de Material</option>
-
-                                <option *ngFor="let tipo of tiposMaterial" [value]="tipo">
-
-                                    {{ tipo }}
-
+                            <select [(ngModel)]="materialActual.materialId" (change)="seleccionarMaterial()">
+                                <option [ngValue]="null">Material</option>
+                                <option *ngFor="let material of inventariosFiltrados" [ngValue]="material.materialId">
+                                    {{ material.material || material.categoria }}
                                 </option>
                             </select>
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
 
-                        <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.densidad" (change)="seleccionarMaterial()">
-
-                                <option value="">Densidad</option>
-
-                                <option *ngFor="let densidad of densidades" [value]="densidad">
-
-                                    {{ densidad }}
-
-                                </option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down"></i>
+                        <div class="campo-automatico">
+                            <input class="input-material" type="text" [(ngModel)]="materialActual.densidad"
+                                placeholder="Densidad" readonly />
                         </div>
 
-                        <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.color" (change)="seleccionarMaterial()">
-
-                                <option value="">Color</option>
-
-                                <option *ngFor="let color of colores" [value]="color">
-
-                                    {{ color }}
-
-                                </option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down"></i>
+                        <div class="campo-automatico">
+                            <input class="input-material" type="text" [(ngModel)]="materialActual.color"
+                                placeholder="Color" readonly />
                         </div>
 
                         <input class="input-material" type="number" [(ngModel)]="materialActual.cantidadKg"
@@ -123,7 +101,7 @@
                         <div class="material-info">
                             <strong>{{ material.proveedor }}</strong>
                             <span>
-                                {{ material.tipoProduccion }}
+                                {{ material.material }}
                                 {{ material.densidad }}
                                 {{ material.cantidadKg }} kg /
                                 {{ material.bultos }} bultos
