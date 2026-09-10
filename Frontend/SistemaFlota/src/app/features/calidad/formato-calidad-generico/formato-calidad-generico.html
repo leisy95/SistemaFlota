@@ -4,8 +4,9 @@
       <h1>{{ tipoFormato?.nombre }}</h1>
       <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
     </div>
-    <button class="btn-nuevo" (click)="nuevo()">
-      <i class="fa-solid fa-plus"></i> Nuevo Registro
+    <button *ngIf="permisos.puedeCrear('calidad-formatos')" class="btn-agregar" (click)="nuevo()">
+      <i class="fa-solid fa-plus"></i>
+      Nuevo registro
     </button>
   </div>
 
@@ -75,14 +76,32 @@
               <button class="btn-menu-puntos" (click)="toggleMenu(r.id, $event)">
                 <i class="fa-solid fa-ellipsis-vertical"></i>
               </button>
+
               <div class="menu-desplegable" *ngIf="menuAbiertoId === r.id">
-                <button (click)="ver(r); cerrarMenus()"><i class="fa-solid fa-eye"></i> Ver</button>
-                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'" (click)="editar(r); cerrarMenus()"><i
-                    class="fa-solid fa-pen"></i> Editar</button>
-                <button *ngIf="puedeCrear && r.estado === 'PendienteLiberacion'"
-                  (click)="abrirLiberar(r); cerrarMenus()"><i class="fa-solid fa-check-double"></i> Liberar</button>
-                <button *ngIf="puedeEliminar" class="opcion-eliminar" (click)="eliminar(r.id); cerrarMenus()"><i
-                    class="fa-solid fa-trash"></i> Eliminar</button>
+
+                <button *ngIf="permisos.puedeVer('calidad-formatos')" (click)="ver(r); cerrarMenus()">
+                  <i class="fa-solid fa-eye"></i>
+                  Ver
+                </button>
+
+                <button *ngIf="permisos.puedeEditar('calidad-formatos') && r.estado === 'PendienteLiberacion'"
+                  (click)="editar(r); cerrarMenus()">
+                  <i class="fa-solid fa-pen"></i>
+                  Editar
+                </button>
+
+                <button *ngIf="permisos.puedeCrear('calidad-formatos') && r.estado === 'PendienteLiberacion'"
+                  (click)="abrirLiberar(r); cerrarMenus()">
+                  <i class="fa-solid fa-check-double"></i>
+                  Liberar
+                </button>
+
+                <button *ngIf="permisos.puedeEliminar('calidad-formatos')" class="opcion-eliminar"
+                  (click)="eliminar(r.id); cerrarMenus()">
+                  <i class="fa-solid fa-trash"></i>
+                  Eliminar
+                </button>
+
               </div>
             </td>
           </tr>
@@ -528,28 +547,35 @@
       </div>
 
       <div class="btn-row">
-        <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
-        <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)"><i class="fa-solid fa-file-pdf"></i>
-          Exportar PDF</button>
-        <button class="btn-guardar" *ngIf="puedeCrear && registroSeleccionado.estado === 'PendienteLiberacion'"
-          (click)="editar(registroSeleccionado)"><i class="fa-solid fa-pen"></i> Editar</button>
-      </div>
-    </div>
-  </ng-container>
-  <!-- MODAL: Material fuera de especificación -->
-  <div class="modal-overlay" *ngIf="mostrarModalNoCumple" (click)="cerrarModalNoCumple(false)">
-    <div class="modal-alerta" (click)="$event.stopPropagation()">
-      <div class="modal-icono-alerta">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-      <p class="modal-titulo">Material fuera de especificación</p>
-      <p class="modal-texto">Este lote debe separarse de inmediato.</p>
-      <p class="modal-texto">Informa a calidad o jefatura de planta antes de continuar.</p>
-      <div class="modal-botones">
-        <button class="btn-cancelar" (click)="cerrarModalNoCumple(true)">Cancelar</button>
-        <button class="btn-modal-confirmar" (click)="cerrarModalNoCumple(false)">Entendido, separar</button>
-      </div>
-    </div>
-  </div>
+        <button class="btn-cancelar" (click)="vista = 'lista'">
+          Volver
+        </button>
 
-</div>
+        <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)">
+          <i class="fa-solid fa-file-pdf"></i>
+          Exportar PDF
+        </button>
+
+        <button class="btn-guardar"
+          *ngIf="permisos.puedeCrear('calidad-formatos') && registroSeleccionado.estado === 'PendienteLiberacion'">
+          Guardar
+        </button>
+      </div>
+
+      <!-- MODAL: Material fuera de especificación -->
+      <div class="modal-overlay" *ngIf="mostrarModalNoCumple" (click)="cerrarModalNoCumple(false)">
+        <div class="modal-alerta" (click)="$event.stopPropagation()">
+          <div class="modal-icono-alerta">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <p class="modal-titulo">Material fuera de especificación</p>
+          <p class="modal-texto">Este lote debe separarse de inmediato.</p>
+          <p class="modal-texto">Informa a calidad o jefatura de planta antes de continuar.</p>
+          <div class="modal-botones">
+            <button class="btn-cancelar" (click)="cerrarModalNoCumple(true)">Cancelar</button>
+            <button class="btn-modal-confirmar" (click)="cerrarModalNoCumple(false)">Entendido, separar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>

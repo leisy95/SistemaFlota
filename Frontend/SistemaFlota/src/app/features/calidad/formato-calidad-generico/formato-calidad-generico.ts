@@ -115,14 +115,11 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         return (this.form.maquina || '').toLowerCase().includes('coextrusora');
     }
 
-    get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
-    get puedeEliminar(): boolean { return this.permisosService.puedeEliminar('calidad-formatos'); }
-
     constructor(
         private service: FormatosCalidadService,
         private ordenesService: OrdenesProduccionService,
         private opcionesService: OpcionesFormularioService,
-        private permisosService: PermisosService,
+        public permisos: PermisosService,
         private route: ActivatedRoute,
         private dialog: MatDialog
     ) { }
