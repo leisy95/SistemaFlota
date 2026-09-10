@@ -203,11 +203,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Tipo</th>
                         <th>Material</th>
                         <th>Proveedor</th>
                         <th>Densidad</th>
-                        <th>Color</th>
                         <th class="text-right">Stock</th>
                         <th class="text-right">Costo Promedio</th>
                         <th class="text-right">Valor Total</th>
@@ -217,14 +215,12 @@
 
                 <tbody>
                     <tr *ngFor="let material of materiales">
-                        <td><span class="badge">{{ material.tipoProduccion }}</span></td>
                         <td>{{ material.material }}</td>
                         <td>{{ material.proveedor }}</td>
                         <td>{{ material.densidad }}</td>
-                        <td>{{ material.color }}</td>
 
                         <td class="text-right">
-                            {{ material.stockActual | number:'1.0-2' }} KG
+                            {{ material.stockActual }} KG
                         </td>
 
                         <td class="text-right">

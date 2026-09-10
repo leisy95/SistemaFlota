@@ -5,4 +5,6 @@ export interface InventarioPaginado {
     total: number;
     pagina: number;
     pageSize: number;
+    totalKg: number;
+    totalValorInventario: number;
 }

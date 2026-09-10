@@ -6,5 +6,7 @@
         public int Total { get; set; }
         public int Pagina { get; set; }
         public int PageSize { get; set; }
+        public decimal TotalKg { get; set; }
+        public decimal TotalValorInventario { get; set; }
     }
 }

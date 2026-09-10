@@ -115,17 +115,19 @@ export class ListarInventario {
     this.inventarioService.obtener(
       this.buscar,
       this.proveedorId,
-      this.tipoMaterial === 'Todos' ? null : this.tipoMaterial,
+      this.tipoMaterial,
       null,
       this.page,
       this.pageSize
     ).subscribe({
       next: (resp) => {
         this.materiales = resp.items;
+
         this.totalRegistros = resp.total;
         this.totalItems = resp.total;
-        this.totalKg = resp.items.reduce((s: number, x: Inventario_Costos) => s + x.stockActual, 0);
-        this.valorInventario = resp.items.reduce((s: number, x: Inventario_Costos) => s + x.valorInventario, 0);
+
+        this.totalKg = resp.totalKg;
+        this.valorInventario = resp.totalValorInventario;
       },
       error: () => {
         this.toastr.error('No fue posible cargar el inventario');

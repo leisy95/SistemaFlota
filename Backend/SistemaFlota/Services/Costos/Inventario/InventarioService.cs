@@ -91,12 +91,12 @@ namespace SistemaFlota.Services.Costos.Inventario
         }
 
         public async Task<InventarioPaginadoDto> ObtenerAsync(
-             string? search,
-             int? proveedorId,
-             string? categoria,
-             string? color,
-             int page,
-             int pageSize)
+            string? search,
+            int? proveedorId,
+            string? categoria,
+            string? color,
+            int page,
+            int pageSize)
         {
             var query = _context.Inventarios
                 .AsNoTracking()
@@ -104,6 +104,7 @@ namespace SistemaFlota.Services.Costos.Inventario
                     .ThenInclude(m => m.Proveedor)
                 .AsQueryable();
 
+            // BUSCADOR
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
@@ -114,20 +115,43 @@ namespace SistemaFlota.Services.Costos.Inventario
                      i.Material.DescripcionCompra.Contains(search)) ||
                     i.Material.Proveedor!.Nombre.Contains(search) ||
                     i.Color.Contains(search) ||
-                    i.Material.Categoria.Contains(search));
+                    i.Material.Categoria.Contains(search) ||
+                    (i.Material.TipoProduccion != null &&
+                     i.Material.TipoProduccion.Contains(search)));
             }
 
+            // FILTRO PROVEEDOR
             if (proveedorId.HasValue)
-                query = query.Where(i => i.Material!.IdProveedor == proveedorId);
+            {
+                query = query.Where(i =>
+                    i.Material!.IdProveedor == proveedorId.Value);
+            }
 
+            // FILTRO TIPO MATERIAL
             if (!string.IsNullOrWhiteSpace(categoria))
-                query = query.Where(i => i.Material!.Categoria == categoria);
+            {
+                query = query.Where(i =>
+                    i.Material!.TipoProduccion == categoria);
+            }
 
+            // FILTRO COLOR
             if (!string.IsNullOrWhiteSpace(color))
-                query = query.Where(i => i.Color == color);
+            {
+                query = query.Where(i =>
+                    i.Color == color);
+            }
 
+            // TOTAL DE REGISTROS FILTRADOS
             var total = await query.CountAsync();
 
+            // TOTALES GLOBALES DE LOS REGISTROS FILTRADOS
+            var totalKg = await query
+                .SumAsync(i => i.StockActual);
+
+            var totalValorInventario = await query
+                .SumAsync(i => i.ValorInventario);
+
+            // SOLO AQUÍ APLICAMOS PAGINACIÓN
             var items = await query
                 .OrderBy(i => i.Material!.NombreMaterial)
                 .ThenBy(i => i.Color)
@@ -153,8 +177,10 @@ namespace SistemaFlota.Services.Costos.Inventario
                 Items = items,
                 Total = total,
                 Pagina = page,
-                PageSize = pageSize
-            }; 
+                PageSize = pageSize,
+                TotalKg = totalKg,
+                TotalValorInventario = totalValorInventario
+            };
         }
 
         public async Task<List<ProveedorFiltroDto>> ObtenerProveedoresInventarioAsync()
