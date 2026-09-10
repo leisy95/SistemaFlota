@@ -135,13 +135,15 @@
   background: var(--blanco);
   border: 1px solid #e5e7eb;
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 th:nth-child(1),

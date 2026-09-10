@@ -1,12 +1,14 @@
 ﻿using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Services.Pdf.Styles;
+using System.Globalization;
 
 namespace SistemaFlota.Services.Pdf.Components;
 
 public static class ResumenTotales
 {
+    private static readonly CultureInfo CulturaColombia = new("es-CO");
+
     public static void Dibujar(
         IContainer container,
         decimal subtotal,
@@ -17,12 +19,12 @@ public static class ResumenTotales
     {
         container.AlignRight().Width(250).Column(col =>
         {
-            Fila(col, "Subtotal", subtotal.ToString("C0"));
+            Fila(col, "Subtotal", FormatearPesos(subtotal));
 
             Fila(
                 col,
                 $"{tipoImpuesto} ({porcentajeImpuesto:0.##}%)",
-                valorImpuesto.ToString("C0")
+                FormatearPesos(valorImpuesto)
             );
 
             col.Item()
@@ -30,7 +32,7 @@ public static class ResumenTotales
                 .LineHorizontal(1)
                 .LineColor(PdfColors.GrisClaro);
 
-            Fila(col, "TOTAL", total.ToString("C0"), true);
+            Fila(col, "TOTAL", FormatearPesos(total), true);
         });
     }
 
@@ -51,5 +53,10 @@ public static class ResumenTotales
                 .Text(valor)
                 .Style(total ? PdfStyles.Total : PdfStyles.Valor);
         });
+    }
+
+    private static string FormatearPesos(decimal valor)
+    {
+        return valor.ToString("C0", CulturaColombia);
     }
 }

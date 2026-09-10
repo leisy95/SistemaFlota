@@ -4,7 +4,7 @@
       <h1>{{ tipoFormato?.nombre }}</h1>
       <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
     </div>
-    <button class="btn-nuevo" *ngIf="puedeCrear && vista === 'lista'" (click)="nuevo()">
+    <button class="btn-nuevo" (click)="nuevo()">
       <i class="fa-solid fa-plus"></i> Nuevo Registro
     </button>
   </div>
