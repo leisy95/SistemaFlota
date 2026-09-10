@@ -91,7 +91,6 @@ export class ListarOrdenCompra {
   }
 
   cargar(): void {
-    console.log('🔄 CARGANDO ÓRDENES...');
 
     this.ordenCompraService.obtener(
       this.pagina,
@@ -103,13 +102,6 @@ export class ListarOrdenCompra {
       next: resp => {
         this.ordenes = resp.items.map(item => ({ ...item }));
         this.total = resp.total;
-
-        console.table(this.ordenes.map(x => ({
-          id: x.id,
-          numero: x.numero,
-          formaPago: x.formaPago,
-          totalPagar: x.totalPagar
-        })));
       },
       error: err => {
         console.error('ERROR:', err);

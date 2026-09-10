@@ -18,7 +18,9 @@ namespace SistemaFlota
         public static readonly string[] RolesValidos = {
             "Admin", "Auxiliar", "Conductor", "Jefe",
             "Facturacion", "Bodega", "Porteria",
-            "RecursosHumanos", "PESV", "Vendedor", "Impresion", "Calidad", "SST"
+            "RecursosHumanos", "PESV", "Vendedor", "Impresion", "Calidad",
+            "SST", "Compras", "Precorte", "Extrusion", "Sellado"
+
         };
 
         public UsuariosController(AppDbContext context, AuditoriaService auditoria)

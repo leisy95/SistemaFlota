@@ -81,13 +81,15 @@ export class UsuariosComponent implements OnInit {
     { key: 'sellado', label: 'Sellado' },
     { key: 'precorte', label: 'Precorte' },
     { key: 'opciones-formulario', label: 'Opciones de Formularios' },
+    { key: 'mejor-rendimiento', label: 'Mejor rendimiento' },
 
   ];
 
   readonly roles = [
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
     'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
-    'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST', 'Compras'
+    'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST', 'Compras',
+    'Precorte', 'Extrusion', 'Sellado'
   ];
 
   constructor(private usuariosService: UsuariosService) { }
@@ -248,6 +250,9 @@ export class UsuariosComponent implements OnInit {
       case 'Calidad': return 'badge-calidad';
       case 'Impresion': return 'badge-impresion';
       case 'Compras': return 'badge-compras';
+      case 'Precorte': return 'badge-precorte';
+      case 'Extrusion': return 'badge-extrusion';
+      case 'Sellado': return 'badge-sellado';
       default: return 'badge-auxiliar';
     }
   }

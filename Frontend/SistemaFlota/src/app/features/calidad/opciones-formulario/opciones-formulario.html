@@ -1,10 +1,10 @@
 <div class="contenedor">
-  <div *ngIf="!esAdmin" class="restringido">
+  <div *ngIf="!permisos.puedeVer('opciones-formulario')" class="restringido">
     <i class="fa-solid fa-lock"></i>
-    <p>Acceso restringido — solo administradores</p>
+    <p>Acceso restringido</p>
   </div>
 
-  <ng-container *ngIf="esAdmin">
+  <ng-container>
     <div class="header">
       <div>
         <h1><i class="fa-solid fa-sliders"></i> Opciones de Formularios</h1>
