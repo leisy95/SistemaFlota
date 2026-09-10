@@ -19,7 +19,7 @@ namespace SistemaFlota
             "Admin", "Auxiliar", "Conductor", "Jefe",
             "Facturacion", "Bodega", "Porteria",
             "RecursosHumanos", "PESV", "Vendedor", "Impresion", "Calidad",
-            "SST", "Compras", "Precorte", "Extrusion", "Sellado"
+            "SST", "Compras", "Precorte", "Extrusion", "Sellado", "Produccion"
 
         };
 

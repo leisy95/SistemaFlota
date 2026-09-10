@@ -89,7 +89,7 @@ export class UsuariosComponent implements OnInit {
     'Admin', 'Auxiliar', 'Conductor', 'Jefe',
     'Facturacion', 'Bodega', 'Porteria', 'RecursosHumanos',
     'PESV', 'Vendedor', 'Calidad', 'Impresion', 'SST', 'Compras',
-    'Precorte', 'Extrusion', 'Sellado'
+    'Precorte', 'Extrusion', 'Sellado', 'Produccion'
   ];
 
   constructor(private usuariosService: UsuariosService) { }
@@ -253,6 +253,7 @@ export class UsuariosComponent implements OnInit {
       case 'Precorte': return 'badge-precorte';
       case 'Extrusion': return 'badge-extrusion';
       case 'Sellado': return 'badge-sellado';
+      case 'Produccion': return 'badge-produccion';
       default: return 'badge-auxiliar';
     }
   }
