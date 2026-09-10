@@ -8,6 +8,8 @@ export interface Inventario_Costos {
     color: string;
     densidad: string;
     stockActual: number;
+    cantidadComprometida: number;
+    stockDisponible: number;
     costoPromedio: number;
     valorInventario: number;
 }

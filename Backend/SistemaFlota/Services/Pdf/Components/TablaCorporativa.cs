@@ -2,6 +2,7 @@
 using QuestPDF.Infrastructure;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Services.Pdf.Styles;
+using System.Globalization;
 
 namespace SistemaFlota.Services.Pdf.Components;
 
@@ -27,7 +28,6 @@ public static class TablaCorporativa
                     table.ColumnsDefinition(columns =>
                     {
                         columns.RelativeColumn(3);
-                        columns.RelativeColumn(1);
                         columns.ConstantColumn(55);
                         columns.ConstantColumn(65);
                         columns.ConstantColumn(60);
@@ -39,10 +39,6 @@ public static class TablaCorporativa
                     {
                         header.Cell().Element(HeaderCell)
                             .Text("Material")
-                            .Style(PdfStyles.HeaderTabla);
-
-                        header.Cell().Element(HeaderCell)
-                            .Text("Color")
                             .Style(PdfStyles.HeaderTabla);
 
                         header.Cell().Element(HeaderCell)
@@ -74,11 +70,7 @@ public static class TablaCorporativa
                     foreach (var item in detalles)
                     {
                         table.Cell().Element(BodyCell)
-                            .Text(item.Material?.NombreMaterial ?? "-")
-                            .Style(PdfStyles.CeldaTabla);
-
-                        table.Cell().Element(BodyCell)
-                            .Text(item.Color ?? "-")
+                            .Text(item.Material?.DescripcionCompra ?? "-")
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
@@ -98,12 +90,12 @@ public static class TablaCorporativa
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.CostoKg.ToString("C0"))
+                            .Text(item.CostoKg.ToString("C0", new CultureInfo("es-CO")))
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.Subtotal.ToString("C0"))
+                            .Text(item.Subtotal.ToString("C0", new CultureInfo("es-CO")))
                             .Style(PdfStyles.CeldaTabla);
                     }
                 });

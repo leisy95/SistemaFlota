@@ -167,6 +167,19 @@ namespace SistemaFlota.Services.Costos.Inventario
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
                     StockActual = i.StockActual,
+                    CantidadComprometida = _context.OrdenesTraslado
+                        .Where(o => o.Estado == "Pendiente" || o.Estado == "Verificando")
+                        .SelectMany(o => o.Detalles)
+                        .Where(d => d.MaterialId == i.MaterialId && d.Color == i.Color)
+                        .Sum(d => (decimal?)d.CantidadKg) ?? 0m,
+                    StockDisponible = Math.Max(
+                        i.StockActual -
+                        (_context.OrdenesTraslado
+                            .Where(o => o.Estado == "Pendiente" || o.Estado == "Verificando")
+                            .SelectMany(o => o.Detalles)
+                            .Where(d => d.MaterialId == i.MaterialId && d.Color == i.Color)
+                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m),
+                        0m),
                     CostoPromedio = i.CostoPromedio,
                     ValorInventario = i.ValorInventario
                 })

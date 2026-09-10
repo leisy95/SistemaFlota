@@ -14,11 +14,11 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
         private readonly IConsecutivoService _consecutivoService;
         private readonly IInventarioService _inventarioService;
 
-        public OrdenTrasladoService(AppDbContext context, 
-            ICurrentUserService currentUser, 
+        public OrdenTrasladoService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
             IConsecutivoService consecutivoService,
-            IInventarioService inventarioService
-            )
+            IInventarioService inventarioService)
         {
             _context = context;
             _currentUser = currentUser;
@@ -29,90 +29,44 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
         public async Task<OrdenTrasladoDto> CrearAsync(CrearOrdenTrasladoDto dto)
         {
             if (dto.Materiales == null || !dto.Materiales.Any())
-                throw new Exception(
-                    "La orden de traslado debe tener al menos un material."
-                );
+                throw new Exception("La orden de traslado debe tener al menos un material.");
 
             if (!_currentUser.IdUsuario.HasValue)
-                throw new Exception(
-                    "No fue posible identificar el usuario actual."
-                );
+                throw new Exception("No fue posible identificar el usuario actual.");
 
             if (string.IsNullOrWhiteSpace(dto.Destino))
-                throw new Exception(
-                    "El destino es obligatorio."
-                );
+                throw new Exception("El destino es obligatorio.");
 
             // VALIDAR DATOS DE LOS MATERIALES
             foreach (var item in dto.Materiales)
             {
                 if (!item.MaterialId.HasValue)
-                    throw new Exception(
-                        "Cada material de la orden de traslado debe tener un material asociado."
-                    );
+                    throw new Exception("Cada material de la orden de traslado debe tener un material asociado.");
 
                 if (item.CantidadKg <= 0)
-                    throw new Exception(
-                        "La cantidad en KG debe ser mayor a cero."
-                    );
+                    throw new Exception("La cantidad en KG debe ser mayor a cero.");
 
                 if (item.Bultos <= 0)
-                    throw new Exception(
-                        "La cantidad de bultos debe ser mayor a cero."
-                    );
+                    throw new Exception("La cantidad de bultos debe ser mayor a cero.");
 
                 if (string.IsNullOrWhiteSpace(item.Proveedor))
-                    throw new Exception(
-                        "El proveedor es obligatorio."
-                    );
+                    throw new Exception("El proveedor es obligatorio.");
 
                 if (string.IsNullOrWhiteSpace(item.Tipo))
-                    throw new Exception(
-                        "El tipo de material es obligatorio."
-                    );
+                    throw new Exception("El tipo de material es obligatorio.");
 
                 if (string.IsNullOrWhiteSpace(item.Densidad))
-                    throw new Exception(
-                        "La densidad es obligatoria."
-                    );
+                    throw new Exception("La densidad es obligatoria.");
 
                 if (string.IsNullOrWhiteSpace(item.Color))
-                    throw new Exception(
-                        "El color es obligatorio."
-                    );
+                    throw new Exception("El color es obligatorio.");
             }
 
-            // VALIDAR STOCK EN INVENTARIO
-            foreach (var item in dto.Materiales)
-            {
-                var inventario = await _context.Inventarios
-                    .FirstOrDefaultAsync(x =>
-                        x.MaterialId == item.MaterialId.Value &&
-                        x.Color == item.Color);
-
-                if (inventario == null)
-                {
-                    throw new Exception(
-                        $"No existe inventario para el material '{item.Tipo}' " +
-                        $"con color '{item.Color}'."
-                    );
-                }
-
-                if (inventario.StockActual < item.CantidadKg)
-                {
-                    throw new Exception(
-                        $"Stock insuficiente para el material '{item.Tipo}' " +
-                        $"con color '{item.Color}'. " +
-                        $"Disponible: {inventario.StockActual:N2} KG. " +
-                        $"Solicitado: {item.CantidadKg:N2} KG."
-                    );
-                }
-            }
+            // VALIDAR STOCK DISPONIBLE
+            await ValidarStockDisponibleAsync(dto.Materiales);
 
             // GENERAR CONSECUTIVO
-            var numeroOrden = await _consecutivoService
-                .GenerarAsync("OrdenTraslado");
-
+            var numeroOrden = await _consecutivoService.GenerarAsync("OrdenTraslado");
             var fechaActual = DateTime.Now;
 
             // CREAR ORDEN
@@ -146,13 +100,74 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
             orden.TotalBultos = orden.Detalles.Sum(x => x.Bultos);
 
             _context.OrdenesTraslado.Add(orden);
-
             await _context.SaveChangesAsync();
 
             return await ObtenerPorIdAsync(orden.Id)
-                ?? throw new Exception(
-                    "No fue posible obtener la orden de traslado creada."
-                );
+                ?? throw new Exception("No fue posible obtener la orden de traslado creada.");
+        }
+
+        private async Task ValidarStockDisponibleAsync(List<CrearOrdenTrasladoDetalleDto> materiales)
+        {
+            var solicitudes = materiales
+                .Where(x => x.MaterialId.HasValue)
+                .GroupBy(x => new
+                {
+                    MaterialId = x.MaterialId!.Value,
+                    Color = x.Color.Trim()
+                })
+                .Select(g => new
+                {
+                    MaterialId = g.Key.MaterialId,
+                    Color = g.Key.Color,
+                    CantidadSolicitada = g.Sum(x => x.CantidadKg),
+                    Tipo = g.First().Tipo
+                })
+                .ToList();
+
+            foreach (var solicitud in solicitudes)
+            {
+                // STOCK FÍSICO ACTUAL
+                var inventario = await _context.Inventarios
+                    .FirstOrDefaultAsync(x =>
+                        x.MaterialId == solicitud.MaterialId &&
+                        x.Color == solicitud.Color);
+
+                if (inventario == null)
+                {
+                    throw new Exception(
+                        $"No existe inventario para el material '{solicitud.Tipo}' " +
+                        $"con color '{solicitud.Color}'.");
+                }
+
+                // STOCK COMPROMETIDO EN ÓRDENES NO CONFIRMADAS
+                var cantidadComprometida = await _context.OrdenesTraslado
+                    .Where(o =>
+                        o.Estado == "Pendiente" ||
+                        o.Estado == "Verificando")
+                    .SelectMany(o => o.Detalles)
+                    .Where(d =>
+                        d.MaterialId == solicitud.MaterialId &&
+                        d.Color == solicitud.Color)
+                    .SumAsync(d => (decimal?)d.CantidadKg) ?? 0m;
+
+                // STOCK DISPONIBLE REAL
+                var stockDisponible = inventario.StockActual - cantidadComprometida;
+
+                if (stockDisponible < 0)
+                    stockDisponible = 0;
+
+                if (stockDisponible < solicitud.CantidadSolicitada)
+                {
+                    throw new Exception(
+                        $"Stock insuficiente para el material '{solicitud.Tipo}' " +
+                        $"con color '{solicitud.Color}'. " +
+                        $"Stock actual: {inventario.StockActual:N2} KG. " +
+                        $"Comprometido en otras órdenes: {cantidadComprometida:N2} KG. " +
+                        $"Disponible: {stockDisponible:N2} KG. " +
+                        $"Solicitado: {solicitud.CantidadSolicitada:N2} KG."
+                    );
+                }
+            }
         }
 
         public async Task<OrdenTrasladoDto?> ObtenerPorIdAsync(int id)
@@ -258,8 +273,7 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
 
             if (orden.Estado != "Pendiente")
                 throw new Exception(
-                    $"La orden no puede ser verificada porque actualmente está en estado '{orden.Estado}'."
-                );
+                    $"La orden no puede ser verificada porque actualmente está en estado '{orden.Estado}'.");
 
             if (dto.Materiales == null || !dto.Materiales.Any())
                 throw new Exception("Debe verificar al menos un material.");
@@ -271,28 +285,23 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
 
                 if (detalle == null)
                     throw new Exception(
-                        $"No se encontró el detalle de material con ID {item.DetalleId}."
-                    );
+                        $"No se encontró el detalle de material con ID {item.DetalleId}.");
 
                 if (item.CantidadVerificadaKg < 0)
                     throw new Exception(
-                        $"La cantidad verificada de {detalle.Tipo} no puede ser negativa."
-                    );
+                        $"La cantidad verificada de {detalle.Tipo} no puede ser negativa.");
 
                 if (item.BultosVerificados < 0)
                     throw new Exception(
-                        $"Los bultos verificados de {detalle.Tipo} no pueden ser negativos."
-                    );
+                        $"Los bultos verificados de {detalle.Tipo} no pueden ser negativos.");
 
                 if (item.CantidadVerificadaKg > detalle.CantidadKg)
                     throw new Exception(
-                        $"La cantidad verificada de {detalle.Tipo} no puede superar la cantidad solicitada."
-                    );
+                        $"La cantidad verificada de {detalle.Tipo} no puede superar la cantidad solicitada.");
 
                 if (item.BultosVerificados > detalle.Bultos)
                     throw new Exception(
-                        $"Los bultos verificados de {detalle.Tipo} no pueden superar los bultos solicitados."
-                    );
+                        $"Los bultos verificados de {detalle.Tipo} no pueden superar los bultos solicitados.");
 
                 detalle.CantidadVerificadaKg = item.CantidadVerificadaKg;
                 detalle.BultosVerificados = item.BultosVerificados;
@@ -336,8 +345,7 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
 
             if (orden.Estado != "Verificando")
                 throw new Exception(
-                    $"La orden no puede ser confirmada porque actualmente está en estado '{orden.Estado}'."
-                );
+                    $"La orden no puede ser confirmada porque actualmente está en estado '{orden.Estado}'.");
 
             var materialesIncompletos = orden.Detalles
                 .Where(x => x.EstadoVerificacion != "Completo")
@@ -346,17 +354,15 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
             if (materialesIncompletos.Any())
             {
                 throw new Exception(
-                    "No se puede confirmar la orden porque existen materiales parciales o no disponibles."
-                );
+                    "No se puede confirmar la orden porque existen materiales parciales o no disponibles.");
             }
-            
+
             foreach (var detalle in orden.Detalles)
             {
                 if (!detalle.MaterialId.HasValue)
                 {
                     throw new Exception(
-                        $"El detalle de material {detalle.Id} no tiene un material asociado."
-                    );
+                        $"El detalle de material {detalle.Id} no tiene un material asociado.");
                 }
 
                 var inventario = await _context.Inventarios
@@ -368,11 +374,11 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                 {
                     throw new Exception(
                         $"No existe inventario para el material '{detalle.Tipo}' " +
-                        $"con color '{detalle.Color}'."
-                    );
+                        $"con color '{detalle.Color}'.");
                 }
 
-                var cantidadDescontar = detalle.CantidadVerificadaKg ?? 0m;
+                var cantidadDescontar =
+                    detalle.CantidadVerificadaKg ?? 0m;
 
                 if (inventario.StockActual < cantidadDescontar)
                 {
@@ -397,10 +403,9 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
             orden.UsuarioConfirmacionId = _currentUser.IdUsuario.Value;
 
             await _context.SaveChangesAsync();
+
             return await ObtenerPorIdAsync(orden.Id)
-                ?? throw new Exception(
-                    "No fue posible obtener la orden confirmada."
-                );
+                ?? throw new Exception("No fue posible obtener la orden confirmada.");
         }
 
         private static OrdenTrasladoDto MapearOrden(OrdenTraslado orden)
@@ -412,21 +417,16 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                 Fecha = orden.Fecha,
                 Destino = orden.Destino,
                 Estado = orden.Estado,
-
                 UsuarioId = orden.UsuarioId,
                 Usuario = orden.Usuario?.Username ?? string.Empty,
-
                 TotalKg = orden.TotalKg,
                 TotalBultos = orden.TotalBultos,
-
                 FechaVerificacion = orden.FechaVerificacion,
                 UsuarioVerificacionId = orden.UsuarioVerificacionId,
                 UsuarioVerificacion = orden.UsuarioVerificacion?.Username ?? string.Empty,
-
                 FechaConfirmacion = orden.FechaConfirmacion,
                 UsuarioConfirmacionId = orden.UsuarioConfirmacionId,
                 UsuarioConfirmacion = orden.UsuarioConfirmacion?.Username ?? string.Empty,
-
                 Materiales = orden.Detalles
                     .Select(x => new OrdenTrasladoDetalleDto
                     {

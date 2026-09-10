@@ -242,6 +242,39 @@
     }
 }
 
+.cantidad-container {
+    margin-top: 8px;
+    min-height: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stock-info {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.stock-info strong {
+    color: #198754;
+    font-weight: 700;
+}
+
+.stock-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-error i {
+    font-size: 12px;
+}
+
 .total-card {
     display: flex;
     justify-content: space-between;

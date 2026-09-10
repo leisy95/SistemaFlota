@@ -5,16 +5,14 @@
                 <h2>Nueva Orden de Traslado a Extrusión</h2>
                 <p>Registre el traslado de materiales de bodega a extrusión</p>
             </div>
-            <button class="btn-cerrar" (click)="cerrar()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button class="btn-cerrar" (click)="cerrar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
+        ```
         <div class="modal-body">
             <section class="seccion">
                 <h3>Información del Traslado</h3>
                 <div class="separador"></div>
-
                 <div class="form-grid">
                     <div class="campo">
                         <label>Fecha *</label>
@@ -23,12 +21,10 @@
                             <i class="fa-regular fa-calendar"></i>
                         </div>
                     </div>
-
                     <div class="campo">
                         <label>Destino *</label>
                         <input type="text" [(ngModel)]="destino" readonly />
                     </div>
-
                     <div class="campo">
                         <label>Usuario *</label>
                         <input type="text" [(ngModel)]="usuario" readonly />
@@ -42,16 +38,10 @@
 
                 <div class="material-selector">
                     <div class="material-grid">
-
                         <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.proveedor" (change)="seleccionarMaterial()">
-
+                            <select [(ngModel)]="materialActual.proveedor">
                                 <option value="">Proveedor</option>
-
-                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">
-
-                                    {{ proveedor }}
-
+                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">{{ proveedor }}
                                 </option>
                             </select>
                             <i class="fa-solid fa-chevron-down"></i>
@@ -77,16 +67,28 @@
                                 placeholder="Color" readonly />
                         </div>
 
-                        <input class="input-material" type="number" [(ngModel)]="materialActual.cantidadKg"
-                            placeholder="Cantidad (Kg)" min="1" />
+                        <input class="input-material" [class.input-error]="cantidadSuperaStock" type="number"
+                            [(ngModel)]="materialActual.cantidadKg" placeholder="Cantidad (Kg)" min="1" step="25" />
 
-                        <input class="input-material" type="number"
-                            [value]="materialActual.cantidadKg ? materialActual.cantidadKg / 25 : 0"
-                            placeholder="Bultos" readonly />
-
+                        <input class="input-material" type="number" [value]="bultosCalculados" placeholder="Bultos"
+                            readonly />
                     </div>
 
-                    <button class="btn-agregar" (click)="agregarMaterial()">
+                    <div class="cantidad-container">
+                        <small *ngIf="materialActual.materialId" class="stock-info">
+                            Stock: {{ stockActual | number:'1.0-2' }} KG
+                            · Comprometido: {{ cantidadComprometida | number:'1.0-2' }} KG
+                            · <strong>Disponible: {{ stockDisponible | number:'1.0-2' }} KG</strong>
+                        </small>
+
+                        <small *ngIf="cantidadSuperaStock" class="stock-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Stock insuficiente. Disponible: {{ stockDisponible | number:'1.0-2' }} KG
+                        </small>
+                    </div>
+
+                    <button class="btn-agregar" [disabled]="guardando || cargandoInventario || cantidadSuperaStock"
+                        (click)="agregarMaterial()">
                         <i class="fa-solid fa-plus"></i>
                         <span>Agregar Material</span>
                     </button>
@@ -95,20 +97,16 @@
 
             <section class="seccion materiales-seccion" *ngIf="materiales.length > 0">
                 <h3>Materiales del Traslado ({{ materiales.length }})</h3>
+                <div class="separador"></div>
 
                 <div class="materiales-lista">
                     <div class="material-item" *ngFor="let material of materiales; let i = index">
                         <div class="material-info">
                             <strong>{{ material.proveedor }}</strong>
-                            <span>
-                                {{ material.material }}
-                                {{ material.densidad }}
-                                {{ material.cantidadKg }} kg /
-                                {{ material.bultos }} bultos
-                            </span>
+                            <span>{{ material.material }} · {{ material.densidad }} · {{ material.cantidadKg }} kg / {{
+                                material.bultos }} bultos</span>
                             <span>- {{ material.color }}</span>
                         </div>
-
                         <button class="btn-eliminar" (click)="eliminarMaterial(i)">
                             <i class="fa-regular fa-trash-can"></i>
                         </button>
@@ -120,7 +118,6 @@
                         <strong>Total del Traslado</strong>
                         <span>Este material se descontará del inventario de bodega</span>
                     </div>
-
                     <div class="total-valores">
                         <strong>{{ totalKg | number:'1.0-0' }} kg</strong>
                         <span>{{ totalBultos }} bultos</span>
@@ -131,8 +128,11 @@
 
         <div class="modal-footer">
             <button class="btn-agregar" [disabled]="materiales.length === 0 || guardando" (click)="generarOrden()">
+                <i *ngIf="guardando" class="fa-solid fa-spinner fa-spin"></i>
                 {{ guardando ? 'Generando...' : 'Generar Orden de Traslado' }}
             </button>
         </div>
     </div>
+    ```
+
 </div>
