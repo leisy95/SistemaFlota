@@ -67,7 +67,7 @@ public static class TablaCorporativa
                             .Style(PdfStyles.HeaderTabla);
                     });
 
-                    foreach (var item in detalles)
+                foreach (var item in detalles)
                     {
                         table.Cell().Element(BodyCell)
                             .Text(item.Material?.DescripcionCompra ?? "-")
@@ -75,17 +75,17 @@ public static class TablaCorporativa
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.CantidadKg.ToString("N2"))
+                            .Text(item.CantidadKg.ToString("N0"))
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.KgPorBulto.ToString("N2"))
+                            .Text(item.KgPorBulto.ToString("N0"))
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.Bultos.ToString("N2"))
+                            .Text(item.Bultos.ToString("N0"))
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
@@ -98,6 +98,7 @@ public static class TablaCorporativa
                             .Text(item.Subtotal.ToString("C0", new CultureInfo("es-CO")))
                             .Style(PdfStyles.CeldaTabla);
                     }
+
                 });
         });
     }
