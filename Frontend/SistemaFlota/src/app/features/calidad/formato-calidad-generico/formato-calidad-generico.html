@@ -84,20 +84,17 @@
                   Ver
                 </button>
 
-                <button *ngIf="permisos.puedeEditar('calidad-formatos') && r.estado === 'PendienteLiberacion'"
-                  (click)="editar(r); cerrarMenus()">
+                <button (click)="editar(r); cerrarMenus()">
                   <i class="fa-solid fa-pen"></i>
                   Editar
                 </button>
 
-                <button *ngIf="permisos.puedeCrear('calidad-formatos') && r.estado === 'PendienteLiberacion'"
-                  (click)="abrirLiberar(r); cerrarMenus()">
+                <button (click)="abrirLiberar(r); cerrarMenus()">
                   <i class="fa-solid fa-check-double"></i>
                   Liberar
                 </button>
 
-                <button *ngIf="permisos.puedeEliminar('calidad-formatos')" class="opcion-eliminar"
-                  (click)="eliminar(r.id); cerrarMenus()">
+                <button (click)="eliminar(r.id); cerrarMenus()">
                   <i class="fa-solid fa-trash"></i>
                   Eliminar
                 </button>
