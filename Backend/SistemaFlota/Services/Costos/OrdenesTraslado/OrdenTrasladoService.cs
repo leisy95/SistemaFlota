@@ -178,6 +178,7 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                 .Include(x => x.UsuarioVerificacion)
                 .Include(x => x.UsuarioConfirmacion)
                 .Include(x => x.Detalles)
+                    .ThenInclude(x => x.Material)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return orden == null ? null : MapearOrden(orden);
@@ -242,6 +243,7 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                 .Include(x => x.UsuarioVerificacion)
                 .Include(x => x.UsuarioConfirmacion)
                 .Include(x => x.Detalles)
+                    .ThenInclude(x => x.Material)
                 .Skip((pagina - 1) * tamanoPagina)
                 .Take(tamanoPagina)
                 .ToListAsync();
@@ -432,6 +434,7 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                     {
                         Id = x.Id,
                         MaterialId = x.MaterialId,
+                        Material = x.Material?.NombreMaterial ?? string.Empty,
                         Proveedor = x.Proveedor,
                         Tipo = x.Tipo,
                         Densidad = x.Densidad,

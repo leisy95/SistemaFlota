@@ -38,7 +38,6 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Proveedores
         }
 
         // Para obtener proveedores en recpcion de mercancia
-        /// Listar proveedores para Recepción de Mercancías
         [HttpGet("para-recepcion")]
         [Permiso("recepcion-mercancia", "ver")]
         public async Task<ActionResult<ProveedorPaginadoDto>> ObtenerParaRecepcion(
