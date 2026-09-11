@@ -14,8 +14,6 @@
 
         public string Densidad { get; set; } = string.Empty;
 
-        public string Color { get; set; } = string.Empty;
-
         public decimal CantidadKg { get; set; }
 
         public decimal Bultos { get; set; }

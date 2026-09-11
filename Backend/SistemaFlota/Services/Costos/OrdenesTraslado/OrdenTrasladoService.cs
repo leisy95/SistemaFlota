@@ -438,7 +438,6 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
                         Proveedor = x.Proveedor,
                         Tipo = x.Tipo,
                         Densidad = x.Densidad,
-                        Color = x.Color,
                         CantidadKg = x.CantidadKg,
                         Bultos = x.Bultos,
                         CantidadVerificadaKg = x.CantidadVerificadaKg,
