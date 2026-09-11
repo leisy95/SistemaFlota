@@ -11,6 +11,7 @@ namespace SistemaFlota.Services.Pdf.Components
             IContainer container,
             string logo,
             ConfiguracionEmpresa empresa,
+            string codigoFormato,
             string tituloDocumento,
             string numeroDocumento)
         {
@@ -104,6 +105,14 @@ namespace SistemaFlota.Services.Pdf.Components
                         .Column(col =>
                         {
                             col.Spacing(6);
+
+                            // CÓDIGO DEL FORMATO
+                            col.Item()
+                                .AlignCenter()
+                                .Text(codigoFormato)
+                                .FontSize(8)
+                                .Bold()
+                                .FontColor(PdfColors.AzulOscuro);
 
                             col.Item()
                                 .AlignCenter()

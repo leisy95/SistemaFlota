@@ -70,6 +70,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                     x,
                     ObtenerLogo(),
                     empresa,
+                    "",
                     "RECEPCIÓN DE MERCANCÍA",
                     recepcion.NumeroRecepcion);
             });

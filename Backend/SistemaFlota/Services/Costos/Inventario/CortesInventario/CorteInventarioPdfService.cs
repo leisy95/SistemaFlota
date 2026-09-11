@@ -56,7 +56,7 @@ public class CorteInventarioPdfService : ICorteInventarioPdfService
                     // ENCABEZADO
                     column.Item().ShowOnce().Element(header =>
                     {
-                        HeaderEmpresa.Dibujar(header, logo, configuracion, "CORTE DE INVENTARIO", $"MES {fecha:MM/yyyy}");
+                        HeaderEmpresa.Dibujar(header, logo, configuracion, "","CORTE DE INVENTARIO", $"MES {fecha:MM/yyyy}");
                     });
 
                     // INFORMACIÓN DEL CONTEO
