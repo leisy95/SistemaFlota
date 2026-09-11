@@ -161,7 +161,7 @@ namespace SistemaFlota.Services.Costos.Inventario
                 {
                     Id = i.Id,
                     MaterialId = i.MaterialId,
-                    Material = i.Material!.DescripcionCompra ?? "",
+                    Material = i.Material!.NombreMaterial ?? "",
                     Proveedor = i.Material.Proveedor!.Nombre,
                     Categoria = i.Material.Categoria,
                     Color = i.Color,
