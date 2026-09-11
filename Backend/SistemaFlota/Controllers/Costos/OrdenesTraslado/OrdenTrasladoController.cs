@@ -72,7 +72,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
 
         // Verificar orden
         [HttpPut("verificar")]
-        [Permiso("traslados", "verificar")]
+        [Permiso("traslados", "editar")]
         public async Task<IActionResult> Verificar(
             [FromBody] VerificarOrdenTrasladoDto dto)
         {
@@ -90,7 +90,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
 
         // Confirmar orden
         [HttpPut("{id}/confirmar")]
-        [Permiso("traslados", "confirmar")]
+        [Permiso("traslados", "editar")]
         public async Task<IActionResult> Confirmar(int id)
         {
             try
