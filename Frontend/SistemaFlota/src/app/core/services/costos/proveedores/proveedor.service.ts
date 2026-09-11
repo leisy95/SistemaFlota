@@ -34,6 +34,27 @@ export class ProveedorService {
         return this.http.get<any>(this.apiUrl, { params });
     }
 
+    // Para obtener proveedores en recpcion de mercancia
+    obtenerParaRecepcion(
+        search: string = '',
+        estado: string = 'Activo',
+        orden: string = '',
+        page: number = 1,
+        pageSize: number = 1000
+    ): Observable<any> {
+        let params = new HttpParams()
+            .set('search', search)
+            .set('estado', estado)
+            .set('orden', orden)
+            .set('page', page)
+            .set('pageSize', pageSize);
+
+        return this.http.get<any>(
+            `${this.apiUrl}/para-recepcion`,
+            { params }
+        );
+    }
+
     obtenerPorId(id: number): Observable<Proveedor> {
         return this.http.get<Proveedor>(`${this.apiUrl}/${id}`);
     }

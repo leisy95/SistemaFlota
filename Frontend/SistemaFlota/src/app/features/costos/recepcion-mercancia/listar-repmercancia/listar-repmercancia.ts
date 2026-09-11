@@ -57,7 +57,7 @@ export class ListarRepmercancia {
   }
 
   cargarProveedores(): void {
-    this.proveedorService.obtener(
+    this.proveedorService.obtenerParaRecepcion(
       '',
       'Activo',
       '',
@@ -77,15 +77,12 @@ export class ListarRepmercancia {
   }
 
   cargarOrdenes(): void {
-    this.ordenCompraService.obtener(
-      this.pagina,
-      this.pageSize,
+    this.ordenCompraService.obtenerParaRecepcion(
       this.buscar,
       this.estado,
       this.proveedorId,
-      this.formaPago,
-      this.fechaInicio,
-      this.fechaFin
+      this.pagina,
+      this.pageSize
     ).subscribe({
       next: (resp) => {
         this.ordenes = resp.items;

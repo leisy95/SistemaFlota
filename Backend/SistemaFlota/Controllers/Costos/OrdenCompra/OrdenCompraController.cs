@@ -50,6 +50,33 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
             return Ok(resultado);
         }
 
+        // Para mostrar las ordenes compra en recepcion de mercancia 
+        [HttpGet("para-recepcion")]
+        [Permiso("recepcion-mercancia", "ver")]
+        [ProducesResponseType(typeof(OrdenCompraPaginadoDto), StatusCodes.Status200OK)]
+        public async Task<ActionResult<OrdenCompraPaginadoDto>> ObtenerParaRecepcion(
+            [FromQuery] string? search,
+            [FromQuery] string? estado,
+            [FromQuery] int? proveedorId,
+            [FromQuery] string? formaPago,
+            [FromQuery] DateTime? fechaInicio,
+            [FromQuery] DateTime? fechaFin,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var resultado = await _service.ObtenerAsync(
+                search,
+                estado,
+                proveedorId,
+                formaPago,
+                fechaInicio,
+                fechaFin,
+                page,
+                pageSize);
+
+            return Ok(resultado);
+        }
+
 
         // Crear una nueva orden de compra.
         [HttpPost]

@@ -58,6 +58,35 @@ export class OrdenCompraService {
         );
     }
 
+    // Para mostrar las ordenes compra en recepcion de mercancia
+    obtenerParaRecepcion(
+        search = '',
+        estado = '',
+        proveedorId?: number,
+        page = 1,
+        pageSize = 10
+    ) {
+        let params = new HttpParams()
+            .set('page', page)
+            .set('pageSize', pageSize)
+            .set('_t', Date.now().toString());
+
+        if (search)
+            params = params.set('search', search);
+
+        if (estado)
+            params = params.set('estado', estado);
+
+        if (proveedorId)
+            params = params.set('proveedorId', proveedorId);
+
+        return this.http.get<OrdenCompraPaginado>(
+            `${this.api}/para-recepcion`,
+            { params }
+        );
+    }
+
+
     obtenerPorId(id: number) {
         return this.http.get<OrdenCompraResponse>(`${this.api}/${id}`);
     }
