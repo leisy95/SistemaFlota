@@ -66,6 +66,9 @@ export class UsuariosComponent implements OnInit {
     { key: 'pedidos', label: 'Pedidos' },
     { key: 'rrhh-seguimientos', label: 'Seguimientos RRHH' },
 
+    // CONTROL DE ENVIOS
+    { key: 'costos-flete', label: 'Costos Flete' },
+
     // MATERIALES - PROVEEDORES
     { key: 'proveedores-materiales', label: 'Proveedores y Materiales' },
     { key: 'orden-compra', label: 'Órdenes de Compra' },

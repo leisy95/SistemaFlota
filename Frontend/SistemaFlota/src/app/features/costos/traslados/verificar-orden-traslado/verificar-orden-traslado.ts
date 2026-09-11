@@ -41,8 +41,8 @@ export class VerificarOrdenTraslado {
 
     this.materiales = this.orden.materiales.map(material => ({
       ...material,
-      cantidadEncontrada: material.cantidadVerificadaKg ?? 0,
-      bultosEncontrados: material.bultosVerificados ?? 0
+      cantidadEncontrada: material.cantidadVerificadaKg ?? material.cantidadKg,
+      bultosEncontrados: material.bultosVerificados ?? material.bultos
     }));
   }
 

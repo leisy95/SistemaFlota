@@ -4,7 +4,7 @@
       <h1>{{ tipoFormato?.nombre }}</h1>
       <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
     </div>
-    <button *ngIf="permisos.puedeCrear('calidad-formatos')" class="btn-agregar" (click)="nuevo()">
+    <button class="btn-agregar" (click)="nuevo()">
       <i class="fa-solid fa-plus"></i>
       Nuevo registro
     </button>
@@ -79,7 +79,7 @@
 
               <div class="menu-desplegable" *ngIf="menuAbiertoId === r.id">
 
-                <button *ngIf="permisos.puedeVer('calidad-formatos')" (click)="ver(r); cerrarMenus()">
+                <button (click)="ver(r); cerrarMenus()">
                   <i class="fa-solid fa-eye"></i>
                   Ver
                 </button>
