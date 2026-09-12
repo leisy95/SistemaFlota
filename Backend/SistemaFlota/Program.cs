@@ -147,6 +147,24 @@ if (!builder.Environment.IsDevelopment())
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
+app.MapGet("/test-pdf", () =>
+{
+    var ruta = Path.Combine(
+        Directory.GetCurrentDirectory(),
+        "wwwroot",
+        "Costos",
+        "Materiales",
+        "FichaTecnica",
+        "896e770d-1760-40ec-9e41-e56883d45bc6.pdf"
+    );
+
+    return Results.Ok(new
+    {
+        existe = File.Exists(ruta),
+        ruta
+    });
+});
+
 // SEED
 using (var scope = app.Services.CreateScope())
 {
