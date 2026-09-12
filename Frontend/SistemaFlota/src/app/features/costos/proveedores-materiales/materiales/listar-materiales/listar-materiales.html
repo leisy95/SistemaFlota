@@ -123,8 +123,8 @@
                                     <span>Eliminar</span>
                                 </button>
 
-                                <a *ngIf="item.documentoPdf" [href]="'http://localhost:5214/' + item.documentoPdf"
-                                    target="_blank" (click)="cerrarMenu()">
+                                <a *ngIf="item.documentoPdf" [href]="obtenerUrlPdf(item.documentoPdf)" target="_blank"
+                                    (click)="cerrarMenu()">
                                     <i class="fa-solid fa-file-pdf"></i>
                                     <span>Ver Ficha técnica</span>
                                 </a>
@@ -223,8 +223,7 @@
                 </div>
 
                 <div class="drawer-acciones" *ngIf="materialSeleccionado.documentoPdf">
-                    <a [href]="'http://localhost:5214/' + materialSeleccionado.documentoPdf" target="_blank"
-                        class="btn-pdf-drawer">
+                    <a [href]="obtenerUrlPdf(materialSeleccionado.documentoPdf)" target="_blank" class="btn-pdf-drawer">
                         <i class="fa-solid fa-file-pdf"></i>
                         Ver Ficha Técnica en PDF
                     </a>

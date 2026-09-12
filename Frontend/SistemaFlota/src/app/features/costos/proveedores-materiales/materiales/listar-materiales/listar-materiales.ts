@@ -7,6 +7,7 @@ import { CrearMateriales } from '../crear-materiales/crear-materiales';
 import { Material } from '../../../../../core/models/costos/materiales/material.models';
 import { MaterialService } from '../../../../../core/services/costos/materiales/materiales.service';
 import { ProveedorFiltro } from '../../../../../core/models/costos/materiales/filtros-material.models';
+import { environment } from '../../../../../../environments/environment.prod';
 
 @Component({
   selector: 'app-listar-materiales',
@@ -32,6 +33,7 @@ export class ListarMateriales {
   materiales: Material[] = [];
 
   documentoPdf?: string;
+  fotosUrl = environment.fotosUrl;
   menuAbierto: number | null = null;
 
   // Estado para el Panel Lateral (Drawer)
@@ -195,5 +197,10 @@ export class ListarMateriales {
     }
     this.menuAbierto = null;
     console.log('Eliminar:', material);
+  }
+
+  obtenerUrlPdf(documentoPdf?: string): string {
+    if (!documentoPdf) return '';
+    return `${this.fotosUrl}/${documentoPdf}`;
   }
 }
