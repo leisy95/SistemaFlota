@@ -29,7 +29,8 @@ logs/
 Thumbs.db
 
 # Angular
+Frontend/SistemaFlota/node_modules/
 Frontend/SistemaFlota/.angular/
-Backend/SistemaFlota/appsettings.json
 
+Backend/SistemaFlota/appsettings.json
 Backend/SistemaFlota/appsettings.Development.json

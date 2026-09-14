@@ -39,9 +39,10 @@
                 <div class="material-selector">
                     <div class="material-grid">
                         <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.proveedor">
+                            <select [(ngModel)]="materialActual.proveedor" (ngModelChange)="cambiarProveedor()">
                                 <option value="">Proveedor</option>
-                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">{{ proveedor }}
+                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">
+                                    {{ proveedor }}
                                 </option>
                             </select>
                             <i class="fa-solid fa-chevron-down"></i>
@@ -68,10 +69,11 @@
                         </div>
 
                         <input class="input-material" [class.input-error]="cantidadSuperaStock" type="number"
-                            [(ngModel)]="materialActual.cantidadKg" placeholder="Cantidad (Kg)" min="1" step="25" />
+                            [(ngModel)]="materialActual.cantidadKg" (ngModelChange)="calcularBultos()"
+                            placeholder="Cantidad (Kg)" min="1" step="25" />
 
-                        <input class="input-material" type="number" [value]="bultosCalculados" placeholder="Bultos"
-                            readonly />
+                        <input class="input-material" type="number" [(ngModel)]="materialActual.bultos"
+                            placeholder="Bultos" min="1" step="1" />
                     </div>
 
                     <div class="cantidad-container">

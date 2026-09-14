@@ -71,6 +71,16 @@ export class CrearTraslado {
     });
   }
 
+  cambiarProveedor(): void {
+    this.materialActual.materialId = null;
+    this.materialActual.material = '';
+    this.materialActual.tipo = '';
+    this.materialActual.densidad = '';
+    this.materialActual.color = '';
+    this.materialActual.cantidadKg = 0;
+    this.materialActual.bultos = 0;
+  }
+
   cargarOpciones(): void {
     this.proveedores = [...new Set(this.inventarios.map(x => x.proveedor).filter(x => !!x))];
     this.tiposMaterial = [...new Set(this.inventarios.map(x => x.categoria).filter(x => !!x))];
@@ -121,9 +131,14 @@ export class CrearTraslado {
     return Number(this.materialActual.cantidadKg ?? 0) > this.stockDisponible;
   }
 
-  get bultosCalculados(): number {
+  calcularBultos(): void {
     const cantidad = Number(this.materialActual.cantidadKg ?? 0);
-    return cantidad > 0 ? cantidad / 25 : 0;
+
+    if (cantidad > 0 && cantidad % 25 === 0) {
+      this.materialActual.bultos = cantidad / 25;
+    } else {
+      this.materialActual.bultos = 0;
+    }
   }
 
   get totalKg(): number {
@@ -146,6 +161,7 @@ export class CrearTraslado {
     }
 
     const cantidadKg = Number(this.materialActual.cantidadKg);
+    const bultos = Number(this.materialActual.bultos);
 
     if (!cantidadKg || cantidadKg <= 0) {
       this.toastr.warning('La cantidad debe ser mayor a cero.', 'Cantidad inválida');
@@ -157,30 +173,48 @@ export class CrearTraslado {
       return;
     }
 
+    if (!bultos || bultos <= 0) {
+      this.toastr.warning('La cantidad de bultos debe ser mayor a cero.', 'Bultos inválidos');
+      return;
+    }
+
+    if (!Number.isInteger(bultos)) {
+      this.toastr.warning('La cantidad de bultos debe ser un número entero.', 'Bultos inválidos');
+      return;
+    }
+
     if (cantidadKg > this.stockDisponible) {
-      this.toastr.error(`Solo hay ${this.stockDisponible.toLocaleString('es-CO')} KG disponibles para este material.`, 'Stock insuficiente');
+      this.toastr.error(
+        `Solo hay ${this.stockDisponible.toLocaleString('es-CO')} KG disponibles para este material.`,
+        'Stock insuficiente'
+      );
       return;
     }
 
     const cantidadYaSolicitada = this.materiales
-      .filter(x => x.materialId === this.materialActual.materialId && x.color === this.materialActual.color)
+      .filter(x =>
+        x.materialId === this.materialActual.materialId &&
+        x.color === this.materialActual.color
+      )
       .reduce((total, x) => total + Number(x.cantidadKg), 0);
 
     const disponibleDespues = this.stockDisponible - cantidadYaSolicitada;
 
     if (cantidadKg > disponibleDespues) {
-      this.toastr.error(`Ya tienes ${cantidadYaSolicitada.toLocaleString('es-CO')} KG solicitados. Solo puedes agregar ${Math.max(disponibleDespues, 0).toLocaleString('es-CO')} KG adicionales.`, 'Stock insuficiente');
+      this.toastr.error(
+        `Ya tienes ${cantidadYaSolicitada.toLocaleString('es-CO')} KG solicitados. Solo puedes agregar ${Math.max(disponibleDespues, 0).toLocaleString('es-CO')} KG adicionales.`,
+        'Stock insuficiente'
+      );
       return;
     }
 
     this.materiales.push({
       ...this.materialActual,
       cantidadKg,
-      bultos: cantidadKg / 25
+      bultos
     });
 
     this.limpiarMaterial();
-
   }
 
   limpiarMaterial(): void {
