@@ -9,6 +9,7 @@ import { OrdenCompraService } from '../../../../core/services/costos/ordencompra
 import { AccionesOrdenCompra } from '../acciones-orden-compra/acciones-orden-compra';
 import { Proveedor } from '../../../../core/models/costos/proveedores/proveedores.model';
 import { ProveedorService } from '../../../../core/services/costos/proveedores/proveedor.service';
+import { FiltrosOrdenCompra } from '../../../../core/models/costos/ordenCompra/filtrosordencompra.models';
 
 @Component({
   selector: 'app-listar-orden-compra',
@@ -22,7 +23,8 @@ export class ListarOrdenCompra {
   proveedorFiltro?: number;
   estadoFiltro = '';
   ordenes: OrdenCompra[] = [];
-  proveedores: Proveedor[] = [];
+  estados: string[] = [];
+  proveedores: FiltrosOrdenCompra['proveedores'] = [];
 
   total = 0;
   pagina = 1;
@@ -32,12 +34,27 @@ export class ListarOrdenCompra {
     private toastr: ToastrService,
     private dialog: MatDialog,
     private ordenCompraService: OrdenCompraService,
-    private proveedorService: ProveedorService
   ) { }
 
   ngOnInit(): void {
-    this.obtenerProveedores();
+    this.obtenerFiltros();
     this.cargar();
+  }
+
+  obtenerFiltros(): void {
+    this.ordenCompraService.obtenerFiltros().subscribe({
+      next: (respuesta: FiltrosOrdenCompra) => {
+        this.estados = respuesta.estados ?? [];
+        this.proveedores = respuesta.proveedores ?? [];
+      },
+      error: err => {
+        console.error('ERROR FILTROS:', err);
+        this.toastr.error(
+          'No fue posible cargar los filtros.',
+          'Error'
+        );
+      }
+    });
   }
 
   get pendientes(): number {
@@ -58,17 +75,6 @@ export class ListarOrdenCompra {
 
   get valorTotal(): number {
     return this.ordenes.reduce((total, item) => total + item.totalPagar, 0);
-  }
-
-  obtenerProveedores(): void {
-    this.proveedorService.obtener('', '', 'nombre', 1, 1000).subscribe({
-      next: respuesta => {
-        this.proveedores = respuesta.datos;
-      },
-      error: () => {
-        this.toastr.error('No fue posible cargar los proveedores.', 'Error');
-      }
-    });
   }
 
   nuevaOrden(): void {

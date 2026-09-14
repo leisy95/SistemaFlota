@@ -50,6 +50,16 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
             return Ok(resultado);
         }
 
+        // Obtener filtros dinámicos
+        [HttpGet("filtros")]
+        [Permiso("orden-compra", "ver")]
+        [ProducesResponseType(typeof(FiltrosOrdenCompraDto), StatusCodes.Status200OK)]
+        public async Task<ActionResult<FiltrosOrdenCompraDto>> ObtenerFiltros()
+        {
+            var filtros = await _service.ObtenerFiltrosAsync();
+            return Ok(filtros);
+        }
+
         // Para mostrar las ordenes compra en recepcion de mercancia 
         [HttpGet("para-recepcion")]
         [Permiso("recepcion-mercancia", "ver")]

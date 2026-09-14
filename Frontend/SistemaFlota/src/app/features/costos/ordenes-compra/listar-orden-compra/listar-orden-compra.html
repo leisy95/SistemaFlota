@@ -87,9 +87,9 @@
 
         <div class="field">
             <label>Proveedor</label>
-            <select [(ngModel)]="proveedorFiltro" (change)="cargar()">
+            <select [(ngModel)]="proveedorFiltro" (change)="pagina = 1; cargar()">
                 <option [ngValue]="undefined">Todos</option>
-                <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.idProveedor">
+                <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.id">
                     {{ proveedor.nombre }}
                 </option>
             </select>
@@ -97,10 +97,11 @@
 
         <div class="field">
             <label>Estado</label>
-            <select [(ngModel)]="estadoFiltro" (change)="cargar()">
+            <select [(ngModel)]="estadoFiltro" (change)="pagina = 1; cargar()">
                 <option value="">Todos</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Recibida">Recibida</option>
+                <option *ngFor="let estado of estados" [value]="estado">
+                    {{ estado }}
+                </option>
             </select>
         </div>
 

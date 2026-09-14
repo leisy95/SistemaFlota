@@ -9,6 +9,7 @@ import { CrearOrdenCompraRequest } from '../../../models/costos/ordenCompra/crea
 import { OrdenCompraPaginado } from '../../../models/costos/ordenCompra/ordencomprapag.model';
 import { ActualizarOrdenCompra } from '../../../models/costos/ordenCompra/actualizarordencompra.model';
 import { OrdenCompraResponse } from '../../../models/costos/ordenCompra/ordencompra-response.model';
+import { FiltrosOrdenCompra } from '../../../models/costos/ordenCompra/filtrosordencompra.models';
 
 @Injectable({
     providedIn: 'root'
@@ -89,6 +90,12 @@ export class OrdenCompraService {
 
     obtenerPorId(id: number) {
         return this.http.get<OrdenCompraResponse>(`${this.api}/${id}`);
+    }
+
+    obtenerFiltros() {
+        return this.http.get<FiltrosOrdenCompra>(
+            `${this.api}/filtros`
+        );
     }
 
     crear(data: CrearOrdenCompraRequest): Observable<OrdenCompra> {

@@ -561,7 +561,40 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
         public async Task<FiltrosOrdenCompraDto> ObtenerFiltrosAsync()
         {
-            throw new NotImplementedException();
+            var estados = await _context.OrdenesCompra
+                .AsNoTracking()
+                .Where(x => !string.IsNullOrWhiteSpace(x.Estado))
+                .Select(x => x.Estado)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            var proveedores = await _context.OrdenesCompra
+                .AsNoTracking()
+                .Where(x => x.Proveedor != null)
+                .Select(x => new ProveedorOrdenCompraFiltroDto
+                {
+                    Id = x.ProveedorId,
+                    Nombre = x.Proveedor!.Nombre
+                })
+                .Distinct()
+                .OrderBy(x => x.Nombre)
+                .ToListAsync();
+
+            var formasPago = await _context.OrdenesCompra
+                .AsNoTracking()
+                .Where(x => !string.IsNullOrWhiteSpace(x.FormaPago))
+                .Select(x => x.FormaPago)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return new FiltrosOrdenCompraDto
+            {
+                Estados = estados,
+                Proveedores = proveedores,
+                FormasPago = formasPago
+            };
         }
     }
 }
