@@ -139,7 +139,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
         // Enviar orden de compra por correo
 
         [HttpPost("{id:int}/enviar-correo")]
-        [Permiso("orden-compra", "enviar")]
+        [Permiso("orden-compra", "enviar-correo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EnviarCorreo(int id)

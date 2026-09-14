@@ -174,23 +174,47 @@
         </div>
       </div>
 
-      <p class="permisos-nota">Si no configura permisos se usarán los del rol base.</p>
+      <p class="permisos-nota">
+        Si no configura permisos se usarán los del rol base.
+      </p>
 
       <div class="leyenda-permisos">
-        <span class="leyenda-item"><span class="dot-leyenda verde"></span> Ver</span>
-        <span class="leyenda-item"><span class="dot-leyenda azul"></span> Crear</span>
-        <span class="leyenda-item"><span class="dot-leyenda amarillo"></span> Editar</span>
-        <span class="leyenda-item"><span class="dot-leyenda rojo"></span> Eliminar</span>
+        <span class="leyenda-item">
+          <span class="dot-leyenda verde"></span> Ver
+        </span>
+        <span class="leyenda-item">
+          <span class="dot-leyenda azul"></span> Crear
+        </span>
+        <span class="leyenda-item">
+          <span class="dot-leyenda amarillo"></span> Editar
+        </span>
+        <span class="leyenda-item">
+          <span class="dot-leyenda rojo"></span> Eliminar
+        </span>
+        <span class="leyenda-item">
+          <i class="fa-solid fa-envelope"></i> Enviar correo
+        </span>
       </div>
 
       <div class="permisos-tabla">
         <div class="permiso-fila encabezado">
           <div class="permiso-modulo">Módulo</div>
           <div class="permiso-acceso">Acceso</div>
-          <div class="permiso-accion"><i class="fa-solid fa-eye"></i></div>
-          <div class="permiso-accion"><i class="fa-solid fa-plus"></i></div>
-          <div class="permiso-accion"><i class="fa-solid fa-pen"></i></div>
-          <div class="permiso-accion"><i class="fa-solid fa-trash"></i></div>
+          <div class="permiso-accion" title="Ver">
+            <i class="fa-solid fa-eye"></i>
+          </div>
+          <div class="permiso-accion" title="Crear">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <div class="permiso-accion" title="Editar">
+            <i class="fa-solid fa-pen"></i>
+          </div>
+          <div class="permiso-accion" title="Eliminar">
+            <i class="fa-solid fa-trash"></i>
+          </div>
+          <div class="permiso-accion permiso-correo" title="Enviar correo">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
         </div>
 
         <div class="permiso-fila" *ngFor="let m of modulos" [class.activo]="tienePermiso(m.key)">
@@ -202,40 +226,84 @@
           <div class="permiso-acceso">
             <button class="btn-acceso" [class.con-acceso]="tienePermiso(m.key)"
               [class.sin-acceso]="!tienePermiso(m.key)" (click)="toggleModulo(m.key)">
-              <i class="fa-solid fa-{{ tienePermiso(m.key) ? 'circle-check' : 'circle' }}"></i>
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) ? 'circle-check' : 'circle'
+                }}">
+              </i>
+
               {{ tienePermiso(m.key) ? 'Sí' : 'No' }}
             </button>
           </div>
 
+          <!-- VER -->
           <div class="permiso-accion">
             <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeVer"
               [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeVer')">
-              <i
-                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeVer ? 'square-check' : 'square' }}"></i>
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) && getPermiso(m.key).puedeVer
+                    ? 'square-check'
+                    : 'square'
+                }}">
+              </i>
             </button>
           </div>
 
+          <!-- CREAR -->
           <div class="permiso-accion">
             <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeCrear"
               [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeCrear')">
-              <i
-                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeCrear ? 'square-check' : 'square' }}"></i>
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) && getPermiso(m.key).puedeCrear
+                    ? 'square-check'
+                    : 'square'
+                }}">
+              </i>
             </button>
           </div>
 
+          <!-- EDITAR -->
           <div class="permiso-accion">
             <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEditar"
               [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeEditar')">
-              <i
-                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEditar ? 'square-check' : 'square' }}"></i>
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) && getPermiso(m.key).puedeEditar
+                    ? 'square-check'
+                    : 'square'
+                }}">
+              </i>
             </button>
           </div>
 
+          <!-- ELIMINAR -->
           <div class="permiso-accion">
             <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEliminar"
               [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeEliminar')">
-              <i
-                class="fa-solid fa-{{ tienePermiso(m.key) && getPermiso(m.key).puedeEliminar ? 'square-check' : 'square' }}"></i>
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) && getPermiso(m.key).puedeEliminar
+                    ? 'square-check'
+                    : 'square'
+                }}">
+              </i>
+            </button>
+          </div>
+
+          <!-- ENVIAR CORREO -->
+          <div class="permiso-accion permiso-correo">
+            <button class="btn-check" [class.activo]="tienePermiso(m.key) && getPermiso(m.key).puedeEnviarCorreo"
+              [disabled]="!tienePermiso(m.key)" (click)="toggleAccion(m.key, 'puedeEnviarCorreo')"
+              title="Permitir enviar correo">
+
+              <i class="fa-solid fa-{{
+                  tienePermiso(m.key) && getPermiso(m.key).puedeEnviarCorreo
+                    ? 'square-check'
+                    : 'square'
+                }}">
+              </i>
             </button>
           </div>
 

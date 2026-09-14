@@ -71,7 +71,8 @@ namespace SistemaFlota
                         p.PuedeVer,
                         p.PuedeCrear,
                         p.PuedeEditar,
-                        p.PuedeEliminar
+                        p.PuedeEliminar,
+                        p.PuedeEnviarCorreo
                     }).ToList()
                 })
                 .ToListAsync();
@@ -134,7 +135,8 @@ namespace SistemaFlota
                         p.PuedeVer,
                         p.PuedeCrear,
                         p.PuedeEditar,
-                        p.PuedeEliminar
+                        p.PuedeEliminar,
+                        p.PuedeEnviarCorreo
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -191,6 +193,7 @@ namespace SistemaFlota
                         PuedeCrear = p.PuedeCrear,
                         PuedeEditar = p.PuedeEditar,
                         PuedeEliminar = p.PuedeEliminar,
+                        PuedeEnviarCorreo = p.PuedeEnviarCorreo,
                         EsInicio = p.PuedeVer && !inicioAsignado
                     });
 
@@ -267,6 +270,7 @@ namespace SistemaFlota
                         PuedeCrear = p.PuedeCrear,
                         PuedeEditar = p.PuedeEditar,
                         PuedeEliminar = p.PuedeEliminar,
+                        PuedeEnviarCorreo = p.PuedeEnviarCorreo,
                         EsInicio = p.PuedeVer && !inicioAsignado
                     });
 
@@ -442,7 +446,8 @@ namespace SistemaFlota
                 p.PuedeVer,
                 p.PuedeCrear,
                 p.PuedeEditar,
-                p.PuedeEliminar
+                p.PuedeEliminar,
+                p.PuedeEnviarCorreo
             }).ToList();
 
             return Ok(new { permisos });
@@ -468,6 +473,7 @@ namespace SistemaFlota
         public bool PuedeCrear { get; set; } = false;
         public bool PuedeEditar { get; set; } = false;
         public bool PuedeEliminar { get; set; } = false;
+        public bool PuedeEnviarCorreo { get; set; } = false;
     }
 
     public class RecuperarDto { public string Email { get; set; } = string.Empty; }

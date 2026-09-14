@@ -6,5 +6,6 @@
         public const string Crear = "crear";
         public const string Editar = "editar";
         public const string Eliminar = "eliminar";
+        public const string EnviarCorreo = "enviar-correo";
     }
 }

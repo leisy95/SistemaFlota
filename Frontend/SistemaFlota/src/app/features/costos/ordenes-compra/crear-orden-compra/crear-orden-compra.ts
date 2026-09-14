@@ -37,6 +37,7 @@ export class CrearOrdenCompra implements OnInit {
   formasPago: string[] = [
     'Contado',
     '50% Anticipo / 50% Contra entrega',
+    'Crédito',
     'Crédito 15 días',
     'Crédito 30 días',
     'Crédito 60 días',

@@ -60,6 +60,7 @@ namespace SistemaFlota.Authorization
                 "crear" => permiso.PuedeCrear,
                 "editar" => permiso.PuedeEditar,
                 "eliminar" => permiso.PuedeEliminar,
+                "enviar-correo" => permiso.PuedeEnviarCorreo,
                 _ => false
             };
 

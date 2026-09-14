@@ -128,7 +128,8 @@ export class UsuariosComponent implements OnInit {
 
   getPermiso(modulo: string): PermisoGranular {
     return this.nuevoUsuario.permisos.find(p => p.modulo === modulo) ?? {
-      modulo, puedeVer: false, puedeCrear: false, puedeEditar: false, puedeEliminar: false
+      modulo, puedeVer: false, puedeCrear: false, puedeEditar: false, puedeEliminar: false,
+      puedeEnviarCorreo: false
     };
   }
 
@@ -139,29 +140,51 @@ export class UsuariosComponent implements OnInit {
   toggleModulo(modulo: string) {
     const idx = this.nuevoUsuario.permisos.findIndex(p => p.modulo === modulo);
     if (idx >= 0) this.nuevoUsuario.permisos.splice(idx, 1);
-    else this.nuevoUsuario.permisos.push({ modulo, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false });
+    else this.nuevoUsuario.permisos.push({
+      modulo, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false,
+      puedeEnviarCorreo: false
+    });
   }
 
-  toggleAccion(modulo: string, accion: 'puedeVer' | 'puedeCrear' | 'puedeEditar' | 'puedeEliminar') {
+  toggleAccion(
+    modulo: string,
+    accion: 'puedeVer' | 'puedeCrear' | 'puedeEditar' | 'puedeEliminar' | 'puedeEnviarCorreo'
+  ) {
     const p = this.nuevoUsuario.permisos.find(p => p.modulo === modulo);
+
     if (!p) return;
+
     p[accion] = !p[accion];
+
     if (accion === 'puedeVer' && !p.puedeVer) {
-      p.puedeCrear = false; p.puedeEditar = false; p.puedeEliminar = false;
+      p.puedeCrear = false;
+      p.puedeEditar = false;
+      p.puedeEliminar = false;
+      p.puedeEnviarCorreo = false;
     }
-    if ((accion === 'puedeCrear' || accion === 'puedeEditar' || accion === 'puedeEliminar') && p[accion])
+
+    if (
+      (accion === 'puedeCrear' ||
+        accion === 'puedeEditar' ||
+        accion === 'puedeEliminar' ||
+        accion === 'puedeEnviarCorreo') &&
+      p[accion]
+    ) {
       p.puedeVer = true;
+    }
   }
 
   seleccionarTodos() {
     this.nuevoUsuario.permisos = this.modulos.map(m => ({
-      modulo: m.key, puedeVer: true, puedeCrear: true, puedeEditar: true, puedeEliminar: true
+      modulo: m.key, puedeVer: true, puedeCrear: true, puedeEditar: true, puedeEliminar: true,
+      puedeEnviarCorreo: true
     }));
   }
 
   soloLectura() {
     this.nuevoUsuario.permisos = this.modulos.map(m => ({
-      modulo: m.key, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false
+      modulo: m.key, puedeVer: true, puedeCrear: false, puedeEditar: false, puedeEliminar: false,
+      puedeEnviarCorreo: false
     }));
   }
 
@@ -193,7 +216,8 @@ export class UsuariosComponent implements OnInit {
     this.editando = true; this.usuarioEditarId = usuario.id;
     const permisos: PermisoGranular[] = (usuario.permisos ?? []).map((p: any) => ({
       modulo: p.modulo, puedeVer: p.puedeVer ?? true, puedeCrear: p.puedeCrear ?? false,
-      puedeEditar: p.puedeEditar ?? false, puedeEliminar: p.puedeEliminar ?? false
+      puedeEditar: p.puedeEditar ?? false, puedeEliminar: p.puedeEliminar ?? false,
+      puedeEnviarCorreo: p.puedeEnviarCorreo ?? false
     }));
     this.nuevoUsuario = { username: usuario.username, password: '', rol: usuario.rol, email: usuario.email ?? '', activo: usuario.activo, permisos };
     this.mostrarModal = true;
@@ -264,5 +288,5 @@ export class UsuariosComponent implements OnInit {
 
 interface PermisoGranular {
   modulo: string; puedeVer: boolean; puedeCrear: boolean;
-  puedeEditar: boolean; puedeEliminar: boolean;
+  puedeEditar: boolean; puedeEliminar: boolean; puedeEnviarCorreo: boolean;
 }

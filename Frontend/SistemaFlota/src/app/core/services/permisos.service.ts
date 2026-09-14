@@ -7,7 +7,7 @@ export interface PermisoUsuario {
   puedeCrear: boolean;
   puedeEditar: boolean;
   puedeEliminar: boolean;
-  puedeEnviar: boolean;
+  puedeEnviarCorreo: boolean;
   esInicio: boolean;
 }
 
@@ -53,9 +53,9 @@ export class PermisosService {
   }
 
   puedeEnviar(modulo: string): boolean {
-    if (this.rol === 'Admin') return true
+    if (this.rol === 'Admin') return true;
     const permiso = this.permisos.find(p => p.modulo === modulo);
-    return permiso?.puedeEnviar === true;
+    return permiso?.puedeEnviarCorreo === true;
   }
 
   obtenerPermisos(): PermisoUsuario[] {

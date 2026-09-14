@@ -20,5 +20,6 @@ namespace SistemaFlota
         public bool PuedeCrear { get; set; } = false;
         public bool PuedeEditar { get; set; } = false;
         public bool PuedeEliminar { get; set; } = false;
+        public bool PuedeEnviarCorreo { get; set; }
     }
 }
