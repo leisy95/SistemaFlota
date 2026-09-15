@@ -55,13 +55,14 @@ export class CrearMateriales implements OnInit {
   categorias: Categoria[] = [];
 
   ngOnInit(): void {
-    this.obtenerProveedores();
-    this.obtenerColores();
-    this.obtenerCategorias();
 
     if (this.data) {
       this.material = { ...this.data };
     }
+
+    this.obtenerProveedores();
+    this.obtenerColores();
+    this.obtenerCategorias();
   }
 
   obtenerProveedores(): void {
@@ -84,20 +85,19 @@ export class CrearMateriales implements OnInit {
   }
 
   obtenerColores(): void {
-
     this.materialService.obtenerColores().subscribe({
-
       next: (respuesta) => {
+        console.log('COLORES API:', respuesta);
+        console.log('COLOR MATERIAL:', this.material.color);
+
         this.colores = respuesta;
       },
-
       error: () => {
         this.toastr.error(
           'No fue posible cargar los colores.',
           'Error'
         );
       }
-
     });
   }
 
