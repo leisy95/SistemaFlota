@@ -59,44 +59,38 @@ public class EmailTemplateService
     {
         return $@"
         <html>
-        <body style='font-family: Arial; color:#333'>
-
-            <h2 style='color:#1D4ED8'>
-                Orden de compra
-            </h2>
+        <body style='font-family: Arial; color:#333; font-size:14px'>
 
             <p>
-                Se ha generado una nueva orden de compra.
+                Buenos días,
             </p>
 
-            <table>
-                <tr>
-                    <td><b>Número:</b></td>
-                    <td>{numeroOrden}</td>
-                </tr>
+            <p>
+                Adjunto orden de compra, de antemano muchas gracias
+                por la atención prestada.
+            </p>
 
-                <tr>
-                    <td><b>Proveedor:</b></td>
-                    <td>{proveedor}</td>
-                </tr>
+            <p>
+                <b>Orden de compra:</b> {numeroOrden}<br/>
+                <b>Proveedor:</b> {proveedor}<br/>
+                <b>Fecha:</b> {fecha:dd/MM/yyyy}
+            </p>
 
-                <tr>
-                    <td><b>Fecha:</b></td>
-                    <td>{fecha:dd/MM/yyyy HH:mm}</td>
-                </tr>
-            </table>
+            <p>
+                <b>Confirmar recibido.</b>
+            </p>
 
             <br/>
 
             <p>
-                Se adjunta el documento PDF correspondiente.
+                Cordialmente
             </p>
 
-            <hr/>
-
-            <small>
-                Sistema Flota
-            </small>
+            <p>
+                <b>Oliver Gutierrez</b><br/>
+                Jefe de compras<br/>
+                Empaques plásticos SAS
+            </p>
 
         </body>
         </html>";
