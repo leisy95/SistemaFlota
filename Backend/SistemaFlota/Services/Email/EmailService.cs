@@ -25,7 +25,8 @@ public class EmailService : IEmailService
             asunto,
             html,
             null,
-            null);
+            null,
+            _settings.From);
     }
 
     public async Task EnviarAsync(
@@ -35,12 +36,29 @@ public class EmailService : IEmailService
         byte[]? archivo,
         string? nombreArchivo)
     {
+        await EnviarAsync(
+            para,
+            asunto,
+            html,
+            archivo,
+            nombreArchivo,
+            _settings.From);
+    }
+
+    public async Task EnviarAsync(
+        string para,
+        string asunto,
+        string html,
+        byte[]? archivo,
+        string? nombreArchivo,
+        string remitente)
+    {
         var mensaje = new MimeMessage();
 
         mensaje.From.Add(
             new MailboxAddress(
                 _settings.DisplayName,
-                _settings.From));
+                remitente));
 
         mensaje.To.Add(
             MailboxAddress.Parse(para));

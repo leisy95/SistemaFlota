@@ -13,4 +13,12 @@ public interface IEmailService
         string html,
         byte[] archivo,
         string nombreArchivo);
+
+    Task EnviarAsync(
+        string para,
+        string asunto,
+        string html,
+        byte[] archivo,
+        string nombreArchivo,
+        string remitente);
 }

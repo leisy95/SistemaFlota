@@ -3,6 +3,7 @@ using SistemaFlota.Models;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.Consecutivo;
+using SistemaFlota.Models.Correos;
 using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
 using SistemaFlota.Models.Costos.OrdenesCompras;
@@ -65,6 +66,7 @@ namespace SistemaFlota
         public DbSet<IdempotencyLog> IdempotencyLogs { get; set; }
 
         //  --Costos--
+        public DbSet<CorreoAutorizado> CorreosAutorizados { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Material> Materiales { get; set; }
         public DbSet<OrdenCompra> OrdenesCompra { get; set; }
@@ -83,6 +85,16 @@ namespace SistemaFlota
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<CorreoAutorizado>()
+                .HasOne(x => x.Usuario)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CorreoAutorizado>()
+                .HasIndex(x => new { x.UsuarioId, x.Proveedor })
+                .IsUnique();
 
             modelBuilder.Entity<IdempotencyLog>()
                 .HasIndex(x => x.Key)

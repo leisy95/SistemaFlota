@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 using SistemaFlota;
 using SistemaFlota.Authorization;
@@ -10,6 +11,7 @@ using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.Correos;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
 using SistemaFlota.Services.Costos.Materiales;
@@ -35,7 +37,33 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese el token JWT."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // CORS 
 builder.Services.AddCors(options =>
@@ -82,6 +110,9 @@ Console.WriteLine($">>> Tiene conexion: {!string.IsNullOrEmpty(connectionString)
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email"));
 
+builder.Services.Configure<GoogleOAuthSettings>(
+    builder.Configuration.GetSection("GoogleOAuth"));
+
 // -- MySQL con versión fija — evita AutoDetect en Railway ----------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
@@ -100,6 +131,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // Servicios
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IMaterialesService, MaterialService>();
 builder.Services.AddScoped<IOrdenCompraService, OrdenCompraService>();

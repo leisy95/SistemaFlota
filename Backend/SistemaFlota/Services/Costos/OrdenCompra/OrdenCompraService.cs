@@ -518,7 +518,8 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         }
 
         // Enviar correo + pdf
-        public async Task<bool> EnviarPorCorreoAsync(int id)
+        public async Task<bool> EnviarPorCorreoAsync(
+            int id)
         {
             var orden = await _context.OrdenesCompra
                 .Include(x => x.Proveedor)
@@ -534,6 +535,11 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 throw new Exception(
                     "El proveedor no tiene un correo configurado.");
 
+            // Validar correo del usuario que inició sesión
+            if (string.IsNullOrWhiteSpace(_currentUser.Email))
+                throw new Exception(
+                    "El usuario que inició sesión no tiene un correo electrónico configurado.");
+
             // Generar PDF
             byte[] pdf = await _ordenCompraPdfService.GenerarPdfAsync(id);
 
@@ -544,15 +550,18 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 orden.FechaOrden);
 
             // Enviar correo con PDF adjunto
+            // El remitente será el correo del usuario que inició sesión
             await _emailService.EnviarAsync(
                 orden.Proveedor.CorreoElectronico,
                 $"Orden de compra {orden.Numero}",
                 html,
                 pdf,
-                $"OrdenCompra-{orden.Numero}.pdf");
+                $"OrdenCompra-{orden.Numero}.pdf",
+                _currentUser.Email);
 
             return true;
         }
+
 
         public async Task<bool> EliminarAsync(int id)
         {
