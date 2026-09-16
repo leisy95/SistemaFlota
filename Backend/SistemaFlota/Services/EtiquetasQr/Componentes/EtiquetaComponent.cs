@@ -13,7 +13,8 @@ public static class EtiquetaComponent
         SistemaFlota.Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
         RecepcionMercanciaDetalle detalle,
         int numeroBulto,
-        int totalBultos)
+        int totalBultos,
+        string codigoFormateado)
     {
         container
             .Border(1)
@@ -43,7 +44,8 @@ public static class EtiquetaComponent
                     {
                         QrComponent.Dibujar(
                             qr,
-                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id};BULTO:{numeroBulto}/{totalBultos}");
+                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id};BULTO:{numeroBulto}/{totalBultos}",
+                            codigoFormateado);
                     });
             });
     }

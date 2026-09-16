@@ -9,7 +9,8 @@ public static class QrComponent
 {
     public static void Dibujar(
         IContainer container,
-        string contenidoQr)
+        string contenidoQr,
+        string codigo)
     {
         using var qrGenerator = new QRCodeGenerator();
 
@@ -22,11 +23,27 @@ public static class QrComponent
         byte[] qrBytes = qrCode.GetGraphic(10);
 
         container
-            .Padding(3)
             .AlignCenter()
-            .AlignMiddle()
-            .Width(35, Unit.Millimetre)
-            .Height(35, Unit.Millimetre)
-            .Image(qrBytes);
+            .Column(column =>
+            {
+                column.Item()
+                    .Width(35, Unit.Millimetre)
+                    .Height(35, Unit.Millimetre)
+                    .Image(qrBytes);
+
+                column.Item()
+                    .PaddingTop(1)
+                    .AlignCenter()
+                    .Text("CÓDIGO DE TRAZABILIDAD")
+                    .FontSize(5.5f)
+                    .FontColor(Colors.Grey.Darken2);
+
+                column.Item()
+                    .PaddingTop(0.5f)
+                    .AlignCenter()
+                    .Text(codigo)
+                    .FontSize(8)
+                    .Bold();
+            });
     }
 }
