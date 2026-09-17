@@ -27,6 +27,17 @@ export class PermisosService {
   cargar(usuario: any): void {
     this.rol = usuario?.rol ?? '';
     this.permisos = usuario?.permisos ?? [];
+
+    const inventario = this.permisos.find(
+      p => p.modulo === 'inventario'
+    );
+
+    console.log('USUARIO:', usuario);
+    console.log('PERMISO INVENTARIO:', inventario);
+    console.log(
+      'PUEDE VER DATOS NUMERICOS:',
+      inventario?.puedeVerDatosNumericos
+    );
   }
 
   puedeVer(modulo: string): boolean {

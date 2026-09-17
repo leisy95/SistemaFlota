@@ -150,6 +150,7 @@ namespace SistemaFlota
                 puedeEditar = p.PuedeEditar,
                 puedeEliminar = p.PuedeEliminar,
                 puedeEnviarCorreo = p.PuedeEnviarCorreo,
+                puedeVerDatosNumericos = p.PuedeVerDatosNumericos,
                 esInicio = p.EsInicio
             }).ToList();
 
@@ -188,6 +189,7 @@ namespace SistemaFlota
                     puedeEditar = p.PuedeEditar,
                     puedeEliminar = p.PuedeEliminar,
                     puedeEnviarCorreo = p.PuedeEnviarCorreo,
+                    puedeVerDatosNumericos = p.PuedeVerDatosNumericos,
                     esInicio = p.EsInicio
                 })
                 .ToListAsync();
