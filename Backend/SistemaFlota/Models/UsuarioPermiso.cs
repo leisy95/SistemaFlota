@@ -21,5 +21,6 @@ namespace SistemaFlota
         public bool PuedeEditar { get; set; } = false;
         public bool PuedeEliminar { get; set; } = false;
         public bool PuedeEnviarCorreo { get; set; }
+        public bool PuedeVerDatosNumericos { get; set; } = false;
     }
 }

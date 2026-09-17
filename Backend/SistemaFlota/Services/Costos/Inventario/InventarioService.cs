@@ -96,7 +96,8 @@ namespace SistemaFlota.Services.Costos.Inventario
             string? categoria,
             string? color,
             int page,
-            int pageSize)
+            int pageSize,
+            bool puedeVerDatosNumericos)
         {
             var query = _context.Inventarios
                 .AsNoTracking()
@@ -145,11 +146,17 @@ namespace SistemaFlota.Services.Costos.Inventario
             var total = await query.CountAsync();
 
             // TOTALES GLOBALES DE LOS REGISTROS FILTRADOS
-            var totalKg = await query
-                .SumAsync(i => i.StockActual);
+            decimal? totalKg = null;
+            decimal? totalValorInventario = null;
 
-            var totalValorInventario = await query
-                .SumAsync(i => i.ValorInventario);
+            if (puedeVerDatosNumericos)
+            {
+                totalKg = await query
+                    .SumAsync(i => i.StockActual);
+
+                totalValorInventario = await query
+                    .SumAsync(i => i.ValorInventario);
+            }
 
             // SOLO AQUÍ APLICAMOS PAGINACIÓN
             var items = await query
@@ -166,22 +173,45 @@ namespace SistemaFlota.Services.Costos.Inventario
                     Categoria = i.Material.Categoria,
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
-                    StockActual = i.StockActual,
-                    CantidadComprometida = _context.OrdenesTraslado
-                        .Where(o => o.Estado == "Pendiente" || o.Estado == "Verificando")
-                        .SelectMany(o => o.Detalles)
-                        .Where(d => d.MaterialId == i.MaterialId && d.Color == i.Color)
-                        .Sum(d => (decimal?)d.CantidadKg) ?? 0m,
-                    StockDisponible = Math.Max(
-                        i.StockActual -
-                        (_context.OrdenesTraslado
-                            .Where(o => o.Estado == "Pendiente" || o.Estado == "Verificando")
+
+                    StockActual = puedeVerDatosNumericos
+                        ? i.StockActual
+                        : null,
+
+                    CantidadComprometida = puedeVerDatosNumericos
+                        ? _context.OrdenesTraslado
+                            .Where(o =>
+                                o.Estado == "Pendiente" ||
+                                o.Estado == "Verificando")
                             .SelectMany(o => o.Detalles)
-                            .Where(d => d.MaterialId == i.MaterialId && d.Color == i.Color)
-                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m),
-                        0m),
-                    CostoPromedio = i.CostoPromedio,
-                    ValorInventario = i.ValorInventario
+                            .Where(d =>
+                                d.MaterialId == i.MaterialId &&
+                                d.Color == i.Color)
+                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m
+                        : null,
+
+                    StockDisponible = puedeVerDatosNumericos
+                        ? Math.Max(
+                            i.StockActual -
+                            (_context.OrdenesTraslado
+                                .Where(o =>
+                                    o.Estado == "Pendiente" ||
+                                    o.Estado == "Verificando")
+                                .SelectMany(o => o.Detalles)
+                                .Where(d =>
+                                    d.MaterialId == i.MaterialId &&
+                                    d.Color == i.Color)
+                                .Sum(d => (decimal?)d.CantidadKg) ?? 0m),
+                            0m)
+                        : null,
+
+                    CostoPromedio = puedeVerDatosNumericos
+                        ? i.CostoPromedio
+                        : null,
+
+                    ValorInventario = puedeVerDatosNumericos
+                        ? i.ValorInventario
+                        : null
                 })
                 .ToListAsync();
 
@@ -227,14 +257,14 @@ namespace SistemaFlota.Services.Costos.Inventario
              string? search,
              int? proveedorId,
              string? categoria,
-             string? color)
+             string? color,
+             bool puedeVerDatosNumericos)
         {
             var query = _context.Inventarios
                 .AsNoTracking()
                 .Include(i => i.Material)
                     .ThenInclude(m => m.Proveedor)
                 .AsQueryable();
-
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -252,12 +282,10 @@ namespace SistemaFlota.Services.Costos.Inventario
             }
 
             if (proveedorId.HasValue)
-                query = query.Where(i => i.Material!.IdProveedor == proveedorId);
-
+                query = query.Where(i => i.Material!.IdProveedor == proveedorId.Value);
 
             if (!string.IsNullOrWhiteSpace(categoria))
                 query = query.Where(i => i.Material!.Categoria == categoria);
-
 
             if (!string.IsNullOrWhiteSpace(color))
                 query = query.Where(i => i.Color == color);
@@ -267,176 +295,107 @@ namespace SistemaFlota.Services.Costos.Inventario
                 .ThenBy(i => i.Color)
                 .ToListAsync();
 
-            var empresa = await _context.ConfiguracionEmpresa
-                .FirstOrDefaultAsync();
+            var empresa = await _context.ConfiguracionEmpresa.FirstOrDefaultAsync();
 
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(
-                    u => u.Id == _currentUser.IdUsuario
-                );
+                .FirstOrDefaultAsync(u => u.Id == _currentUser.IdUsuario);
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Reporte Inventario");
 
-            // ENCABEZADO EMPRESA
-            ws.Range("A1:H1").Merge();
+            var ultimaColumna = puedeVerDatosNumericos ? "H" : "E";
+            var cantidadColumnas = puedeVerDatosNumericos ? 8 : 5;
 
-            ws.Cell("A1").Value =
-                empresa?.NombreEmpresa ?? "EMPRESA";
-
+            ws.Range($"A1:{ultimaColumna}1").Merge();
+            ws.Cell("A1").Value = empresa?.NombreEmpresa ?? "EMPRESA";
             ws.Cell("A1").Style.Font.Bold = true;
             ws.Cell("A1").Style.Font.FontSize = 18;
-            ws.Cell("A1").Style.Alignment.Horizontal =
-                XLAlignmentHorizontalValues.Center;
+            ws.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            ws.Range("A2:H2").Merge();
-
-            ws.Cell("A2").Value =
-                "REPORTE DE INVENTARIO";
-
+            ws.Range($"A2:{ultimaColumna}2").Merge();
+            ws.Cell("A2").Value = "REPORTE DE INVENTARIO";
             ws.Cell("A2").Style.Font.Bold = true;
             ws.Cell("A2").Style.Font.FontSize = 14;
-            ws.Cell("A2").Style.Alignment.Horizontal =
-                XLAlignmentHorizontalValues.Center;
+            ws.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
+            ws.Range($"A3:{ultimaColumna}3").Merge();
+            ws.Cell("A3").Value = $"Fecha exportación: {DateTime.Now:dd/MM/yyyy HH:mm}";
 
+            ws.Range($"A4:{ultimaColumna}4").Merge();
+            ws.Cell("A4").Value = $"Usuario exportación: {usuario?.Username ?? "Sistema"}";
 
-            ws.Range("A3:H3").Merge();
-
-            ws.Cell("A3").Value =
-                $"Fecha exportación: {DateTime.Now:dd/MM/yyyy HH:mm}";
-
-            ws.Range("A4:H4").Merge();
-
-            ws.Cell("A4").Value =
-                $"Usuario exportación: {usuario?.Username ?? "Sistema"}";
-
-            ws.Range("A5:H5").Merge();
-
+            ws.Range($"A5:{ultimaColumna}5").Merge();
             ws.Cell("A5").Value =
-                $"Filtros aplicados: " +
-                $"Búsqueda={search ?? "Todos"} | " +
-                $"Categoría={categoria ?? "Todas"} | " +
-                $"Color={color ?? "Todos"}";
+                $"Filtros aplicados: Búsqueda={search ?? "Todos"} | " +
+                $"Categoría={categoria ?? "Todas"} | Color={color ?? "Todos"}";
 
             var filaInicio = 7;
 
-            // TABLA
-            var headers = new[]
-            {
-                "Material",
-                "Proveedor",
-                "Categoría",
-                "Color",
-                "Densidad",
-                "Stock Actual",
-                "Costo Promedio",
-                "Valor Inventario"
-            };
+            var headers = puedeVerDatosNumericos
+                ? new[]
+                {
+            "Material", "Proveedor", "Categoría", "Color", "Densidad",
+            "Stock Actual", "Costo Promedio", "Valor Inventario"
+                }
+                : new[]
+                {
+            "Material", "Proveedor", "Categoría", "Color", "Densidad"
+                };
 
             for (int i = 0; i < headers.Length; i++)
-            {
-                ws.Cell(filaInicio, i + 1)
-                    .Value = headers[i];
-            }
+                ws.Cell(filaInicio, i + 1).Value = headers[i];
 
-            var header = ws.Range(
-                filaInicio,
-                1,
-                filaInicio,
-                8);
-
-            header.Style.Fill.BackgroundColor =
-                XLColor.FromHtml("#1F4E78");
-
-
-            header.Style.Font.FontColor =
-                XLColor.White;
-
+            var header = ws.Range(filaInicio, 1, filaInicio, cantidadColumnas);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#1F4E78");
+            header.Style.Font.FontColor = XLColor.White;
             header.Style.Font.Bold = true;
-
-            header.Style.Alignment.Horizontal =
-                XLAlignmentHorizontalValues.Center;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
             int fila = filaInicio + 1;
-
             decimal totalStock = 0;
             decimal totalValor = 0;
 
             foreach (var item in inventario)
             {
-                ws.Cell(fila, 1)
-                    .Value = item.Material?.DescripcionCompra;
+                ws.Cell(fila, 1).Value = item.Material?.DescripcionCompra;
+                ws.Cell(fila, 2).Value = item.Material?.Proveedor?.Nombre;
+                ws.Cell(fila, 3).Value = item.Material?.Categoria;
+                ws.Cell(fila, 4).Value = item.Color;
+                ws.Cell(fila, 5).Value = item.Material?.Densidad;
 
-                ws.Cell(fila, 2)
-                    .Value = item.Material?.Proveedor?.Nombre;
+                if (puedeVerDatosNumericos)
+                {
+                    ws.Cell(fila, 6).Value = item.StockActual;
+                    ws.Cell(fila, 7).Value = item.CostoPromedio;
+                    ws.Cell(fila, 8).Value = item.ValorInventario;
 
-                ws.Cell(fila, 3)
-                    .Value = item.Material?.Categoria;
-
-
-                ws.Cell(fila, 4)
-                    .Value = item.Color;
-
-                ws.Cell(fila, 5)
-                    .Value = item.Material?.Densidad;
-
-                ws.Cell(fila, 6)
-                    .Value = item.StockActual;
-
-                ws.Cell(fila, 7)
-                    .Value = item.CostoPromedio;
-
-                ws.Cell(fila, 8)
-                    .Value = item.ValorInventario;
-
-                totalStock += item.StockActual;
-                totalValor += item.ValorInventario;
+                    totalStock += item.StockActual;
+                    totalValor += item.ValorInventario;
+                }
 
                 fila++;
             }
 
-            // TABLA CON FILTROS
-
-            var tabla = ws.Range(
-                filaInicio,
-                1,
-                fila - 1,
-                8);
+            var tabla = ws.Range(filaInicio, 1, fila - 1, cantidadColumnas);
             tabla.CreateTable();
 
+            if (puedeVerDatosNumericos)
+            {
+                ws.Cell(fila + 1, 5).Value = "TOTAL";
+                ws.Cell(fila + 1, 5).Style.Font.Bold = true;
 
-            ws.Cell(fila + 1, 5)
-                .Value = "TOTAL";
+                ws.Cell(fila + 1, 6).Value = totalStock;
+                ws.Cell(fila + 1, 6).Style.Font.Bold = true;
 
+                ws.Cell(fila + 1, 8).Value = totalValor;
+                ws.Cell(fila + 1, 8).Style.Font.Bold = true;
 
-            ws.Cell(fila + 1, 5)
-                .Style.Font.Bold = true;
+                ws.Column(6).Style.NumberFormat.Format = "#,##0.00";
+                ws.Column(7).Style.NumberFormat.Format = "$ #,##0";
+                ws.Column(8).Style.NumberFormat.Format = "$ #,##0";
+            }
 
-            ws.Cell(fila + 1, 6)
-                .Value = totalStock;
-            ws.Cell(fila + 1, 8)
-                .Value = totalValor;
-            ws.Cell(fila + 1, 6)
-                .Style.Font.Bold = true;
-            ws.Cell(fila + 1, 8)
-                .Style.Font.Bold = true;
-
-            ws.Column(6)
-                .Style.NumberFormat.Format =
-                "#,##0.00";
-
-            ws.Column(7)
-                .Style.NumberFormat.Format =
-                "$ #,##0";
-
-            ws.Column(8)
-                .Style.NumberFormat.Format =
-                "$ #,##0";
-
-            ws.Columns()
-                .AdjustToContents();
-
+            ws.Columns().AdjustToContents();
             ws.SheetView.FreezeRows(filaInicio);
 
             using var stream = new MemoryStream();

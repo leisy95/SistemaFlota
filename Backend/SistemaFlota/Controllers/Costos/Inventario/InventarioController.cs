@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Authorization;
 using SistemaFlota.Services.Costos.Inventario;
 
@@ -11,10 +12,29 @@ namespace SistemaFlota.Controllers.Costos.Inventario
     public class InventarioController : ControllerBase
     {
         private readonly IInventarioService _inventarioService;
+        private readonly AppDbContext _context;
 
-        public InventarioController(IInventarioService inventarioService)
+        public InventarioController(
+            IInventarioService inventarioService,
+            AppDbContext context)
         {
             _inventarioService = inventarioService;
+            _context = context;
+        }
+
+        private async Task<bool> PuedeVerDatosNumericosAsync()
+        {
+            var username = User.Identity?.Name;
+
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            return await _context.UsuarioPermisos
+                .AnyAsync(p =>
+                    p.Usuario != null &&
+                    p.Usuario.Username == username &&
+                    p.Modulo == "inventario" &&
+                    p.PuedeVerDatosNumericos);
         }
 
         [HttpGet]
@@ -27,13 +47,17 @@ namespace SistemaFlota.Controllers.Costos.Inventario
             int page = 1,
             int pageSize = 20)
         {
+            var puedeVerDatosNumericos =
+                await PuedeVerDatosNumericosAsync();
+
             var inventario = await _inventarioService.ObtenerAsync(
                 search,
                 proveedorId,
                 categoria,
                 color,
                 page,
-                pageSize);
+                pageSize,
+                puedeVerDatosNumericos);
 
             return Ok(inventario);
         }
@@ -42,14 +66,18 @@ namespace SistemaFlota.Controllers.Costos.Inventario
         [Permiso("inventario", "ver")]
         public async Task<IActionResult> ObtenerProveedores()
         {
-            return Ok(await _inventarioService.ObtenerProveedoresInventarioAsync());
+            return Ok(
+                await _inventarioService
+                    .ObtenerProveedoresInventarioAsync());
         }
 
         [HttpGet("categorias")]
         [Permiso("inventario", "ver")]
         public async Task<IActionResult> ObtenerCategorias()
         {
-            return Ok(await _inventarioService.ObtenerCategoriasInventarioAsync());
+            return Ok(
+                await _inventarioService
+                    .ObtenerCategoriasInventarioAsync());
         }
 
         [HttpGet("excel")]
@@ -60,11 +88,15 @@ namespace SistemaFlota.Controllers.Costos.Inventario
             string? categoria,
             string? color)
         {
+            var puedeVerDatosNumericos =
+                await PuedeVerDatosNumericosAsync();
+
             var archivo = await _inventarioService.ExportarExcelAsync(
                 search,
                 proveedorId,
                 categoria,
-                color);
+                color,
+                puedeVerDatosNumericos);
 
             return File(
                 archivo,

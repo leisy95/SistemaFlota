@@ -16,14 +16,15 @@
 
         public string Densidad { get; set; } = string.Empty;
 
-        public decimal CantidadComprometida { get; set; }
+        // Datos numéricos protegidos por permiso
+        public decimal? CantidadComprometida { get; set; }
 
-        public decimal StockDisponible { get; set; }
+        public decimal? StockDisponible { get; set; }
 
-        public decimal StockActual { get; set; }
+        public decimal? StockActual { get; set; }
 
-        public decimal CostoPromedio { get; set; }
+        public decimal? CostoPromedio { get; set; }
 
-        public decimal ValorInventario { get; set; }
+        public decimal? ValorInventario { get; set; }
     }
 }

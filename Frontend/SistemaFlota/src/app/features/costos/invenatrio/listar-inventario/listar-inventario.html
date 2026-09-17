@@ -17,13 +17,11 @@
 
     </div>
 
-    <div class="cards-resumen">
-
+    <div class="cards-resumen" *ngIf="puedeVerDatosNumericos">
         <div class="card-resumen">
             <div class="icon azul">
                 <i class="fa-solid fa-boxes-stacked"></i>
             </div>
-
             <div class="contenido">
                 <span>Total Items</span>
                 <h2>{{ totalItems }}</h2>
@@ -34,7 +32,6 @@
             <div class="icon verde">
                 <i class="fa-solid fa-weight-scale"></i>
             </div>
-
             <div class="contenido">
                 <span>Total KG</span>
                 <h2>{{ totalKg | number }}</h2>
@@ -45,7 +42,6 @@
             <div class="icon morado">
                 <i class="fa-solid fa-cube"></i>
             </div>
-
             <div class="contenido">
                 <span>Total Bultos</span>
                 <h2>{{ totalBultos }}</h2>
@@ -56,13 +52,11 @@
             <div class="icon naranja">
                 <i class="fa-solid fa-dollar-sign"></i>
             </div>
-
             <div class="contenido">
                 <span>Valor Total</span>
                 <h2>{{ valorInventario | currency:'COP':'symbol':'1.0-0' }}</h2>
             </div>
         </div>
-
     </div>
 
     <div class="cpp-card">
@@ -206,9 +200,9 @@
                         <th>Material</th>
                         <th>Proveedor</th>
                         <th>Densidad</th>
-                        <th class="text-right">Stock</th>
-                        <th class="text-right">Costo Promedio</th>
-                        <th class="text-right">Valor Total</th>
+                        <th *ngIf="puedeVerDatosNumericos" class="text-right">Stock</th>
+                        <th *ngIf="puedeVerDatosNumericos" class="text-right">Costo Promedio</th>
+                        <th *ngIf="puedeVerDatosNumericos" class="text-right">Valor Total</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -219,15 +213,15 @@
                         <td>{{ material.proveedor }}</td>
                         <td>{{ material.densidad }}</td>
 
-                        <td class="text-right">
+                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
                             {{ material.stockActual }} KG
                         </td>
 
-                        <td class="text-right">
+                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
                             {{ material.costoPromedio | currency:'COP':'symbol':'1.0-0' }}
                         </td>
 
-                        <td class="text-right">
+                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
                             {{ material.valorInventario | currency:'COP':'symbol':'1.0-0' }}
                         </td>
 
@@ -294,7 +288,7 @@
             </div>
         </div>
 
-        <div class="footer-resumen">
+        <div class="footer-resumen" *ngIf="puedeVerDatosNumericos">
 
             <div class="resumen-card azul">
                 <div class="icon">

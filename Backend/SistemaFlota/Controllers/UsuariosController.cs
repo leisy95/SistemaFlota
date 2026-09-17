@@ -72,7 +72,8 @@ namespace SistemaFlota
                         p.PuedeCrear,
                         p.PuedeEditar,
                         p.PuedeEliminar,
-                        p.PuedeEnviarCorreo
+                        p.PuedeEnviarCorreo,
+                        p.PuedeVerDatosNumericos
                     }).ToList()
                 })
                 .ToListAsync();
@@ -136,7 +137,8 @@ namespace SistemaFlota
                         p.PuedeCrear,
                         p.PuedeEditar,
                         p.PuedeEliminar,
-                        p.PuedeEnviarCorreo
+                        p.PuedeEnviarCorreo,
+                        p.PuedeVerDatosNumericos
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -194,6 +196,7 @@ namespace SistemaFlota
                         PuedeEditar = p.PuedeEditar,
                         PuedeEliminar = p.PuedeEliminar,
                         PuedeEnviarCorreo = p.PuedeEnviarCorreo,
+                        PuedeVerDatosNumericos = p.PuedeVerDatosNumericos,
                         EsInicio = p.PuedeVer && !inicioAsignado
                     });
 
@@ -271,6 +274,7 @@ namespace SistemaFlota
                         PuedeEditar = p.PuedeEditar,
                         PuedeEliminar = p.PuedeEliminar,
                         PuedeEnviarCorreo = p.PuedeEnviarCorreo,
+                        PuedeVerDatosNumericos = p.PuedeVerDatosNumericos,
                         EsInicio = p.PuedeVer && !inicioAsignado
                     });
 
@@ -447,7 +451,8 @@ namespace SistemaFlota
                 p.PuedeCrear,
                 p.PuedeEditar,
                 p.PuedeEliminar,
-                p.PuedeEnviarCorreo
+                p.PuedeEnviarCorreo,
+                p.PuedeVerDatosNumericos
             }).ToList();
 
             return Ok(new { permisos });
@@ -474,6 +479,7 @@ namespace SistemaFlota
         public bool PuedeEditar { get; set; } = false;
         public bool PuedeEliminar { get; set; } = false;
         public bool PuedeEnviarCorreo { get; set; } = false;
+        public bool PuedeVerDatosNumericos { get; set; } = false;
     }
 
     public class RecuperarDto { public string Email { get; set; } = string.Empty; }

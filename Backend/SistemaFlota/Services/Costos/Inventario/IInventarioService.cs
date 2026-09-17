@@ -12,7 +12,8 @@ namespace SistemaFlota.Services.Costos.Inventario
             string? categoria,
             string? color,
             int page,
-            int pageSize);
+            int pageSize,
+            bool puedeVerDatosNumericos);
 
         Task<List<ProveedorFiltroDto>> ObtenerProveedoresInventarioAsync();
         Task<List<string>> ObtenerCategoriasInventarioAsync();
@@ -20,6 +21,7 @@ namespace SistemaFlota.Services.Costos.Inventario
             string? search,
             int? proveedorId,
             string? categoria,
-            string? color);
+            string? color,
+            bool puedeVerDatosNumericos);
     }
 }

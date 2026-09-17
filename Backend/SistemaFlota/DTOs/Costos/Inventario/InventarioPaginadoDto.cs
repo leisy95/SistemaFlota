@@ -3,10 +3,16 @@
     public class InventarioPaginadoDto
     {
         public List<InventarioDto> Items { get; set; } = new();
+
         public int Total { get; set; }
+
         public int Pagina { get; set; }
+
         public int PageSize { get; set; }
-        public decimal TotalKg { get; set; }
-        public decimal TotalValorInventario { get; set; }
+
+        // Datos numéricos protegidos por permiso
+        public decimal? TotalKg { get; set; }
+
+        public decimal? TotalValorInventario { get; set; }
     }
 }

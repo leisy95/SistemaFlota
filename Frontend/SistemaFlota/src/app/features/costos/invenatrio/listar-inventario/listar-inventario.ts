@@ -33,6 +33,8 @@ export class ListarInventario {
   totalBultos = 0;
   valorInventario = 0;
 
+  puedeVerDatosNumericos = false;
+
   buscar = '';
   proveedorId: number | null = null;
   tipoMaterial: string | null = null;
@@ -82,6 +84,8 @@ export class ListarInventario {
   ) { }
 
   ngOnInit(): void {
+    this.puedeVerDatosNumericos =
+      this.permisos.puedeVerDatosNumericos('inventario');
 
     this.cargarCategorias();
     this.cargarProveedores();
@@ -126,8 +130,8 @@ export class ListarInventario {
         this.totalRegistros = resp.total;
         this.totalItems = resp.total;
 
-        this.totalKg = resp.totalKg;
-        this.valorInventario = resp.totalValorInventario;
+        this.totalKg = resp.totalKg ?? 0;
+        this.valorInventario = resp.totalValorInventario ?? 0;
       },
       error: () => {
         this.toastr.error('No fue posible cargar el inventario');
@@ -207,8 +211,8 @@ export class ListarInventario {
     const material = this.materiales.find(x => x.id === this.materialSeleccionadoId);
     if (!material) return;
 
-    this.cpp.stockActual = material.stockActual;
-    this.cpp.costoActual = material.costoPromedio;
+    this.cpp.stockActual = material.stockActual ?? 0;
+    this.cpp.costoActual = material.costoPromedio ?? 0;
     this.cpp.compraNueva = 0;
     this.cpp.precioNuevo = 0;
     this.mostrarResultado = false;

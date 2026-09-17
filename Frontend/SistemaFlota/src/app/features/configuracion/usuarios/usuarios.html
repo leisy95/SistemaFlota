@@ -194,6 +194,9 @@
         <span class="leyenda-item">
           <i class="fa-solid fa-envelope"></i> Enviar correo
         </span>
+        <span class="leyenda-item">
+          <i class="fa-solid fa-chart-column"></i> Datos numéricos
+        </span>
       </div>
 
       <div class="permisos-tabla">
@@ -214,6 +217,9 @@
           </div>
           <div class="permiso-accion permiso-correo" title="Enviar correo">
             <i class="fa-solid fa-envelope"></i>
+          </div>
+          <div class="permiso-accion permiso-numerico" title="Datos numéricos">
+            <i class="fa-solid fa-chart-column"></i>
           </div>
         </div>
 
@@ -305,6 +311,22 @@
                 }}">
               </i>
             </button>
+          </div>
+
+          <!-- DATOS NUMÉRICOS -->
+          <div class="permiso-accion permiso-numerico">
+            <button *ngIf="m.key === 'inventario'" class="btn-check"
+              [class.activo]="getPermiso(m.key).puedeVerDatosNumericos" [disabled]="!tienePermiso(m.key)"
+              (click)="toggleAccion(m.key, 'puedeVerDatosNumericos')" title="Permitir ver datos numéricos">
+
+              <i class="fa-solid fa-{{
+                getPermiso(m.key).puedeVerDatosNumericos
+                  ? 'square-check'
+                  : 'square'
+              }}"></i>
+            </button>
+
+            <span *ngIf="m.key !== 'inventario'" class="permiso-no-aplica"></span>
           </div>
 
         </div>
