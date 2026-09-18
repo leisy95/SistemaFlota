@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
+using SistemaFlota.Models.Calidad;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.Consecutivo;
@@ -79,6 +80,8 @@ namespace SistemaFlota
         public DbSet<Consecutivo> Consecutivos { get; set; }
         public DbSet<Color> Colores { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<SalidaNoConforme> SalidasNoConforme { get; set; }
+        public DbSet<SalidaNoConformeEvidencia> SalidasNoConformeEvidencias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

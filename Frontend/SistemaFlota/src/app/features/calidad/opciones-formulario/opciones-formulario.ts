@@ -18,9 +18,35 @@ export class OpcionesFormularioComponent implements OnInit {
   opciones: any[] = [];
   opcionesFiltradas: any[] = [];
   tipos: any[] = [];
-  categorias: string[] = ['Maquina', 'Corona', 'Molde', 'Operario'];
-
-  filtroCategoria = '';
+  categorias: string[] = ['Maquina', 'Corona', 'Molde', 'Operario', 'Linea', 'Material', 'ProcesoSNC', 'TipoDefecto', 'Impacto', 'TratamientoAdoptado'];
+etiquetasCategoria: { [key: string]: string } = {
+    Maquina: 'Máquina',
+    Corona: 'Corona',
+    Molde: 'Molde',
+    Operario: 'Operario',
+    Linea: 'Línea',
+    Material: 'Material',
+    ProcesoSNC: 'Proceso SNC',
+    TipoDefecto: 'Tipo defecto',
+    Impacto: 'Impacto',
+    TratamientoAdoptado: 'Tratamiento'
+};
+  placeholderValor(): string {
+    const ejemplos: { [key: string]: string } = {
+      Maquina: 'Ej: Extrusora 60',
+      Corona: 'Ej: Alta',
+      Molde: 'Ej: 15',
+      Operario: 'Ej: nombre',
+      Linea: 'Ej: 4 tubular',
+      Material: 'Ej: original',
+      ProcesoSNC: 'Ej: Sellado',
+      TipoDefecto: 'Ej: critico',
+      Impacto: 'Ej: escrito',
+      TratamientoAdoptado: 'DEVOLUCIÓN'
+    };
+    return ejemplos[this.form.categoria] || 'Escriba el valor';
+  }
+  filtroCategoria = 'Maquina';
   mostrarModal = false;
   editando = false;
   editandoId: number | null = null;
@@ -60,8 +86,12 @@ export class OpcionesFormularioComponent implements OnInit {
     this.opcionesFiltradas = this.filtroCategoria
       ? this.opciones.filter(o => o.categoria === this.filtroCategoria)
       : this.opciones;
-  }
 
+  }
+  cambiarPestana(categoria: string) {
+    this.filtroCategoria = categoria;
+    this.aplicarFiltro();
+  }
   nombreTipo(tipoFormatoId: number | null): string {
     if (!tipoFormatoId) return 'Todos los formatos';
     const t = this.tipos.find(t => t.id === tipoFormatoId);

@@ -113,7 +113,7 @@ tbody {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
   }
   .btn-editar { background: #fef3c7; color: #f59e0b; }
   .btn-estado { background: #e0f2fe; color: #0369a1; }
@@ -177,7 +177,7 @@ tbody {
     border-radius: 8px;
     background: transparent;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     width: auto;
   }
 }
@@ -196,4 +196,36 @@ tbody {
   tbody { display: block; }
   tbody tr { display: block; background: var(--blanco); border-radius: 12px; margin-bottom: 12px; padding: 14px; border: 1px solid #e5e7eb; }
   tbody td { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f1f5f9; &:last-child { border-bottom: none; } &::before { content: attr(data-label); font-weight: 600; color: var(--gris-medio); font-size: 11px; text-transform: uppercase; } }
+}
+.pestanas-categoria {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+
+  button {
+    background: none;
+    border: 1px solid #e5e7eb;
+    font-size: 17px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--gris-oscuro);
+
+    &:hover { background: #f9fafb; }
+
+    &.activa {
+      background: var(--verde-principal, #16a34a);
+      color: white;
+      border-color: var(--verde-principal, #16a34a);
+    }
+  }
+}
+.ayuda-campo {
+  display: block;
+  font-size: 12px;
+  color: var(--gris-medio);
+  margin-top: 4px;
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaFlota;
 
@@ -10,9 +11,11 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917153503_AgregarCamposNombreReportaYRevisadoPor")]
+    partial class AgregarCamposNombreReportaYRevisadoPor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1119,11 +1122,15 @@ namespace SistemaFlota.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
 
-                    b.Property<string>("EvidenciaPdf")
+                    b.Property<string>("EvidenciaImagen")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
 
-                    b.Property<string>("EvidenciaPdfTratamiento")
+                    b.Property<string>("EvidenciaImagenVerificacion")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("EvidenciaPdf")
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
 
@@ -1201,10 +1208,6 @@ namespace SistemaFlota.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("UnidadCantidadReportada")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<string>("UsuarioReporta")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -1219,40 +1222,6 @@ namespace SistemaFlota.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SalidasNoConforme");
-                });
-
-            modelBuilder.Entity("SistemaFlota.Models.Calidad.SalidaNoConformeEvidencia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaSubida")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NombreArchivo")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
-
-                    b.Property<string>("Paso")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
-
-                    b.Property<int>("SalidaNoConformeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TipoArchivo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SalidaNoConformeId");
-
-                    b.ToTable("SalidasNoConformeEvidencias");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.CaracteristicaFormato", b =>
@@ -3027,17 +2996,6 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("Vehiculo");
-                });
-
-            modelBuilder.Entity("SistemaFlota.Models.Calidad.SalidaNoConformeEvidencia", b =>
-                {
-                    b.HasOne("SistemaFlota.Models.Calidad.SalidaNoConforme", "SalidaNoConforme")
-                        .WithMany()
-                        .HasForeignKey("SalidaNoConformeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SalidaNoConforme");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.CaracteristicaFormato", b =>
