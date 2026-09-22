@@ -357,7 +357,7 @@ tbody {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
-  max-width: 800px;
+  max-width: 100%;
 }
 
 .form-section {
@@ -613,7 +613,39 @@ textarea {
   }
 
   &::placeholder {
-    color: #9ca3af;
+    color: #eff3ee;
     font-style: italic;
   }
+}
+.gastos-grid-iconos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.gasto-card {
+  background: #cbceca;
+  border-radius: 10px;
+  padding: 15px;
+
+  .gasto-card-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--gris-oscuro);
+    margin-bottom: 9px;
+
+    i { font-size: 16px; }
+  }
+
+  input {
+    width: 100%;
+    height: 42px;
+    font-size: 16px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #91aacf;
+}
 }

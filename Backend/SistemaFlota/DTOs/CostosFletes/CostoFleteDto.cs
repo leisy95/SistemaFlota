@@ -1,7 +1,7 @@
-﻿namespace SistemaFlota.DTOs
+﻿namespace SistemaFlota.DTOs.CostosFletes
 {
     public record CostoFleteDto(
-        int AutorizacionId,
+        int? AutorizacionId,
         decimal Peajes, decimal Combustible, decimal Parqueos,
         decimal DescarguesMcia, decimal CargueMateriales,
         decimal Alimentacion, decimal Hospedaje, decimal Varios,

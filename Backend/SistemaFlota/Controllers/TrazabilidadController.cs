@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using SistemaFlota.DTOs.Trazabilidad;
 
 namespace SistemaFlota
 {
@@ -25,6 +26,55 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
+
+        // =====================================
+        // SINCRONIZAR CON COSTOS FLETES
+        // =====================================
+        private async Task SincronizarCostoFleteAsync(int trazabilidadId, int? autorizacionId, decimal? valorFlete)
+        {
+            if (valorFlete == null || valorFlete <= 0) return;
+
+            CosteFlete? existente;
+
+            if (autorizacionId != null)
+            {
+                // Caso flota propia: se relaciona por Autorización
+                existente = await _context.CostosFletes
+                    .FirstOrDefaultAsync(c => c.AutorizacionId == autorizacionId);
+            }
+            else
+            {
+                // Caso transportadora externa: se relaciona directo por Trazabilidad
+                existente = await _context.CostosFletes
+                    .FirstOrDefaultAsync(c => c.TrazabilidadId == trazabilidadId);
+            }
+
+            if (existente != null)
+            {
+                existente.Total = valorFlete.Value;
+            }
+            else
+            {
+                _context.CostosFletes.Add(new CosteFlete
+                {
+                    AutorizacionId = autorizacionId,
+                    TrazabilidadId = autorizacionId == null ? trazabilidadId : null,
+                    FechaRegistro = DateTime.Now,
+                    Peajes = 0,
+                    Combustible = 0,
+                    Parqueos = 0,
+                    DescarguesMcia = 0,
+                    CargueMateriales = 0,
+                    Alimentacion = 0,
+                    Hospedaje = 0,
+                    Varios = 0,
+                    Total = valorFlete.Value,
+                    Estado = "Pendiente"
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
         // =====================================
         // GET TODAS — con paginación y filtros
@@ -141,6 +191,8 @@ namespace SistemaFlota
                 registroId: trazabilidad.Id
             );
 
+            await SincronizarCostoFleteAsync(trazabilidad.Id, trazabilidad.AutorizacionId, trazabilidad.ValorFlete);
+
             return Ok(trazabilidad);
         }
 
@@ -178,6 +230,8 @@ namespace SistemaFlota
                 detalle: $"Trazabilidad #{id} editada — Factura: {dto.FacturaRemision}",
                 registroId: id
             );
+
+            await SincronizarCostoFleteAsync(t.Id, t.AutorizacionId, t.ValorFlete);
 
             return Ok(t);
         }
@@ -333,34 +387,5 @@ namespace SistemaFlota
 
             return Ok(lista);
         }
-    }
-
-    // =====================================
-    // DTOs
-    // =====================================
-    public class CrearTrazabilidadDto
-    {
-        public int? AutorizacionId { get; set; }
-        public string FacturaRemision { get; set; } = string.Empty;
-        public string Cliente { get; set; } = string.Empty;
-        public string Conductor { get; set; } = string.Empty;
-        public string? Transportadora { get; set; }
-        public string? Guia { get; set; }
-        public string? Vehiculo { get; set; }
-        public decimal? PesoKilos { get; set; }
-        public decimal? ValorFlete { get; set; }
-        public bool AjusteRecibido { get; set; }
-        public bool FacturaEntregada { get; set; }
-        public string? Novedad { get; set; }
-        public string? Estado { get; set; }
-    }
-
-    public class CrearNotaDto
-    {
-        public string NumeroNota { get; set; } = string.Empty;
-        public string? Cliente { get; set; }
-        public string Conductor { get; set; } = string.Empty;
-        public bool FacturaEntregada { get; set; }
-        public string? Observacion { get; set; }
     }
 }
