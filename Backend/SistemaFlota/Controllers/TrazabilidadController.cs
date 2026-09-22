@@ -139,6 +139,49 @@ namespace SistemaFlota
             });
         }
 
+        [HttpGet("resumen")]
+        public async Task<IActionResult> GetResumen(
+    [FromQuery] string? buscar = null,
+    [FromQuery] string? estado = null,
+    [FromQuery] string? entregada = null,
+    [FromQuery] string? tipo = null)
+        {
+            var query = _context.TrazabilidadFacturas.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var q = buscar.ToLower();
+                query = query.Where(t =>
+                    t.FacturaRemision.ToLower().Contains(q) ||
+                    t.Cliente.ToLower().Contains(q) ||
+                    t.Conductor.ToLower().Contains(q) ||
+                    (t.Vehiculo != null && t.Vehiculo.ToLower().Contains(q)) ||
+                    (t.Guia != null && t.Guia.ToLower().Contains(q)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(estado))
+                query = query.Where(t => t.Estado == estado);
+
+            if (entregada == "si")
+                query = query.Where(t => t.FacturaEntregada);
+            else if (entregada == "no")
+                query = query.Where(t => !t.FacturaEntregada);
+
+            if (!string.IsNullOrWhiteSpace(tipo))
+            {
+                var tipoUpper = tipo.ToUpper();
+                var alternativo = tipoUpper == "CT" ? "COT" : tipoUpper == "RM" ? "RE" : tipoUpper == "NCE" ? "NC" : tipoUpper == "COT" ? "CT" : tipoUpper == "RE" ? "RM" : tipoUpper == "NC" ? "NCE" : "";
+                query = query.Where(t => t.FacturaRemision.ToUpper().StartsWith(tipoUpper) || (alternativo != "" && t.FacturaRemision.ToUpper().StartsWith(alternativo)));
+            }
+
+            var total = await query.CountAsync();
+            var entregadas = await query.CountAsync(t => t.FacturaEntregada);
+            var pendientesEntrega = total - entregadas;
+            var totalFlete = await query.SumAsync(t => t.ValorFlete ?? 0);
+
+            return Ok(new { total, entregadas, pendientesEntrega, totalFlete });
+        }
+
         // =====================================
         // GET POR ID
         // =====================================

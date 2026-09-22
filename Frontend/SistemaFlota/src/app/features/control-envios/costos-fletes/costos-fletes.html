@@ -92,9 +92,15 @@
               kg</td>
             <td data-label="Total gastos"><span class="total-valor">${{ r.total | number:'1.0-0' }}</span></td>
             <td data-label="$/kg">
-              <span class="total-valor" *ngIf="!r.autorizacionId">${{ (r.total / ((r.trazabilidad?.pesoKilos) || 1)) |
-                number:'1.0-2' }}</span>
-              <span class="total-valor" *ngIf="r.autorizacionId">-</span>
+              <span class="total-valor" *ngIf="(r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0) > 0">
+                ${{ (
+                r.total / (r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos)
+                ) | number:'1.0-2' }}
+              </span>
+
+              <span class="total-valor" *ngIf="(r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0) <= 0">
+                -
+              </span>
             </td>
             <td data-label="Estado">
               <span class="estado" [class.pendiente]="r.estado === 'Pendiente'"

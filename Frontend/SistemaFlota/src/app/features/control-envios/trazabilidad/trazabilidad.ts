@@ -26,6 +26,7 @@ export class TrazabilidadComponent implements OnInit {
   totalRegistros = 0;
   totalPaginas = 0;
   cargando = false;
+  resumen = { total: 0, entregadas: 0, pendientesEntrega: 0, totalFlete: 0 };
 
   mostrarModal = false;
   mostrarDetalle = false;
@@ -115,8 +116,21 @@ export class TrazabilidadComponent implements OnInit {
         this.totalRegistros = res.total;
         this.totalPaginas = res.totalPaginas;
         this.cargando = false;
+        this.cargarResumen();
       },
       error: (err) => { console.error(err); this.cargando = false; }
+    });
+  }
+
+  cargarResumen() {
+    this.trazabilidadService.obtenerResumen({
+      buscar: this.filtroBusqueda || undefined,
+      estado: this.filtroEstado || undefined,
+      entregada: this.filtroEntregada || undefined,
+      tipo: this.filtroTipo || undefined
+    }).subscribe({
+      next: (res: any) => { this.resumen = res; },
+      error: (err) => console.error(err)
     });
   }
 
