@@ -190,6 +190,7 @@ namespace SistemaFlota
                     puedeEliminar = p.PuedeEliminar,
                     puedeEnviarCorreo = p.PuedeEnviarCorreo,
                     puedeVerDatosNumericos = p.PuedeVerDatosNumericos,
+
                     esInicio = p.EsInicio
                 })
                 .ToListAsync();

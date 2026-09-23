@@ -200,7 +200,7 @@
                         <th>Material</th>
                         <th>Proveedor</th>
                         <th>Densidad</th>
-                        <th *ngIf="puedeVerDatosNumericos" class="text-right">Stock</th>
+                        <th class="text-right">Stock</th>
                         <th *ngIf="puedeVerDatosNumericos" class="text-right">Costo Promedio</th>
                         <th *ngIf="puedeVerDatosNumericos" class="text-right">Valor Total</th>
                         <th class="text-center">Acciones</th>
@@ -213,7 +213,7 @@
                         <td>{{ material.proveedor }}</td>
                         <td>{{ material.densidad }}</td>
 
-                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
+                        <td class="text-right">
                             {{ material.stockActual }} KG
                         </td>
 

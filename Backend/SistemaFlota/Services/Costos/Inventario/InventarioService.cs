@@ -174,9 +174,7 @@ namespace SistemaFlota.Services.Costos.Inventario
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
 
-                    StockActual = puedeVerDatosNumericos
-                        ? i.StockActual
-                        : null,
+                    StockActual = i.StockActual,
 
                     CantidadComprometida = puedeVerDatosNumericos
                         ? _context.OrdenesTraslado
