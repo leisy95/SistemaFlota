@@ -111,6 +111,8 @@ export class Sidebar implements OnInit {
       this.modulosVisibles = this.obtenerMenuPorModulo('configuracion');
     } else if (url.startsWith('/costos')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('costos');
+    } else if (url.startsWith('/compras-no-formalizadas')) {
+      this.modulosVisibles = this.obtenerMenuPorModulo('compras-no-formalizadas');
     } else {
       this.modulosVisibles = [];
     }

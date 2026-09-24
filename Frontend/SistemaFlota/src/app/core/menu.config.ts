@@ -315,5 +315,14 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-arrow-right-arrow-left',
         ruta: '/costos/traslados',
         modulo: 'costos'
+    },
+
+    // COMPRAS NO FORMALIZADAS
+    {
+        key: 'proveedores-no-formalizados',
+        label: 'Proveedores',
+        icon: 'fa-solid fa-user-tie',
+        ruta: '/compras-no-formalizadas/proveedores',
+        modulo: 'compras-no-formalizadas'
     }
 ];

@@ -70,6 +70,13 @@ export const routes: Routes = [
       },
 
       {
+        path: 'compras-no-formalizadas',
+        loadChildren: () =>
+          import('./features/compras-no-formalizadas/compras.routes')
+            .then(r => r.COMPRAS_ROUTES)
+      },
+
+      {
         path: 'configuracion',
         loadChildren: () =>
           import('./features/configuracion/configuracion.routes')

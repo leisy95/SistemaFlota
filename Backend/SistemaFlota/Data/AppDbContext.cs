@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
+using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Models.Consecutivo;
 using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
@@ -79,6 +81,10 @@ namespace SistemaFlota
         public DbSet<Consecutivo> Consecutivos { get; set; }
         public DbSet<Color> Colores { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+
+        // -- Compras No Formalizadas --
+        public DbSet<ProveedorNoFormalizado> ProveedoresNoFormalizados { get; set; }
+        public DbSet<MaterialNoFormalizado> MaterialesNoFormalizados { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -216,7 +222,14 @@ namespace SistemaFlota
                 .HasIndex(x => x.Modulo)
                 .IsUnique();
 
-         
+            // Compras no formalizadas
+            modelBuilder.Entity<MaterialNoFormalizado>()
+                .HasOne(m => m.ProveedorNoFormalizado)
+                .WithMany(p => p.Materiales)
+                .HasForeignKey(m => m.IdProveedorNoFormalizado)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
         }
     }
 }
