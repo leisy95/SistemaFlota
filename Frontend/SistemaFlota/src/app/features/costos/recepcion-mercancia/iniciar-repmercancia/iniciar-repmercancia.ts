@@ -23,6 +23,9 @@ export class IniciarRepmercancia implements OnInit {
   totalBultos = 0;
   guardando = false;
 
+  recepcionGuardadaId: number | null = null;
+  etiquetasError = false;
+
   constructor(
     private fb: FormBuilder,
     private toastr: ToastrService,
@@ -142,13 +145,28 @@ export class IniciarRepmercancia implements OnInit {
           this.recepcionService.obtenerEtiquetas(respuesta.id).subscribe({
             next: pdf => {
               const url = URL.createObjectURL(pdf);
+
               window.open(url, '_blank');
-              this.toastr.success(`${respuesta.totalBultos} bultos recibidos correctamente.`, 'Recepción Finalizada');
+
+              this.toastr.success(
+                `${respuesta.totalBultos} bultos recibidos correctamente.`,
+                'Recepción Finalizada'
+              );
+
               this.dialogRef.close(respuesta);
             },
+
             error: () => {
               this.guardando = false;
-              this.toastr.warning('La recepción fue guardada, pero no fue posible generar las etiquetas.', 'Recepción');
+
+              // La recepción sí quedó guardada
+              this.recepcionGuardadaId = respuesta.id;
+              this.etiquetasError = true;
+
+              this.toastr.warning(
+                'La recepción fue guardada correctamente, pero no fue posible generar las etiquetas.',
+                'Recepción'
+              );
             }
           });
         },

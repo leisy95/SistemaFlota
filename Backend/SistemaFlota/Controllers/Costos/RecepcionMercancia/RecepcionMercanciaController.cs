@@ -4,6 +4,7 @@ using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.ImpresionEtiquetas;
+using SistemaFlota.Services.Pdf.RecepcionMercancia;
 
 namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
 {
@@ -14,13 +15,16 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
     {
         private readonly IRecepcionMercanciaService _service;
         private readonly IEtiquetasPdfService _etiquetasPdfService;
+        private readonly IRecepcionMercanciaPdfService _recepcionMercanciaPdfService;
 
         public RecepcionMercanciaController(
             IRecepcionMercanciaService service,
-            IEtiquetasPdfService etiquetasPdfService)
+            IEtiquetasPdfService etiquetasPdfService,
+             IRecepcionMercanciaPdfService recepcionMercanciaPdfService)
         {
             _service = service;
             _etiquetasPdfService = etiquetasPdfService;
+            _recepcionMercanciaPdfService = recepcionMercanciaPdfService;
         }
 
         //Listar Recepciones
@@ -75,6 +79,29 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             catch (Exception ex)
             {
                 return Conflict(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
+
+        // Ver PDF de recepción
+        [HttpGet("{id:int}/pdf")]
+        [Permiso("recepcion-mercancia", "ver")]
+        public async Task<IActionResult> ObtenerPdf(int id)
+        {
+            try
+            {
+                var pdf = await _recepcionMercanciaPdfService.GenerarPdfAsync(id);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"Recepcion_{id}.pdf");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new
                 {
                     mensaje = ex.Message
                 });

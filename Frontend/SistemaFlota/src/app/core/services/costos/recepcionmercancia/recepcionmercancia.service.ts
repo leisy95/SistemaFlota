@@ -38,6 +38,10 @@ export class RecepcionMercanciaService {
         );
     }
 
+    obtenerPdf(id: number): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
+    }
+
     obtenerEtiquetas(id: number): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/${id}/etiquetas`,

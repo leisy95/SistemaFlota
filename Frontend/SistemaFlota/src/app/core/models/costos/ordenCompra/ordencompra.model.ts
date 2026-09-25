@@ -19,6 +19,6 @@ export interface OrdenCompra {
     totalPagar: number;
     estado: string;
     observaciones?: string;
-
+    recepcionId?: number;
     detalles?: DetalleOrdenResponse[];
 }

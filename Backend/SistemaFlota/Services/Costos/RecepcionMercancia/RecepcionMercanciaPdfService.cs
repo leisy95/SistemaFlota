@@ -26,6 +26,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
             .Include(r => r.Detalles)
                 .ThenInclude(d => d.OrdenCompraDetalle)
                     .ThenInclude(od => od.Material)
+            .Include(r => r.UsuarioConfirmacion)
             .FirstOrDefaultAsync(r => r.Id == idRecepcion);
 
         if (recepcion == null)
@@ -93,6 +94,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                 });
 
                 DibujarResumen(col, recepcion);
+                DibujarEstadoProceso(col, recepcion);
             });
 
         page.Footer()
@@ -254,9 +256,21 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
                 contenido.Item().PaddingLeft(15).Column(c =>
                 {
-                    c.Item().Text("Estado: Pendiente");
-                    c.Item().Text("Usuario: ---");
-                    c.Item().Text("Fecha: ---");
+                    bool confirmada = recepcion.FechaConfirmacion.HasValue;
+
+                    c.Item().Text(
+                        $"Estado: {(confirmada ? "Confirmada" : "Pendiente")}"
+                    );
+
+                    c.Item().Text(
+                        $"Usuario: {recepcion.UsuarioConfirmacion?.Username ?? "---"}"
+                    );
+
+                    c.Item().Text(
+                        $"Fecha: {(recepcion.FechaConfirmacion.HasValue
+                            ? recepcion.FechaConfirmacion.Value.ToString("dd/MM/yyyy HH:mm")
+                            : "---")}"
+                    );
                 });
             });
         });
