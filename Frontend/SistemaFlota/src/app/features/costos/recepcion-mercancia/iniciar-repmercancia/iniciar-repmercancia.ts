@@ -59,7 +59,7 @@ export class IniciarRepmercancia implements OnInit {
       next: (data) => {
         this.form.patchValue({ recibe: data.recibe ?? '', cargo: data.cargo ?? '' });
         data.items.forEach((x: any) => {
-          this.detalles.push(this.fb.group({
+          const detalle = this.fb.group({
             ordenCompraDetalleId: [x.ordenCompraDetalleId],
             material: [x.material],
             cantidadOrdenada: [x.cantidad],
@@ -74,7 +74,13 @@ export class IniciarRepmercancia implements OnInit {
             loteProveedor: ['', Validators.required],
             estadoMaterial: ['Conforme', Validators.required],
             observaciones: ['']
-          }));
+          });
+
+          detalle.get('seleccionado')?.valueChanges.subscribe(seleccionado => {
+            this.actualizarValidadoresDetalle(detalle, seleccionado === true);
+          });
+
+          this.detalles.push(detalle);
         });
         this.calcularResumen();
       },
@@ -87,6 +93,38 @@ export class IniciarRepmercancia implements OnInit {
         this.toastr.error('No fue posible cargar los materiales');
       }
     });
+  }
+
+  private actualizarValidadoresDetalle(detalle: FormGroup, seleccionado: boolean): void {
+    const cantidad = detalle.get('cantidadRecibida');
+    const bultos = detalle.get('bultosRecibidos');
+    const lote = detalle.get('loteProveedor');
+    const estado = detalle.get('estadoMaterial');
+
+    if (seleccionado) {
+      cantidad?.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        Validators.max(Number(detalle.get('cantidadPendiente')?.value || 0))
+      ]);
+      bultos?.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        Validators.max(Number(detalle.get('bultosPendientes')?.value || 0))
+      ]);
+      lote?.setValidators([Validators.required]);
+      estado?.setValidators([Validators.required]);
+    } else {
+      cantidad?.clearValidators();
+      bultos?.clearValidators();
+      lote?.clearValidators();
+      estado?.clearValidators();
+    }
+
+    cantidad?.updateValueAndValidity({ emitEvent: false });
+    bultos?.updateValueAndValidity({ emitEvent: false });
+    lote?.updateValueAndValidity({ emitEvent: false });
+    estado?.updateValueAndValidity({ emitEvent: false });
   }
 
   calcularResumen(): void {

@@ -39,6 +39,8 @@ namespace SistemaFlota.Models.Costos.RecepcionMercancias
         [ForeignKey(nameof(UsuarioConfirmacionId))]
         public virtual Usuario? UsuarioConfirmacion { get; set; }
 
+        public int NumeroUltimaEntrega { get; set; } = 0;
+
         public virtual ICollection<RecepcionMercanciaDetalle> Detalles { get; set; }
             = new List<RecepcionMercanciaDetalle>();
     }

@@ -98,6 +98,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                     ObtenerLogo(empresa.Logo),
                     empresa,
                     "F-GC-027 V2",
+                    "",
                     "PEDIDO DE COMPRA",
                     orden.Numero
                     );

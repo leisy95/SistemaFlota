@@ -22,9 +22,21 @@ namespace SistemaFlota.Services.Costos.Inventario
         {
             var recepcion = await ObtenerRecepcionAsync(recepcionId);
 
-            foreach (var detalle in recepcion.Detalles)
+            var detallesPendientes = recepcion.Detalles
+                .Where(d => !d.ProcesadoInventario)
+                .ToList();
+
+            if (!detallesPendientes.Any())
+            {
+                throw new Exception(
+                    "No existen materiales pendientes por ingresar al inventario."
+                );
+            }
+
+            foreach (var detalle in detallesPendientes)
             {
                 await ActualizarInventarioAsync(detalle);
+                detalle.ProcesadoInventario = true;
             }
 
             await _context.SaveChangesAsync();

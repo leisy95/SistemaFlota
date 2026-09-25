@@ -76,7 +76,10 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     CantidadRecibida = x.CantidadRecibida,
                     BultosRecibidos = x.BultosRecibidos,
                     LoteProveedor = x.LoteProveedor,
-                    EstadoMaterial = x.EstadoMaterial
+                    EstadoMaterial = x.EstadoMaterial,
+                    NumeroEntrega = x.NumeroEntrega,
+                    FechaEntrega = x.FechaEntrega,
+                    ProcesadoInventario = x.ProcesadoInventario
 
                 }).ToList()
             };
@@ -140,241 +143,231 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             };
         }
 
-        public async Task<RecepcionMercanciaDto> CrearAsync(
-            CrearRecepcionMercanciaDto dto)
+        public async Task<RecepcionMercanciaDto> CrearAsync(CrearRecepcionMercanciaDto dto)
+        {
+            var orden = await _context.OrdenesCompra
+                .Include(o => o.Detalles)
+                    .ThenInclude(d => d.Material)
+                .Include(o => o.Proveedor)
+                .FirstOrDefaultAsync(o => o.Id == dto.OrdenCompraId);
+
+            if (orden == null)
+                throw new Exception("La orden de compra no existe.");
+
+            if (orden.Estado?.Equals("Confirmada", StringComparison.OrdinalIgnoreCase) == true)
+                throw new Exception("La orden de compra ya está completamente confirmada.");
+
+            // Una sola recepción por orden de compra.
+            var recepcion = await _context.RecepcionesMercancias
+                .Include(r => r.Detalles)
+                .FirstOrDefaultAsync(r => r.OrdenCompraId == dto.OrdenCompraId);
+
+            // Si no existe, crear la recepción.
+            if (recepcion == null)
             {
-                var orden = await _context.OrdenesCompra
-                    .Include(o => o.Detalles)
-                        .ThenInclude(d => d.Material)
-                    .Include(o => o.Proveedor)
-                    .FirstOrDefaultAsync(o => o.Id == dto.OrdenCompraId);
+                var numeroRecepcion = await _consecutivoService
+                    .GenerarAsync("RecepcionMercancia");
 
-                if (orden == null)
-                    throw new Exception("La orden de compra no existe.");
-
-                // Buscar una recepción pendiente existente.
-                // Si existe, se reutiliza para acumular las entregas parciales.
-                var recepcion = await _context.RecepcionesMercancias
-                    .Include(r => r.Detalles)
-                    .FirstOrDefaultAsync(r =>
-                        r.OrdenCompraId == dto.OrdenCompraId &&
-                        r.FechaConfirmacion == null);
-
-                // Si no existe recepción pendiente, crear una nueva.
-                if (recepcion == null)
+                recepcion = new Models.Costos.RecepcionMercancias.RecepcionMercancia
                 {
-                    var numeroRecepcion =
-                        await _consecutivoService.GenerarAsync("RecepcionMercancia");
+                    OrdenCompraId = dto.OrdenCompraId,
+                    NumeroRecepcion = numeroRecepcion,
+                    Conductor = dto.Conductor,
+                    Transportadora = dto.Transportadora,
+                    TipoDocumento = dto.TipoDocumento,
+                    EmbalajeAdecuado = dto.EmbalajeAdecuado,
+                    Recibe = dto.Recibe,
+                    Cargo = dto.Cargo,
+                    Observaciones = dto.Observaciones,
+                    FechaRecepcion = DateTime.Now,
+                    NumeroUltimaEntrega = 0
+                };
 
-                    recepcion = new Models.Costos.RecepcionMercancias.RecepcionMercancia
-                    {
-                        OrdenCompraId = dto.OrdenCompraId,
-                        NumeroRecepcion = numeroRecepcion,
-                        Conductor = dto.Conductor,
-                        Transportadora = dto.Transportadora,
-                        TipoDocumento = dto.TipoDocumento,
-                        EmbalajeAdecuado = dto.EmbalajeAdecuado,
-                        Recibe = dto.Recibe,
-                        Cargo = dto.Cargo,
-                        Observaciones = dto.Observaciones,
-                        FechaRecepcion = DateTime.Now
-                    };
+                _context.RecepcionesMercancias.Add(recepcion);
+            }
+            else
+            {
+                // Actualizar información general de la recepción.
+                recepcion.Conductor = dto.Conductor;
+                recepcion.Transportadora = dto.Transportadora;
+                recepcion.TipoDocumento = dto.TipoDocumento;
+                recepcion.EmbalajeAdecuado = dto.EmbalajeAdecuado;
+                recepcion.Recibe = dto.Recibe;
+                recepcion.Cargo = dto.Cargo;
+                recepcion.Observaciones = dto.Observaciones;
+            }
 
-                    _context.RecepcionesMercancias.Add(recepcion);
-                }
+            // Número y fecha de esta entrega física.
+            var numeroEntrega = recepcion.NumeroUltimaEntrega + 1;
+            var fechaEntrega = DateTime.Now;
 
-                // Detalles que ya han sido recibidos para esta orden,
-                // incluyendo entregas parciales anteriores.
-                var recepcionesAnteriores = await _context.RecepcionesMercancias
-                    .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
-                    .SelectMany(r => r.Detalles)
-                    .ToListAsync();
+            // Todos los detalles recibidos anteriormente para esta orden.
+            var recepcionesAnteriores = await _context.RecepcionesMercancias
+                .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
+                .SelectMany(r => r.Detalles)
+                .ToListAsync();
 
-                // Acumuladores para controlar que dentro de la misma petición
-                // no se supere la cantidad pendiente.
-                var cantidadesNuevaEntrega = new Dictionary<int, decimal>();
-                var bultosNuevaEntrega = new Dictionary<int, decimal>();
+            var cantidadesNuevaEntrega = new Dictionary<int, decimal>();
+            var bultosNuevaEntrega = new Dictionary<int, decimal>();
 
-                bool agregoDetalle = false;
+            bool agregoDetalle = false;
 
-                foreach (var item in dto.Detalles)
-                {
-                    var detalleOrden = orden.Detalles
-                        .FirstOrDefault(d => d.Id == item.OrdenCompraDetalleId);
+            foreach (var item in dto.Detalles)
+            {
+                var detalleOrden = orden.Detalles
+                    .FirstOrDefault(d => d.Id == item.OrdenCompraDetalleId);
 
-                    if (detalleOrden == null)
-                    {
-                        throw new Exception(
-                            $"El detalle {item.OrdenCompraDetalleId} " +
-                            $"no pertenece a la orden de compra."
-                        );
-                    }
-
-                    if (item.CantidadRecibida < 0)
-                    {
-                        throw new Exception(
-                            $"La cantidad recibida de " +
-                            $"{detalleOrden.Material?.NombreMaterial} " +
-                            $"no puede ser negativa."
-                        );
-                    }
-
-                    if (item.BultosRecibidos < 0)
-                    {
-                        throw new Exception(
-                            $"Los bultos recibidos de " +
-                            $"{detalleOrden.Material?.NombreMaterial} " +
-                            $"no pueden ser negativos."
-                        );
-                    }
-
-                    // Si no recibió nada en este detalle, no lo agregamos.
-                    if (item.CantidadRecibida == 0 &&
-                        item.BultosRecibidos == 0)
-                    {
-                        continue;
-                    }
-
-                    agregoDetalle = true;
-
-                    if (!cantidadesNuevaEntrega.ContainsKey(item.OrdenCompraDetalleId))
-                    {
-                        cantidadesNuevaEntrega[item.OrdenCompraDetalleId] = 0;
-                        bultosNuevaEntrega[item.OrdenCompraDetalleId] = 0;
-                    }
-
-                    cantidadesNuevaEntrega[item.OrdenCompraDetalleId] +=
-                        item.CantidadRecibida;
-
-                    bultosNuevaEntrega[item.OrdenCompraDetalleId] +=
-                        item.BultosRecibidos;
-
-                    // Total recibido anteriormente.
-                    var cantidadRecibidaAnterior = recepcionesAnteriores
-                        .Where(r =>
-                            r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
-                        .Sum(r => r.CantidadRecibida);
-
-                    var bultosRecibidosAnterior = recepcionesAnteriores
-                        .Where(r =>
-                            r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
-                        .Sum(r => r.BultosRecibidos);
-
-                    // Pendiente de la orden.
-                    var cantidadPendiente = Math.Max(
-                        0,
-                        detalleOrden.CantidadKg - cantidadRecibidaAnterior
-                    );
-
-                    var bultosPendientes = Math.Max(
-                        0,
-                        detalleOrden.Bultos - bultosRecibidosAnterior
-                    );
-
-                    // Lo que se está intentando recibir en esta entrega.
-                    var cantidadNueva =
-                        cantidadesNuevaEntrega[item.OrdenCompraDetalleId];
-
-                    var bultosNuevos =
-                        bultosNuevaEntrega[item.OrdenCompraDetalleId];
-
-                    if (cantidadNueva > cantidadPendiente)
-                    {
-                        throw new Exception(
-                            $"La cantidad recibida de " +
-                            $"{detalleOrden.Material?.NombreMaterial} " +
-                            $"supera la cantidad pendiente. " +
-                            $"Pendiente: {cantidadPendiente} kg."
-                        );
-                    }
-
-                    if (bultosNuevos > bultosPendientes)
-                    {
-                        throw new Exception(
-                            $"Los bultos recibidos de " +
-                            $"{detalleOrden.Material?.NombreMaterial} " +
-                            $"superan los bultos pendientes. " +
-                            $"Pendientes: {bultosPendientes}."
-                        );
-                    }
-
-                    var detalle = new RecepcionMercanciaDetalle
-                    {
-                        OrdenCompraDetalleId = item.OrdenCompraDetalleId,
-                        CantidadRecibida = item.CantidadRecibida,
-                        BultosRecibidos = item.BultosRecibidos,
-                        LoteProveedor = item.LoteProveedor,
-                        EstadoMaterial = item.EstadoMaterial,
-                        Observaciones = item.Observaciones
-                    };
-
-                    recepcion.Detalles.Add(detalle);
-                }
-
-                if (!agregoDetalle)
+                if (detalleOrden == null)
                 {
                     throw new Exception(
-                        "Debe ingresar al menos una cantidad o bulto recibido."
+                        $"El detalle {item.OrdenCompraDetalleId} no pertenece a la orden de compra."
                     );
                 }
 
-                await _context.SaveChangesAsync();
-
-                // Volvemos a consultar todos los detalles recibidos de la orden.
-                // Esto permite determinar si la recepción sigue siendo parcial
-                // o ya se completó.
-                var todosLosDetallesRecibidos =
-                    await _context.RecepcionesMercancias
-                        .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
-                        .SelectMany(r => r.Detalles)
-                        .ToListAsync();
-
-                var ordenCompleta = orden.Detalles.All(d =>
+                if (item.CantidadRecibida < 0)
                 {
-                    var cantidadRecibida = todosLosDetallesRecibidos
-                        .Where(r => r.OrdenCompraDetalleId == d.Id)
-                        .Sum(r => r.CantidadRecibida);
-
-                    var bultosRecibidos = todosLosDetallesRecibidos
-                        .Where(r => r.OrdenCompraDetalleId == d.Id)
-                        .Sum(r => r.BultosRecibidos);
-
-                    return cantidadRecibida >= d.CantidadKg &&
-                           bultosRecibidos >= d.Bultos;
-                });
-
-                // Cambiamos el estado de la orden.
-                if (ordenCompleta)
-                {
-                    orden.Estado = "Recepcionada";
-                }
-                else
-                {
-                    orden.Estado = "Parcial";
+                    throw new Exception(
+                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} no puede ser negativa."
+                    );
                 }
 
-                await _context.SaveChangesAsync();
+                if (item.BultosRecibidos < 0)
+                {
+                    throw new Exception(
+                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} no pueden ser negativos."
+                    );
+                }
 
-                await _notificacion.EnviarRecepcionMercanciaAsync(
-                    recepcion.Id,
-                    dto.Usuarios
+                // Si no recibió nada, no se crea detalle.
+                if (item.CantidadRecibida == 0 && item.BultosRecibidos == 0)
+                    continue;
+
+                agregoDetalle = true;
+
+                if (!cantidadesNuevaEntrega.ContainsKey(item.OrdenCompraDetalleId))
+                {
+                    cantidadesNuevaEntrega[item.OrdenCompraDetalleId] = 0;
+                    bultosNuevaEntrega[item.OrdenCompraDetalleId] = 0;
+                }
+
+                cantidadesNuevaEntrega[item.OrdenCompraDetalleId] += item.CantidadRecibida;
+                bultosNuevaEntrega[item.OrdenCompraDetalleId] += item.BultosRecibidos;
+
+                // Total recibido anteriormente.
+                var cantidadRecibidaAnterior = recepcionesAnteriores
+                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Sum(r => r.CantidadRecibida);
+
+                var bultosRecibidosAnterior = recepcionesAnteriores
+                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Sum(r => r.BultosRecibidos);
+
+                // Pendiente de la orden.
+                var cantidadPendiente = Math.Max(
+                    0,
+                    detalleOrden.CantidadKg - cantidadRecibidaAnterior
                 );
 
-                return new RecepcionMercanciaDto
+                var bultosPendientes = Math.Max(
+                    0,
+                    detalleOrden.Bultos - bultosRecibidosAnterior
+                );
+
+                // Acumulado de esta nueva entrega.
+                var cantidadNueva = cantidadesNuevaEntrega[item.OrdenCompraDetalleId];
+                var bultosNuevos = bultosNuevaEntrega[item.OrdenCompraDetalleId];
+
+                if (cantidadNueva > cantidadPendiente)
                 {
-                    Id = recepcion.Id,
-                    ConsecutivoEntrada = recepcion.NumeroRecepcion,
-                    OrdenCompraId = recepcion.OrdenCompraId,
-                    NumeroOrden = orden.Numero,
-                    Proveedor = orden.Proveedor?.Nombre ?? "",
-                    FechaRecepcion = recepcion.FechaRecepcion,
-                    Conductor = recepcion.Conductor,
-                    Transportadora = recepcion.Transportadora,
-                    EmbalajeAdecuado = recepcion.EmbalajeAdecuado,
-                    TotalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida),
-                    TotalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos)
+                    throw new Exception(
+                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} " +
+                        $"supera la cantidad pendiente. Pendiente: {cantidadPendiente} kg."
+                    );
+                }
+
+                if (bultosNuevos > bultosPendientes)
+                {
+                    throw new Exception(
+                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} " +
+                        $"superan los bultos pendientes. Pendientes: {bultosPendientes}."
+                    );
+                }
+
+                var detalle = new RecepcionMercanciaDetalle
+                {
+                    OrdenCompraDetalleId = item.OrdenCompraDetalleId,
+                    CantidadRecibida = item.CantidadRecibida,
+                    BultosRecibidos = item.BultosRecibidos,
+                    LoteProveedor = item.LoteProveedor,
+                    EstadoMaterial = item.EstadoMaterial,
+                    Observaciones = item.Observaciones,
+                    NumeroEntrega = numeroEntrega,
+                    FechaEntrega = fechaEntrega,
+                    ProcesadoInventario = false
                 };
+
+                recepcion.Detalles.Add(detalle);
             }
+
+            if (!agregoDetalle)
+            {
+                throw new Exception(
+                    "Debe ingresar al menos una cantidad o bulto recibido."
+                );
+            }
+
+            // Guardamos el número de esta entrega.
+            recepcion.NumeroUltimaEntrega = numeroEntrega;
+
+            await _context.SaveChangesAsync();
+
+            // Obtener todos los detalles recibidos de la orden.
+            var todosLosDetallesRecibidos = await _context.RecepcionesMercancias
+                .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
+                .SelectMany(r => r.Detalles)
+                .ToListAsync();
+
+            // Determinar si ya llegó toda la orden.
+            var ordenCompleta = orden.Detalles.All(d =>
+            {
+                var cantidadRecibida = todosLosDetallesRecibidos
+                    .Where(r => r.OrdenCompraDetalleId == d.Id)
+                    .Sum(r => r.CantidadRecibida);
+
+                var bultosRecibidos = todosLosDetallesRecibidos
+                    .Where(r => r.OrdenCompraDetalleId == d.Id)
+                    .Sum(r => r.BultosRecibidos);
+
+                return cantidadRecibida >= d.CantidadKg &&
+                       bultosRecibidos >= d.Bultos;
+            });
+
+            orden.Estado = ordenCompleta
+                ? "Recepcionada"
+                : "Parcial";
+
+            await _context.SaveChangesAsync();
+
+            await _notificacion.EnviarRecepcionMercanciaAsync(
+                recepcion.Id,
+                dto.Usuarios
+            );
+
+            return new RecepcionMercanciaDto
+            {
+                Id = recepcion.Id,
+                ConsecutivoEntrada = recepcion.NumeroRecepcion,
+                OrdenCompraId = recepcion.OrdenCompraId,
+                NumeroOrden = orden.Numero,
+                Proveedor = orden.Proveedor?.Nombre ?? "",
+                FechaRecepcion = recepcion.FechaRecepcion,
+                Conductor = recepcion.Conductor,
+                Transportadora = recepcion.Transportadora,
+                EmbalajeAdecuado = recepcion.EmbalajeAdecuado,
+                TotalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida),
+                TotalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos)
+            };
+        }
 
 
         public async Task ConfirmarRecepcionAsync(int id)
@@ -382,24 +375,36 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             var recepcion = await _context.RecepcionesMercancias
                 .Include(r => r.OrdenCompra)
                     .ThenInclude(o => o.Detalles)
+                .Include(r => r.Detalles)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recepcion == null)
                 throw new Exception("La recepción no existe.");
 
-            if (recepcion.FechaConfirmacion.HasValue)
-                throw new Exception("Esta recepción ya fue confirmada.");
-
             if (recepcion.OrdenCompra == null)
                 throw new Exception("La orden de compra no existe.");
 
-            // Traer todo lo recibido para la orden
+            // Buscar únicamente los detalles de esta recepción
+            // que todavía no han sido procesados en inventario.
+            var detallesPendientes = recepcion.Detalles
+                .Where(d => !d.ProcesadoInventario)
+                .ToList();
+
+            if (!detallesPendientes.Any())
+                throw new Exception(
+                    "No existen materiales pendientes por ingresar al inventario."
+                );
+
+            // Procesar solamente los detalles nuevos de esta entrega.
+            await _inventarioService.ProcesarRecepcionAsync(id);
+
+            // Consultar nuevamente todos los detalles recibidos de la orden.
             var detallesRecibidos = await _context.RecepcionesMercancias
                 .Where(r => r.OrdenCompraId == recepcion.OrdenCompraId)
                 .SelectMany(r => r.Detalles)
                 .ToListAsync();
 
-            // Verificar que la orden esté completamente recibida
+            // Verificar si la orden ya quedó completamente recibida.
             var ordenCompleta = recepcion.OrdenCompra.Detalles.All(d =>
             {
                 var kgRecibidos = detallesRecibidos
@@ -414,23 +419,20 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                        bultosRecibidos >= d.Bultos;
             });
 
-            if (!ordenCompleta)
+            if (ordenCompleta)
             {
-                throw new Exception(
-                    "La recepción todavía está incompleta. " +
-                    "Debe recibirse toda la mercancía antes de enviarla a inventario."
-                );
+                // Ya llegó toda la mercancía y toda la recepción
+                // pendiente fue procesada en inventario.
+                recepcion.OrdenCompra.Estado = "Confirmada";
+                recepcion.FechaConfirmacion = DateTime.Now;
+                recepcion.UsuarioConfirmacionId = _currentUser.IdUsuario!.Value;
             }
-
-            // PRIMERO ENVIAR TODA LA RECEPCIÓN A INVENTARIO
-            await _inventarioService.ProcesarRecepcionAsync(id);
-
-            // SOLO SI INVENTARIO FUE EXITOSO, CONFIRMAR RECEPCIÓN
-            recepcion.FechaConfirmacion = DateTime.Now;
-            recepcion.UsuarioConfirmacionId = _currentUser.IdUsuario!.Value;
-
-            // Marcar orden como completamente recepcionada
-            recepcion.OrdenCompra.Estado = "Confirmada";
+            else
+            {
+                // La entrega actual ya entró a inventario,
+                // pero todavía faltan materiales por recibir.
+                recepcion.OrdenCompra.Estado = "Parcial";
+            }
 
             await _context.SaveChangesAsync();
         }

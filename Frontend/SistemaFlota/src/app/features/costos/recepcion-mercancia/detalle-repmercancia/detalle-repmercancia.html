@@ -1,106 +1,98 @@
 <div class="modal" *ngIf="recepcion">
-
     <div class="header">
         <div>
-            <h2>Detalle Recepción de Mercancía</h2>
-            <span>{{ recepcion.consecutivoEntrada }}</span>
+            <h2>Detalle Recepción de Mercancía</h2><span>{{ recepcion.consecutivoEntrada }}</span>
         </div>
-
-        <button class="btn-close" (click)="cerrar()">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button class="btn-close" (click)="cerrar()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="card">
         <div class="info-grid">
-
-            <div>
-                <label>Orden Compra</label>
-                <span>{{ recepcion.numeroOrden }}</span>
-            </div>
-
-            <div>
-                <label>Proveedor</label>
-                <span>{{ recepcion.proveedor }}</span>
-            </div>
-
-            <div>
-                <label>Fecha Recepción</label>
-                <span>{{ recepcion.fechaRecepcion | date:'dd/MM/yyyy' }}</span>
-            </div>
-
-            <div>
-                <label>Conductor</label>
-                <span>{{ recepcion.conductor }}</span>
-            </div>
-
-            <div>
-                <label>Transportadora</label>
-                <span>{{ recepcion.transportadora }}</span>
-            </div>
-
-            <div>
-                <label>Embalaje</label>
-                <span>{{ recepcion.embalajeAdecuado ? 'Adecuado' : 'No adecuado' }}</span>
-            </div>
-
+            <div><label>Orden Compra</label><span>{{ recepcion.numeroOrden }}</span></div>
+            <div><label>Proveedor</label><span>{{ recepcion.proveedor }}</span></div>
+            <div><label>Fecha Recepción</label><span>{{ recepcion.fechaRecepcion | date:'dd/MM/yyyy' }}</span></div>
+            <div><label>Conductor</label><span>{{ recepcion.conductor }}</span></div>
+            <div><label>Transportadora</label><span>{{ recepcion.transportadora }}</span></div>
+            <div><label>Embalaje</label><span>{{ recepcion.embalajeAdecuado ? 'Adecuado' : 'No adecuado' }}</span></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>Materiales Recibidos</h3>
+        <div class="entregas-header">
+            <div>
+                <h3>Entregas Registradas</h3>
+                <p>Detalle de las entregas realizadas para esta orden.</p>
+            </div>
+            <span class="total-entregas">{{ entregas.length }} entrega{{ entregas.length !== 1 ? 's' : '' }}</span>
+        </div>
 
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Material</th>
-                        <th>Cantidad KG</th>
-                        <th>Bultos</th>
-                        <th>Lote</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
+        <div class="entrega" *ngFor="let entrega of entregas">
+            <div class="entrega-header">
+                <div class="entrega-titulo">
+                    <div class="entrega-icon"><i class="fa-solid fa-truck"></i></div>
+                    <div>
+                        <h4>Entrega #{{ entrega.numeroEntrega }}</h4><span>{{ entrega.fechaEntrega | date:'dd/MM/yyyy
+                            HH:mm' }}</span>
+                    </div>
+                </div>
+                <span class="badge-procesado" [class.pendiente]="!entrega.procesadoInventario">
+                    <i class="fa-solid" [ngClass]="entrega.procesadoInventario ? 'fa-circle-check' : 'fa-clock'"></i>
+                    {{ entrega.procesadoInventario ? 'Ingresada a inventario' : 'Pendiente de inventario' }}
+                </span>
+            </div>
 
-                <tbody>
-                    <tr *ngFor="let item of recepcion.detalles">
-                        <td>{{ item.material }}</td>
-                        <td>{{ item.cantidadRecibida }}</td>
-                        <td>{{ item.bultosRecibidos }}</td>
-                        <td>{{ item.loteProveedor }}</td>
-                        <td>{{ item.estadoMaterial }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Cantidad KG</th>
+                            <th>Bultos</th>
+                            <th>Lote</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of entrega.detalles">
+                            <td>{{ item.material }}</td>
+                            <td>{{ item.cantidadRecibida | number:'1.0-2' }}</td>
+                            <td>{{ item.bultosRecibidos | number:'1.0-2' }}</td>
+                            <td>{{ item.loteProveedor }}</td>
+                            <td>{{ item.estadoMaterial }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="entrega-totales">
+                <span>KG: <strong>{{ entrega.totalKg | number:'1.0-2' }}</strong></span>
+                <span>Bultos: <strong>{{ entrega.totalBultos | number:'1.0-2' }}</strong></span>
+            </div>
+        </div>
+
+        <div class="sin-entregas" *ngIf="entregas.length === 0">
+            <i class="fa-solid fa-box-open"></i>
+            <p>No hay entregas registradas.</p>
         </div>
     </div>
 
     <div class="card">
         <div class="totales">
-            <div>
-                <label>Total KG</label>
-                <span>{{ recepcion.totalKg }}</span>
-            </div>
-
-            <div>
-                <label>Total Bultos</label>
-                <span>{{ recepcion.totalBultos }}</span>
-            </div>
+            <div><label>Total KG</label><span>{{ recepcion.totalKg | number:'1.0-2' }}</span></div>
+            <div><label>Total Bultos</label><span>{{ recepcion.totalBultos | number:'1.0-2' }}</span></div>
         </div>
     </div>
 
     <div class="footer">
-        <button class="btn-cancelar" (click)="cerrar()">
-            Cerrar
+        <button class="btn-cancelar" (click)="cerrar()">Cerrar</button>
+        <button *ngIf="hayEntregasPendientes" class="btn-agregar" (click)="confirmarRecepcion()"
+            [disabled]="confirmando">
+            <i class="fa-solid" [ngClass]="confirmando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+            {{ confirmando ? 'Ingresando a inventario...' : 'Confirmar e ingresar a inventario' }}
         </button>
-
-        <button class="btn-agregar" (click)="confirmarRecepcion()" [disabled]="confirmando">
-
-            <i class="fa-solid fa-check"></i>
-
-            {{ confirmando ? 'Confirmando...' : 'Confirmar e ingresar a inventario' }}
-
-        </button>
+        <span class="recepcion-confirmada" *ngIf="!hayEntregasPendientes">
+            <i class="fa-solid fa-circle-check"></i>
+            Todas las entregas están en inventario
+        </span>
     </div>
-
 </div>

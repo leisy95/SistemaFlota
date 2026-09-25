@@ -70,12 +70,36 @@
                 </div>
             </div>
 
-            <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
-                (click)="ordenSeleccionada.estado?.toLowerCase() === 'recepcionada' ? verRecepcion(ordenSeleccionada) : iniciarRecepcion()">
+            <div class="orden-acciones">
+                <ng-container *ngIf="ordenSeleccionada.estado?.toLowerCase() === 'parcial'; else accionNormal">
 
-                <i class="fa-solid" [ngClass]="getIconoBoton(ordenSeleccionada)"></i>
-                {{ getTextoBoton(ordenSeleccionada) }}
-            </button>
+                    <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                        (click)="iniciarRecepcion()">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        Continuar Recepción
+                    </button>
+
+                    <button class="btn btn-confirmar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                        (click)="verRecepcion(ordenSeleccionada)">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        Revisar entrega
+                    </button>
+
+                </ng-container>
+
+                <ng-template #accionNormal>
+
+                    <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)" (click)="ordenSeleccionada.estado?.toLowerCase() === 'recepcionada'
+                    ? verRecepcion(ordenSeleccionada)
+                    : iniciarRecepcion()">
+
+                        <i class="fa-solid" [ngClass]="getIconoBoton(ordenSeleccionada)"></i>
+                        {{ getTextoBoton(ordenSeleccionada) }}
+
+                    </button>
+
+                </ng-template>
+            </div>
         </div>
 
         <!-- Acciones -->

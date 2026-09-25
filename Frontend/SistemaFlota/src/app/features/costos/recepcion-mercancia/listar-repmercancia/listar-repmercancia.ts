@@ -224,44 +224,20 @@ export class ListarRepmercancia {
   }
 
   getTextoBoton(orden: OrdenCompra): string {
-
     switch (orden.estado?.toLowerCase()) {
-
-      case 'pendiente':
-        return 'Iniciar Recepción';
-
-      case 'parcial':
-        return 'Continuar Recepción';
-
-      case 'recepcionada':
-        return 'Revisar y Confirmar Recepción';
-
-      case 'confirmada':
-        return 'Recepción Confirmada';
-
-      default:
-        return 'Iniciar Recepción';
+      case 'pendiente': return 'Iniciar Recepción';
+      case 'recepcionada': return 'Revisar y Confirmar Recepción';
+      case 'confirmada': return 'Recepción Confirmada';
+      default: return '';
     }
   }
 
   getIconoBoton(orden: OrdenCompra): string {
-
     switch (orden.estado?.toLowerCase()) {
-
-      case 'pendiente':
-        return 'fa-cube';
-
-      case 'parcial':
-        return 'fa-truck-ramp-box';
-
-      case 'recepcionada':
-        return 'fa-clipboard-check';
-
-      case 'confirmada':
-        return 'fa-circle-check';
-
-      default:
-        return 'fa-cube';
+      case 'pendiente': return 'fa-cube';
+      case 'recepcionada': return 'fa-clipboard-check';
+      case 'confirmada': return 'fa-circle-check';
+      default: return '';
     }
   }
 
