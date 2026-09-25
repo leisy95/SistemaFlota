@@ -55,6 +55,7 @@ export class GestionSncComponent implements OnInit {
     };
     evidenciaImagen: File | null = null;
     evidenciaPdf: File | null = null;
+    evidenciaPdfVerificacion: File | null = null;
     firmaReportaUrl: string | null = null;
 
     // Formulario Paso 2
@@ -76,6 +77,10 @@ export class GestionSncComponent implements OnInit {
     };
     firmaVerificacionUrl: string | null = null;
 
+    modoFirmaReporta: 'dibujar' | 'escribir' = 'dibujar';
+    modoFirmaTratamiento: 'dibujar' | 'escribir' = 'dibujar';
+    modoFirmaVerificacion: 'dibujar' | 'escribir' = 'dibujar';
+
     // Opciones desplegables
     opcionesLinea: any[] = [];
     opcionesMaterial: any[] = [];
@@ -83,6 +88,22 @@ export class GestionSncComponent implements OnInit {
     opcionesTipoDefecto: any[] = [];
     opcionesImpacto: any[] = [];
     opcionesTratamiento: any[] = [];
+
+    opcionesTipoDefectoFijas = [
+        'Calibre fuera de tolerancia',
+        'Dimensiones fuera de tolerancia',
+        'Defecto de resistencia en la película plástica',
+        'Defecto en la apariencia en la película plástica',
+        'Defectos en la impresión',
+        'Defecto en la línea de sellado',
+        'Defecto en la línea de precorte',
+        'Defecto de perforación o troquelado',
+        'Falta de registro o trazabilidad',
+        'Materia prima o mezcla defectuosa',
+        'Otro'
+    ];
+    tiposDefectoSeleccionados: string[] = [];
+    otroDefectoDescripcion = '';
 
     fotosSeleccionadas: { [paso: string]: File[] } = { Reportar: [], Tratamiento: [], Verificacion: [] };
     evidenciasCargadas: any[] = [];
@@ -165,10 +186,15 @@ export class GestionSncComponent implements OnInit {
 
     seleccionarImagen(event: any) { this.evidenciaImagen = event.target.files[0]; }
     seleccionarPdf(event: any) { this.evidenciaPdf = event.target.files[0]; }
+    seleccionarPdfVerificacion(event: any) { this.evidenciaPdfVerificacion = event.target.files[0]; }
     urlEvidencia(nombreArchivo: string): string {
         return `${environment.apiUrl.replace('/api', '')}/snc/${nombreArchivo}`;
     }
-
+    toggleTipoDefecto(opcion: string) {
+        const idx = this.tiposDefectoSeleccionados.indexOf(opcion);
+        if (idx >= 0) this.tiposDefectoSeleccionados.splice(idx, 1);
+        else this.tiposDefectoSeleccionados.push(opcion);
+    }
     seleccionarFotos(event: any, paso: string) {
         const archivos = Array.from(event.target.files) as File[];
         this.fotosSeleccionadas[paso] = archivos.slice(0, 5);
@@ -247,6 +273,13 @@ export class GestionSncComponent implements OnInit {
         this.firmaVerificacionUrl = null;
     }
 
+    firmarConTexto(paso: 'reporta' | 'tratamiento' | 'verificacion', nombre: string) {
+        const texto = nombre.trim();
+        if (paso === 'reporta') this.firmaReportaUrl = texto || null;
+        if (paso === 'tratamiento') this.firmaTratamientoUrl = texto || null;
+        if (paso === 'verificacion') this.firmaVerificacionUrl = texto || null;
+    }
+
     nuevo() {
         this.form = {
             ordenProduccion: '', referencia: '', cantidadKg: null, cliente: '',
@@ -258,7 +291,10 @@ export class GestionSncComponent implements OnInit {
         this.firmaReportaUrl = null;
         this.editandoId = null;
         this.vista = 'nuevo';
+        this.tiposDefectoSeleccionados = [];
+        this.otroDefectoDescripcion = '';
         this.iniciarCanvasReporta();
+
     }
 
     guardarPaso1() {
@@ -274,7 +310,11 @@ export class GestionSncComponent implements OnInit {
         fd.append('Material', this.form.material || '');
         fd.append('Proceso', this.form.proceso || '');
         fd.append('DescripcionSalida', this.form.descripcionSalida || '');
-        fd.append('TipoDefecto', this.form.tipoDefecto || '');
+        let tipoDefectoTexto = this.tiposDefectoSeleccionados.filter(t => t !== 'Otro').join(', ');
+        if (this.tiposDefectoSeleccionados.includes('Otro') && this.otroDefectoDescripcion.trim()) {
+            tipoDefectoTexto += (tipoDefectoTexto ? ', ' : '') + 'Otro: ' + this.otroDefectoDescripcion.trim();
+        }
+        fd.append('TipoDefecto', tipoDefectoTexto);
         fd.append('Impacto', this.form.impacto || '');
         fd.append('CausaRaiz', this.form.causaRaiz || '');
         fd.append('CantidadReportadaKg', String(this.form.cantidadReportadaKg ?? ''));
@@ -338,45 +378,47 @@ export class GestionSncComponent implements OnInit {
         });
     }
 
-    guardarVerificacion() {
-        if (!this.editandoId) return;
-        if (!this.firmaVerificacionUrl) { alert('Debe firmar la verificación'); return; }
+   guardarVerificacion() {
+    if (!this.editandoId) return;
+    if (!this.firmaVerificacionUrl) { alert('Debe firmar la verificación'); return; }
 
-        const dialogRef = this.dialog.open(DialogConfirmacion, {
-            data: {
-                titulo: 'Cerrar salida no conforme',
-                mensaje: '¿Confirma el cierre de este registro? No se podrá modificar después.',
-                textoConfirmar: 'Cerrar',
-                textoCancelar: 'Cancelar',
-                tipo: 'warning'
-            }
-        });
+    const dialogRef = this.dialog.open(DialogConfirmacion, {
+        data: {
+            titulo: 'Cerrar salida no conforme',
+            mensaje: '¿Confirma el cierre de este registro? No se podrá modificar después.',
+            textoConfirmar: 'Cerrar',
+            textoCancelar: 'Cancelar',
+            tipo: 'warning'
+        }
+    });
 
-        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
-            if (!confirmado) return;
-            const dto: VerificacionSncDto = {
-                verificacionCumplimiento: this.formVerificacion.verificacionCumplimiento,
-                requiereInformacionCliente: this.formVerificacion.requiereInformacionCliente ?? undefined,
-                motivoInformacionCliente: this.formVerificacion.motivoInformacionCliente,
-                aceptacionBajoConcesion: this.formVerificacion.aceptacionBajoConcesion ?? undefined,
-                detalleAceptacionConcesion: this.formVerificacion.detalleAceptacionConcesion,
-                revisadoPor: this.formVerificacion.revisadoPor,
-                firmaVerificacion: this.firmaVerificacionUrl ?? undefined
-            };
-            this.service.cerrar(this.editandoId!, dto).subscribe({
-                next: (r) => {
-                    if (this.fotosSeleccionadas['Verificacion'].length > 0) {
-                        this.service.subirEvidencias(r.id, 'Verificacion', this.fotosSeleccionadas['Verificacion']).subscribe({
-                            next: () => { this.vista = 'lista'; this.cargar(); }
-                        });
-                    } else {
-                        this.vista = 'lista'; this.cargar();
-                    }
-                },
-                error: (e) => { console.error(e); alert('Error cerrando el registro'); }
-            });
+    dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+        if (!confirmado) return;
+
+        const fd = new FormData();
+        fd.append('VerificacionCumplimiento', this.formVerificacion.verificacionCumplimiento || '');
+        fd.append('RequiereInformacionCliente', String(this.formVerificacion.requiereInformacionCliente ?? ''));
+        fd.append('MotivoInformacionCliente', this.formVerificacion.motivoInformacionCliente || '');
+        fd.append('AceptacionBajoConcesion', String(this.formVerificacion.aceptacionBajoConcesion ?? ''));
+        fd.append('DetalleAceptacionConcesion', this.formVerificacion.detalleAceptacionConcesion || '');
+        fd.append('RevisadoPor', this.formVerificacion.revisadoPor || '');
+        fd.append('FirmaVerificacion', this.firmaVerificacionUrl || '');
+        if (this.evidenciaPdfVerificacion) fd.append('evidenciaPdf', this.evidenciaPdfVerificacion);
+
+        this.service.cerrar(this.editandoId!, fd).subscribe({
+            next: (r) => {
+                if (this.fotosSeleccionadas['Verificacion'].length > 0) {
+                    this.service.subirEvidencias(r.id, 'Verificacion', this.fotosSeleccionadas['Verificacion']).subscribe({
+                        next: () => { this.vista = 'lista'; this.cargar(); }
+                    });
+                } else {
+                    this.vista = 'lista'; this.cargar();
+                }
+            },
+            error: (e) => { console.error(e); alert('Error cerrando el registro'); }
         });
-    }
+    });
+}
 
     eliminar(id: number) {
         const dialogRef = this.dialog.open(DialogConfirmacion, {
@@ -487,7 +529,15 @@ export class GestionSncComponent implements OnInit {
             margin: { left: M, right: M }
         });
         y = (doc as any).lastAutoTable.finalY + 3;
-        if (r.firmaReporta) { try { doc.addImage(r.firmaReporta, 'PNG', M, y, 45, 15); } catch (e) { } }
+        if (r.firmaReporta) {
+            if (r.firmaReporta.startsWith('data:image')) {
+                try { doc.addImage(r.firmaReporta, 'PNG', M, y, 45, 15); } catch (e) { }
+            } else {
+                doc.setFont('helvetica', 'italic'); doc.setFontSize(14);
+                doc.text(r.firmaReporta, M, y + 10);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+            }
+        }
         y += 18;
         agregarFotosDelPaso('Reportar');
 
@@ -508,7 +558,15 @@ export class GestionSncComponent implements OnInit {
                 margin: { left: M, right: M }
             });
             y = (doc as any).lastAutoTable.finalY + 3;
-            if (r.firmaTratamiento) { try { doc.addImage(r.firmaTratamiento, 'PNG', M, y, 45, 15); } catch (e) { } }
+            if (r.firmaTratamiento) {
+                if (r.firmaTratamiento.startsWith('data:image')) {
+                    try { doc.addImage(r.firmaTratamiento, 'PNG', M, y, 45, 15); } catch (e) { }
+                } else {
+                    doc.setFont('helvetica', 'italic'); doc.setFontSize(14);
+                    doc.text(r.firmaTratamiento, M, y + 10);
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+                }
+            }
             y += 18;
             agregarFotosDelPaso('Tratamiento');
         }
@@ -533,7 +591,15 @@ export class GestionSncComponent implements OnInit {
                 margin: { left: M, right: M }
             });
             y = (doc as any).lastAutoTable.finalY + 3;
-            if (r.firmaVerificacion) { try { doc.addImage(r.firmaVerificacion, 'PNG', M, y, 45, 15); } catch (e) { } }
+            if (r.firmaVerificacion) {
+                if (r.firmaVerificacion.startsWith('data:image')) {
+                    try { doc.addImage(r.firmaVerificacion, 'PNG', M, y, 45, 15); } catch (e) { }
+                } else {
+                    doc.setFont('helvetica', 'italic'); doc.setFontSize(14);
+                    doc.text(r.firmaVerificacion, M, y + 10);
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+                }
+            }
             y += 18;
             agregarFotosDelPaso('Verificacion');
         }

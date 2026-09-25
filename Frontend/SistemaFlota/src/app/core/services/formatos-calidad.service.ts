@@ -47,13 +47,21 @@ export class FormatosCalidadService {
 
   buscarDesperdicioPorOrden(op: string, tipoFormatoId: number) {
     return this.http.get<any>(`${this.api}/desperdicio-orden?op=${encodeURIComponent(op)}&tipoFormatoId=${tipoFormatoId}`, { headers: this.headers });
-}
+  }
 
- buscarMejorRendimiento(texto: string, maquina?: string) {
+  buscarMejorRendimiento(texto: string, maquina?: string) {
     let url = `${this.api}/mejor-rendimiento?texto=${encodeURIComponent(texto)}`;
     if (maquina) url += `&maquina=${encodeURIComponent(maquina)}`;
     return this.http.get<any>(url, { headers: this.headers });
-}
-  
+  }
+
+  fijarMejorRendimiento(id: number) {
+    return this.http.put<any>(`${this.api}/${id}/fijar-mejor`, {}, { headers: this.headers });
+  }
+
+  quitarFijado(id: number) {
+    return this.http.put<any>(`${this.api}/${id}/quitar-fijado`, {}, { headers: this.headers });
+  }
+
   constructor(private http: HttpClient) {}
 }

@@ -17,6 +17,8 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
 
 @Component({
   selector: 'app-autorizaciones',
@@ -62,9 +64,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   facturasClientes: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
   facturasEditar: { facturaRemision: string; cliente: string; pesoKilos: any }[] = [];
 
-  pesoBaseClientes = 0;
-
-  guiaGenerada = '';
+  pesoBaseClientes = 0; guiaGenerada = '';
   usuarioFirma = '';
   observacionFirma = '';
   notificacion: string | null = null;
@@ -136,7 +136,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     private configuracionService: ConfiguracionService,
     private pdfService: PdfService,
     private cdr: ChangeDetectorRef,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -239,7 +240,17 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     this.mostrarModalSalidaRapida = true;
     this.cdr.markForCheck();
   }
-
+ obtenerPendienteConductor(conductorId: number): any {
+    const haceVeinteMinutos = new Date(Date.now() - 20 * 60000);
+    return (this.autorizaciones ?? []).find(a =>
+      a.conductorId === conductorId && !a.aplazadaPorChat && (
+        a.estado === 'Pendiente' || a.estado === 'Bodega' || a.estado === 'Porteria' ||
+        (a.estado === 'Autorizado' && a.fechaSalidaReal && !a.estadoLlegada) ||
+        (a.estado === 'Autorizado' && a.estadoLlegada === 'ReportadaLlegada' &&
+          a.fechaReporteLlegada && new Date(a.fechaReporteLlegada) > haceVeinteMinutos)
+      )
+    );
+  }
   abrirLlegadaRapida() {
     this.formLlegadaRapida = {
       conductorId: 0, vehiculoId: 0, tipoVuelta: 'Mensajería', destinoCompleto: '',
@@ -251,8 +262,35 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   guardarSalidaRapida() {
-    if (!this.formSalidaRapida.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formSalidaRapida.vehiculoId) { alert('Seleccione un vehículo'); return; }
+    if (!this.formSalidaRapida.conductorId) { this.mostrarNotificacion('⚠️ Seleccione un conductor'); return; }
+    if (!this.formSalidaRapida.vehiculoId) { this.mostrarNotificacion('⚠️ Seleccione un vehículo'); return; }
+
+    const pendiente = this.obtenerPendienteConductor(this.formSalidaRapida.conductorId);
+    if (pendiente) {
+      const dialogRef = this.dialog.open(DialogConfirmacion, {
+        data: {
+          titulo: 'Autorización pendiente',
+          mensaje: `Este conductor ya tiene una autorización esperando ${pendiente.estado} (Destino: ${pendiente.destinoCompleto || 'Mensajería'}, Tipo: ${pendiente.tipoVuelta}).\n\n¿Deseas aplazarla y crear esta nueva?`,
+          textoConfirmar: 'Aplazar y continuar',
+          textoCancelar: 'Seguir esperando esa',
+          tipo: 'warning'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+        if (!confirmado) return;
+        this.autorizacionesService.aplazar(pendiente.id).subscribe({
+          next: () => this.ejecutarSalidaRapida(),
+          error: (e: any) => { console.error(e); this.mostrarNotificacion('⚠️ Error al aplazar'); }
+        });
+      });
+      return;
+    }
+
+    this.ejecutarSalidaRapida();
+  }
+
+  private ejecutarSalidaRapida() {
     this.guardandoRapido = true;
     this.autorizacionesService.salidaRapida({
       conductorId: this.formSalidaRapida.conductorId,
@@ -277,8 +315,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   guardarLlegadaRapida() {
-    if (!this.formLlegadaRapida.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formLlegadaRapida.vehiculoId) { alert('Seleccione un vehículo'); return; }
+    if (!this.formLlegadaRapida.conductorId) { this.mostrarNotificacion('⚠️ Seleccione un conductor'); return; }
+    if (!this.formLlegadaRapida.vehiculoId) { this.mostrarNotificacion('⚠️ Seleccione un vehículo'); return; }
     this.guardandoRapido = true;
     this.autorizacionesService.llegadaRapida({
       conductorId: this.formLlegadaRapida.conductorId,
@@ -443,11 +481,9 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
 
   guardarEdicion() {
     if (!this.autorizacionEditando) return;
-    if (!this.formEditar.conductorId) { alert('Seleccione un conductor'); return; }
-    if (!this.formEditar.vehiculoId) { alert('Seleccione un vehículo'); return; }
-    const pesoFinal = parseFloat(
-      (this.pesoBaseClientes + this.pesoTotalFacturasEditar || this.formEditar.pesoKilos).toFixed(2)
-    );
+    if (!this.formEditar.conductorId) { this.mostrarNotificacion('⚠️ Seleccione un conductor'); return; }
+    if (!this.formEditar.vehiculoId) { this.mostrarNotificacion('⚠️ Seleccione un vehículo'); return; }
+    const pesoFinal = parseFloat(Number(this.formEditar.pesoKilos).toFixed(2));
     const datos = {
       conductorId: this.formEditar.conductorId,
       vehiculoId: this.formEditar.vehiculoId,
@@ -523,7 +559,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   guardarConfirmarLlegada() {
-    if (!this.usuarioFirma) { alert('Ingrese nombre del portero'); return; }
+    if (!this.usuarioFirma) { this.mostrarNotificacion('⚠️ Ingrese nombre del portero'); return; }
     this.autorizacionesService.confirmarLlegada(this.autorizacionLlegada.id, {
       firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma
     }).pipe(timeout(15000), takeUntil(this.destroy$),
@@ -576,13 +612,13 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   guardarDetalles() {
-    if (!this.form.vehiculoId) { alert('Seleccione una placa'); return; }
-    if (!this.form.tipoVuelta) { alert('Seleccione tipo de vuelta'); return; }
+    if (!this.form.vehiculoId) { this.mostrarNotificacion('⚠️ Seleccione una placa'); return; }
+    if (!this.form.tipoVuelta) { this.mostrarNotificacion('⚠️ Seleccione tipo de vuelta'); return; }
     if (!this.esMensajeria) {
-      if (!this.form.destinoCompleto) { alert('Ingrese el destino'); return; }
-      if (!this.form.cantidadClientes) { alert('Ingrese cantidad de clientes'); return; }
-      if (!this.form.pesoKilos) { alert('Ingrese el peso'); return; }
-      if (!this.form.descripcionCarga) { alert('Ingrese descripción de la carga'); return; }
+      if (!this.form.destinoCompleto) { this.mostrarNotificacion('⚠️ Ingrese el destino'); return; }
+      if (!this.form.cantidadClientes) { this.mostrarNotificacion('⚠️ Ingrese cantidad de clientes'); return; }
+      if (!this.form.pesoKilos) { this.mostrarNotificacion('⚠️ Ingrese el peso'); return; }
+      if (!this.form.descripcionCarga) { this.mostrarNotificacion('⚠️ Ingrese descripción de la carga'); return; }
     }
     const datos = {
       conductorId: Number(this.conductorSeleccionado.id),
@@ -608,7 +644,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   firmarFacturacion() {
-    if (!this.usuarioFirma) { alert('Ingrese nombre de quien firma'); return; }
+    if (!this.usuarioFirma) { this.mostrarNotificacion('⚠️ Ingrese nombre de quien firma'); return; }
     this.autorizacionesService.firmarFacturacion(this.autorizacionActual.id,
       { firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma }
     ).pipe(timeout(15000), takeUntil(this.destroy$),
@@ -624,7 +660,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   firmarBodega() {
-    if (!this.usuarioFirma) { alert('Ingrese nombre de quien firma'); return; }
+    if (!this.usuarioFirma) { this.mostrarNotificacion('⚠️ Ingrese nombre de quien firma'); return; }
     this.autorizacionesService.firmarBodega(this.autorizacionActual.id,
       { firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma }
     ).pipe(timeout(15000), takeUntil(this.destroy$),
@@ -642,7 +678,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   firmarPorteria() {
-    if (!this.usuarioFirma) { alert('Ingrese nombre de quien firma'); return; }
+    if (!this.usuarioFirma) { this.mostrarNotificacion('⚠️ Ingrese nombre de quien firma'); return; }
     this.autorizacionesService.firmarPorteria(this.autorizacionActual.id,
       { firma: this.usuarioFirma, usuario: this.usuarioFirma, observacion: this.observacionFirma }
     ).pipe(timeout(15000), takeUntil(this.destroy$),
@@ -680,16 +716,28 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   setPaso(n: number): void { this.pasoActual = n; this.cdr.markForCheck(); }
 
   confirmarSalida(autorizacion: any) {
-    if (!confirm(`¿Confirmar salida en ruta de ${autorizacion.conductor?.nombre}?`)) return;
-    this.autorizacionesService.confirmarSalida(autorizacion.id).pipe(
-      timeout(15000), takeUntil(this.destroy$),
-      catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
-    ).subscribe({
-      next: () => {
-        this.mostrarNotificacion('🚛 Salida en ruta confirmada — WhatsApp enviado');
-        this.obtenerAutorizaciones(); this.cdr.markForCheck();
-      },
-      error: () => { }
+    const dialogRef = this.dialog.open(DialogConfirmacion, {
+      data: {
+        titulo: 'Confirmar salida',
+        mensaje: `¿Confirmar salida en ruta de ${autorizacion.conductor?.nombre}?`,
+        textoConfirmar: 'Confirmar',
+        textoCancelar: 'Cancelar',
+        tipo: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.autorizacionesService.confirmarSalida(autorizacion.id).pipe(
+        timeout(15000), takeUntil(this.destroy$),
+        catchError(err => { alert(`Error: ${JSON.stringify(err.error ?? err.message)}`); return throwError(() => err); })
+      ).subscribe({
+        next: () => {
+          this.mostrarNotificacion('🚛 Salida en ruta confirmada — WhatsApp enviado');
+          this.obtenerAutorizaciones(); this.cdr.markForCheck();
+        },
+        error: () => { }
+      });
     });
   }
 

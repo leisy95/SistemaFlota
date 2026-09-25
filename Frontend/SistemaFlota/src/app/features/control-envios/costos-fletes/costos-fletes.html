@@ -47,8 +47,10 @@
       <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
       <div class="fg"><label>Conductor</label><input type="text" [(ngModel)]="filtroConductor" placeholder="Nombre">
       </div>
+      <div class="fg"><label>Placa</label><input type="text" [(ngModel)]="filtroPlaca" placeholder="ABC123"></div>
       <div class="fg"><label>Ciudad</label><input type="text" [(ngModel)]="filtroCiudad" placeholder="Destino"></div>
-      <div class="fg"> <label>Estado</label>
+      <div class="fg">
+        <label>Estado</label>
         <select [(ngModel)]="filtroEstado">
           <option value="">Todos</option>
           <option value="Pendiente">Pendiente</option>
@@ -85,22 +87,16 @@
             </td>
             <td data-label="Conductor"><strong>{{ r.autorizacion?.conductor?.nombre || r.trazabilidad?.conductor || '-'
                 }}</strong></td>
-            <td data-label="Placa"><span class="numero">{{ r.autorizacion?.vehiculo?.placa || (r.trazabilidad?.vehiculo
-                || '-') }}</span></td>
+            <td data-label="Placa"><span class="numero">{{ r.autorizacion?.vehiculo?.placa || r.trazabilidad?.vehiculo
+                || '-' }}</span></td>
             <td data-label="Destino">{{ r.autorizacion?.destinoCompleto || r.trazabilidad?.cliente || '-' }}</td>
             <td data-label="Kilos">{{ (r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0) | number:'1.0-0' }}
               kg</td>
             <td data-label="Total gastos"><span class="total-valor">${{ r.total | number:'1.0-0' }}</span></td>
             <td data-label="$/kg">
-              <span class="total-valor" *ngIf="(r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0) > 0">
-                ${{ (
-                r.total / (r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos)
-                ) | number:'1.0-2' }}
-              </span>
-
-              <span class="total-valor" *ngIf="(r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0) <= 0">
-                -
-              </span>
+              <span class="total-valor" *ngIf="!r.autorizacionId">${{ (r.total / ((r.trazabilidad?.pesoKilos) || 1)) |
+                number:'1.0-2' }}</span>
+              <span class="total-valor" *ngIf="r.autorizacionId">-</span>
             </td>
             <td data-label="Estado">
               <span class="estado" [class.pendiente]="r.estado === 'Pendiente'"
@@ -188,9 +184,12 @@
             <div class="gasto-card-titulo"><i class="fa-solid fa-bed"></i> Hospedaje</div>
             <input type="number" [(ngModel)]="form.hospedaje" min="0">
           </div>
-          <div class="gasto-card">
+          <div class="gasto-card gasto-card-boton" (click)="abrirModalVarios()">
             <div class="gasto-card-titulo"><i class="fa-solid fa-ellipsis"></i> Varios</div>
-            <input type="number" [(ngModel)]="form.varios" min="0">
+            <div class="gasto-card-valor">
+              <span>${{ form.varios | number:'1.0-0' }}</span>
+              <i class="fa-solid fa-pen" style="font-size: 12px; opacity: 0.6;"></i>
+            </div>
           </div>
         </div>
         <div class="total-box">
@@ -255,6 +254,14 @@
           <div class="gasto-row ver"><span>Varios</span><span>${{ registroSeleccionado.varios | number:'1.0-0' }}</span>
           </div>
         </div>
+        <div class="detalle-varios" *ngIf="registroSeleccionado.variosDetalle">
+          <p style="font-size: 12px; color: var(--gris-medio); margin: 10px 0 4px;">Detalle de varios:</p>
+          <div *ngFor="let item of parsearVariosDetalle(registroSeleccionado.variosDetalle)"
+            style="font-size: 13px; display: flex; justify-content: space-between; padding: 2px 0;">
+            <span>{{ item.concepto }}</span>
+            <span>${{ item.valor | number:'1.0-0' }}</span>
+          </div>
+        </div>
         <div class="total-box">
           <span>Total</span>
           <span>${{ registroSeleccionado.total | number:'1.0-0' }}</span>
@@ -308,4 +315,37 @@
       </div>
     </div>
   </ng-container>
+
+  <!-- MODAL VARIOS -->
+  <div class="modal-overlay" *ngIf="mostrarModalVarios">
+    <div class="modal-llegada" style="max-width:400px">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-receipt"></i> Gastos varios</h2>
+        <button class="btn-cerrar-modal" (click)="mostrarModalVarios = false"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="factura-fila" *ngFor="let item of itemsVarios; let i = index"
+        style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+        <input type="text" [(ngModel)]="item.concepto" placeholder="Concepto (ej: Agua)" style="flex: 2;">
+        <input type="number" [(ngModel)]="item.valor" placeholder="Valor" style="flex: 1;">
+        <button class="btn-eliminar-fila" (click)="eliminarItemVarios(i)"><i class="fa-solid fa-trash"></i></button>
+      </div>
+
+      <button class="btn-agregar-fila" (click)="agregarItemVarios()">
+        <i class="fa-solid fa-plus"></i> Agregar item
+      </button>
+
+      <div class="total-box" style="margin-top: 16px;">
+        <span>Total varios</span>
+        <span>${{ totalVarios | number:'1.0-0' }}</span>
+      </div>
+
+      <div class="modal-botones">
+        <button class="btn-cancelar-modal" (click)="mostrarModalVarios = false">Cancelar</button>
+        <button class="btn-guardar-llegada" (click)="guardarVarios()">
+          <i class="fa-solid fa-check"></i> Guardar y cerrar
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

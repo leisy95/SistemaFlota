@@ -142,41 +142,17 @@ table {
   border-collapse: collapse;
 }
 
-th:nth-child(1),
-td:nth-child(1) {
-  width: 14%;
+table {
+  table-layout: fixed;
 }
 
-// Orden
-th:nth-child(2),
-td:nth-child(2) {
-  width: 14%;
-}
-
-// Fecha
-th:nth-child(3),
-td:nth-child(3) {
-  width: 30%;
-}
-
-// Cliente
-th:nth-child(4),
-td:nth-child(4) {
-  width: 14%;
-}
-
-// Estado
-th:nth-child(5),
-td:nth-child(5) {
-  width: 16%;
-}
-
-// Revisado por
-th:nth-child(6),
-td:nth-child(6) {
-  width: 12%;
-  min-width: 130px;
-}
+th:nth-child(1), td:nth-child(1) { width: 10%; }  
+th:nth-child(2), td:nth-child(2) { width: 14%; }  
+th:nth-child(3), td:nth-child(3) { width: 16%; }  
+th:nth-child(4), td:nth-child(4) { width: 14%; }  
+th:nth-child(5), td:nth-child(5) { width: 26%; }  
+th:nth-child(6), td:nth-child(6) { width: 10%; }  
+th:nth-child(7), td:nth-child(7) { width: 10%; }  
 
 // Acciones
 
@@ -1231,7 +1207,9 @@ tbody {
   margin: 0 20px 20px;
 }
 
-.vc-card, .fg p, .detalle-item span {
+.vc-card,
+.fg p,
+.detalle-item span {
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1255,4 +1233,98 @@ tbody {
 .detalle-item span:last-child {
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+.checkbox-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: var(--gris-oscuro);
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: auto;
+  }
+}
+
+.celda-truncada {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.celda-tooltip {
+  position: relative;
+
+  &:hover .tooltip-caja {
+    display: block;
+  }
+}
+
+.tooltip-caja {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  background: #1f2937;
+  color: white;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  white-space: normal;
+  width: 280px;
+  margin-top: 4px;
+}
+tbody td.celda-tooltip {
+  overflow: visible;
+}
+.toggle-firma {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  button {
+    padding: 6px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+
+    &.activo {
+      background: var(--verde-principal);
+      color: white;
+      border-color: var(--verde-principal);
+    }
+  }
+}
+
+.firma-escrita input {
+  max-width: 340px;
+}
+
+.firma-preview {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 28px;
+  margin-top: 8px;
+  color: var(--gris-oscuro);
+  border-bottom: 2px solid var(--gris-oscuro);
+  display: inline-block;
+  padding: 0 10px 4px;
 }

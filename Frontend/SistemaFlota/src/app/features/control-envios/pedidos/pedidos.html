@@ -213,7 +213,7 @@
             <span></span>
           </div>
           <div class="ref-fila" *ngFor="let r of referencias; let i = index">
-            <input type="text" [(ngModel)]="r.referencia" placeholder="Ej: REF-001">
+            <input type="text" [id]="'ref-input-' + i" [(ngModel)]="r.referencia" placeholder="Ej: REF-001">
             <input type="number" [(ngModel)]="r.cantidadKg" placeholder="Kg" step="0.01" min="0">
             <input type="number" [(ngModel)]="r.cantidadUnidades" placeholder="Uds" min="0">
             <button class="btn-eliminar-fila" (click)="eliminarReferencia(i)">
@@ -329,16 +329,23 @@
         <strong><span [class]="getBadgeEstado(seleccionado?.estado)">{{ getLabelEstado(seleccionado?.estado)
             }}</span></strong>
       </div>
-      <div class="detalle-item"><span><i class="fas fa-user"></i> Vendedor</span><strong>{{ seleccionado?.vendedorNombre }}</strong></div>
-      <div class="detalle-item"><span><i class="fas fa-store"></i> Cliente</span><strong>{{ seleccionado?.cliente }}</strong></div>
-      <div class="detalle-item"><span><i class="fas fa-location-dot"></i> Destino</span><strong>{{ seleccionado?.destino }}</strong></div>
-      <div class="detalle-item"><span><i class="fas fa-calendar"></i> Fecha registro</span><strong>{{ seleccionado?.fechaRegistro | date:'medium'
+      <div class="detalle-item"><span><i class="fas fa-user"></i> Vendedor</span><strong>{{ seleccionado?.vendedorNombre
           }}</strong></div>
-      <div class="detalle-item"><span><i class="fas fa-user-gear"></i> Gestionado por</span><strong>{{ seleccionado?.gestionadoPor || '-' }}</strong>
+      <div class="detalle-item"><span><i class="fas fa-store"></i> Cliente</span><strong>{{ seleccionado?.cliente
+          }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-location-dot"></i> Destino</span><strong>{{ seleccionado?.destino
+          }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-calendar"></i> Fecha registro</span><strong>{{
+          seleccionado?.fechaRegistro | date:'medium'
+          }}</strong></div>
+      <div class="detalle-item"><span><i class="fas fa-user-gear"></i> Gestionado por</span><strong>{{
+          seleccionado?.gestionadoPor || '-' }}</strong>
       </div>
-      <div class="detalle-item"><span><i class="fas fa-truck"></i> Fecha despacho</span><strong>{{ seleccionado?.fechaDespacho ?
+      <div class="detalle-item"><span><i class="fas fa-truck"></i> Fecha despacho</span><strong>{{
+          seleccionado?.fechaDespacho ?
           (seleccionado.fechaDespacho | date:'medium') : '-' }}</strong></div>
-      <div class="detalle-item"><span><i class="fas fa-circle-check"></i> Fecha entrega</span><strong>{{ seleccionado?.fechaEntrega ?
+      <div class="detalle-item"><span><i class="fas fa-circle-check"></i> Fecha entrega</span><strong>{{
+          seleccionado?.fechaEntrega ?
           (seleccionado.fechaEntrega | date:'medium') : '-' }}</strong></div>
 
       <!-- Referencias -->

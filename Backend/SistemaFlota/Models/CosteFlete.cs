@@ -19,6 +19,7 @@ namespace SistemaFlota
         public decimal Varios { get; set; } = 0;
         public decimal Total { get; set; } = 0;
         public string? Observaciones { get; set; }
+        public string? VariosDetalle { get; set; }
         public string Estado { get; set; } = "Pendiente";
         public string? VerificadoPor { get; set; }
         public string? FirmaVerificacion { get; set; }

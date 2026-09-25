@@ -58,6 +58,9 @@ export class AutorizacionesService {
   }): Observable<any> {
     return this.http.post<any>(`${this.api}/salida-rapida`, datos);
   }
+  aplazar(id: number) {
+    return this.http.put<any>(`${this.api}/${id}/aplazar`, {});
+}
 
   llegadaRapida(datos: {
     conductorId: number;

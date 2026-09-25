@@ -649,3 +649,136 @@ textarea {
     border: 1px solid #91aacf;
 }
 }
+.gasto-card-boton {
+  cursor: pointer;
+  transition: 0.15s;
+
+  &:hover {
+    background: #b8bcb8;
+  }
+
+  .gasto-card-valor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 42px;
+    padding: 0 12px;
+    background: var(--blanco);
+    border-radius: 8px;
+    border: 1px solid #91aacf;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gris-oscuro);
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-llegada {
+  background: var(--blanco);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 1.1rem;
+    color: var(--gris-oscuro);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.btn-cerrar-modal {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--gris-medio);
+  width: auto;
+  padding: 4px;
+}
+
+.factura-fila {
+  input {
+    padding: 8px 10px;
+    border: 1px solid var(--gris-medio);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+}
+
+.btn-eliminar-fila {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-agregar-fila {
+  background: none;
+  border: 1px dashed var(--verde-principal);
+  color: var(--verde-principal);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+
+  button {
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    width: auto;
+  }
+}
+
+.btn-cancelar-modal {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: var(--gris-oscuro);
+}
+
+.btn-guardar-llegada {
+  background: var(--verde-principal);
+  color: var(--blanco);
+  border: none;
+  font-weight: 600;
+}

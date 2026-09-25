@@ -56,9 +56,9 @@ namespace SistemaFlota.Controllers.Calidad
         }
 
         [HttpPut("{id}/cerrar")]
-        public async Task<IActionResult> Cerrar(int id, [FromBody] VerificacionSncDto dto)
+        public async Task<IActionResult> Cerrar(int id, [FromForm] VerificacionSncDto dto, IFormFile? evidenciaPdf)
         {
-            var entidad = await _service.CerrarAsync(id, dto);
+            var entidad = await _service.CerrarAsync(id, dto, evidenciaPdf);
             if (entidad == null) return NotFound();
             return Ok(entidad);
         }

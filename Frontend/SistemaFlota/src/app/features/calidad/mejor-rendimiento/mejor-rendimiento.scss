@@ -178,3 +178,51 @@ tbody tr {
   &:hover { background: #f9fafb; }
   &.fila-seleccionada { background: #dbeafe !important; border-left: 3px solid #2563eb; }
 }
+.btn-fijar, .btn-quitar-fijado {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-fijar {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-quitar-fijado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-fijado {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+.btn-fijar-mini, .btn-quitar-fijado-mini {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-fijar-mini {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.btn-quitar-fijado-mini {
+  background: #fee2e2;
+  color: #dc2626;
+}

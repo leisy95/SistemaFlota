@@ -539,6 +539,18 @@ namespace SistemaFlota
             }
         }
 
+        [HttpPut("{id}/aplazar")]
+        public async Task<IActionResult> Aplazar(int id)
+        {
+            var autorizacion = await _context.Autorizaciones.FindAsync(id);
+            if (autorizacion == null) return NotFound();
+
+            autorizacion.AplazadaPorChat = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(autorizacion);
+        }
+
         [HttpPut("{id}/reportar-llegada")]
         public async Task<IActionResult> ReportarLlegada(int id, [FromBody] LlegadaConductorDto dto)
         {

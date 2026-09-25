@@ -5,10 +5,11 @@ namespace SistemaFlota.Models
     {
         [Key] public int Id { get; set; }
         [Required] public int FlotaChatUsuarioId { get; set; }
-        [Required][MaxLength(50)] public string Paso { get; set; } = string.Empty; // EsperandoConfirmacion | EsperandoPlaca
+        [Required][MaxLength(50)] public string Paso { get; set; } = string.Empty;
         public DateTime FechaInicio { get; set; } = DateTime.Now;
         public DateTime FechaExpiracion { get; set; } = DateTime.Now.AddMinutes(10);
         public int? VehiculoIdTemp { get; set; }
         public string? DestinoTemp { get; set; }
+        public int? AutorizacionPendienteIdTemp { get; set; }
     }
 }

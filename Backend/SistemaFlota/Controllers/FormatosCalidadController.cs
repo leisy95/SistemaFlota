@@ -265,6 +265,8 @@ namespace SistemaFlota
 
             if (!registros.Any())
                 return Ok(new { mensaje = "No hay registros históricos para esta búsqueda", resultados = new List<object>() });
+           
+            var fijado = registros.FirstOrDefault(r => r.EsMejorFijado);
 
             var calculados = registros.Select(r =>
             {
@@ -321,12 +323,65 @@ namespace SistemaFlota
             .OrderByDescending(c => c.Puntaje)
             .ToList();
 
+            if (fijado != null)
+            {
+                var kgHoraFijado = decimal.TryParse(fijado.ProduccionKgHora, out var kgF) ? kgF : 0;
+                return Ok(new
+                {
+                    totalEncontrados = conPuntaje.Count,
+                    mejor = new
+                    {
+                        fijado.Id,
+                        fijado.OrdenProduccion,
+                        fijado.Referencia,
+                        fijado.Fecha,
+                        fijado.Maquina,
+                        KgHora = kgHoraFijado,
+                        fijado.VariablesCriticasJson,
+                        EsFijado = true
+                    },
+                    todos = conPuntaje
+                });
+            }
+
             return Ok(new
             {
                 totalEncontrados = conPuntaje.Count,
                 mejor = conPuntaje.First(),
                 todos = conPuntaje
             });
+        }
+
+        [HttpPut("{id}/fijar-mejor")]
+        public async Task<IActionResult> FijarMejorRendimiento(int id)
+        {
+            var registro = await _context.RegistrosFormatoCalidad.FindAsync(id);
+            if (registro == null) return NotFound();
+
+            // Desfija cualquier otro registro con la misma Referencia + Máquina
+            var otros = await _context.RegistrosFormatoCalidad
+                .Where(r => r.Referencia == registro.Referencia && r.Maquina == registro.Maquina && r.Id != id)
+                .ToListAsync();
+
+            foreach (var otro in otros)
+                otro.EsMejorFijado = false;
+
+            registro.EsMejorFijado = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(registro);
+        }
+
+        [HttpPut("{id}/quitar-fijado")]
+        public async Task<IActionResult> QuitarFijado(int id)
+        {
+            var registro = await _context.RegistrosFormatoCalidad.FindAsync(id);
+            if (registro == null) return NotFound();
+
+            registro.EsMejorFijado = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(registro);
         }
 
     }

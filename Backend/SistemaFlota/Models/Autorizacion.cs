@@ -71,5 +71,6 @@ namespace SistemaFlota
         public DateTime? FechaUltimoRecordatorio { get; set; }
         public int IntentosRecordatorio { get; set; } = 0;
         public bool Escalado { get; set; } = false;
+        public bool AplazadaPorChat { get; set; } = false;
     }
 }

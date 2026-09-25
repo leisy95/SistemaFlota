@@ -68,9 +68,9 @@ export class SalidaNoConformeService {
     return this.http.put<any>(`${this.apiUrl}/${id}/tratamiento`, dto);
   }
 
-  cerrar(id: number, dto: VerificacionSncDto): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}/cerrar`, dto);
-  }
+  cerrar(id: number, fd: FormData): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}/cerrar`, fd);
+}
 
   eliminar(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);

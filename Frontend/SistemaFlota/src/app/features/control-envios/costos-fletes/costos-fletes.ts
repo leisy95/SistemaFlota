@@ -25,46 +25,49 @@ export class CostosFleteComponent implements OnInit {
   filtroConductor = '';
   filtroEstado = '';
   filtroCiudad = '';
+  filtroPlaca = '';
 
   form = {
     autorizacionId: null as number | null,
     peajes: 0, combustible: 0, parqueos: 0,
     descarguesMcia: 0, cargueMateriales: 0,
     alimentacion: 0, hospedaje: 0, varios: 0,
-    observaciones: ''
+    observaciones: '',
+    variosDetalle: null as string | null
   };
+
+  mostrarModalVarios = false;
+  itemsVarios: { concepto: string; valor: number | null }[] = [];
 
   exportarReporteCompleto() {
     if (this.registros.length === 0) { alert('No hay registros para exportar'); return; }
 
     const doc = new jsPDF('l', 'mm', 'letter');
-    const VERDE: [number, number, number] = [26, 127, 90];
+    const VERDE: [number,number,number] = [26,127,90];
     const W = 279; const M = 10;
 
-    // ── Encabezado ──
-    doc.setFillColor(...VERDE); doc.rect(M, M, W - M * 2, 16, 'F');
-    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-    doc.text('REPORTE CONSOLIDADO DE COSTOS DE FLETE', W / 2, M + 10, { align: 'center' });
+    doc.setFillColor(...VERDE); doc.rect(M, M, W-M*2, 16, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('REPORTE CONSOLIDADO DE COSTOS DE FLETE', W/2, M+10, {align:'center'});
 
-    doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
     let y = M + 24;
 
-    // ── Filtros aplicados ──
     const filtrosTexto: string[] = [];
     if (this.filtroDesde) filtrosTexto.push(`Desde: ${this.filtroDesde}`);
     if (this.filtroHasta) filtrosTexto.push(`Hasta: ${this.filtroHasta}`);
     if (this.filtroConductor) filtrosTexto.push(`Conductor: ${this.filtroConductor}`);
     if (this.filtroCiudad) filtrosTexto.push(`Ciudad: ${this.filtroCiudad}`);
+    if (this.filtroPlaca) filtrosTexto.push(`Placa: ${this.filtroPlaca}`);
     if (this.filtroEstado) filtrosTexto.push(`Estado: ${this.filtroEstado}`);
 
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
     doc.text('Filtros aplicados: ', M, y);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica','normal');
     doc.text(filtrosTexto.length ? filtrosTexto.join('  |  ') : 'Ninguno (todos los registros)', M + 32, y);
     doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, W - M, y, { align: 'right' });
     y += 8;
 
-    // ── Resumen ──
     autoTable(doc, {
       startY: y,
       head: [['Total registros', 'Total gastos', 'Pendientes', 'Verificados', 'Promedio $/kg']],
@@ -81,11 +84,10 @@ export class CostosFleteComponent implements OnInit {
     });
     y = (doc as any).lastAutoTable.finalY + 8;
 
-    // ── Detalle completo ──
     const filas = this.registros.map(r => {
       const aut = r.autorizacion;
-      const kilos = this.getKilosRegistro(r);
-      const porKilo = this.getPrecioPorKilo(r);
+      const kilos = aut?.pesoKilos || 0;
+      const porKilo = kilos > 0 ? r.total / kilos : 0;
       return [
         '#' + r.autorizacionId,
         aut?.conductor?.nombre ?? '-',
@@ -102,9 +104,7 @@ export class CostosFleteComponent implements OnInit {
         '$' + (r.hospedaje || 0).toLocaleString('es-CO'),
         '$' + (r.varios || 0).toLocaleString('es-CO'),
         '$' + (r.total || 0).toLocaleString('es-CO'),
-        porKilo === null
-          ? '-'
-          : this.formatearPrecioPorKilo(r),
+        '$' + porKilo.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         r.estado
       ];
     });
@@ -161,33 +161,6 @@ export class CostosFleteComponent implements OnInit {
     return this.registros.reduce((s, r) => s + (r.autorizacion?.pesoKilos || 0), 0);
   }
 
-  getKilosRegistro(r: any): number {
-    return r.autorizacion?.pesoKilos || r.trazabilidad?.pesoKilos || 0;
-  }
-
-  getPrecioPorKilo(r: any): number | null {
-    const kilos = this.getKilosRegistro(r);
-
-    if (kilos <= 0) {
-      return null;
-    }
-
-    return (r.total || 0) / kilos;
-  }
-
-  formatearPrecioPorKilo(r: any): string {
-    const precio = this.getPrecioPorKilo(r);
-
-    if (precio === null) {
-      return '-';
-    }
-
-    return '$' + precio.toLocaleString('es-CO', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
-
   get promedioPorKilo(): number {
     if (this.totalKilosFiltrados === 0) return 0;
     return this.totalGastosFiltrados / this.totalKilosFiltrados;
@@ -200,7 +173,7 @@ export class CostosFleteComponent implements OnInit {
     return new HttpHeaders({ Authorization: 'Bearer ' + sessionStorage.getItem('token') });
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -214,6 +187,7 @@ export class CostosFleteComponent implements OnInit {
     if (this.filtroConductor) url += `conductor=${this.filtroConductor}&`;
     if (this.filtroEstado) url += `estado=${this.filtroEstado}&`;
     if (this.filtroCiudad) url += `ciudad=${this.filtroCiudad}&`;
+    if (this.filtroPlaca) url += `placa=${this.filtroPlaca}&`;
     this.http.get<any[]>(url, { headers: this.headers }).subscribe({
       next: (d: any) => this.registros = Array.isArray(d) ? d : [],
       error: e => console.error(e)
@@ -235,7 +209,7 @@ export class CostosFleteComponent implements OnInit {
     this.form = {
       autorizacionId: null, peajes: 0, combustible: 0, parqueos: 0,
       descarguesMcia: 0, cargueMateriales: 0, alimentacion: 0,
-      hospedaje: 0, varios: 0, observaciones: ''
+      hospedaje: 0, varios: 0, observaciones: '', variosDetalle: null
     };
     this.autorizacionSeleccionada = null;
   }
@@ -261,7 +235,8 @@ export class CostosFleteComponent implements OnInit {
       parqueos: r.parqueos, descarguesMcia: r.descarguesMcia,
       cargueMateriales: r.cargueMateriales, alimentacion: r.alimentacion,
       hospedaje: r.hospedaje, varios: r.varios,
-      observaciones: r.observaciones ?? ''
+      observaciones: r.observaciones ?? '',
+      variosDetalle: r.variosDetalle ?? null
     };
     this.autorizacionSeleccionada = r.autorizacion;
     this.vista = 'editar';
@@ -273,6 +248,39 @@ export class CostosFleteComponent implements OnInit {
       next: () => { this.vista = 'lista'; this.cargar(); },
       error: e => { console.error(e); alert('Error editando'); }
     });
+  }
+
+  abrirModalVarios() {
+    if (this.form.variosDetalle) {
+      try { this.itemsVarios = JSON.parse(this.form.variosDetalle); }
+      catch { this.itemsVarios = [{ concepto: '', valor: null }]; }
+    } else {
+      this.itemsVarios = [{ concepto: '', valor: null }];
+    }
+    this.mostrarModalVarios = true;
+  }
+
+  agregarItemVarios() {
+    this.itemsVarios = [...this.itemsVarios, { concepto: '', valor: null }];
+  }
+
+  eliminarItemVarios(i: number) {
+    this.itemsVarios = this.itemsVarios.filter((_, idx) => idx !== i);
+  }
+
+  get totalVarios(): number {
+    return this.itemsVarios.reduce((s, i) => s + (i.valor || 0), 0);
+  }
+
+  parsearVariosDetalle(json: string | null): { concepto: string; valor: number | null }[] {
+    if (!json) return [];
+    try { return JSON.parse(json); } catch { return []; }
+}
+
+  guardarVarios() {
+    this.form.varios = this.totalVarios;
+    this.form.variosDetalle = JSON.stringify(this.itemsVarios.filter(i => i.concepto.trim() || i.valor));
+    this.mostrarModalVarios = false;
   }
 
   abrirVerificar(r: any) {
@@ -291,8 +299,8 @@ export class CostosFleteComponent implements OnInit {
     canvas.addEventListener('mousedown', e => { dibujando = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
     canvas.addEventListener('mousemove', e => { if (!dibujando) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); });
     canvas.addEventListener('mouseup', () => { dibujando = false; this.firmaDataUrl = canvas.toDataURL(); });
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); dibujando = true; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(t.clientX - r.left, t.clientY - r.top); }, { passive: false });
-    canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!dibujando) return; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.lineTo(t.clientX - r.left, t.clientY - r.top); ctx.stroke(); }, { passive: false });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); dibujando = true; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(t.clientX-r.left, t.clientY-r.top); }, {passive:false});
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!dibujando) return; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.lineTo(t.clientX-r.left, t.clientY-r.top); ctx.stroke(); }, {passive:false});
     canvas.addEventListener('touchend', () => { dibujando = false; this.firmaDataUrl = canvas.toDataURL(); });
   }
 
@@ -313,17 +321,17 @@ export class CostosFleteComponent implements OnInit {
 
   exportarPDF(r: any) {
     const doc = new jsPDF('p', 'mm', 'letter');
-    const VERDE: [number, number, number] = [26, 127, 90];
+    const VERDE: [number,number,number] = [26,127,90];
     const W = 216; const M = 10;
-    doc.setFillColor(...VERDE); doc.rect(M, M, W - M * 2, 14, 'F');
-    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-    doc.text('RELACION DE GASTOS DE VIAJE', W / 2, M + 9, { align: 'center' });
-    doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-    let y = M + 20;
+    doc.setFillColor(...VERDE); doc.rect(M, M, W-M*2, 14, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('RELACION DE GASTOS DE VIAJE', W/2, M+9, {align:'center'});
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    let y = M+20;
     const aut = r.autorizacion;
     autoTable(doc, {
       startY: y,
-      head: [['Campo', 'Valor']],
+      head: [['Campo','Valor']],
       body: [
         ['Conductor', aut?.conductor?.nombre ?? ''],
         ['Placa', aut?.vehiculo?.placa ?? ''],
@@ -332,33 +340,33 @@ export class CostosFleteComponent implements OnInit {
         ['Kilos transportados', (aut?.pesoKilos ?? 0).toLocaleString('es-CO') + ' kg'],
         ['Clientes entregados', aut?.cantidadClientes ?? ''],
       ],
-      headStyles: { fillColor: VERDE },
-      margin: { left: M, right: M }
+      headStyles: {fillColor: VERDE},
+      margin: {left: M, right: M}
     });
     y = (doc as any).lastAutoTable.finalY + 5;
     autoTable(doc, {
       startY: y,
-      head: [['Concepto', 'Valor']],
+      head: [['Concepto','Valor']],
       body: [
-        ['Peajes', '$' + (r.peajes || 0).toLocaleString('es-CO')],
-        ['Combustible', '$' + (r.combustible || 0).toLocaleString('es-CO')],
-        ['Parqueos', '$' + (r.parqueos || 0).toLocaleString('es-CO')],
-        ['Descargue Mcia', '$' + (r.descarguesMcia || 0).toLocaleString('es-CO')],
-        ['Cargue materiales', '$' + (r.cargueMateriales || 0).toLocaleString('es-CO')],
-        ['Alimentación', '$' + (r.alimentacion || 0).toLocaleString('es-CO')],
-        ['Hospedaje', '$' + (r.hospedaje || 0).toLocaleString('es-CO')],
-        ['Varios', '$' + (r.varios || 0).toLocaleString('es-CO')],
-        ['TOTAL', '$' + (r.total || 0).toLocaleString('es-CO')],
+        ['Peajes', '$' + (r.peajes||0).toLocaleString('es-CO')],
+        ['Combustible', '$' + (r.combustible||0).toLocaleString('es-CO')],
+        ['Parqueos', '$' + (r.parqueos||0).toLocaleString('es-CO')],
+        ['Descargue Mcia', '$' + (r.descarguesMcia||0).toLocaleString('es-CO')],
+        ['Cargue materiales', '$' + (r.cargueMateriales||0).toLocaleString('es-CO')],
+        ['Alimentación', '$' + (r.alimentacion||0).toLocaleString('es-CO')],
+        ['Hospedaje', '$' + (r.hospedaje||0).toLocaleString('es-CO')],
+        ['Varios', '$' + (r.varios||0).toLocaleString('es-CO')],
+        ['TOTAL', '$' + (r.total||0).toLocaleString('es-CO')],
       ],
-      headStyles: { fillColor: VERDE },
-      bodyStyles: { fontSize: 9 },
+      headStyles: {fillColor: VERDE},
+      bodyStyles: {fontSize: 9},
       didParseCell: (data) => {
         if (data.row.index === 8) {
-          data.cell.styles.fillColor = [232, 245, 233];
+          data.cell.styles.fillColor = [232,245,233];
           data.cell.styles.fontStyle = 'bold';
         }
       },
-      margin: { left: M, right: M }
+      margin: {left: M, right: M}
     });
     if (r.observaciones) {
       y = (doc as any).lastAutoTable.finalY + 5;
@@ -366,45 +374,38 @@ export class CostosFleteComponent implements OnInit {
     }
     if (r.firmaVerificacion) {
       y = (doc as any).lastAutoTable.finalY + 15;
-      try { doc.addImage(r.firmaVerificacion, 'PNG', M, y, 60, 15); } catch (e) { }
-      doc.line(M, y + 18, M + 70, y + 18);
-      doc.text('Verificado por: ' + (r.verificadoPor ?? ''), M, y + 22);
+      try { doc.addImage(r.firmaVerificacion, 'PNG', M, y, 60, 15); } catch(e) {}
+      doc.line(M, y+18, M+70, y+18);
+      doc.text('Verificado por: ' + (r.verificadoPor ?? ''), M, y+22);
     }
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text('FIN DEL DOCUMENTO', W / 2, 270, { align: 'center' });
-    doc.save('Gastos_Viaje_' + r.id + '.pdf');
+    doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('FIN DEL DOCUMENTO', W/2, 270, {align:'center'});
+    doc.save('Gastos_Viaje_'+r.id+'.pdf');
   }
 
   exportarExcel() {
-  const data = this.registros.map(r => ({
-    'Autorización': r.autorizacionId,
-    'Conductor': r.autorizacion?.conductor?.nombre ?? '',
-    'Placa': r.autorizacion?.vehiculo?.placa ?? '',
-    'Destino': r.autorizacion?.destinoCompleto ?? '',
-    'Fecha': new Date(r.fechaRegistro).toLocaleDateString('es-CO'),
-    'Kilos': this.getKilosRegistro(r),
-    'Peajes': r.peajes,
-    'Combustible': r.combustible,
-    'Parqueos': r.parqueos,
-    'Descargue Mcia': r.descarguesMcia,
-    'Cargue Materiales': r.cargueMateriales,
-    'Alimentación': r.alimentacion,
-    'Hospedaje': r.hospedaje,
-    'Varios': r.varios,
-    'Total': r.total,
-    '$/kg': this.formatearPrecioPorKilo(r),
-    'Estado': r.estado,
-    'Verificado por': r.verificadoPor ?? ''
-  }));
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Costos Fletes');
-
-  XLSX.writeFile(
-    wb,
-    'CostosFletes_' + new Date().toISOString().slice(0, 10) + '.xlsx'
-  );
-}
+    const data = this.registros.map(r => ({
+      'Autorización': r.autorizacionId,
+      'Conductor': r.autorizacion?.conductor?.nombre ?? '',
+      'Placa': r.autorizacion?.vehiculo?.placa ?? '',
+      'Destino': r.autorizacion?.destinoCompleto ?? '',
+      'Fecha': new Date(r.fechaRegistro).toLocaleDateString('es-CO'),
+      'Kilos': r.autorizacion?.pesoKilos ?? 0,
+      'Peajes': r.peajes,
+      'Combustible': r.combustible,
+      'Parqueos': r.parqueos,
+      'Descargue Mcia': r.descarguesMcia,
+      'Cargue Materiales': r.cargueMateriales,
+      'Alimentación': r.alimentacion,
+      'Hospedaje': r.hospedaje,
+      'Varios': r.varios,
+      'Total': r.total,
+      'Estado': r.estado,
+      'Verificado por': r.verificadoPor ?? ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Costos Fletes');
+    XLSX.writeFile(wb, 'CostosFletes_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  }
 }

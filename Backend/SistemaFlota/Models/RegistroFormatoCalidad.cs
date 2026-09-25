@@ -33,5 +33,6 @@ namespace SistemaFlota.Models
 
         [ForeignKey("TipoFormatoId")]
         public TipoFormatoCalidad? TipoFormato { get; set; }
+        public bool EsMejorFijado { get; set; } = false;
     }
 }

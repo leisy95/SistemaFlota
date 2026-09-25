@@ -30,7 +30,9 @@ namespace SistemaFlota
             [FromQuery] string? hasta = null,
             [FromQuery] string? conductor = null,
             [FromQuery] string? estado = null,
-            [FromQuery] string? ciudad = null)
+            [FromQuery] string? ciudad = null,
+            [FromQuery] string? placa = null)
+
         {
             var query = _context.CostosFletes
                 .Include(c => c.Autorizacion)
@@ -50,6 +52,11 @@ namespace SistemaFlota
                 query = query.Where(c =>
                     (c.Autorizacion != null && c.Autorizacion.Conductor != null && c.Autorizacion.Conductor.Nombre.Contains(conductor)) ||
                     (c.Trazabilidad != null && c.Trazabilidad.Conductor.Contains(conductor)));
+
+            if (!string.IsNullOrEmpty(placa))
+                query = query.Where(c =>
+                    (c.Autorizacion != null && c.Autorizacion.Vehiculo != null && c.Autorizacion.Vehiculo.Placa.Contains(placa)) ||
+                    (c.Trazabilidad != null && c.Trazabilidad.Vehiculo != null && c.Trazabilidad.Vehiculo.Contains(placa)));
 
             if (!string.IsNullOrEmpty(estado))
                 query = query.Where(c => c.Estado == estado);
@@ -83,6 +90,7 @@ namespace SistemaFlota
                 Varios = dto.Varios,
                 Total = dto.Total,
                 Observaciones = dto.Observaciones,
+                VariosDetalle = dto.VariosDetalle,
                 Estado = "Pendiente"
             };
 
@@ -114,6 +122,7 @@ namespace SistemaFlota
             registro.Hospedaje = dto.Hospedaje;
             registro.Varios = dto.Varios;
             registro.Total = dto.Total;
+            registro.VariosDetalle = dto.VariosDetalle;
             registro.Observaciones = dto.Observaciones;
 
             await _context.SaveChangesAsync();

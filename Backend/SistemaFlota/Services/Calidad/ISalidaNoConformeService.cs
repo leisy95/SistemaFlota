@@ -9,7 +9,7 @@ namespace SistemaFlota.Services.Calidad
         Task<SalidaNoConforme?> ObtenerAsync(int id);
         Task<SalidaNoConforme> CrearAsync(CrearSalidaNoConformeDto dto, string usuario, IFormFile? evidenciaPdf);
         Task<SalidaNoConforme?> RegistrarTratamientoAsync(int id, TratamientoSncDto dto, string usuario);
-        Task<SalidaNoConforme?> CerrarAsync(int id, VerificacionSncDto dto);
+        Task<SalidaNoConforme?> CerrarAsync(int id, VerificacionSncDto dto, IFormFile? evidenciaPdf);
         Task<bool> EliminarAsync(int id, bool esAdmin);
         decimal SumarKgDelMes(List<SalidaNoConforme> registros, int mes, int anio);
         Task<List<SalidaNoConformeEvidencia>> SubirEvidenciasAsync(int salidaNoConformeId, string paso, List<IFormFile> fotos);

@@ -18,13 +18,13 @@ namespace SistemaFlota.Models.Calidad
         [MaxLength(100)] public string? Material { get; set; }
         [MaxLength(100)] public string? Proceso { get; set; }
         public string? DescripcionSalida { get; set; }
-        [MaxLength(100)] public string? TipoDefecto { get; set; }
+        public string? TipoDefecto { get; set; }
         [MaxLength(100)] public string? Impacto { get; set; }
         [MaxLength(300)] public string? EvidenciaPdf { get; set; }
         public string? CausaRaiz { get; set; }
         public decimal? CantidadReportadaKg { get; set; }
 
-        [MaxLength(20)] public string? UnidadCantidadReportada { get; set; } // Unidades | Bultos | Kg
+        [MaxLength(20)] public string? UnidadCantidadReportada { get; set; } 
         [MaxLength(200)] public string? UsuarioReporta { get; set; }
         public string? FirmaReporta { get; set; }
         [MaxLength(200)] public string? NombreReporta { get; set; }   

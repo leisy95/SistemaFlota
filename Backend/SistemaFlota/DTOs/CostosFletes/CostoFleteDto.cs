@@ -1,12 +1,12 @@
 ﻿namespace SistemaFlota.DTOs.CostosFletes
 {
     public record CostoFleteDto(
-        int? AutorizacionId,
-        decimal Peajes, decimal Combustible, decimal Parqueos,
-        decimal DescarguesMcia, decimal CargueMateriales,
-        decimal Alimentacion, decimal Hospedaje, decimal Varios,
-        decimal Total, string? Observaciones
-    );
+     int? AutorizacionId,
+     decimal Peajes, decimal Combustible, decimal Parqueos,
+     decimal DescarguesMcia, decimal CargueMateriales,
+     decimal Alimentacion, decimal Hospedaje, decimal Varios,
+     decimal Total, string? Observaciones, string? VariosDetalle
+ );
 
     public record VerificarDto(string VerificadoPor, string FirmaVerificacion);
 }

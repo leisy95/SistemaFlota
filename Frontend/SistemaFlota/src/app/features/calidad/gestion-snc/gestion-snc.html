@@ -73,7 +73,10 @@
             <td data-label="Fecha">{{ r.fechaReporte | date:'dd/MM/yyyy HH:mm' }}</td>
             <td data-label="Referencia">{{ r.referencia || '-' }}</td>
             <td data-label="Material">{{ r.material || '-' }}</td>
-            <td data-label="Tipo Defecto">{{ r.tipoDefecto || '-' }}</td>
+            <td data-label="Tipo Defecto" class="celda-tooltip">
+              <span class="celda-truncada">{{ r.tipoDefecto }}</span>
+              <div class="tooltip-caja">{{ r.tipoDefecto }}</div>
+            </td>
             <td data-label="Estado">
               <span class="estado" [class.pendiente]="r.estado === 'Reportado'" [class.ok]="r.estado === 'Cerrado'">
                 {{ etiquetaEstado(r.estado) }}
@@ -104,7 +107,6 @@
           <span style="margin-left: auto; font-size: 12px; font-weight: 400; color: var(--gris-medio);">Usuario: {{
             usuario }}</span>
         </h3>
-
         <div class="form-grid">
           <div class="fg fg-cajon">
             <label>Orden de producción *</label>
@@ -170,21 +172,27 @@
 
         <div class="form-grid" style="margin-top: 14px;">
           <div class="fg">
-            <label>Tipo de defecto</label>
-            <select [(ngModel)]="form.tipoDefecto">
+            <label>Impacto</label>
+            <select [(ngModel)]="form.impacto">
               <option [ngValue]="''">-- Seleccione --</option>
               <option [ngValue]="'Crítico'">Crítico (pone en riesgo la funcionalidad)</option>
               <option [ngValue]="'Mayor'">Mayor (afecta calidad o apariencia, no funcionalidad)</option>
               <option [ngValue]="'Menor'">Menor (incumple especificación visual o secundaria)</option>
             </select>
           </div>
-          <div class="fg">
-            <label>Impacto</label>
-            <select [(ngModel)]="form.impacto">
-              <option [ngValue]="''">-- Seleccione --</option>
-              <option *ngFor="let o of opcionesImpacto" [ngValue]="o.valor">{{ o.valor }}</option>
-            </select>
+        </div>
+
+        <div class="fg" style="margin-top: 14px;">
+          <label>Tipo de defecto (seleccione uno o varios)</label>
+          <div class="checkbox-lista">
+            <label class="checkbox-item" *ngFor="let opcion of opcionesTipoDefectoFijas">
+              <input type="checkbox" [checked]="tiposDefectoSeleccionados.includes(opcion)"
+                (change)="toggleTipoDefecto(opcion)">
+              {{ opcion }}
+            </label>
           </div>
+          <textarea *ngIf="tiposDefectoSeleccionados.includes('Otro')" [(ngModel)]="otroDefectoDescripcion" rows="2"
+            placeholder="Describa otro defecto..." style="margin-top: 8px;"></textarea>
         </div>
 
         <div class="form-grid" style="margin-top: 14px;">
@@ -227,8 +235,27 @@
         <h3><i class="fa-solid fa-signature"></i> Firma de quien reporta</h3>
         <div class="revisado-info"><span>Usuario: <strong>{{ usuario }}</strong></span></div>
         <div class="fg" style="margin-top:10px">
-          <canvas id="firmaCanvasSnc" width="340" height="100" class="canvas-firma"></canvas>
-          <button type="button" (click)="limpiarFirmaReporta()" class="btn-limpiar-firma">Limpiar firma</button>
+          <div class="toggle-firma">
+            <button type="button" [class.activo]="modoFirmaReporta === 'dibujar'"
+              (click)="modoFirmaReporta = 'dibujar'">
+              <i class="fa-solid fa-pen"></i> Dibujar
+            </button>
+            <button type="button" [class.activo]="modoFirmaReporta === 'escribir'"
+              (click)="modoFirmaReporta = 'escribir'">
+              <i class="fa-solid fa-keyboard"></i> Escribir nombre
+            </button>
+          </div>
+
+          <ng-container *ngIf="modoFirmaReporta === 'dibujar'">
+            <canvas id="firmaCanvasSnc" width="340" height="100" class="canvas-firma"></canvas>
+            <button type="button" (click)="limpiarFirmaReporta()" class="btn-limpiar-firma">Limpiar firma</button>
+          </ng-container>
+
+          <div class="firma-escrita" *ngIf="modoFirmaReporta === 'escribir'">
+            <input type="text" placeholder="Escriba su nombre completo"
+              (input)="firmarConTexto('reporta', $any($event.target).value)">
+            <p class="firma-preview" *ngIf="firmaReportaUrl">{{ firmaReportaUrl }}</p>
+          </div>
         </div>
       </div>
 
@@ -278,7 +305,6 @@
                   registroSeleccionado.cantidadReportadaKg || 0 }} kg</span></div>
             </div>
           </div>
-
           <div class="vc-card">
             <p class="vc-card-titulo"><i class="fa-solid fa-triangle-exclamation"></i> Clasificación del problema</p>
             <div class="detalle-grid">
@@ -321,7 +347,7 @@
         <h3><i class="fa-solid fa-screwdriver-wrench"></i> Paso 2 — Tratamiento</h3>
 
         <ng-container *ngIf="registroSeleccionado.estado === 'Reportado'">
-          <<div class="form-grid">
+          <div class="form-grid">
             <div class="fg">
               <label>Tratamiento adoptado</label>
               <select [(ngModel)]="formTratamiento.tratamientoAdoptado">
@@ -339,170 +365,230 @@
               <label>Fecha</label>
               <input type="date" [(ngModel)]="formTratamiento.fechaTratamiento">
             </div>
+          </div>
+
+          <div class="fg" style="margin-top: 14px;">
+            <label>Descripción del tratamiento</label>
+            <textarea [(ngModel)]="formTratamiento.descripcionTratamiento" rows="3"></textarea>
+          </div>
+
+          <div class="form-grid" style="margin-top: 14px;">
+            <div class="fg">
+              <label>Evidencia — Fotos (máx. 5)</label>
+              <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event, 'Verificacion')">
+            </div>
+            <div class="fg">
+              <label>Evidencia — PDF</label>
+              <input type="file" accept="application/pdf" (change)="seleccionarPdfVerificacion($event)">
+            </div>
+          </div>
+
+          <div class="fg" style="margin-top: 14px;">
+            <label>Firma de quien registra el tratamiento</label>
+            <div class="toggle-firma">
+              <button type="button" [class.activo]="modoFirmaTratamiento === 'dibujar'"
+                (click)="modoFirmaTratamiento = 'dibujar'">
+                <i class="fa-solid fa-pen"></i> Dibujar
+              </button>
+              <button type="button" [class.activo]="modoFirmaTratamiento === 'escribir'"
+                (click)="modoFirmaTratamiento = 'escribir'">
+                <i class="fa-solid fa-keyboard"></i> Escribir nombre
+              </button>
+            </div>
+
+            <ng-container *ngIf="modoFirmaTratamiento === 'dibujar'">
+              <canvas id="firmaCanvasTratamiento" width="340" height="100" class="canvas-firma"></canvas>
+              <button type="button" (click)="limpiarFirmaTratamiento()" class="btn-limpiar-firma">Limpiar firma</button>
+            </ng-container>
+
+            <div class="firma-escrita" *ngIf="modoFirmaTratamiento === 'escribir'">
+              <input type="text" placeholder="Escriba su nombre completo"
+                (input)="firmarConTexto('tratamiento', $any($event.target).value)">
+              <p class="firma-preview" *ngIf="firmaTratamientoUrl">{{ firmaTratamientoUrl }}</p>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-guardar" (click)="guardarTratamiento()"><i class="fa-solid fa-floppy-disk"></i> Guardar
+              Tratamiento</button>
+          </div>
+        </ng-container>
+
+        <div class="vc-grid" *ngIf="registroSeleccionado.estado !== 'Reportado'">
+          <div class="vc-card">
+            <p class="vc-card-titulo"><i class="fa-solid fa-clipboard-check"></i> Tratamiento aplicado</p>
+            <div class="detalle-grid">
+              <div class="detalle-item"><span class="det-label">Tratamiento adoptado</span><span>{{
+                  registroSeleccionado.tratamientoAdoptado || '-' }}</span></div>
+              <div class="detalle-item"><span class="det-label">Fecha</span><span>{{
+                  registroSeleccionado.fechaTratamiento |
+                  date:'dd/MM/yyyy' }}</span></div>
+              <div class="detalle-item"><span class="det-label">Registrado por</span><span>{{
+                  registroSeleccionado.usuarioTratamiento || '-' }}</span></div>
+            </div>
+          </div>
+          <div class="vc-card">
+            <p class="vc-card-titulo"><i class="fa-solid fa-file-lines"></i> Descripción</p>
+            <p>{{ registroSeleccionado.descripcionTratamiento || '-' }}</p>
+          </div>
+        </div>
+
+        <div class="vc-card" style="margin-top: 12px;"
+          *ngIf="registroSeleccionado.estado !== 'Reportado' && evidenciasDePaso('Tratamiento').length > 0">
+          <p class="vc-card-titulo"><i class="fa-solid fa-camera"></i> Evidencia — Tratamiento</p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a *ngFor="let ev of evidenciasDePaso('Tratamiento')" [href]="urlEvidencia(ev.nombreArchivo)"
+              target="_blank">
+              <img [src]="urlEvidencia(ev.nombreArchivo)"
+                style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;">
+            </a>
+          </div>
+        </div>
       </div>
 
-      <div class="fg" style="margin-top: 14px;">
-        <label>Descripción del tratamiento</label>
-        <textarea [(ngModel)]="formTratamiento.descripcionTratamiento" rows="3"></textarea>
+      <!-- PASO 3: VERIFICACIÓN / CIERRE -->
+      <div class="form-section"
+        *ngIf="registroSeleccionado.estado === 'Tratamiento' || registroSeleccionado.estado === 'Cerrado'">
+        <h3><i class="fa-solid fa-check-double"></i> Paso 3 — Verificación de Cumplimiento</h3>
+
+        <ng-container *ngIf="registroSeleccionado.estado === 'Tratamiento'">
+          <div class="fg">
+            <label>Verificación del cumplimiento</label>
+            <textarea [(ngModel)]="formVerificacion.verificacionCumplimiento" rows="3"></textarea>
+          </div>
+
+          <div class="fg" style="margin-top: 14px;">
+            <label>¿Se requiere información al cliente?</label>
+            <div class="si-no-btn">
+              <button [class.activo-si]="formVerificacion.requiereInformacionCliente === true"
+                (click)="formVerificacion.requiereInformacionCliente = true">SI</button>
+              <button [class.activo-no]="formVerificacion.requiereInformacionCliente === false"
+                (click)="formVerificacion.requiereInformacionCliente = false">NO</button>
+            </div>
+            <textarea *ngIf="formVerificacion.requiereInformacionCliente === true"
+              [(ngModel)]="formVerificacion.motivoInformacionCliente" rows="2" placeholder="Motivo..."
+              style="margin-top:8px"></textarea>
+          </div>
+
+          <div class="fg" style="margin-top: 14px;">
+            <label>Aceptación bajo concesión</label>
+            <div class="si-no-btn">
+              <button [class.activo-si]="formVerificacion.aceptacionBajoConcesion === true"
+                (click)="formVerificacion.aceptacionBajoConcesion = true">SI</button>
+              <button [class.activo-no]="formVerificacion.aceptacionBajoConcesion === false"
+                (click)="formVerificacion.aceptacionBajoConcesion = false">NO</button>
+            </div>
+            <textarea *ngIf="formVerificacion.aceptacionBajoConcesion === true"
+              [(ngModel)]="formVerificacion.detalleAceptacionConcesion" rows="2" placeholder="Especifique..."
+              style="margin-top:8px"></textarea>
+          </div>
+
+          <div class="fg" style="margin-top: 14px; max-width: 300px;">
+            <label>Revisado por</label>
+            <input type="text" [(ngModel)]="formVerificacion.revisadoPor" placeholder="Nombre de quien revisa">
+          </div>
+
+          <div class="form-grid" style="margin-top: 14px;">
+            <div class="fg">
+              <label>Evidencia — Fotos (máx. 5)</label>
+              <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event, 'Verificacion')">
+            </div>
+            <div class="fg">
+              <label>Evidencia — PDF</label>
+              <input type="file" accept="application/pdf" (change)="seleccionarPdfVerificacion($event)">
+            </div>
+          </div>
+
+          <div class="fg" style="margin-top: 14px;">
+            <label>Firma de verificación</label>
+            <div class="toggle-firma">
+              <button type="button" [class.activo]="modoFirmaVerificacion === 'dibujar'"
+                (click)="modoFirmaVerificacion = 'dibujar'">
+                <i class="fa-solid fa-pen"></i> Dibujar
+              </button>
+              <button type="button" [class.activo]="modoFirmaVerificacion === 'escribir'"
+                (click)="modoFirmaVerificacion = 'escribir'">
+                <i class="fa-solid fa-keyboard"></i> Escribir nombre
+              </button>
+            </div>
+
+            <ng-container *ngIf="modoFirmaVerificacion === 'dibujar'">
+              <canvas id="firmaCanvasVerificacion" width="340" height="100" class="canvas-firma"></canvas>
+              <button type="button" (click)="limpiarFirmaVerificacion()" class="btn-limpiar-firma">Limpiar
+                firma</button>
+            </ng-container>
+
+            <div class="firma-escrita" *ngIf="modoFirmaVerificacion === 'escribir'">
+              <input type="text" placeholder="Escriba su nombre completo"
+                (input)="firmarConTexto('verificacion', $any($event.target).value)">
+              <p class="firma-preview" *ngIf="firmaVerificacionUrl">{{ firmaVerificacionUrl }}</p>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-guardar" (click)="guardarVerificacion()"><i class="fa-solid fa-lock"></i> Cerrar
+              Registro</button>
+          </div>
+        </ng-container>
+
+        <div *ngIf="registroSeleccionado.estado === 'Cerrado'">
+          <div class="vc-grid">
+            <div class="vc-card">
+              <p class="vc-card-titulo"><i class="fa-solid fa-clipboard-check"></i> Resultado de la verificación</p>
+              <div class="detalle-grid">
+                <div class="detalle-item"><span class="det-label">¿Requirió info al cliente?</span><span>{{
+                    registroSeleccionado.requiereInformacionCliente ? 'SI' : 'NO' }}</span></div>
+                <div class="detalle-item"><span class="det-label">Aceptación bajo concesión</span><span>{{
+                    registroSeleccionado.aceptacionBajoConcesion ? 'SI' : 'NO' }}</span></div>
+                <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{
+                    registroSeleccionado.revisadoPor || '-' }}</span></div>
+                <div class="detalle-item"><span class="det-label">Fecha de verificación</span><span>{{
+                    registroSeleccionado.fechaVerificacion | date:'dd/MM/yyyy HH:mm' }}</span></div>
+              </div>
+              <div class="fg" *ngIf="registroSeleccionado.requiereInformacionCliente" style="margin-top: 10px;">
+                <label>Motivo (información al cliente)</label>
+                <p>{{ registroSeleccionado.motivoInformacionCliente || '-' }}</p>
+              </div>
+              <div class="fg" *ngIf="registroSeleccionado.aceptacionBajoConcesion" style="margin-top: 10px;">
+                <label>Detalle (aceptación bajo concesión)</label>
+                <p>{{ registroSeleccionado.detalleAceptacionConcesion || '-' }}</p>
+              </div>
+            </div>
+            <div class="vc-card">
+              <p class="vc-card-titulo"><i class="fa-solid fa-file-lines"></i> Verificación de cumplimiento</p>
+              <p>{{ registroSeleccionado.verificacionCumplimiento || '-' }}</p>
+            </div>
+          </div>
+
+          <div class="vc-card" style="margin-top: 12px;"
+            *ngIf="evidenciasDePaso('Verificacion').length > 0 || registroSeleccionado.evidenciaPdfVerificacion">
+            <p class="vc-card-titulo"><i class="fa-solid fa-camera"></i> Evidencia — Verificación</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              <a *ngFor="let ev of evidenciasDePaso('Verificacion')" [href]="urlEvidencia(ev.nombreArchivo)"
+                target="_blank">
+                <img [src]="urlEvidencia(ev.nombreArchivo)"
+                  style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;">
+              </a>
+              <a *ngIf="registroSeleccionado.evidenciaPdfVerificacion"
+                [href]="urlEvidencia(registroSeleccionado.evidenciaPdfVerificacion)" target="_blank" class="btn-pdf"
+                style="text-decoration: none;">
+                <i class="fa-solid fa-file-pdf"></i> Ver PDF
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="fg" style="margin-top: 14px;">
-        <label>Evidencia — Fotos (máx. 5)</label>
-        <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event, 'Tratamiento')">
-      </div>
-
-      <div class="fg" style="margin-top: 14px;">
-        <label>Firma de quien registra el tratamiento</label>
-        <canvas id="firmaCanvasTratamiento" width="340" height="100" class="canvas-firma"></canvas>
-        <button type="button" (click)="limpiarFirmaTratamiento()" class="btn-limpiar-firma">Limpiar firma</button>
-      </div>
+      <p *ngIf="registroSeleccionado.estado === 'Cerrado'"
+        style="text-align: center; font-weight: 500; color: var(--gris-medio); margin: 20px 0 0; letter-spacing: 1px;">
+        — FIN DE DOCUMENTO —
+      </p>
 
       <div class="btn-row">
-        <button class="btn-guardar" (click)="guardarTratamiento()"><i class="fa-solid fa-floppy-disk"></i> Guardar
-          Tratamiento</button>
+        <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
+        <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
       </div>
-  </ng-container>
-
-  <div class="vc-grid" *ngIf="registroSeleccionado.estado !== 'Reportado'">
-    <div class="vc-card">
-      <p class="vc-card-titulo"><i class="fa-solid fa-clipboard-check"></i> Tratamiento aplicado</p>
-      <div class="detalle-grid">
-        <div class="detalle-item"><span class="det-label">Tratamiento adoptado</span><span>{{
-            registroSeleccionado.tratamientoAdoptado || '-' }}</span></div>
-        <div class="detalle-item"><span class="det-label">Fecha</span><span>{{
-            registroSeleccionado.fechaTratamiento |
-            date:'dd/MM/yyyy' }}</span></div>
-        <div class="detalle-item"><span class="det-label">Registrado por</span><span>{{
-            registroSeleccionado.usuarioTratamiento || '-' }}</span></div>
-      </div>
-    </div>
-    <div class="vc-card">
-      <p class="vc-card-titulo"><i class="fa-solid fa-file-lines"></i> Descripción</p>
-      <p>{{ registroSeleccionado.descripcionTratamiento || '-' }}</p>
-    </div>
-  </div>
-
-  <div class="vc-card" style="margin-top: 12px;"
-    *ngIf="registroSeleccionado.estado !== 'Reportado' && evidenciasDePaso('Tratamiento').length > 0">
-    <p class="vc-card-titulo"><i class="fa-solid fa-camera"></i> Evidencia — Tratamiento</p>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <a *ngFor="let ev of evidenciasDePaso('Tratamiento')" [href]="urlEvidencia(ev.nombreArchivo)" target="_blank">
-        <img [src]="urlEvidencia(ev.nombreArchivo)"
-          style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;">
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- PASO 3: VERIFICACIÓN / CIERRE -->
-<div class="form-section"
-  *ngIf="registroSeleccionado.estado === 'Tratamiento' || registroSeleccionado.estado === 'Cerrado'">
-  <h3><i class="fa-solid fa-check-double"></i> Paso 3 — Verificación de Cumplimiento</h3>
-
-  <ng-container *ngIf="registroSeleccionado.estado === 'Tratamiento'">
-    <div class="fg">
-      <label>Verificación del cumplimiento</label>
-      <textarea [(ngModel)]="formVerificacion.verificacionCumplimiento" rows="3"></textarea>
-    </div>
-
-    <div class="fg" style="margin-top: 14px;">
-      <label>¿Se requiere información al cliente?</label>
-      <div class="si-no-btn">
-        <button [class.activo-si]="formVerificacion.requiereInformacionCliente === true"
-          (click)="formVerificacion.requiereInformacionCliente = true">SI</button>
-        <button [class.activo-no]="formVerificacion.requiereInformacionCliente === false"
-          (click)="formVerificacion.requiereInformacionCliente = false">NO</button>
-      </div>
-      <textarea *ngIf="formVerificacion.requiereInformacionCliente === true"
-        [(ngModel)]="formVerificacion.motivoInformacionCliente" rows="2" placeholder="Motivo..."
-        style="margin-top:8px"></textarea>
-    </div>
-
-    <div class="fg" style="margin-top: 14px;">
-      <label>Aceptación bajo concesión</label>
-      <div class="si-no-btn">
-        <button [class.activo-si]="formVerificacion.aceptacionBajoConcesion === true"
-          (click)="formVerificacion.aceptacionBajoConcesion = true">SI</button>
-        <button [class.activo-no]="formVerificacion.aceptacionBajoConcesion === false"
-          (click)="formVerificacion.aceptacionBajoConcesion = false">NO</button>
-      </div>
-      <textarea *ngIf="formVerificacion.aceptacionBajoConcesion === true"
-        [(ngModel)]="formVerificacion.detalleAceptacionConcesion" rows="2" placeholder="Especifique..."
-        style="margin-top:8px"></textarea>
-    </div>
-
-    <div class="fg" style="margin-top: 14px; max-width: 300px;">
-      <label>Revisado por</label>
-      <input type="text" [(ngModel)]="formVerificacion.revisadoPor" placeholder="Nombre de quien revisa">
-    </div>
-
-    <div class="fg" style="margin-top: 14px;">
-      <label>Evidencia — Fotos (máx. 5)</label>
-      <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event, 'Verificacion')">
-    </div>
-
-    <div class="fg" style="margin-top: 14px;">
-      <label>Firma de verificación</label>
-      <canvas id="firmaCanvasVerificacion" width="340" height="100" class="canvas-firma"></canvas>
-      <button type="button" (click)="limpiarFirmaVerificacion()" class="btn-limpiar-firma">Limpiar firma</button>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn-guardar" (click)="guardarVerificacion()"><i class="fa-solid fa-lock"></i> Cerrar
-        Registro</button>
     </div>
   </ng-container>
-
-  <div *ngIf="registroSeleccionado.estado === 'Cerrado'">
-    <div class="vc-grid">
-      <div class="vc-card">
-        <p class="vc-card-titulo"><i class="fa-solid fa-clipboard-check"></i> Resultado de la verificación</p>
-        <div class="detalle-grid">
-          <div class="detalle-item"><span class="det-label">¿Requirió info al cliente?</span><span>{{
-              registroSeleccionado.requiereInformacionCliente ? 'SI' : 'NO' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Aceptación bajo concesión</span><span>{{
-              registroSeleccionado.aceptacionBajoConcesion ? 'SI' : 'NO' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{
-              registroSeleccionado.revisadoPor || '-' }}</span></div>
-              <div class="detalle-item"><span class="det-label">Fecha de verificación</span><span>{{ registroSeleccionado.fechaVerificacion | date:'dd/MM/yyyy HH:mm' }}</span></div>
-        </div>
-        <div class="fg" *ngIf="registroSeleccionado.requiereInformacionCliente" style="margin-top: 10px;">
-          <label>Motivo (información al cliente)</label>
-          <p>{{ registroSeleccionado.motivoInformacionCliente || '-' }}</p>
-        </div>
-        <div class="fg" *ngIf="registroSeleccionado.aceptacionBajoConcesion" style="margin-top: 10px;">
-          <label>Detalle (aceptación bajo concesión)</label>
-          <p>{{ registroSeleccionado.detalleAceptacionConcesion || '-' }}</p>
-        </div>
-      </div>
-      <div class="vc-card">
-        <p class="vc-card-titulo"><i class="fa-solid fa-file-lines"></i> Verificación de cumplimiento</p>
-        <p>{{ registroSeleccionado.verificacionCumplimiento || '-' }}</p>
-      </div>
-    </div>
-
-    <div class="vc-card" style="margin-top: 12px;" *ngIf="evidenciasDePaso('Verificacion').length > 0">
-      <p class="vc-card-titulo"><i class="fa-solid fa-camera"></i> Evidencia — Verificación</p>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a *ngFor="let ev of evidenciasDePaso('Verificacion')" [href]="urlEvidencia(ev.nombreArchivo)" target="_blank">
-          <img [src]="urlEvidencia(ev.nombreArchivo)"
-            style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;">
-        </a>
-      </div>
-    </div>
-  </div>
-
-</div>
-<p *ngIf="registroSeleccionado.estado === 'Cerrado'"
-  style="text-align: center; font-weight: 500; color: var(--gris-medio); margin: 20px 0 0; letter-spacing: 1px;">
-  — FIN DE DOCUMENTO —
-</p>
-
-<div class="btn-row">
-  <button class="btn-cancelar" (click)="vista = 'lista'">Volver</button>
-  <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
-</div>
-</div>
-</ng-container>
 
 </div>

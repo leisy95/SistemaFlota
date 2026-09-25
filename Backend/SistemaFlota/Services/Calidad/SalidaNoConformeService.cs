@@ -66,10 +66,12 @@ namespace SistemaFlota.Services.Calidad
             return entidad;
         }
 
-        public async Task<SalidaNoConforme?> CerrarAsync(int id, VerificacionSncDto dto)
+        public async Task<SalidaNoConforme?> CerrarAsync(int id, VerificacionSncDto dto, IFormFile? evidenciaPdf)
         {
             var entidad = await _repository.ObtenerPorIdAsync(id);
             if (entidad == null) return null;
+
+            string? nombrePdf = await GuardarArchivo(evidenciaPdf, "wwwroot/snc");
 
             entidad.VerificacionCumplimiento = dto.VerificacionCumplimiento;
             entidad.FechaVerificacion = DateTime.Now;
@@ -79,6 +81,7 @@ namespace SistemaFlota.Services.Calidad
             entidad.DetalleAceptacionConcesion = dto.DetalleAceptacionConcesion;
             entidad.FirmaVerificacion = dto.FirmaVerificacion;
             entidad.RevisadoPor = dto.RevisadoPor;
+            if (nombrePdf != null) entidad.EvidenciaPdfVerificacion = nombrePdf;
             entidad.Estado = "Cerrado";
 
             await _repository.GuardarCambiosAsync();
