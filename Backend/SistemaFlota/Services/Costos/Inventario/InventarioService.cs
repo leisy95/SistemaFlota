@@ -176,8 +176,19 @@ namespace SistemaFlota.Services.Costos.Inventario
 
                     StockActual = i.StockActual,
 
-                    CantidadComprometida = puedeVerDatosNumericos
-                        ? _context.OrdenesTraslado
+                    CantidadComprometida = _context.OrdenesTraslado
+                        .Where(o =>
+                            o.Estado == "Pendiente" ||
+                            o.Estado == "Verificando")
+                        .SelectMany(o => o.Detalles)
+                        .Where(d =>
+                            d.MaterialId == i.MaterialId &&
+                            d.Color == i.Color)
+                        .Sum(d => (decimal?)d.CantidadKg) ?? 0m,
+
+                                        StockDisponible = Math.Max(
+                        i.StockActual -
+                        (_context.OrdenesTraslado
                             .Where(o =>
                                 o.Estado == "Pendiente" ||
                                 o.Estado == "Verificando")
@@ -185,29 +196,14 @@ namespace SistemaFlota.Services.Costos.Inventario
                             .Where(d =>
                                 d.MaterialId == i.MaterialId &&
                                 d.Color == i.Color)
-                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m
-                        : null,
+                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m),
+                        0m),
 
-                    StockDisponible = puedeVerDatosNumericos
-                        ? Math.Max(
-                            i.StockActual -
-                            (_context.OrdenesTraslado
-                                .Where(o =>
-                                    o.Estado == "Pendiente" ||
-                                    o.Estado == "Verificando")
-                                .SelectMany(o => o.Detalles)
-                                .Where(d =>
-                                    d.MaterialId == i.MaterialId &&
-                                    d.Color == i.Color)
-                                .Sum(d => (decimal?)d.CantidadKg) ?? 0m),
-                            0m)
-                        : null,
-
-                    CostoPromedio = puedeVerDatosNumericos
+                                        CostoPromedio = puedeVerDatosNumericos
                         ? i.CostoPromedio
                         : null,
 
-                    ValorInventario = puedeVerDatosNumericos
+                                        ValorInventario = puedeVerDatosNumericos
                         ? i.ValorInventario
                         : null
                 })

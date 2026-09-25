@@ -8,6 +8,7 @@ import { OrdenTrasladoService } from '../../../../core/services/costos/ordenestr
 import { AuthService } from '../../../../core/services/auth.service';
 import { Inventario_Costos } from '../../../../core/models/costos/inventario/inventario-costos.models';
 import { InventarioService } from '../../../../core/services/costos/inventario/inventario.service';
+import { PermisosService } from '../../../../core/services/permisos.service';
 
 @Component({
   selector: 'app-crear-traslado',
@@ -47,7 +48,8 @@ export class CrearTraslado {
     private authService: AuthService,
     private inventarioService: InventarioService,
     private toastr: ToastrService,
-    private dialogRef: MatDialogRef<CrearTraslado>
+    private dialogRef: MatDialogRef<CrearTraslado>,
+    private permisosService: PermisosService,
   ) {
     this.usuario = this.authService.username;
   }
