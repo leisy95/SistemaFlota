@@ -8,6 +8,8 @@ import { OrdenCompra } from '../../../../core/models/costos/ordenCompra/ordencom
 import { OrdenCompraService } from '../../../../core/services/costos/ordencompra/ordencompra.service';
 import { DetalleRepmercancia } from '../detalle-repmercancia/detalle-repmercancia';
 import { ProveedorService } from '../../../../core/services/costos/proveedores/proveedor.service';
+import { RecepcionMercanciaService } from '../../../../core/services/costos/recepcionmercancia/recepcionmercancia.service';
+import { AccionesRecepcionDialog } from '../acciones-recepcion-dialog/acciones-recepcion-dialog';
 
 @Component({
   selector: 'app-listar-repmercancia',
@@ -41,7 +43,8 @@ export class ListarRepmercancia {
     private toastr: ToastrService,
     private dialog: MatDialog,
     private ordenCompraService: OrdenCompraService,
-    private proveedorService: ProveedorService
+    private proveedorService: ProveedorService,
+    private recepcionService: RecepcionMercanciaService
   ) { }
 
   ngOnInit(): void {
@@ -164,6 +167,45 @@ export class ListarRepmercancia {
     });
   }
 
+  verPdfRecepcion(orden: OrdenCompra): void {
+    if (!orden.recepcionId) {
+      this.toastr.warning('No se encontró la recepción asociada.', 'Recepción');
+      return;
+    }
+
+    this.recepcionService.obtenerPdf(orden.recepcionId).subscribe({
+      next: pdf => {
+        const url = URL.createObjectURL(pdf);
+        window.open(url, '_blank');
+      },
+      error: () => {
+        this.toastr.error('No fue posible generar el PDF de la recepción.', 'Error');
+      }
+    });
+  }
+
+  generarEtiquetas(orden: OrdenCompra): void {
+    if (!orden.recepcionId) {
+      this.toastr.warning('No se encontró la recepción asociada.', 'Recepción');
+      return;
+    }
+
+    this.recepcionService.obtenerEtiquetas(orden.recepcionId).subscribe({
+      next: pdf => {
+        const url = URL.createObjectURL(pdf);
+        window.open(url, '_blank');
+
+        this.toastr.success(
+          'Las etiquetas fueron generadas correctamente.',
+          'Etiquetas'
+        );
+      },
+      error: () => {
+        this.toastr.error('No fue posible generar las etiquetas.', 'Error');
+      }
+    });
+  }
+
   iniciarRecepcion(): void {
 
     if (!this.ordenSeleccionada) {
@@ -200,6 +242,44 @@ export class ListarRepmercancia {
         'Recepción registrada correctamente.',
         'Recepción'
       );
+    });
+  }
+
+  abrirAcciones(orden: OrdenCompra): void {
+    const dialogRef = this.dialog.open(AccionesRecepcionDialog, {
+      width: '500px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      restoreFocus: false,
+      disableClose: false,
+      data: {
+        orden: orden
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((accion: string | undefined) => {
+      if (!accion) {
+        return;
+      }
+
+      switch (accion) {
+        case 'pdf':
+          this.verPdfRecepcion(orden);
+          break;
+
+        case 'etiquetas':
+          this.generarEtiquetas(orden);
+          break;
+
+        case 'confirmar':
+          this.verRecepcion(orden);
+          break;
+
+        case 'iniciar':
+        case 'continuar':
+          this.abrirOrden(orden);
+          break;
+      }
     });
   }
 

@@ -26,6 +26,7 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
             .Include(r => r.Detalles)
                 .ThenInclude(d => d.OrdenCompraDetalle)
                     .ThenInclude(od => od.Material)
+            .Include(r => r.UsuarioConfirmacion)
             .FirstOrDefaultAsync(r => r.Id == idRecepcion);
 
         if (recepcion == null)
@@ -346,7 +347,10 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                     });
                 });
 
-                contenido.Item().PaddingTop(10).LineHorizontal(1).LineColor(PdfColors.GrisClaro);
+                contenido.Item()
+                    .PaddingTop(10)
+                    .LineHorizontal(1)
+                    .LineColor(PdfColors.GrisClaro);
 
                 contenido.Item().PaddingTop(10).Row(row =>
                 {
@@ -368,6 +372,35 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                         c.Item().Text($"${recepcion.OrdenCompra?.TotalPagar:N2}").Style(PdfStyles.Total);
                     });
                 });
+
+                // Etapa 3
+                contenido.Item()
+                    .PaddingTop(15)
+                    .Text("RECEPCIÓN CONFIRMADA")
+                    .Bold()
+                    .FontSize(11);
+
+                contenido.Item()
+                    .PaddingTop(5)
+                    .PaddingLeft(15)
+                    .Column(c =>
+                    {
+                        bool confirmada = recepcion.FechaConfirmacion.HasValue;
+
+                        c.Item().Text(
+                            $"Estado: {(confirmada ? "Confirmada" : "Pendiente")}"
+                        );
+
+                        c.Item().Text(
+                            $"Usuario: {recepcion.UsuarioConfirmacion?.Username ?? "---"}"
+                        );
+
+                        c.Item().Text(
+                            $"Fecha: {(recepcion.FechaConfirmacion.HasValue
+                                ? recepcion.FechaConfirmacion.Value.ToString("dd/MM/yyyy HH:mm")
+                                : "---")}"
+                        );
+                    });
             });
         });
     }

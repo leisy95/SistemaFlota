@@ -1,0 +1,53 @@
+<div class="acciones-dialog">
+    <div class="dialog-header">
+        <div>
+            <h2>Acciones de recepción</h2>
+            <p>Orden {{ data.orden.numero }}</p>
+        </div>
+
+        <button class="btn-cerrar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="acciones-lista">
+        <button class="accion-item" (click)="seleccionar('pdf')">
+            <span class="accion-icono pdf">
+                <i class="fa-solid fa-file-pdf"></i>
+            </span>
+
+            <span class="accion-info">
+                <strong>Ver recepción</strong>
+                <small>Consultar el documento de recepción</small>
+            </span>
+
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <button class="accion-item" (click)="seleccionar('etiquetas')">
+            <span class="accion-icono etiquetas">
+                <i class="fa-solid fa-qrcode"></i>
+            </span>
+
+            <span class="accion-info">
+                <strong>Generar etiquetas</strong>
+                <small>Generar las etiquetas QR de la recepción</small>
+            </span>
+
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <button class="accion-item" (click)="seleccionar('confirmar')">
+            <span class="accion-icono confirmar">
+                <i class="fa-solid fa-clipboard-check"></i>
+            </span>
+
+            <span class="accion-info">
+                <strong>Revisar y Confirmar Recepción</strong>
+                <small>Revisar los detalles antes de confirmar</small>
+            </span>
+
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+</div>

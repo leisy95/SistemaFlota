@@ -205,13 +205,17 @@
             </button>
 
             <button *ngIf="orden.estado === 'Pendiente'" class="btn-agregar" (click)="iniciarVerificacion()">
+
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <span>Verificar materiales</span>
+
             </button>
 
             <button *ngIf="orden.estado === 'Verificando'" class="btn-agregar" (click)="confirmarOrden()">
+
                 <i class="fa-solid fa-circle-check"></i>
                 <span>Confirmar orden</span>
+
             </button>
         </div>
     </ng-container>

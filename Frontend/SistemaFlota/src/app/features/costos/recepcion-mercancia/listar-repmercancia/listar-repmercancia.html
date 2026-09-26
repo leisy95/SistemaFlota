@@ -71,33 +71,51 @@
             </div>
 
             <div class="orden-acciones">
-                <ng-container *ngIf="ordenSeleccionada.estado?.toLowerCase() === 'parcial'; else accionNormal">
-
-                    <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
-                        (click)="iniciarRecepcion()">
-                        <i class="fa-solid fa-truck-ramp-box"></i>
-                        Continuar Recepción
+                <ng-container *ngIf="
+        ordenSeleccionada.estado?.trim()?.toLowerCase() === 'parcial' ||
+        ordenSeleccionada.estado?.trim()?.toLowerCase() === 'recepcionada';
+        else accionNormal
+    ">
+                    <button class="btn btn-ver" (click)="verPdfRecepcion(ordenSeleccionada)">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Ver recepción
                     </button>
 
-                    <button class="btn btn-confirmar" [disabled]="!puedeAccionar(ordenSeleccionada)"
-                        (click)="verRecepcion(ordenSeleccionada)">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                        Revisar entrega
+                    <button class="btn btn-pdf" (click)="generarEtiquetas(ordenSeleccionada)">
+                        <i class="fa-solid fa-qrcode"></i>
+                        Generar etiquetas
                     </button>
 
+                    <ng-container
+                        *ngIf="ordenSeleccionada.estado?.trim()?.toLowerCase() === 'parcial'; else recepcionada">
+                        <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                            (click)="iniciarRecepcion()">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Continuar Recepción
+                        </button>
+
+                        <button class="btn btn-confirmar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                            (click)="verRecepcion(ordenSeleccionada)">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            Revisar entrega
+                        </button>
+                    </ng-container>
+
+                    <ng-template #recepcionada>
+                        <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                            (click)="verRecepcion(ordenSeleccionada)">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            Revisar y Confirmar Recepción
+                        </button>
+                    </ng-template>
                 </ng-container>
 
                 <ng-template #accionNormal>
-
-                    <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)" (click)="ordenSeleccionada.estado?.toLowerCase() === 'recepcionada'
-                    ? verRecepcion(ordenSeleccionada)
-                    : iniciarRecepcion()">
-
+                    <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
+                        (click)="iniciarRecepcion()">
                         <i class="fa-solid" [ngClass]="getIconoBoton(ordenSeleccionada)"></i>
                         {{ getTextoBoton(ordenSeleccionada) }}
-
                     </button>
-
                 </ng-template>
             </div>
         </div>
@@ -164,6 +182,14 @@
                 <span>{{ orden.totalItems }} items</span>
                 <strong>${{ orden.totalPagar | number:'1.0-0' }}</strong>
             </div>
+
+            <button *ngIf="
+                orden.estado.trim().toLowerCase() === 'parcial' ||
+                orden.estado.trim().toLowerCase() === 'recepcionada'
+            " type="button" class="btn-acciones-recepcion" title="Acciones"
+                (click)="abrirAcciones(orden); $event.stopPropagation()">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
         </div>
 
         <!-- Sin resultados -->

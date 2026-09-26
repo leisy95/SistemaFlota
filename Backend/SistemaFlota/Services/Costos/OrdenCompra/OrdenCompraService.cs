@@ -90,12 +90,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             if (!fechaEntrega.HasValue)
                 return;
 
-            var fechaMinimaEntrega = fechaOrden.AddMonths(1);
-
-            if (fechaEntrega.Value < fechaMinimaEntrega)
+            if (fechaEntrega.Value.Date < fechaOrden.Date)
             {
                 throw new Exception(
-                    $"La fecha de entrega debe ser como mínimo {fechaMinimaEntrega:dd/MM/yyyy}."
+                    $"La fecha de entrega no puede ser anterior a la fecha de orden."
                 );
             }
         }
