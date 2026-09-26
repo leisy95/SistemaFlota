@@ -51,7 +51,7 @@
 
                     <td>
                         <input type="number" [(ngModel)]="item.conteo" (input)="actualizar(item)" min="0"
-                            [class.input-error]="item.conteo < 0">
+                            [class.input-error]="item.conteo < 0" (wheel)="$any($event.target).blur()">
                     </td>
 
                     <td>

@@ -37,8 +37,8 @@ export class CorteInventario implements OnInit {
           material: item.material,
           color: item.color,
           sistema: item.sistema,
-          conteo: 0,
-          diferencia: -item.sistema
+          conteo: item.sistema,
+          diferencia: 0,
         }));
       },
       error: (err) => {
