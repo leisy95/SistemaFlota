@@ -1,5 +1,4 @@
 <div class="modal">
-
     <div class="header">
         <div>
             <h2>Acciones</h2>
@@ -19,7 +18,7 @@
             </div>
         </button>
 
-        <button *ngIf="permisos.puedeEditar('orden-compra')" (click)="accion('editar')">
+        <button *ngIf="permisos.puedeEditar('orden-compra') && orden.estado === 'Pendiente'" (click)="accion('editar')">
             <i class="fa-solid fa-pen"></i>
             <div>
                 <strong>Editar</strong>
@@ -35,7 +34,9 @@
             </div>
         </button>
 
-        <button *ngIf="permisos.puedeCrear('recepcion-mercancia')" (click)="accion('recibir')">
+        <button
+            *ngIf="permisos.puedeCrear('recepcion-mercancia') && (orden.estado === 'Pendiente' || orden.estado === 'Parcial')"
+            (click)="accion('recibir')">
             <i class="fa-solid fa-box-open"></i>
             <div>
                 <strong>Registrar recepción</strong>
@@ -43,8 +44,9 @@
             </div>
         </button>
 
-        <button *ngIf="permisos.puedeEliminar('orden-compra')" class="danger" (click)="accion('anular')">
-            <i class="fa-solid fa-trash"></i>
+        <button *ngIf="permisos.puedeEliminar('orden-compra') && orden.estado === 'Pendiente'" class="danger"
+            (click)="accion('anular')">
+            <i class="fa-solid fa-ban"></i>
             <div>
                 <strong>Anular</strong>
                 <small>Cancelar la orden.</small>

@@ -25,5 +25,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         Task<FiltrosOrdenCompraDto> ObtenerFiltrosAsync();
 
         Task<bool> EnviarPorCorreoAsync(int id);
+
+        Task<bool> AnularAsync(int id);
     }
 }

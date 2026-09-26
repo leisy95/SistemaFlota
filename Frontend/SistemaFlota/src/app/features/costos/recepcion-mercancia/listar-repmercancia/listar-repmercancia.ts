@@ -52,7 +52,8 @@ export class ListarRepmercancia {
       'Pendiente',
       'Parcial',
       'Recepcionada',
-      'Confirmada'
+      'Confirmada',
+      'Anulada'
     ];
 
     this.cargarProveedores();
@@ -207,16 +208,22 @@ export class ListarRepmercancia {
   }
 
   iniciarRecepcion(): void {
-
     if (!this.ordenSeleccionada) {
+      this.toastr.warning('Seleccione una orden.', 'Recepción');
+      return;
+    }
+
+    const estado = this.ordenSeleccionada.estado?.trim().toLowerCase();
+
+    if (estado === 'anulada') {
       this.toastr.warning(
-        'Seleccione una orden.',
+        'No se puede registrar una recepción para una orden anulada.',
         'Recepción'
       );
       return;
     }
 
-    if (this.ordenSeleccionada.estado === 'Confirmada') {
+    if (estado === 'confirmada') {
       this.toastr.info(
         'Esta recepción ya fue confirmada.',
         'Recepción'
@@ -289,6 +296,7 @@ export class ListarRepmercancia {
       case 'parcial': return 'estado-parcial';
       case 'recepcionada': return 'estado-recepcionada';
       case 'confirmada': return 'estado-confirmada';
+      case 'anulada': return 'estado-anulada';
       default: return 'estado-default';
     }
   }
@@ -299,6 +307,7 @@ export class ListarRepmercancia {
       case 'parcial': return 'fa-truck-ramp-box';
       case 'recepcionada': return 'fa-circle-check';
       case 'confirmada': return 'fa-circle-check';
+      case 'anulada': return 'fa-ban';
       default: return 'fa-circle-info';
     }
   }

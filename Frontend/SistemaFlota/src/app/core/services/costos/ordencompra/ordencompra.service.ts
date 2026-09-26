@@ -132,4 +132,12 @@ export class OrdenCompraService {
             {}
         );
     }
+
+    // anular orden
+    anular(id: number): Observable<{ mensaje: string }> {
+        return this.http.put<{ mensaje: string }>(
+            `${this.api}/${id}/anular`,
+            {}
+        );
+    }
 }

@@ -72,10 +72,10 @@
 
             <div class="orden-acciones">
                 <ng-container *ngIf="
-        ordenSeleccionada.estado?.trim()?.toLowerCase() === 'parcial' ||
-        ordenSeleccionada.estado?.trim()?.toLowerCase() === 'recepcionada';
-        else accionNormal
-    ">
+                    ordenSeleccionada.estado?.trim()?.toLowerCase() === 'parcial' ||
+                    ordenSeleccionada.estado?.trim()?.toLowerCase() === 'recepcionada';
+                    else accionNormal
+                ">
                     <button class="btn btn-ver" (click)="verPdfRecepcion(ordenSeleccionada)">
                         <i class="fa-solid fa-file-pdf"></i>
                         Ver recepción
@@ -137,7 +137,8 @@
                 'orden-pendiente': orden.estado === 'Pendiente',
                 'orden-parcial': orden.estado === 'Parcial',
                 'orden-recepcionada': orden.estado === 'Recepcionada',
-                'orden-confirmada': orden.estado === 'Confirmada'
+                'orden-confirmada': orden.estado === 'Confirmada',
+                'orden-anulada': orden.estado === 'Anulada'
             }" *ngFor="let orden of ordenes" (click)="abrirOrden(orden)">
 
             <div class="orden-info">

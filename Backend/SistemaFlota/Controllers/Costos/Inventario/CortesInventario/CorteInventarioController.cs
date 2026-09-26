@@ -84,5 +84,14 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
                 "application/pdf",
                 $"CorteInventario-{DateTime.Now:yyyy-MM-dd}.pdf");
         }
+
+        // Filtros
+        [HttpGet("filtros")]
+        [Permiso("inventario", "ver")]
+        public async Task<ActionResult<FiltrosCorteInventarioDto>> ObtenerFiltros()
+        {
+            var resultado = await _service.ObtenerFiltrosAsync();
+            return Ok(resultado);
+        }
     }
 }

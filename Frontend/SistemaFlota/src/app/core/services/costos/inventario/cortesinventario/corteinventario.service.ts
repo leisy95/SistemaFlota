@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 import { CrearCorteInventario } from '../../../../models/costos/inventario/cortesinventario/crearcorteinventario.models';
-import { InventarioCorte } from '../../../../models/costos/inventario/cortesinventario/corteinventario.models';
+import { FiltrosCorteInventario, InventarioCorte } from '../../../../models/costos/inventario/cortesinventario/corteinventario.models';
 import { CorteInventarioHistorial, HistorialCorteDetalle } from '../../../../models/costos/inventario/historialcorteinventario/historialcorteInventario.models';
 
 @Injectable({
@@ -32,6 +32,13 @@ export class CorteInventarioService {
     obtenerDetalle(id: number): Observable<HistorialCorteDetalle> {
         return this.http.get<HistorialCorteDetalle>(
             `${this.apiUrl}/${id}`
+        );
+    }
+
+    // filtro
+    obtenerFiltros() {
+        return this.http.get<FiltrosCorteInventario>(
+            `${this.apiUrl}/filtros`
         );
     }
 

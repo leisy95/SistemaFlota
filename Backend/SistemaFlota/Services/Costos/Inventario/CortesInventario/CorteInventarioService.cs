@@ -19,7 +19,6 @@ namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
             _currentUser = currentUser;
         }
 
-
         public async Task<List<CorteInventarioDto>> ObtenerCorteAsync()
         {
             return await _context.Inventarios
@@ -28,23 +27,55 @@ namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
                 .Select(x => new CorteInventarioDto
                 {
                     MaterialId = x.MaterialId,
-
                     Material = x.Material!.NombreMaterial,
-
                     Proveedor = x.Material.Proveedor != null
                         ? x.Material.Proveedor.Nombre
                         : string.Empty,
-
                     Color = x.Color,
-
                     Sistema = x.StockActual,
-
                     Conteo = 0
-
                 })
                 .ToListAsync();
         }
 
+        public async Task<FiltrosCorteInventarioDto> ObtenerFiltrosAsync()
+        {
+            var datos = await _context.Inventarios
+                .AsNoTracking()
+                .Include(x => x.Material)
+                .ThenInclude(x => x.Proveedor)
+                .Select(x => new
+                {
+                    Proveedor = x.Material!.Proveedor != null
+                        ? x.Material.Proveedor.Nombre
+                        : string.Empty,
+                    MaterialId = x.MaterialId,
+                    Material = x.Material.NombreMaterial
+                })
+                .ToListAsync();
+
+            return new FiltrosCorteInventarioDto
+            {
+                Proveedores = datos
+                    .Where(x => !string.IsNullOrEmpty(x.Proveedor))
+                    .Select(x => x.Proveedor)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+
+                Materiales = datos
+                    .GroupBy(x => x.MaterialId)
+                    .Select(x => x.First())
+                    .OrderBy(x => x.Material)
+                    .Select(x => new MaterialFiltroCorteDto
+                    {
+                        MaterialId = x.MaterialId,
+                        Material = x.Material,
+                        Proveedor = x.Proveedor
+                    })
+                    .ToList()
+            };
+        }
 
         public async Task GuardarCorteAsync(CrearCorteInventarioDto dto)
         {
@@ -96,6 +127,7 @@ namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
             _context.CortesInventario.Add(corte);
             await _context.SaveChangesAsync();
         }
+
         public async Task<List<HistorialCorteInventarioDto>> ObtenerHistorialAsync()
         {
             return await _context.CortesInventario
@@ -129,7 +161,6 @@ namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
                         Fecha = corte.Fecha,
                         Estado = corte.Estado,
                         Usuario = usuario.Username,
-
                         Detalles = corte.Detalles.Select(d => new DetalleHistorialCorteDto
                         {
                             MaterialId = d.MaterialId,

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { CorteInventarioService } from '../../../../core/services/costos/inventario/cortesinventario/corteinventario.service';
-import { InventarioCorte } from '../../../../core/models/costos/inventario/cortesinventario/corteinventario.models';
+import { FiltrosCorteInventario, InventarioCorte } from '../../../../core/models/costos/inventario/cortesinventario/corteinventario.models';
 
 @Component({
   selector: 'app-corte-inventario',
@@ -14,8 +14,14 @@ import { InventarioCorte } from '../../../../core/models/costos/inventario/corte
   styleUrl: './corte-inventario.scss'
 })
 export class CorteInventario implements OnInit {
-
   items: InventarioCorte[] = [];
+  itemsFiltrados: InventarioCorte[] = [];
+  filtros: FiltrosCorteInventario = {
+    proveedores: [],
+    materiales: []
+  };
+  proveedorSeleccionado = '';
+  materialSeleccionado: number | null = null;
 
   constructor(
     private toastr: ToastrService,
@@ -25,7 +31,20 @@ export class CorteInventario implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.cargarFiltros();
     this.cargarCorte();
+  }
+
+  cargarFiltros() {
+    this.corteService.obtenerFiltros().subscribe({
+      next: (data) => {
+        this.filtros = data;
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastr.error('No se pudieron cargar los filtros', 'Error');
+      }
+    });
   }
 
   cargarCorte() {
@@ -38,14 +57,49 @@ export class CorteInventario implements OnInit {
           color: item.color,
           sistema: item.sistema,
           conteo: item.sistema,
-          diferencia: 0,
+          diferencia: 0
         }));
+
+        this.itemsFiltrados = [...this.items];
       },
       error: (err) => {
         console.error(err);
         this.toastr.error('No se pudo cargar el inventario', 'Error');
       }
     });
+  }
+
+  get materialesFiltrados() {
+    if (!this.proveedorSeleccionado) {
+      return this.filtros.materiales;
+    }
+
+    return this.filtros.materiales.filter(
+      x => x.proveedor === this.proveedorSeleccionado
+    );
+  }
+
+  filtrar() {
+    this.itemsFiltrados = this.items.filter(item => {
+      const coincideProveedor =
+        !this.proveedorSeleccionado ||
+        item.proveedor === this.proveedorSeleccionado;
+
+      const coincideMaterial =
+        this.materialSeleccionado === null ||
+        item.materialId === this.materialSeleccionado;
+
+      return coincideProveedor && coincideMaterial;
+    });
+  }
+
+  cambiarProveedor() {
+    this.materialSeleccionado = null;
+    this.filtrar();
+  }
+
+  cambiarMaterial() {
+    this.filtrar();
   }
 
   actualizar(item: InventarioCorte) {
@@ -82,14 +136,25 @@ export class CorteInventario implements OnInit {
 
     this.corteService.guardarCorte(dto).subscribe({
       next: () => {
-        this.toastr.success('El corte de inventario fue guardado correctamente', 'Corte guardado');
+        this.toastr.success(
+          'El corte de inventario fue guardado correctamente',
+          'Corte guardado'
+        );
         this.dialogRef.close(true);
       },
       error: (err) => {
-        const mensaje = err.error?.mensaje || 'No se pudo guardar el corte';
+        const mensaje =
+          err.error?.mensaje || 'No se pudo guardar el corte';
+
         this.toastr.error(mensaje, 'Error');
       }
     });
+  }
+
+  limpiarFiltros() {
+    this.proveedorSeleccionado = '';
+    this.materialSeleccionado = null;
+    this.itemsFiltrados = [...this.items];
   }
 
   cerrarModal() {

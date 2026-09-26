@@ -14,6 +14,33 @@
         </button>
     </div>
 
+    <div class="filtros">
+        <div class="filtro">
+            <label>Proveedor</label>
+            <select [(ngModel)]="proveedorSeleccionado" (change)="cambiarProveedor()">
+                <option value="">Todos los proveedores</option>
+                <option *ngFor="let proveedor of filtros.proveedores" [value]="proveedor">
+                    {{ proveedor }}
+                </option>
+            </select>
+        </div>
+
+        <div class="filtro">
+            <label>Material</label>
+            <select [(ngModel)]="materialSeleccionado" (change)="cambiarMaterial()">
+                <option [ngValue]="null">Todos los materiales</option>
+                <option *ngFor="let material of materialesFiltrados" [ngValue]="material.materialId">
+                    {{ material.material }}
+                </option>
+            </select>
+        </div>
+
+        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            Limpiar filtros
+        </button>
+    </div>
+
 
     <div class="table-container">
 
@@ -31,7 +58,7 @@
             </thead>
 
             <tbody>
-                <tr *ngFor="let item of items" [class.fila-negativa]="item.diferencia < 0">
+                <tr *ngFor="let item of itemsFiltrados" [class.fila-negativa]="item.diferencia < 0">
 
                     <td class="proveedor">
                         {{ item.proveedor }}

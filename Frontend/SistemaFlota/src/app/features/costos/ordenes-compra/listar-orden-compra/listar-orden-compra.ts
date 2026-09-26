@@ -10,6 +10,7 @@ import { AccionesOrdenCompra } from '../acciones-orden-compra/acciones-orden-com
 import { Proveedor } from '../../../../core/models/costos/proveedores/proveedores.model';
 import { ProveedorService } from '../../../../core/services/costos/proveedores/proveedor.service';
 import { FiltrosOrdenCompra } from '../../../../core/models/costos/ordenCompra/filtrosordencompra.models';
+import { DialogConfirmacion } from '../../../../shared/dialog-confirmacion/dialog-confirmacion';
 
 @Component({
   selector: 'app-listar-orden-compra',
@@ -165,7 +166,51 @@ export class ListarOrdenCompra {
           break;
 
         case 'anular':
+          this.confirmarAnulacion(item);
           break;
+      }
+    });
+  }
+
+  confirmarAnulacion(item: OrdenCompra): void {
+    const dialog = this.dialog.open(DialogConfirmacion, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        titulo: 'Anular orden de compra',
+        mensaje: `¿Está seguro de anular la orden ${item.numero}?`,
+        textoConfirmar: 'Sí, anular',
+        textoCancelar: 'Cancelar',
+        tipo: 'warning'
+      }
+    });
+
+    dialog.afterClosed().subscribe(confirmado => {
+      if (!confirmado) return;
+
+      this.anularOrden(item);
+    });
+  }
+
+  anularOrden(item: OrdenCompra): void {
+    this.ordenCompraService.anular(item.id).subscribe({
+      next: resp => {
+        this.toastr.success(
+          resp.mensaje,
+          'Orden anulada'
+        );
+
+        this.cargar();
+      },
+      error: err => {
+        const mensaje =
+          err?.error?.mensaje ||
+          'No fue posible anular la orden de compra.';
+
+        this.toastr.error(
+          mensaje,
+          'No se pudo anular'
+        );
       }
     });
   }

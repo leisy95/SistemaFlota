@@ -96,6 +96,10 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             if (orden == null)
                 return null;
 
+            if (orden.Estado?.Equals("Anulada", StringComparison.OrdinalIgnoreCase) == true)
+                throw new InvalidOperationException(
+                    "No se puede registrar una recepción para una orden de compra anulada.");
+
             var recepcionesAnteriores = await _context.RecepcionesMercancias
                 .Where(r => r.OrdenCompraId == ordenCompraId)
                 .SelectMany(r => r.Detalles)
@@ -154,8 +158,15 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             if (orden == null)
                 throw new Exception("La orden de compra no existe.");
 
-            if (orden.Estado?.Equals("Confirmada", StringComparison.OrdinalIgnoreCase) == true)
-                throw new Exception("La orden de compra ya está completamente confirmada.");
+            var estadosNoRecepcionables = new[] { "Anulada", "Recepcionada", "Confirmada" };
+
+            if (estadosNoRecepcionables.Contains(
+                orden.Estado ?? string.Empty,
+                StringComparer.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    $"No se puede registrar una recepción para una orden en estado '{orden.Estado}'.");
+            }
 
             // Una sola recepción por orden de compra.
             var recepcion = await _context.RecepcionesMercancias

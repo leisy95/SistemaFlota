@@ -160,8 +160,16 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(x => x.Numero.Contains(search) || x.Proveedor.Nombre.Contains(search));
 
-            if (!string.IsNullOrWhiteSpace(estado))
+            if (string.IsNullOrWhiteSpace(estado))
+            {
+                query = query.Where(x =>
+                    x.Estado != "Anulada" &&
+                    x.Estado != "Confirmada");
+            }
+            else
+            {
                 query = query.Where(x => x.Estado == estado);
+            }
 
             if (proveedorId.HasValue)
                 query = query.Where(x => x.ProveedorId == proveedorId);
@@ -593,6 +601,56 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 Proveedores = proveedores,
                 FormasPago = formasPago
             };
+        }
+
+        // Anular orden 
+        public async Task<bool> AnularAsync(int id)
+        {
+            var orden = await _context.OrdenesCompra
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (orden == null)
+                throw new KeyNotFoundException("La orden de compra no existe.");
+
+            if (orden.Estado == "Anulada")
+                throw new InvalidOperationException("La orden de compra ya se encuentra anulada.");
+
+            var estadosNoAnulables = new[]
+            {
+        "Recepcionada",
+        "Parcial",
+        "Confirmada"
+    };
+
+            if (estadosNoAnulables.Contains(orden.Estado))
+            {
+                throw new InvalidOperationException(
+                    $"No se puede anular una orden de compra en estado '{orden.Estado}'.");
+            }
+
+            var tieneRecepcion = await _context.RecepcionesMercancias
+                .AnyAsync(x => x.OrdenCompraId == id);
+
+            if (tieneRecepcion)
+            {
+                throw new InvalidOperationException(
+                    "No se puede anular la orden porque ya tiene una recepción de mercancía asociada.");
+            }
+
+            var idUsuario = _currentUser.IdUsuario;
+
+            if (idUsuario == null)
+                throw new UnauthorizedAccessException(
+                    "No se pudo identificar el usuario que realiza la anulación.");
+
+            orden.Estado = "Anulada";
+            orden.Activo = false;
+            orden.UsuarioActualizacionId = idUsuario.Value;
+            orden.FechaActualizacion = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
