@@ -136,8 +136,8 @@ export class CrearTraslado {
   calcularBultos(): void {
     const cantidad = Number(this.materialActual.cantidadKg ?? 0);
 
-    if (cantidad > 0 && cantidad % 25 === 0) {
-      this.materialActual.bultos = cantidad / 25;
+    if (cantidad > 0 && cantidad % 10 === 0) {
+      this.materialActual.bultos = cantidad / 10;
     } else {
       this.materialActual.bultos = 0;
     }
@@ -170,8 +170,8 @@ export class CrearTraslado {
       return;
     }
 
-    if (cantidadKg % 25 !== 0) {
-      this.toastr.warning('La cantidad debe ser múltiplo de 25 kg.', 'Cantidad inválida');
+    if (cantidadKg % 10 !== 0) {
+      this.toastr.warning('La cantidad debe ser múltiplo de 10 kg.', 'Cantidad inválida');
       return;
     }
 

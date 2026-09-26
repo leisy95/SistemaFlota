@@ -69,7 +69,7 @@
 
                         <input class="input-material" [class.input-error]="cantidadSuperaStock" type="number"
                             [(ngModel)]="materialActual.cantidadKg" (ngModelChange)="calcularBultos()"
-                            placeholder="Cantidad (Kg)" min="1" step="25" />
+                            placeholder="Cantidad (Kg)" min="1" step="10" />
 
                         <input class="input-material" type="number" [(ngModel)]="materialActual.bultos"
                             placeholder="Bultos" min="1" step="1" />
