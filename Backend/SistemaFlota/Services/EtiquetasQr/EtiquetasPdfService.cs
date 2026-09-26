@@ -18,7 +18,9 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
     public async Task<byte[]> GenerarAsync(int recepcionId)
     {
+        // 1. Cargar la recepción actual con sus detalles completos
         var recepcion = await _context.RecepcionesMercancias
+            .AsNoTracking()
             .Include(x => x.Detalles)
                 .ThenInclude(x => x.OrdenCompraDetalle)
                     .ThenInclude(x => x.Material)
@@ -26,13 +28,38 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 .ThenInclude(x => x.Proveedor)
             .FirstAsync(x => x.Id == recepcionId);
 
+        // 2. Determinar el número de la última entrega realizada en este registro
+        int ultimaEntregaActual = recepcion.Detalles.Any()
+            ? recepcion.Detalles.Max(x => x.NumeroEntrega)
+            : 1;
+
+        // 3. Filtrar los detalles recibidos en esta entrega específica para generar sus etiquetas
+        var detallesEntregaActual = recepcion.Detalles
+            .Where(x => x.NumeroEntrega == ultimaEntregaActual)
+            .ToList();
+
+        // 4. Obtener todos los detalles de entregas ANTERIORES para la misma Orden de Compra
+        var detallesAnteriores = await _context.RecepcionesMercancias
+            .AsNoTracking()
+            .Where(x => x.OrdenCompraId == recepcion.OrdenCompraId)
+            .SelectMany(x => x.Detalles)
+            .Where(x => x.NumeroEntrega < ultimaEntregaActual)
+            .ToListAsync();
+
         var document = Document.Create(document =>
         {
-            foreach (var detalle in recepcion.Detalles)
+            foreach (var detalle in detallesEntregaActual)
             {
-                int totalBultos = (int)detalle.BultosRecibidos;
+                int bultosActuales = (int)detalle.BultosRecibidos;
+                int ordenCompraDetalleId = detalle.OrdenCompraDetalleId;
 
-                // ÚLTIMOS 3 CARACTERES DE LA ORDEN
+                // Sumar bultos ingresados en entregas estrictamente anteriores
+                int bultosAnteriores = detallesAnteriores
+                    .Where(x => x.OrdenCompraDetalleId == ordenCompraDetalleId)
+                    .Sum(x => (int)x.BultosRecibidos);
+
+                // Total de bultos programados en la Orden de Compra
+                int totalBultos = (int)detalle.OrdenCompraDetalle!.Bultos;
 
                 string numeroOrden = recepcion.OrdenCompra!.Numero;
 
@@ -40,17 +67,9 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                     ? numeroOrden[^3..]
                     : numeroOrden.PadLeft(3, '0');
 
-
-                // DÍA Y MES DE LA FECHA DE LA ORDEN
-
-                string diaMes = recepcion.OrdenCompra.FechaOrden
-                    .ToString("ddMM");
-
-
-                // ÚLTIMO NÚMERO DEL LOTE
+                string diaMes = recepcion.OrdenCompra.FechaOrden.ToString("ddMM");
 
                 string lote = detalle.LoteProveedor?.Trim() ?? "";
-
                 string ultimoNumeroLote = "";
 
                 if (!string.IsNullOrWhiteSpace(lote))
@@ -61,40 +80,29 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                         .Trim();
                 }
 
-
-                // CÓDIGO FINAL
-
-                string codigo =
-                    $"{ultimosTresOrden}{diaMes}{ultimoNumeroLote}";
-
                 string codigoFormateado =
                     $"{ultimosTresOrden} · {diaMes[..2]} · {diaMes[2..]} · {ultimoNumeroLote}";
 
-
-                // UNA ETIQUETA POR CADA BULTO
-
-                for (
-                    int numeroBulto = 1;
-                    numeroBulto <= totalBultos;
-                    numeroBulto++)
+                // Generar páginas consecutivas
+                for (int i = 1; i <= bultosActuales; i++)
                 {
+                    int numeroBulto = bultosAnteriores + i;
+
                     document.Page(page =>
                     {
                         page.Size(100, 50, Unit.Millimetre);
-
                         page.Margin(2, Unit.Millimetre);
 
-                        page.Content()
-                            .Element(container =>
-                            {
-                                EtiquetaComponent.Dibujar(
-                                    container,
-                                    recepcion,
-                                    detalle,
-                                    numeroBulto,
-                                    totalBultos,
-                                    codigoFormateado);
-                            });
+                        page.Content().Element(container =>
+                        {
+                            EtiquetaComponent.Dibujar(
+                                container,
+                                recepcion,
+                                detalle,
+                                numeroBulto,
+                                totalBultos,
+                                codigoFormateado);
+                        });
                     });
                 }
             }

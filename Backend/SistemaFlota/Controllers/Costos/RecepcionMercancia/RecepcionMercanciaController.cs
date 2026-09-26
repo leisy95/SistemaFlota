@@ -20,14 +20,14 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
         public RecepcionMercanciaController(
             IRecepcionMercanciaService service,
             IEtiquetasPdfService etiquetasPdfService,
-             IRecepcionMercanciaPdfService recepcionMercanciaPdfService)
+            IRecepcionMercanciaPdfService recepcionMercanciaPdfService)
         {
             _service = service;
             _etiquetasPdfService = etiquetasPdfService;
             _recepcionMercanciaPdfService = recepcionMercanciaPdfService;
         }
 
-        //Listar Recepciones
+        // Listar Recepciones
         [HttpGet]
         [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> Obtener(
@@ -109,16 +109,19 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
         }
 
         // Imprimir etiquetas
-        [HttpGet("{id}/etiquetas")]
+        [HttpGet("{id:int}/etiquetas")]
         [Permiso("recepcion-mercancia", "ver")]
-        public async Task<IActionResult> ImprimirEtiquetas(int id)
+        public async Task<IActionResult> ImprimirEtiquetas(
+            int id,
+            [FromQuery] int numeroEntrega)
         {
-            var pdf = await _etiquetasPdfService.GenerarAsync(id);
+            var pdf = await _etiquetasPdfService.GenerarAsync(
+                id);
 
             return File(
                 pdf,
                 "application/pdf",
-                $"Etiquetas_{id}.pdf");
+                $"Etiquetas_{id}_Entrega_{numeroEntrega}.pdf");
         }
 
         // Crear recepcion
@@ -181,7 +184,7 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
             return NoContent();
         }
 
-        // Filtro de reccepcion
+        // Filtro de recepcion
         [HttpGet("filtros")]
         [Permiso("recepcion-mercancia", "ver")]
         public async Task<IActionResult> ObtenerFiltros()

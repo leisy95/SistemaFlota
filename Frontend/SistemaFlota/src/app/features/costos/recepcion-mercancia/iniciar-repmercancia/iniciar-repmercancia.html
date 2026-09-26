@@ -140,6 +140,7 @@
                                 <label>Cantidad Recibida (KG)</label>
 
                                 <input type="number" class="input" formControlName="cantidadRecibida"
+                                    (wheel)="$any($event.target).blur()"
                                     [class.is-invalid]="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
 
                                 <small class="error"
@@ -152,6 +153,7 @@
                                 <label>Bultos Recibidos</label>
 
                                 <input type="number" class="input" formControlName="bultosRecibidos"
+                                    (wheel)="$any($event.target).blur()"
                                     [class.is-invalid]="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
 
                                 <small class="error"

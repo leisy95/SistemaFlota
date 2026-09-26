@@ -53,7 +53,10 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
         return documento.GeneratePdf();
     }
 
-    private void ConstruirDocumento(PageDescriptor page, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion, ConfiguracionEmpresa empresa)
+    private void ConstruirDocumento(
+        PageDescriptor page,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion,
+        ConfiguracionEmpresa empresa)
     {
         page.Content().PaddingVertical(12).Column(col =>
         {
@@ -91,9 +94,17 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                         .FontColor(PdfColors.AzulOscuro);
                 });
 
-            DibujarDatosRecepcion(col, recepcion);
-            DibujarDatosOrden(col, recepcion);
-            DibujarTransporte(col, recepcion);
+            // DATOS DE RECEPCIÓN + ORDEN DE COMPRA
+            col.Item().Row(row =>
+            {
+                row.RelativeItem().Element(x => DibujarDatosRecepcion(x, recepcion));
+                row.ConstantItem(10);
+                row.RelativeItem().Element(x => DibujarDatosOrden(x, recepcion));
+            });
+
+            // TRANSPORTE
+            col.Item().Element(x => DibujarTransporte(x, recepcion));
+
             DibujarEntregas(col, recepcion);
             DibujarResumen(col, recepcion);
 
@@ -144,137 +155,138 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
         page.Footer().Element(FooterEmpresa.Dibujar);
     }
 
-    private void DibujarDatosRecepcion(ColumnDescriptor col, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    private void DibujarDatosRecepcion(
+        IContainer container,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        col.Item().Element(x =>
+        Card.Dibujar(container, "DATOS DE LA RECEPCIÓN", contenido =>
         {
-            Card.Dibujar(x, "DATOS DE LA RECEPCIÓN", contenido =>
+            contenido.Item().Row(row =>
             {
-                contenido.Item().Row(row =>
+                row.RelativeItem().Column(c =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Número de recepción").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.NumeroRecepcion).Style(PdfStyles.Valor);
-                    });
-
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Fecha de recepción").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.FechaRecepcion.ToString("dd/MM/yyyy HH:mm")).Style(PdfStyles.Valor);
-                    });
+                    c.Item().Text("Número").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.NumeroRecepcion).Style(PdfStyles.Valor);
                 });
 
-                contenido.Item().PaddingTop(8).Row(row =>
+                row.RelativeItem().Column(c =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Recibe").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.Recibe).Style(PdfStyles.Valor);
-                    });
+                    c.Item().Text("Fecha").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.FechaRecepcion.ToString("dd/MM/yyyy HH:mm")).Style(PdfStyles.Valor);
+                });
+            });
 
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Cargo").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.Cargo).Style(PdfStyles.Valor);
-                    });
+            contenido.Item().PaddingTop(8).Row(row =>
+            {
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Recibe").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.Recibe).Style(PdfStyles.Valor);
+                });
+
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Cargo").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.Cargo).Style(PdfStyles.Valor);
                 });
             });
         });
     }
 
-    private void DibujarDatosOrden(ColumnDescriptor col, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    private void DibujarDatosOrden(
+        IContainer container,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
-        col.Item().Element(x =>
+        Card.Dibujar(container, "ORDEN DE COMPRA", contenido =>
         {
-            Card.Dibujar(x, "ORDEN DE COMPRA", contenido =>
+            contenido.Item().Row(row =>
             {
-                contenido.Item().Row(row =>
+                row.RelativeItem().Column(c =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Número de orden").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.OrdenCompra?.Numero ?? "-").Style(PdfStyles.Valor);
-                    });
-
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Proveedor").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.OrdenCompra?.Proveedor?.Nombre ?? "-").Style(PdfStyles.Valor);
-                    });
+                    c.Item().Text("Número").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.OrdenCompra?.Numero ?? "-").Style(PdfStyles.Valor);
                 });
 
-                contenido.Item().PaddingTop(8).Row(row =>
+                row.RelativeItem().Column(c =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Fecha de orden").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.OrdenCompra?.FechaOrden.ToString("dd/MM/yyyy") ?? "-").Style(PdfStyles.Valor);
-                    });
+                    c.Item().Text("Proveedor").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.OrdenCompra?.Proveedor?.Nombre ?? "-").Style(PdfStyles.Valor);
+                });
+            });
 
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Fecha de entrega").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.OrdenCompra?.FechaEntrega?.ToString("dd/MM/yyyy") ?? "-").Style(PdfStyles.Valor);
-                    });
+            contenido.Item().PaddingTop(8).Row(row =>
+            {
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Fecha").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.OrdenCompra?.FechaOrden.ToString("dd/MM/yyyy") ?? "-").Style(PdfStyles.Valor);
                 });
 
-                contenido.Item().PaddingTop(8).Column(c =>
+                row.RelativeItem().Column(c =>
                 {
-                    c.Item().Text("Estado de la orden").Style(PdfStyles.Label);
-                    c.Item().Text(recepcion.OrdenCompra?.Estado ?? "-").Style(PdfStyles.Valor);
+                    c.Item().Text("Entrega").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.OrdenCompra?.FechaEntrega?.ToString("dd/MM/yyyy") ?? "-").Style(PdfStyles.Valor);
+                });
+            });
+
+            contenido.Item().PaddingTop(8).Column(c =>
+            {
+                c.Item().Text("Estado").Style(PdfStyles.Label);
+                c.Item().Text(recepcion.OrdenCompra?.Estado ?? "-").Style(PdfStyles.Valor);
+            });
+        });
+    }
+
+    private void DibujarTransporte(
+        IContainer container,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    {
+        Card.Dibujar(container, "TRANSPORTE", contenido =>
+        {
+            contenido.Item().Row(row =>
+            {
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Conductor").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.Conductor).Style(PdfStyles.Valor);
+                });
+
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Transportadora").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.Transportadora).Style(PdfStyles.Valor);
+                });
+            });
+
+            contenido.Item().PaddingTop(8).Row(row =>
+            {
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Tipo documento").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.TipoDocumento).Style(PdfStyles.Valor);
+                });
+
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Embalaje adecuado").Style(PdfStyles.Label);
+                    c.Item().Text(recepcion.EmbalajeAdecuado ? "Sí" : "No").Style(PdfStyles.Valor);
                 });
             });
         });
     }
 
-    private void DibujarTransporte(ColumnDescriptor col, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
-    {
-        col.Item().Element(x =>
-        {
-            Card.Dibujar(x, "TRANSPORTE", contenido =>
-            {
-                contenido.Item().Row(row =>
-                {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Conductor").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.Conductor).Style(PdfStyles.Valor);
-                    });
-
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Transportadora").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.Transportadora).Style(PdfStyles.Valor);
-                    });
-                });
-
-                contenido.Item().PaddingTop(8).Row(row =>
-                {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Tipo de documento").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.TipoDocumento).Style(PdfStyles.Valor);
-                    });
-
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Embalaje adecuado").Style(PdfStyles.Label);
-                        c.Item().Text(recepcion.EmbalajeAdecuado ? "Sí" : "No").Style(PdfStyles.Valor);
-                    });
-                });
-            });
-        });
-    }
-
-    private void DibujarEntregas(ColumnDescriptor col, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    private void DibujarEntregas(
+        ColumnDescriptor col,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
         var entregas = recepcion.Detalles
             .GroupBy(d => d.NumeroEntrega)
             .OrderBy(g => g.Key)
             .ToList();
 
-        col.Item().Text("HISTORIAL DE ENTREGAS").Style(PdfStyles.Subtitulo);
+        col.Item()
+            .Text("HISTORIAL DE ENTREGAS")
+            .Style(PdfStyles.Subtitulo);
 
         foreach (var entrega in entregas)
         {
@@ -298,29 +310,44 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                         row.RelativeItem().Column(c =>
                         {
                             c.Item().Text("Estado").Style(PdfStyles.Label);
-                            c.Item().Text(procesada ? "Ingresada a inventario" : "Pendiente de inventario")
+                            c.Item()
+                                .Text(procesada
+                                    ? "Ingresada a inventario"
+                                    : "Pendiente de inventario")
                                 .Style(PdfStyles.Valor);
                         });
                     });
 
-                    contenido.Item().PaddingTop(10).Element(tabla =>
-                        TablaRecepcionMercancia.Dibujar(tabla, entrega));
+                    contenido.Item()
+                        .PaddingTop(10)
+                        .Element(tabla =>
+                            TablaRecepcionMercancia.Dibujar(tabla, entrega));
 
                     contenido.Item().PaddingTop(8).Row(row =>
                     {
-                        row.RelativeItem().Text($"Total KG: {totalKg:N2}").Style(PdfStyles.Valor);
-                        row.RelativeItem().Text($"Total Bultos: {totalBultos:N2}").Style(PdfStyles.Valor);
+                        row.RelativeItem()
+                            .Text($"Total KG: {totalKg:N2}")
+                            .Style(PdfStyles.Valor);
+
+                        row.RelativeItem()
+                            .Text($"Total Bultos: {totalBultos:N2}")
+                            .Style(PdfStyles.Valor);
                     });
                 });
             });
         }
     }
 
-    private void DibujarResumen(ColumnDescriptor col, Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    private void DibujarResumen(
+        ColumnDescriptor col,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
         var totalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida);
         var totalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos);
-        var totalEntregas = recepcion.Detalles.Select(x => x.NumeroEntrega).Distinct().Count();
+        var totalEntregas = recepcion.Detalles
+            .Select(x => x.NumeroEntrega)
+            .Distinct()
+            .Count();
 
         col.Item().Element(x =>
         {
@@ -373,7 +400,6 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                     });
                 });
 
-                // Etapa 3
                 contenido.Item()
                     .PaddingTop(15)
                     .Text("RECEPCIÓN CONFIRMADA")
@@ -407,6 +433,10 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
     private string ObtenerLogo()
     {
-        return Path.Combine(_environment.ContentRootPath, "wwwroot", "config", "logo.png");
+        return Path.Combine(
+            _environment.ContentRootPath,
+            "wwwroot",
+            "config",
+            "logo.png");
     }
 }
