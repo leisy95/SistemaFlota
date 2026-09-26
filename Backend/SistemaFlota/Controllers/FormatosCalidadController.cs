@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs;
 using SistemaFlota.Models;
+using SistemaFlota.Models.Calidad;
 using System.Security.Claims;
 
 namespace SistemaFlota
@@ -94,9 +95,7 @@ namespace SistemaFlota
                 Maquina = dto.Maquina,
                 VariablesCriticasJson = dto.VariablesCriticasJson,
                 ResultadosJson = dto.ResultadosJson,
-                Estado = "PendienteLiberacion",
-                RevisadoPor = GetUsuario(),
-                FechaRevision = DateTime.Now
+                Estado = "PendienteLiberacion"
             };
 
             _context.RegistrosFormatoCalidad.Add(registro);
@@ -158,6 +157,9 @@ namespace SistemaFlota
             r.FirmaDigital = dto.FirmaDigital;
             r.CargoFirma = dto.CargoFirma;
             r.ProduccionKgHora = dto.ProduccionKgHora;
+            r.DesperdicioTotalKg = dto.DesperdicioTotalKg;
+            r.RevisadoPor = GetUsuario();
+            r.FechaRevision = DateTime.Now;
             r.Estado = "Liberado";
 
             await _context.SaveChangesAsync();
@@ -172,12 +174,12 @@ namespace SistemaFlota
         [HttpGet("registros/op/{op}")]
         public async Task<IActionResult> GetPorOP(string op, [FromQuery] int tipoFormatoId)
         {
-            var registros = await _context.RegistrosFormatoCalidad
+            var registro = await _context.RegistrosFormatoCalidad
                 .Where(r => r.OrdenProduccion == op && r.TipoFormatoId == tipoFormatoId)
                 .OrderByDescending(r => r.Fecha)
-                .ToListAsync();
-            if (!registros.Any()) return NotFound();
-            return Ok(new { totalEntradas = registros.Count });
+                .FirstOrDefaultAsync();
+            if (registro == null) return NotFound();
+            return Ok(registro);
         }
 
         // DELETE api/FormatosCalidad/registros/{id}
@@ -289,6 +291,8 @@ namespace SistemaFlota
                         }
                     }
                 }
+
+
                 catch { }
 
                 return new
@@ -350,6 +354,70 @@ namespace SistemaFlota
                 mejor = conPuntaje.First(),
                 todos = conPuntaje
             });
+        }
+
+        // POST api/FormatosCalidad/registros/{id}/parametros-operario
+        [HttpPost("registros/{id}/parametros-operario")]
+        public async Task<IActionResult> GuardarParametrosOperario(int id, [FromBody] GuardarParametrosOperarioDto dto)
+        {
+            var existente = await _context.RegistrosParametrosOperario
+                .FirstOrDefaultAsync(p => p.RegistroFormatoCalidadId == id && p.OperarioNombre == dto.OperarioNombre);
+
+            if (existente != null)
+            {
+                existente.VariablesCriticasJson = dto.VariablesCriticasJson;
+                existente.MotivoCambio = dto.MotivoCambio;
+                existente.FechaGuardado = DateTime.Now;
+            }
+            else
+            {
+                _context.RegistrosParametrosOperario.Add(new RegistroParametrosOperario
+                {
+                    RegistroFormatoCalidadId = id,
+                    OperarioNombre = dto.OperarioNombre,
+                    VariablesCriticasJson = dto.VariablesCriticasJson,
+                    MotivoCambio = dto.MotivoCambio,
+                    FechaGuardado = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        // GET api/FormatosCalidad/registros/{id}/parametros-operario
+        [HttpGet("registros/{id}/parametros-operario")]
+        public async Task<IActionResult> GetParametrosOperario(int id)
+        {
+            var lista = await _context.RegistrosParametrosOperario
+                .Where(p => p.RegistroFormatoCalidadId == id)
+                .OrderByDescending(p => p.FechaGuardado)
+                .ToListAsync();
+
+            return Ok(lista);
+        }
+
+        // POST api/FormatosCalidad/registros/{id}/rondas/{indiceRonda}/fotos
+        [HttpPost("registros/{id}/rondas/{indiceRonda}/fotos")]
+        public async Task<IActionResult> SubirFotosRonda(int id, int indiceRonda, List<IFormFile> fotos)
+        {
+            if (fotos == null || fotos.Count == 0)
+                return BadRequest(new { mensaje = "No se recibieron fotos" });
+
+            var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/formatos-calidad");
+            if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
+
+            var nombresGuardados = new List<string>();
+
+            foreach (var foto in fotos.Take(5))
+            {
+                var nombre = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
+                using var stream = new FileStream(Path.Combine(carpeta, nombre), FileMode.Create);
+                await foto.CopyToAsync(stream);
+                nombresGuardados.Add(nombre);
+            }
+
+            return Ok(new { fotos = nombresGuardados });
         }
 
         [HttpPut("{id}/fijar-mejor")]

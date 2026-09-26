@@ -13,6 +13,7 @@ using SistemaFlota.Models.Idempotencia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 
+
 namespace SistemaFlota
 {
     public class AppDbContext : DbContext
@@ -59,6 +60,7 @@ namespace SistemaFlota
         public DbSet<TipoFormatoCalidad> TiposFormatoCalidad { get; set; }
         public DbSet<CaracteristicaFormato> CaracteristicasFormato { get; set; }
         public DbSet<RegistroFormatoCalidad> RegistrosFormatoCalidad { get; set; }
+        public DbSet<RegistroParametrosOperario> RegistrosParametrosOperario { get; set; }
         public DbSet<OpcionFormulario> OpcionesFormulario { get; set; }
         public DbSet<ConversacionFlotaChat> ConversacionesFlotaChat { get; set; }
 

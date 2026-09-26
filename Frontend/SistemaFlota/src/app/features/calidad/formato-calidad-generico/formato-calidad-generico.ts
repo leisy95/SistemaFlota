@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -11,6 +11,8 @@ import { OpcionesFormularioService } from '../../../core/services/opciones-formu
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
 import { DialogInput } from '../../../shared/dialog-input/dialog-input';
+import { environment } from '../../../../environments/environment';
+
 
 @Component({
     selector: 'app-formato-calidad-generico',
@@ -19,7 +21,7 @@ import { DialogInput } from '../../../shared/dialog-input/dialog-input';
     templateUrl: './formato-calidad-generico.html',
     styleUrls: ['./formato-calidad-generico.scss']
 })
-export class FormatoCalidadGenericoComponent implements OnInit {
+export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     // ── Configuración del tipo de formato (viene de la ruta) ──
     codigoFormato: string = '';
     tipoFormato: any = null;
@@ -35,6 +37,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     mostrarModalNoCumple = false;
     rondaModalPendiente: number | null = null;
     caracteristicaModalPendiente: number | null = null;
+    pestanasAbiertas: { titulo: string; estado: any }[] = [];
+    pestanaActivaIndice = -1;
 
     toggleMenu(id: number, event: Event) {
         event.stopPropagation();
@@ -64,7 +68,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         puedeLiberarse: null as boolean | null,
         explicacionNoLiberado: '',
         cargoFirma: '',
-        produccionKgHora: ''
+        produccionKgHora: '',
+        desperdicioTotalKg: null as number | null
     };
 
     // Rondas de verificación por hora: cada ronda tiene su hora, operario, y los valores de cada característica
@@ -86,7 +91,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         corona: '', molde: '',
         temperaturas: { zona1: '', zona2: '', zona3: '', zona4: '', zona5: '', zona6: '' },
         velocidades: { maquina: '', maquina2: '', halador: '', bobinador: '' },
-        aire: '', amperaje: '', alturaBurbuja: '', produccionKgHora: '',
+        aire: '', amperaje: '', alturaBurbuja: '', vela: '',
         // Impresión (F-GC-005)
         maquinaImpresion: '', metrosPorMinuto: '', velocidadMaquinaHz: '',
         // Sellado (F-GC-006)
@@ -106,10 +111,24 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     opcionesCorona: any[] = [];
     opcionesMolde: any[] = [];
     opcionesOperario: any[] = [];
+    opcionesSupervisor: any[] = [];
+    operarioSesion: string | null = null;
+    mostrarModalLoginOperario = false;
+    operarioSeleccionadoLogin = '';
 
     get usuario(): string {
         const u = JSON.parse(sessionStorage.getItem('user') || '{}');
         return u.username ?? '';
+    }
+
+    get rolUsuario(): string {
+        const u = JSON.parse(sessionStorage.getItem('user') || '{}');
+        return u.rol ?? '';
+    }
+    get esCuentaCompartidaMaquina(): boolean {
+        const u = JSON.parse(sessionStorage.getItem('user') || '{}');
+        const username = u.username ?? '';
+        return ['Extrusion', 'Precorte', 'Impresion', 'Sellado'].includes(username);
     }
     get esCoextrusora(): boolean {
         return (this.form.maquina || '').toLowerCase().includes('coextrusora');
@@ -126,7 +145,59 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     ngOnInit(): void {
         this.codigoFormato = this.route.snapshot.data['codigo'];
+        this.esSupervisor = this.permisos.puedeEditar('calidad-formatos');
+
+        const sesionGuardada = sessionStorage.getItem('operarioSesionFormatos');
+        if (this.esCuentaCompartidaMaquina && sesionGuardada) {
+            this.operarioSesion = sesionGuardada;
+            this.mostrarModalLoginOperario = false;
+        } else {
+            this.mostrarModalLoginOperario = this.esCuentaCompartidaMaquina;
+        }
+
         this.cargarConfiguracion();
+    }
+    confirmarLoginOperario() {
+
+        if (!this.operarioSeleccionadoLogin) { alert('Seleccione su nombre'); return; }
+
+        const operarioInfo = this.opcionesOperario.find(o => o.valor === this.operarioSeleccionadoLogin);
+
+        if (operarioInfo?.codigo) {
+            const dialogRef = this.dialog.open(DialogInput, {
+                data: {
+                    titulo: 'Ingrese su código',
+                    mensaje: `Ingrese el código de ${this.operarioSeleccionadoLogin} para continuar`,
+                    label: 'Código',
+                    placeholder: 'Ej: 1234',
+                    textoConfirmar: 'Ingresar'
+                }
+            });
+
+
+            dialogRef.afterClosed().subscribe((codigo: string | null) => {
+                if (codigo === null) return;
+                if (codigo.trim() !== operarioInfo.codigo) { alert('Código incorrecto'); return; }
+                this.operarioSesion = this.operarioSeleccionadoLogin;
+                sessionStorage.setItem('operarioSesionFormatos', this.operarioSeleccionadoLogin);
+                this.mostrarModalLoginOperario = false;
+                this.cargar();
+            });
+        } else {
+            this.operarioSesion = this.operarioSeleccionadoLogin;
+            sessionStorage.setItem('operarioSesionFormatos', this.operarioSeleccionadoLogin);
+            this.mostrarModalLoginOperario = false;
+            this.cargar();
+        }
+    }
+    cambiarOperario() {
+        this.operarioSesion = null;
+        this.operarioSeleccionadoLogin = '';
+        sessionStorage.removeItem('operarioSesionFormatos');
+        this.mostrarModalLoginOperario = true;
+    }
+    ngOnDestroy(): void {
+        this.detenerAutoguardado();
     }
 
     cargarConfiguracion() {
@@ -148,6 +219,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.opcionesService.getOpciones('Corona', tipoId).subscribe({ next: (d) => this.opcionesCorona = d, error: (e) => console.error(e) });
         this.opcionesService.getOpciones('Molde', tipoId).subscribe({ next: (d) => this.opcionesMolde = d, error: (e) => console.error(e) });
         this.opcionesService.getOpciones('Operario', tipoId).subscribe({ next: (d) => this.opcionesOperario = d, error: (e) => console.error(e) });
+        this.opcionesService.getOpciones('Supervisor', tipoId).subscribe({ next: (d) => this.opcionesSupervisor = d, error: (e) => console.error(e) });
     }
 
     inicializarResultados() {
@@ -160,12 +232,18 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     }
 
     operarioRondaNueva = '';
+    operarioActualNombre = '';
+    intervaloAutoguardado: any = null;
+    registrosOperarioDisponibles: any[] = [];
+    esSupervisor = false;
+    fotosSeleccionadasRonda: { [rondaIndex: number]: File[] } = {};
+    previewsFotosRonda: { [rondaIndex: number]: string[] } = {};
 
     agregarRondaHora() {
         if (this.tieneRondaFinal) { alert('Ya se marcó la verificación final, no se pueden agregar más horas'); return; }
         if (!this.operarioRondaNueva) { alert('Seleccione el operario que realiza esta verificación'); return; }
 
-        const operarioSeleccionado = this.opcionesOperario.find(o => o.valor === this.operarioRondaNueva);
+        const operarioSeleccionado = this.opcionesSupervisor.find(o => o.valor === this.operarioRondaNueva);
 
         if (operarioSeleccionado?.codigo) {
             const dialogRef = this.dialog.open(DialogInput, {
@@ -187,11 +265,66 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 this.crearRondaHora();
             });
         } else {
-            // Operario sin código asignado, se permite igual (compatibilidad con operarios viejos sin PIN)
             this.crearRondaHora();
         }
     }
 
+    seleccionarRegistroOperario(rondaIndex: number, registro: any) {
+        if (!registro || !registro.variablesCriticasJson) return;
+        const ronda: any = this.rondas[rondaIndex];
+        ronda.operarioRegistroId = registro.id;
+        ronda.operario = registro.operarioNombre;
+        ronda.parametrosOperario = JSON.parse(registro.variablesCriticasJson);
+    }
+    seleccionarFotosRonda(event: any, rondaIndex: number) {
+        const archivos = Array.from(event.target.files) as File[];
+        this.fotosSeleccionadasRonda[rondaIndex] = archivos.slice(0, 5);
+        this.previewsFotosRonda[rondaIndex] = this.fotosSeleccionadasRonda[rondaIndex].map(f => URL.createObjectURL(f));
+    }
+
+    guardarVerificacionRonda(rondaIndex: number) {
+        const fotos = this.fotosSeleccionadasRonda[rondaIndex];
+        if (!fotos || fotos.length === 0) {
+            alert('Seleccione al menos una foto antes de guardar');
+            return;
+        }
+        if (!this.editandoId) { alert('Guarde primero el registro'); return; }
+
+        this.service.subirFotosRonda(this.editandoId, rondaIndex, fotos).subscribe({
+            next: (data: any) => {
+                (this.rondas[rondaIndex] as any).fotos = data.fotos;
+                this.persistirResultadosActuales();
+            },
+            error: (e) => { console.error(e); alert('Error subiendo las fotos'); }
+        });
+    }
+
+    private persistirResultadosActuales() {
+        const resultadosData = {
+            rondas: this.rondas,
+            observaciones: this.observaciones,
+            caracteristicas: this.caracteristicas.map(c => ({ id: c.id, descripcion: c.descripcion }))
+        };
+
+        const dto = {
+            tipoFormatoId: this.tipoFormato.id,
+            ordenProduccion: this.form.ordenProduccion,
+            cliente: this.form.cliente,
+            referencia: this.form.referencia,
+            operarios: this.form.operarios,
+            hora: this.form.hora,
+            maquina: this.form.maquina,
+            variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
+                ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
+                : null,
+            resultadosJson: JSON.stringify(resultadosData)
+        };
+
+        this.service.editarRegistro(this.editandoId!, dto).subscribe({
+            next: () => alert('Fotos y verificación guardadas correctamente'),
+            error: (e) => { console.error(e); alert('Error guardando la verificación'); }
+        });
+    }
     private crearRondaHora() {
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -313,7 +446,12 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     cargar() {
         this.cargando = true;
         this.service.getRegistros(this.codigoFormato, this.filtroDesde, this.filtroHasta, this.filtroOP).subscribe({
-            next: (d) => { this.registros = d; this.cargando = false; },
+            next: (d) => {
+                this.registros = (this.esSupervisor || !this.operarioSesion)
+                    ? d
+                    : d.filter((r: any) => (r.operarios || '').includes(this.operarioSesion!));
+                this.cargando = false;
+            },
             error: (e) => { console.error(e); this.cargando = false; }
         });
     }
@@ -352,7 +490,16 @@ export class FormatoCalidadGenericoComponent implements OnInit {
     buscarOP() {
         if (!this.form.ordenProduccion || !this.tipoFormato) return;
         this.service.buscarOP(this.form.ordenProduccion, this.tipoFormato.id).subscribe({
-            next: () => { this.opExistente = true; },
+            next: (data: any) => {
+                if (data.estado === 'Liberado') {
+                    alert('Esta orden ya fue liberada/cerrada. No se puede continuar trabajando en ella.');
+                    this.opExistente = null;
+                    return;
+                }
+                this.opExistente = true;
+                this.editar(data);
+                if (this.operarioSesion) this.form.operarios = this.operarioSesion;
+            },
             error: () => {
                 this.opExistente = null;
                 this.ordenesService.buscar(this.form.ordenProduccion).subscribe({
@@ -412,14 +559,49 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             });
         }
     }
+    verificarSugerenciaAlAbrir() {
+        if (!this.tipoFormato?.tieneVariablesCriticas) return;
+        if (!this.form.referencia || !this.form.maquina) return;
 
+        this.service.buscarMejorRendimiento(this.form.referencia, this.form.maquina).subscribe({
+            next: (data: any) => {
+                if (!data.mejor || !data.mejor.variablesCriticasJson) return;
+                const sugerencia = JSON.parse(data.mejor.variablesCriticasJson);
+
+                this.sugerenciaAplicada = true;
+                this.valoresOriginalesSugeridos = JSON.parse(JSON.stringify(sugerencia));
+
+                const motivoYaRegistrado = this.motivoCambioParametros;
+                const difiereDeLaSugerencia = JSON.stringify(this.variablesCriticas) !== JSON.stringify(sugerencia);
+
+                if (difiereDeLaSugerencia && !motivoYaRegistrado) {
+                    const dialogRef = this.dialog.open(DialogInput, {
+                        data: {
+                            titulo: 'Los parámetros no coinciden con la sugerencia',
+                            mensaje: 'Los valores actuales de esta orden son distintos a la mejor versión/fijada para esta referencia y máquina.',
+                            label: 'Explique el motivo del cambio',
+                            placeholder: 'Ej: Ajuste por variación de material',
+                            textoConfirmar: 'Aceptar'
+                        }
+                    });
+
+                    dialogRef.afterClosed().subscribe((motivo: string | null) => {
+                        this.motivoCambioParametros = motivo?.trim() || 'No especificado';
+                    });
+                }
+            },
+            error: () => { /* sin historial, no pasa nada */ }
+        });
+    }
     nuevo() {
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
         this.form = {
             ordenProduccion: '', cliente: '', referencia: '', operarios: '',
-            hora: horaTexto, maquina: '', puedeLiberarse: null, explicacionNoLiberado: '', cargoFirma: '', produccionKgHora: ''
+            hora: horaTexto, maquina: '', puedeLiberarse: null, explicacionNoLiberado: '', cargoFirma: '', produccionKgHora: '',
+            desperdicioTotalKg: null
         };
+        this.form.operarios = this.operarioSesion || '';
         this.inicializarResultados();
         this.variablesCriticas = {
             corona: '', molde: '',
@@ -432,9 +614,80 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.clienteDetectado = null;
         this.editandoId = null;
         this.vista = 'nuevo';
+        this.iniciarAutoguardado();
+
         setTimeout(() => this.iniciarCanvas(), 300);
     }
+    capturarEstadoActual(): any {
+        return {
+            form: { ...this.form },
+            variablesCriticas: JSON.parse(JSON.stringify(this.variablesCriticas)),
+            rondas: JSON.parse(JSON.stringify(this.rondas)),
+            observaciones: { ...this.observaciones },
+            tieneRondaFinal: this.tieneRondaFinal,
+            editandoId: this.editandoId,
+            firmaDataUrl: this.firmaDataUrl,
+            vista: this.vista,
+            opExistente: this.opExistente,
+            sugerenciaAplicada: this.sugerenciaAplicada,
+            valoresOriginalesSugeridos: this.valoresOriginalesSugeridos ? JSON.parse(JSON.stringify(this.valoresOriginalesSugeridos)) : null,
+            motivoCambioParametros: this.motivoCambioParametros,
+            registrosOperarioDisponibles: this.registrosOperarioDisponibles
+        };
+    }
+    restaurarEstado(estado: any) {
+        this.form = { ...estado.form };
+        this.variablesCriticas = JSON.parse(JSON.stringify(estado.variablesCriticas));
+        this.rondas = JSON.parse(JSON.stringify(estado.rondas));
+        this.observaciones = { ...estado.observaciones };
+        this.tieneRondaFinal = estado.tieneRondaFinal;
+        this.editandoId = estado.editandoId;
+        this.firmaDataUrl = estado.firmaDataUrl;
+        this.vista = estado.vista;
+        this.opExistente = estado.opExistente;
+        this.sugerenciaAplicada = estado.sugerenciaAplicada;
+        this.valoresOriginalesSugeridos = estado.valoresOriginalesSugeridos ? JSON.parse(JSON.stringify(estado.valoresOriginalesSugeridos)) : null;
+        this.motivoCambioParametros = estado.motivoCambioParametros;
+        this.registrosOperarioDisponibles = estado.registrosOperarioDisponibles;
+        setTimeout(() => this.iniciarCanvas(), 300);
+    }
+    abrirNuevaPestana() {
+        if (this.pestanaActivaIndice >= 0) {
+            this.pestanasAbiertas[this.pestanaActivaIndice].estado = this.capturarEstadoActual();
+        }
 
+        this.nuevo();
+        this.pestanasAbiertas.push({ titulo: 'Nueva orden', estado: this.capturarEstadoActual() });
+        this.pestanaActivaIndice = this.pestanasAbiertas.length - 1;
+    }
+
+    cambiarPestana(indice: number) {
+        if (indice === this.pestanaActivaIndice) return;
+
+        if (this.pestanaActivaIndice >= 0) {
+            this.pestanasAbiertas[this.pestanaActivaIndice].estado = this.capturarEstadoActual();
+            this.pestanasAbiertas[this.pestanaActivaIndice].titulo = this.form.ordenProduccion
+                ? `OP ${this.form.ordenProduccion}${this.form.maquina ? ' — ' + this.form.maquina : ''}`
+                : 'Nueva orden';
+        }
+
+        this.pestanaActivaIndice = indice;
+        this.restaurarEstado(this.pestanasAbiertas[indice].estado);
+    }
+
+    cerrarPestana(indice: number, event: Event) {
+        event.stopPropagation();
+        this.pestanasAbiertas.splice(indice, 1);
+
+        if (this.pestanasAbiertas.length === 0) {
+            this.pestanaActivaIndice = -1;
+            this.vista = 'lista';
+            return;
+        }
+
+        const nuevoIndice = indice >= this.pestanasAbiertas.length ? this.pestanasAbiertas.length - 1 : indice;
+        this.cambiarPestana(nuevoIndice === this.pestanaActivaIndice ? -1 : nuevoIndice);
+    }
     iniciarCanvas() {
         const canvas = document.getElementById('firmaCanvasGenerico') as HTMLCanvasElement;
         if (!canvas) return;
@@ -447,7 +700,13 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!dibujando) return; const t = e.touches[0]; const r = canvas.getBoundingClientRect(); ctx.lineTo(t.clientX - r.left, t.clientY - r.top); ctx.stroke(); });
         canvas.addEventListener('touchend', () => { dibujando = false; this.firmaDataUrl = canvas.toDataURL(); });
     }
-
+    urlFotoRonda(nombreArchivo: string): string {
+        return `${environment.apiUrl.replace('/api', '')}/formatos-calidad/${nombreArchivo}`;
+    }
+    parsearJson(json: string | null): any {
+        if (!json) return null;
+        try { return JSON.parse(json); } catch { return null; }
+    }
     limpiarFirma() {
         const canvas = document.getElementById('firmaCanvasGenerico') as HTMLCanvasElement;
         if (canvas) canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
@@ -456,7 +715,6 @@ export class FormatoCalidadGenericoComponent implements OnInit {
 
     guardar() {
         if (!this.form.ordenProduccion.trim()) { alert('Ingrese la orden de produccion'); return; }
-        if (this.rondas.length === 0) { alert('Agregue al menos una verificación por hora'); return; }
 
         const resultadosData = {
             rondas: this.rondas,
@@ -483,9 +741,122 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             : this.service.crearRegistro(dto);
 
         peticion.subscribe({
-            next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
+            next: (data: any) => {
+                if (!this.editandoId) this.editandoId = data.id;
+                this.autoguardarParametrosOperario();
+                this.iniciarAutoguardado();
+                this.vista = 'lista'; this.editandoId = null; this.cargar();
+                this.detenerAutoguardado();
+            },
             error: (e) => { console.error(e); alert('Error guardando el registro'); }
         });
+    }
+
+    iniciarAutoguardado() {
+        this.detenerAutoguardado();
+        this.intervaloAutoguardado = setInterval(() => {
+            this.autoguardarTodasLasPestanas();
+        }, 10 * 60 * 1000);
+    }
+
+    detenerAutoguardado() {
+        if (this.intervaloAutoguardado) {
+            clearInterval(this.intervaloAutoguardado);
+            this.intervaloAutoguardado = null;
+        }
+    }
+
+    autoguardarParametrosOperario() {
+        if (!this.form.operarios || !this.form.ordenProduccion) return;
+
+        if (!this.editandoId) {
+            const dto = {
+                tipoFormatoId: this.tipoFormato.id,
+                ordenProduccion: this.form.ordenProduccion,
+                cliente: this.form.cliente,
+                referencia: this.form.referencia,
+                operarios: this.form.operarios,
+                hora: this.form.hora,
+                maquina: this.form.maquina,
+                variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
+                    ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
+                    : null,
+                resultadosJson: JSON.stringify({
+                    rondas: this.rondas,
+                    observaciones: this.observaciones,
+                    caracteristicas: this.caracteristicas.map(c => ({ id: c.id, descripcion: c.descripcion }))
+                })
+            };
+            this.service.crearRegistro(dto).subscribe({
+                next: (data: any) => {
+                    this.editandoId = data.id;
+                    this.guardarParametrosOperarioReal();
+                },
+                error: (e) => console.error('Error creando registro en autoguardado', e)
+            });
+            return;
+        }
+
+        this.guardarParametrosOperarioReal();
+    }
+    autoguardarTodasLasPestanas() {
+        if (this.pestanaActivaIndice >= 0 && this.pestanasAbiertas[this.pestanaActivaIndice]) {
+            this.pestanasAbiertas[this.pestanaActivaIndice].estado = this.capturarEstadoActual();
+        }
+
+        this.pestanasAbiertas.forEach((pestana, indice) => {
+            this.autoguardarEstadoPestana(pestana.estado, indice);
+        });
+    }
+
+    private autoguardarEstadoPestana(estado: any, indicePestana: number) {
+        if (!estado.form.operarios || !estado.form.ordenProduccion) return;
+
+        if (!estado.editandoId) {
+            const dto = {
+                tipoFormatoId: this.tipoFormato.id,
+                ordenProduccion: estado.form.ordenProduccion,
+                cliente: estado.form.cliente,
+                referencia: estado.form.referencia,
+                operarios: estado.form.operarios,
+                hora: estado.form.hora,
+                maquina: estado.form.maquina,
+                variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
+                    ? JSON.stringify({ ...estado.variablesCriticas, motivoCambio: estado.motivoCambioParametros })
+                    : null,
+                resultadosJson: JSON.stringify({
+                    rondas: estado.rondas,
+                    observaciones: estado.observaciones,
+                    caracteristicas: this.caracteristicas.map(c => ({ id: c.id, descripcion: c.descripcion }))
+                })
+            };
+            this.service.crearRegistro(dto).subscribe({
+                next: (data: any) => {
+                    estado.editandoId = data.id;
+                    if (indicePestana === this.pestanaActivaIndice) this.editandoId = data.id;
+                    this.guardarParametrosOperarioDeEstado(estado);
+                },
+                error: (e) => console.error('Error creando registro en autoguardado', e)
+            });
+            return;
+        }
+
+        this.guardarParametrosOperarioDeEstado(estado);
+    }
+
+    private guardarParametrosOperarioDeEstado(estado: any) {
+        this.service.guardarParametrosOperario(estado.editandoId, {
+            operarioNombre: estado.form.operarios,
+            variablesCriticasJson: JSON.stringify(estado.variablesCriticas),
+            motivoCambio: estado.motivoCambioParametros
+        }).subscribe({ error: (e) => console.error('Error en autoguardado', e) });
+    }
+    private guardarParametrosOperarioReal() {
+        this.service.guardarParametrosOperario(this.editandoId!, {
+            operarioNombre: this.form.operarios,
+            variablesCriticasJson: JSON.stringify(this.variablesCriticas),
+            motivoCambio: this.motivoCambioParametros
+        }).subscribe({ error: (e) => console.error('Error en autoguardado', e) });
     }
 
     guardarLiberacion() {
@@ -496,7 +867,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             explicacionNoLiberado: this.form.explicacionNoLiberado,
             firmaDigital: this.firmaDataUrl,
             cargoFirma: this.form.cargoFirma,
-            produccionKgHora: this.form.produccionKgHora
+            produccionKgHora: this.form.produccionKgHora,
+            desperdicioTotalKg: this.form.desperdicioTotalKg
         };
 
         this.service.liberarRegistro(this.editandoId!, dto).subscribe({
@@ -521,7 +893,8 @@ export class FormatoCalidadGenericoComponent implements OnInit {
             ordenProduccion: r.ordenProduccion, cliente: r.cliente ?? '', referencia: r.referencia ?? '',
             operarios: r.operarios ?? '', hora: r.hora ?? '', maquina: r.maquina ?? '',
             puedeLiberarse: r.puedeLiberarse, explicacionNoLiberado: r.explicacionNoLiberado ?? '',
-            cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? ''
+            cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? '',
+            desperdicioTotalKg: r.desperdicioTotalKg ?? null
         };
 
         this.inicializarResultados();
@@ -530,9 +903,20 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.observaciones = datosGuardados.observaciones || {};
         this.tieneRondaFinal = this.rondas.some((rr: any) => rr.final);
 
-        if (r.variablesCriticasJson) this.variablesCriticas = JSON.parse(r.variablesCriticasJson);
+        if (r.variablesCriticasJson) {
+            const vcParsed = JSON.parse(r.variablesCriticasJson);
+            this.motivoCambioParametros = vcParsed.motivoCambio ?? null;
+            delete vcParsed.motivoCambio;
+            this.variablesCriticas = vcParsed;
+        }
         this.firmaDataUrl = r.firmaDigital ?? null;
         this.vista = 'editar';
+        this.service.getParametrosOperario(r.id).subscribe({
+            next: (data) => this.registrosOperarioDisponibles = data,
+            error: (e) => console.error(e)
+        });
+        this.iniciarAutoguardado();
+        this.verificarSugerenciaAlAbrir();
         setTimeout(() => this.iniciarCanvas(), 300);
     }
 
@@ -543,7 +927,21 @@ export class FormatoCalidadGenericoComponent implements OnInit {
         this.form.explicacionNoLiberado = r.explicacionNoLiberado ?? '';
         this.form.cargoFirma = r.cargoFirma ?? '';
         this.form.produccionKgHora = r.produccionKgHora ?? '';
+        this.form.desperdicioTotalKg = r.desperdicioTotalKg ?? null;
         this.firmaDataUrl = r.firmaDigital ?? null;
+
+        this.inicializarResultados();
+        const datosGuardados = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{}}');
+        this.rondas = datosGuardados.rondas || [];
+        this.observaciones = datosGuardados.observaciones || {};
+        this.tieneRondaFinal = this.rondas.some((rr: any) => rr.final);
+
+        if (r.variablesCriticasJson) this.variablesCriticas = JSON.parse(r.variablesCriticasJson);
+
+        this.service.getParametrosOperario(r.id).subscribe({
+            next: (data) => this.registrosOperarioDisponibles = data,
+            error: (e) => console.error(e)
+        });
         this.vista = 'liberar';
         setTimeout(() => this.iniciarCanvas(), 300);
     }
@@ -640,7 +1038,7 @@ export class FormatoCalidadGenericoComponent implements OnInit {
                 autoTable(doc, {
                     startY: y,
                     body: [
-                        ['Aire (H)', vc.aire || '-', 'Amperaje (A)', vc.amperaje || '-', 'Altura Burbuja (Cm)', vc.alturaBurbuja || '-', 'Kilos Desperdicio', vc.produccionKgHora || '-'],
+                        ['Aire (H)', vc.aire || '-', 'Amperaje (A)', vc.amperaje || '-', 'Altura Burbuja (Cm)', vc.alturaBurbuja || '-', 'Vela', vc.vela || '-'],
                     ],
                     theme: 'grid',
                     bodyStyles: { fontSize: 6.5, lineColor: NEGRO, lineWidth: 0.3 },

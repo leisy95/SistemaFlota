@@ -18,7 +18,7 @@ export class OpcionesFormularioComponent implements OnInit {
   opciones: any[] = [];
   opcionesFiltradas: any[] = [];
   tipos: any[] = [];
-  categorias: string[] = ['Maquina', 'Corona', 'Molde', 'Operario', 'Linea', 'Material', 'ProcesoSNC', 'TipoDefecto', 'Impacto', 'TratamientoAdoptado'];
+ categorias: string[] = ['Maquina', 'Corona', 'Molde', 'Operario', 'Supervisor', 'Linea', 'Material', 'ProcesoSNC', 'TipoDefecto', 'Impacto', 'TratamientoAdoptado'];
 etiquetasCategoria: { [key: string]: string } = {
     Maquina: 'Máquina',
     Corona: 'Corona',
@@ -29,7 +29,8 @@ etiquetasCategoria: { [key: string]: string } = {
     ProcesoSNC: 'Proceso SNC',
     TipoDefecto: 'Tipo defecto',
     Impacto: 'Impacto',
-    TratamientoAdoptado: 'Tratamiento'
+    TratamientoAdoptado: 'Tratamiento',
+    Supervisor: 'Supervisor'
 };
   placeholderValor(): string {
     const ejemplos: { [key: string]: string } = {

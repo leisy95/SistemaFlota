@@ -24,5 +24,6 @@
         public string? FirmaDigital { get; set; }
         public string? CargoFirma { get; set; }
         public string? ProduccionKgHora { get; set; }
+        public decimal? DesperdicioTotalKg { get; set; }
     }
 }
