@@ -125,7 +125,7 @@ builder.Services.AddScoped<AuditoriaService>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermisoPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
 
-// -- TWILIO --------------------------------------------------------------------
+// TWILIO
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
 builder.Services.AddScoped<EmpresaOrdenesService>();
@@ -134,7 +134,7 @@ builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConConti
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 
-// -- Zona horaria Colombia UTC-5 -----------------------------------------------
+// Zona horaria Colombia UTC-5
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
 //  Puerto â€” solo Railway en produccion 
@@ -172,7 +172,7 @@ using (var scope = app.Services.CreateScope())
    db.Database.Migrate();
 
 
-    // -- Semilla: Tipos de Formato de Calidad ------------------------------
+    // Semilla: Tipos de Formato de Calidad 
     if (!db.Set<TipoFormatoCalidad>().Any())
     {
         var extrusion = new TipoFormatoCalidad { Codigo = "F-GC-004", Nombre = "Extrusión", TieneVariablesCriticas = true };
