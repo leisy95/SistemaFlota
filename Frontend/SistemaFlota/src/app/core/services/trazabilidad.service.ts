@@ -8,7 +8,9 @@ export class TrazabilidadService {
 
   private apiUrl = `${environment.apiUrl}/Trazabilidad`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
+
+
 
   obtenerTodos(params?: {
     pagina?: number;
@@ -19,13 +21,27 @@ export class TrazabilidadService {
     tipo?: string;
   }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.pagina)    httpParams = httpParams.set('pagina',    params.pagina.toString());
+    if (params?.pagina) httpParams = httpParams.set('pagina', params.pagina.toString());
     if (params?.porPagina) httpParams = httpParams.set('porPagina', params.porPagina.toString());
-    if (params?.buscar)    httpParams = httpParams.set('buscar',    params.buscar);
-    if (params?.estado)    httpParams = httpParams.set('estado',    params.estado);
+    if (params?.buscar) httpParams = httpParams.set('buscar', params.buscar);
+    if (params?.estado) httpParams = httpParams.set('estado', params.estado);
     if (params?.entregada) httpParams = httpParams.set('entregada', params.entregada);
-    if (params?.tipo)      httpParams = httpParams.set('tipo',      params.tipo);
+    if (params?.tipo) httpParams = httpParams.set('tipo', params.tipo);
     return this.http.get(this.apiUrl, { params: httpParams });
+  }
+
+  obtenerResumen(params?: {
+    buscar?: string;
+    estado?: string;
+    entregada?: string;
+    tipo?: string;
+  }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.buscar) httpParams = httpParams.set('buscar', params.buscar);
+    if (params?.estado) httpParams = httpParams.set('estado', params.estado);
+    if (params?.entregada) httpParams = httpParams.set('entregada', params.entregada);
+    if (params?.tipo) httpParams = httpParams.set('tipo', params.tipo);
+    return this.http.get(`${this.apiUrl}/resumen`, { params: httpParams });
   }
 
   obtenerPorId(id: number): Observable<any> {

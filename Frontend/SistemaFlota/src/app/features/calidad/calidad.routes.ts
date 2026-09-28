@@ -63,4 +63,13 @@ export const CALIDAD_ROUTES: Routes = [
                 .then(c => c.MejorRendimientoComponent),
         data: { animation: 'mejor-rendimiento' }
     },
+
+    {
+    path: 'gestion-snc',
+    loadComponent: () =>
+        import('./gestion-snc/gestion-snc')
+            .then(c => c.GestionSncComponent),
+    data: { animation: 'gestion-snc' }
+},
+
 ];

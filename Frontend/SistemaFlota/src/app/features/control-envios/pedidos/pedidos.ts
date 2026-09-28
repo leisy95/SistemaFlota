@@ -157,9 +157,14 @@ export class PedidosComponent implements OnInit {
 
 
   // ✅ Agregar referencia
-  agregarReferencia() {
+ agregarReferencia() {
     this.referencias = [...this.referencias, { referencia: '', cantidadKg: null, cantidadUnidades: null }];
-  }
+    const nuevoIndex = this.referencias.length - 1;
+    setTimeout(() => {
+        const input = document.getElementById('ref-input-' + nuevoIndex) as HTMLInputElement;
+        if (input) input.focus();
+    }, 50);
+}
 
   // ✅ Eliminar referencia
   eliminarReferencia(i: number) {

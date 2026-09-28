@@ -44,19 +44,19 @@
   <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card azul">
-      <span class="stat-numero">{{ registros.length }}</span>
+      <span class="stat-numero">{{ resumen.total }}</span>
       <span class="stat-label">Total registros</span>
     </div>
     <div class="stat-card verde">
-      <span class="stat-numero">{{ entregados }}</span>
+      <span class="stat-numero">{{ resumen.entregadas }}</span>
       <span class="stat-label">Facturas entregadas</span>
     </div>
     <div class="stat-card rojo">
-      <span class="stat-numero">{{ pendientes }}</span>
+      <span class="stat-numero">{{ resumen.pendientesEntrega }}</span>
       <span class="stat-label">Pendientes entrega</span>
     </div>
     <div class="stat-card morado">
-      <span class="stat-numero">${{ totalFlete | number:'1.0-0' }}</span>
+      <span class="stat-numero">${{ resumen.totalFlete | number:'1.0-0' }}</span>
       <span class="stat-label">Total flete</span>
     </div>
   </div>

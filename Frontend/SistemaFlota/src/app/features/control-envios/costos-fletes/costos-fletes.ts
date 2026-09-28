@@ -25,14 +25,19 @@ export class CostosFleteComponent implements OnInit {
   filtroConductor = '';
   filtroEstado = '';
   filtroCiudad = '';
+  filtroPlaca = '';
 
   form = {
     autorizacionId: null as number | null,
     peajes: 0, combustible: 0, parqueos: 0,
     descarguesMcia: 0, cargueMateriales: 0,
     alimentacion: 0, hospedaje: 0, varios: 0,
-    observaciones: ''
+    observaciones: '',
+    variosDetalle: null as string | null
   };
+
+  mostrarModalVarios = false;
+  itemsVarios: { concepto: string; valor: number | null }[] = [];
 
   exportarReporteCompleto() {
     if (this.registros.length === 0) { alert('No hay registros para exportar'); return; }
@@ -41,7 +46,6 @@ export class CostosFleteComponent implements OnInit {
     const VERDE: [number,number,number] = [26,127,90];
     const W = 279; const M = 10;
 
-    // ── Encabezado ──
     doc.setFillColor(...VERDE); doc.rect(M, M, W-M*2, 16, 'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
     doc.text('REPORTE CONSOLIDADO DE COSTOS DE FLETE', W/2, M+10, {align:'center'});
@@ -49,12 +53,12 @@ export class CostosFleteComponent implements OnInit {
     doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
     let y = M + 24;
 
-    // ── Filtros aplicados ──
     const filtrosTexto: string[] = [];
     if (this.filtroDesde) filtrosTexto.push(`Desde: ${this.filtroDesde}`);
     if (this.filtroHasta) filtrosTexto.push(`Hasta: ${this.filtroHasta}`);
     if (this.filtroConductor) filtrosTexto.push(`Conductor: ${this.filtroConductor}`);
     if (this.filtroCiudad) filtrosTexto.push(`Ciudad: ${this.filtroCiudad}`);
+    if (this.filtroPlaca) filtrosTexto.push(`Placa: ${this.filtroPlaca}`);
     if (this.filtroEstado) filtrosTexto.push(`Estado: ${this.filtroEstado}`);
 
     doc.setFont('helvetica','bold'); doc.setFontSize(9);
@@ -64,7 +68,6 @@ export class CostosFleteComponent implements OnInit {
     doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, W - M, y, { align: 'right' });
     y += 8;
 
-    // ── Resumen ──
     autoTable(doc, {
       startY: y,
       head: [['Total registros', 'Total gastos', 'Pendientes', 'Verificados', 'Promedio $/kg']],
@@ -81,7 +84,6 @@ export class CostosFleteComponent implements OnInit {
     });
     y = (doc as any).lastAutoTable.finalY + 8;
 
-    // ── Detalle completo ──
     const filas = this.registros.map(r => {
       const aut = r.autorizacion;
       const kilos = aut?.pesoKilos || 0;
@@ -185,6 +187,7 @@ export class CostosFleteComponent implements OnInit {
     if (this.filtroConductor) url += `conductor=${this.filtroConductor}&`;
     if (this.filtroEstado) url += `estado=${this.filtroEstado}&`;
     if (this.filtroCiudad) url += `ciudad=${this.filtroCiudad}&`;
+    if (this.filtroPlaca) url += `placa=${this.filtroPlaca}&`;
     this.http.get<any[]>(url, { headers: this.headers }).subscribe({
       next: (d: any) => this.registros = Array.isArray(d) ? d : [],
       error: e => console.error(e)
@@ -206,7 +209,7 @@ export class CostosFleteComponent implements OnInit {
     this.form = {
       autorizacionId: null, peajes: 0, combustible: 0, parqueos: 0,
       descarguesMcia: 0, cargueMateriales: 0, alimentacion: 0,
-      hospedaje: 0, varios: 0, observaciones: ''
+      hospedaje: 0, varios: 0, observaciones: '', variosDetalle: null
     };
     this.autorizacionSeleccionada = null;
   }
@@ -232,7 +235,8 @@ export class CostosFleteComponent implements OnInit {
       parqueos: r.parqueos, descarguesMcia: r.descarguesMcia,
       cargueMateriales: r.cargueMateriales, alimentacion: r.alimentacion,
       hospedaje: r.hospedaje, varios: r.varios,
-      observaciones: r.observaciones ?? ''
+      observaciones: r.observaciones ?? '',
+      variosDetalle: r.variosDetalle ?? null
     };
     this.autorizacionSeleccionada = r.autorizacion;
     this.vista = 'editar';
@@ -244,6 +248,39 @@ export class CostosFleteComponent implements OnInit {
       next: () => { this.vista = 'lista'; this.cargar(); },
       error: e => { console.error(e); alert('Error editando'); }
     });
+  }
+
+  abrirModalVarios() {
+    if (this.form.variosDetalle) {
+      try { this.itemsVarios = JSON.parse(this.form.variosDetalle); }
+      catch { this.itemsVarios = [{ concepto: '', valor: null }]; }
+    } else {
+      this.itemsVarios = [{ concepto: '', valor: null }];
+    }
+    this.mostrarModalVarios = true;
+  }
+
+  agregarItemVarios() {
+    this.itemsVarios = [...this.itemsVarios, { concepto: '', valor: null }];
+  }
+
+  eliminarItemVarios(i: number) {
+    this.itemsVarios = this.itemsVarios.filter((_, idx) => idx !== i);
+  }
+
+  get totalVarios(): number {
+    return this.itemsVarios.reduce((s, i) => s + (i.valor || 0), 0);
+  }
+
+  parsearVariosDetalle(json: string | null): { concepto: string; valor: number | null }[] {
+    if (!json) return [];
+    try { return JSON.parse(json); } catch { return []; }
+}
+
+  guardarVarios() {
+    this.form.varios = this.totalVarios;
+    this.form.variosDetalle = JSON.stringify(this.itemsVarios.filter(i => i.concepto.trim() || i.valor));
+    this.mostrarModalVarios = false;
   }
 
   abrirVerificar(r: any) {

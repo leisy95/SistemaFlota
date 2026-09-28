@@ -148,15 +148,48 @@ namespace SistemaFlota.Controllers
             if (!PalabrasClaveSalida.Any(p => texto.Contains(p))) return;
 
             // ── Validar que no tenga OTRA autorización pendiente sin resolver ──
-            var pendiente = await _context.Autorizaciones
+            var haceVeinteMinutos = DateTime.Now.AddMinutes(-20);
+
+            var pendienteViaje = await _context.Autorizaciones
                 .Where(a => a.ConductorId == conductorId &&
+                    !a.AplazadaPorChat &&
+                    a.Estado == "Autorizado" && a.EstadoLlegada == "ReportadaLlegada" &&
+                    a.FechaReporteLlegada != null && a.FechaReporteLlegada > haceVeinteMinutos)
+                .FirstOrDefaultAsync();
+
+            if (pendienteViaje != null)
+            {
+                await ResponderAsync(flotaChatUsuarioId,
+                    "⚠️ Ya tienes un viaje sin cerrar (esperando confirmación de portería). Por favor espera unos minutos a que se confirme tu llegada.");
+                return;
+            }
+
+            var pendienteTramite = await _context.Autorizaciones
+                .Where(a => a.ConductorId == conductorId &&
+                    !a.AplazadaPorChat &&
                     (a.Estado == "Pendiente" || a.Estado == "Bodega" || a.Estado == "Porteria"))
                 .FirstOrDefaultAsync();
 
-            if (pendiente != null)
+            if (pendienteTramite != null)
             {
+                _context.ConversacionesFlotaChat.Add(new ConversacionFlotaChat
+                {
+                    FlotaChatUsuarioId = flotaChatUsuarioId,
+                    Paso = "EsperandoDecisionPendiente",
+                    FechaInicio = DateTime.Now,
+                    FechaExpiracion = DateTime.Now.AddMinutes(10),
+                    AutorizacionPendienteIdTemp = pendienteTramite.Id
+                });
+                await _context.SaveChangesAsync();
+
                 await ResponderAsync(flotaChatUsuarioId,
-                    "⚠️ Ya tienes una autorización en proceso, esperando ser aprobada. Por favor espera a que se complete.");
+                    $"📋 Ya tienes una autorización pendiente:\n" +
+                    $"📍 Destino: {pendienteTramite.DestinoCompleto}\n" +
+                    $"📋 Tipo: {pendienteTramite.TipoVuelta}\n" +
+                    $"⏳ Esperando: {pendienteTramite.Estado}\n\n" +
+                    "¿Qué deseas hacer?\n" +
+                    "1️⃣ Seguir esperando esa autorización\n" +
+                    "2️⃣ Aplazarla y crear una nueva (me asignaron otra vuelta)");
                 return;
             }
 
@@ -177,6 +210,53 @@ namespace SistemaFlota.Controllers
         // ── Continúa una conversación de creación de autorización en curso ─────
         private async Task ContinuarConversacionAsync(ConversacionFlotaChat conversacion, int conductorId, int flotaChatUsuarioId, string texto)
         {
+            // ── Cancelar en cualquier paso ──
+            if (texto.Trim() == "cancelar")
+            {
+                _context.ConversacionesFlotaChat.Remove(conversacion);
+                await _context.SaveChangesAsync();
+                await ResponderAsync(flotaChatUsuarioId, "❌ Proceso cancelado. Puedes escribir *salgo* cuando quieras iniciar de nuevo.");
+                return;
+            }
+
+            // ── Decisión sobre autorización pendiente ──
+            if (conversacion.Paso == "EsperandoDecisionPendiente")
+            {
+                if (texto.Trim() == "1")
+                {
+                    _context.ConversacionesFlotaChat.Remove(conversacion);
+                    await _context.SaveChangesAsync();
+                    await ResponderAsync(flotaChatUsuarioId, "👍 Entendido, sigue esperando la aprobación de tu autorización pendiente.");
+                    return;
+                }
+
+                if (texto.Trim() == "2")
+                {
+                    if (conversacion.AutorizacionPendienteIdTemp != null)
+                    {
+                        var autorizacionAplazar = await _context.Autorizaciones.FindAsync(conversacion.AutorizacionPendienteIdTemp.Value);
+                        if (autorizacionAplazar != null)
+                        {
+                            autorizacionAplazar.AplazadaPorChat = true;
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+
+                    conversacion.Paso = "EsperandoConfirmacion";
+                    conversacion.FechaExpiracion = DateTime.Now.AddMinutes(10);
+                    conversacion.AutorizacionPendienteIdTemp = null;
+                    await _context.SaveChangesAsync();
+
+                    await ResponderAsync(flotaChatUsuarioId,
+                        "✅ Autorización anterior aplazada.\n\n🚚 ¿Deseas iniciar una nueva autorización de salida?\n\nResponde *SI* para continuar.");
+                    return;
+                }
+
+                await ResponderAsync(flotaChatUsuarioId,
+                    "❌ No entendí tu respuesta. Escribe *1* para seguir esperando, o *2* para aplazar y crear una nueva:");
+                return;
+            }
+
             // ── Paso 1: Confirmación ──
             if (conversacion.Paso == "EsperandoConfirmacion")
             {
@@ -205,6 +285,18 @@ namespace SistemaFlota.Controllers
                 if (vehiculo == null)
                 {
                     await ResponderAsync(flotaChatUsuarioId, $"❌ No encontré el vehículo con placa {placa}. Intenta de nuevo:");
+                    return;
+                }
+
+                var vehiculoEnUso = await _context.Autorizaciones
+                    .AnyAsync(a => a.VehiculoId == vehiculo.Id &&
+                        (a.Estado == "Pendiente" || a.Estado == "Bodega" || a.Estado == "Porteria" ||
+                         (a.Estado == "Autorizado" && a.EstadoLlegada == null) ||
+                         (a.Estado == "Autorizado" && a.EstadoLlegada == "ReportadaLlegada")));
+
+                if (vehiculoEnUso)
+                {
+                    await ResponderAsync(flotaChatUsuarioId, $"❌ El vehículo {placa} ya está en uso en otro viaje activo. Indica otra placa, o escribe *cancelar* para salir:");
                     return;
                 }
 

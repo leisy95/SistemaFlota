@@ -7,7 +7,7 @@ namespace SistemaFlota
     public class CosteFlete
     {
         public int Id { get; set; }
-        public int AutorizacionId { get; set; }
+        public int? AutorizacionId { get; set; }
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
         public decimal Peajes { get; set; } = 0;
         public decimal Combustible { get; set; } = 0;
@@ -19,6 +19,7 @@ namespace SistemaFlota
         public decimal Varios { get; set; } = 0;
         public decimal Total { get; set; } = 0;
         public string? Observaciones { get; set; }
+        public string? VariosDetalle { get; set; }
         public string Estado { get; set; } = "Pendiente";
         public string? VerificadoPor { get; set; }
         public string? FirmaVerificacion { get; set; }
@@ -26,5 +27,10 @@ namespace SistemaFlota
 
         [ForeignKey("AutorizacionId")]
         public Autorizacion? Autorizacion { get; set; }
+
+        public int? TrazabilidadId { get; set; }
+
+        [ForeignKey("TrazabilidadId")]
+        public TrazabilidadFactura? Trazabilidad { get; set; }
     }
 }

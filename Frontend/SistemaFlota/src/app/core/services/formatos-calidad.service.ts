@@ -47,13 +47,34 @@ export class FormatosCalidadService {
 
   buscarDesperdicioPorOrden(op: string, tipoFormatoId: number) {
     return this.http.get<any>(`${this.api}/desperdicio-orden?op=${encodeURIComponent(op)}&tipoFormatoId=${tipoFormatoId}`, { headers: this.headers });
-}
-
- buscarMejorRendimiento(texto: string, maquina?: string) {
+  }
+  buscarMejorRendimiento(texto: string, maquina?: string) {
     let url = `${this.api}/mejor-rendimiento?texto=${encodeURIComponent(texto)}`;
     if (maquina) url += `&maquina=${encodeURIComponent(maquina)}`;
     return this.http.get<any>(url, { headers: this.headers });
-}
-  
+  }
+
+  fijarMejorRendimiento(id: number) {
+    return this.http.put<any>(`${this.api}/${id}/fijar-mejor`, {}, { headers: this.headers });
+  }
+
+  quitarFijado(id: number) {
+    return this.http.put<any>(`${this.api}/${id}/quitar-fijado`, {}, { headers: this.headers });
+  }
+
+  guardarParametrosOperario(registroId: number, dto: any) {
+    return this.http.post<any>(`${this.api}/registros/${registroId}/parametros-operario`, dto, { headers: this.headers });
+  }
+
+  getParametrosOperario(registroId: number) {
+    return this.http.get<any[]>(`${this.api}/registros/${registroId}/parametros-operario`, { headers: this.headers });
+  }
+
+  subirFotosRonda(registroId: number, indiceRonda: number, fotos: File[]) {
+    const fd = new FormData();
+    fotos.forEach(f => fd.append('fotos', f));
+    return this.http.post<any>(`${this.api}/registros/${registroId}/rondas/${indiceRonda}/fotos`, fd, { headers: this.headers });
+  }
+
   constructor(private http: HttpClient) {}
 }

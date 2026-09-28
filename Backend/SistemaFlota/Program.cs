@@ -9,6 +9,7 @@ using SistemaFlota.Configuracion;
 using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.Calidad;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
@@ -22,6 +23,8 @@ using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
+using SistemaFlota.Repositories.Calidad;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,6 +138,9 @@ builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConConti
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 
 // Zona horaria Colombia UTC-5
+builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();
+builder.Services.AddScoped<ISalidaNoConformeService, SalidaNoConformeService>();
+
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
 //  Puerto — solo Railway en produccion 
@@ -326,8 +332,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
 app.UseCors("AngularPolicy");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

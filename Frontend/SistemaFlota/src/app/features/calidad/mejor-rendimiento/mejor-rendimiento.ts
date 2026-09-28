@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormatosCalidadService } from '../../../core/services/formatos-calidad.service';
 import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
 
 @Component({
   selector: 'app-mejor-rendimiento',
@@ -18,10 +20,12 @@ export class MejorRendimientoComponent implements OnInit {
   buscando = false;
   resultado: any = null;
   mensajeVacio = '';
+  seleccionado: any = null;
 
   constructor(
     private service: FormatosCalidadService,
-    private opcionesService: OpcionesFormularioService
+    private opcionesService: OpcionesFormularioService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -62,9 +66,47 @@ export class MejorRendimientoComponent implements OnInit {
     try { return JSON.parse(json); } catch { return null; }
   }
 
-  seleccionado: any = null;
-
   seleccionar(r: any) {
     this.seleccionado = r;
+  }
+
+  fijar(r: any) {
+    const dialogRef = this.dialog.open(DialogConfirmacion, {
+      data: {
+        titulo: 'Fijar mejor rendimiento',
+        mensaje: `¿Fijar la orden ${r.ordenProduccion} como el mejor rendimiento oficial para esta referencia y máquina? Esto reemplazará cualquier otro fijado anterior.`,
+        textoConfirmar: 'Fijar',
+        textoCancelar: 'Cancelar',
+        tipo: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.service.fijarMejorRendimiento(r.id).subscribe({
+        next: () => { this.buscar(); },
+        error: (e) => { console.error(e); alert('Error al fijar'); }
+      });
+    });
+  }
+
+  quitarFijado(r: any) {
+    const dialogRef = this.dialog.open(DialogConfirmacion, {
+      data: {
+        titulo: 'Quitar fijado',
+        mensaje: '¿Quitar este registro como fijado?',
+        textoConfirmar: 'Quitar',
+        textoCancelar: 'Cancelar',
+        tipo: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+      if (!confirmado) return;
+      this.service.quitarFijado(r.id).subscribe({
+        next: () => { this.buscar(); },
+        error: (e) => { console.error(e); alert('Error al quitar fijado'); }
+      });
+    });
   }
 }

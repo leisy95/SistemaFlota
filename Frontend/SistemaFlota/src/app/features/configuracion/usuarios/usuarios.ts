@@ -82,6 +82,7 @@ export class UsuariosComponent implements OnInit {
     { key: 'extrusion', label: 'Extrusión' },
     { key: 'impresion', label: 'Impresión' },
     { key: 'sellado', label: 'Sellado' },
+    { key: 'gestion-snc', label: 'gestion snc' },
     { key: 'precorte', label: 'Precorte' },
     { key: 'opciones-formulario', label: 'Opciones de Formularios' },
     { key: 'mejor-rendimiento', label: 'Mejor rendimiento' },
@@ -282,6 +283,7 @@ export class UsuariosComponent implements OnInit {
       case 'Precorte': return 'badge-precorte';
       case 'Extrusion': return 'badge-extrusion';
       case 'Sellado': return 'badge-sellado';
+      case 'Gestion-snc': return 'badge-gestion-snc';
       case 'Produccion': return 'badge-produccion';
       default: return 'badge-auxiliar';
     }

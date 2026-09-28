@@ -3,13 +3,35 @@
     <div>
       <h1>{{ tipoFormato?.nombre }}</h1>
       <p>Formato {{ codigoFormato }} — Control y Liberación de Producto</p>
+      <div class="badge-operario-actual" *ngIf="esCuentaCompartidaMaquina && operarioSesion">
+        <i class="fa-solid fa-user"></i>
+        <span>Operario actual: <strong>{{ operarioSesion }}</strong></span>
+        <button type="button" (click)="cambiarOperario()">
+          <i class="fa-solid fa-right-left"></i> Cambiar
+        </button>
+      </div>
     </div>
-    <button class="btn-agregar" (click)="nuevo()">
+    <button class="btn-agregar" (click)="abrirNuevaPestana()">
       <i class="fa-solid fa-plus"></i>
       Nuevo registro
     </button>
   </div>
-
+  <div class="modal-overlay" *ngIf="mostrarModalLoginOperario">
+    <div class="modal-alerta">
+      <h3 class="modal-titulo">Identifíquese para continuar</h3>
+      <p class="modal-texto">Seleccione su nombre para ver y trabajar en sus registros.</p>
+      <div class="fg" style="margin-top: 16px; text-align: left;">
+        <label>Operario</label>
+        <select [(ngModel)]="operarioSeleccionadoLogin">
+          <option [ngValue]="''">-- Seleccione --</option>
+          <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+        </select>
+      </div>
+      <div class="modal-botones">
+        <button class="btn-modal-confirmar" (click)="confirmarLoginOperario()">Ingresar</button>
+      </div>
+    </div>
+  </div>
   <!-- VISTA LISTA -->
   <ng-container *ngIf="vista === 'lista'">
     <div class="filtros">
@@ -84,20 +106,22 @@
                   Ver
                 </button>
 
-                <button (click)="editar(r); cerrarMenus()">
-                  <i class="fa-solid fa-pen"></i>
-                  Editar
-                </button>
+                <ng-container *ngIf="!esCuentaCompartidaMaquina">
+                  <button (click)="editar(r); cerrarMenus()">
+                    <i class="fa-solid fa-pen"></i>
+                    Editar
+                  </button>
 
-                <button (click)="abrirLiberar(r); cerrarMenus()">
-                  <i class="fa-solid fa-check-double"></i>
-                  Liberar
-                </button>
+                  <button (click)="abrirLiberar(r); cerrarMenus()">
+                    <i class="fa-solid fa-check-double"></i>
+                    Liberar
+                  </button>
 
-                <button (click)="eliminar(r.id); cerrarMenus()">
-                  <i class="fa-solid fa-trash"></i>
-                  Eliminar
-                </button>
+                  <button (click)="eliminar(r.id); cerrarMenus()">
+                    <i class="fa-solid fa-trash"></i>
+                    Eliminar
+                  </button>
+                </ng-container>
 
               </div>
             </td>
@@ -110,6 +134,16 @@
       <p><i class="fa-solid fa-inbox"></i> No hay registros</p>
     </div>
   </ng-container>
+  <div class="barra-pestanas" *ngIf="pestanasAbiertas.length > 0 && vista !== 'lista'">
+    <div class="pestana" *ngFor="let p of pestanasAbiertas; let i = index" [class.activa]="i === pestanaActivaIndice"
+      (click)="cambiarPestana(i)">
+      <span>{{ p.titulo }}</span>
+      <i class="fa-solid fa-xmark" (click)="cerrarPestana(i, $event)"></i>
+    </div>
+    <button type="button" class="btn-abrir-pestana" (click)="abrirNuevaPestana()">
+      <i class="fa-solid fa-plus"></i> Abrir otra
+    </button>
+  </div>
 
   <!-- VISTA NUEVO / EDITAR -->
   <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
@@ -128,7 +162,7 @@
           </div>
           <div class="fg fg-cajon">
             <label>Operario</label>
-            <select [(ngModel)]="form.operarios">
+            <select [(ngModel)]="form.operarios" [disabled]="!esSupervisor && operarioSesion !== null">
               <option [ngValue]="''">-- Seleccione --</option>
               <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
             </select>
@@ -236,7 +270,7 @@
                 [(ngModel)]="variablesCriticas.alturaBurbuja" (blur)="onCambioVariableCritica()"></div>
             <div class="fg">
               <label>Vela</label>
-              <select [(ngModel)]="variablesCriticas.produccionKgHora" (change)="onCambioVariableCritica()">
+              <select [(ngModel)]="variablesCriticas.vela" (change)="onCambioVariableCritica()">
                 <option [ngValue]="''">-- Seleccione --</option>
                 <option [ngValue]="'Con vela'">Con vela</option>
                 <option [ngValue]="'Sin vela'">Sin vela</option>
@@ -336,7 +370,7 @@
       </div>
 
 
-      <div class="form-section">
+      <div class="form-section" *ngIf="esSupervisor">
         <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
         <p class="nota-verificacion">Registre una verificación completa cada hora. Utilice el botón "Agregar hora"
           para
@@ -356,8 +390,8 @@
 
         <div class="rondas-botones">
           <select class="select-operario-ronda" [(ngModel)]="operarioRondaNueva" [disabled]="tieneRondaFinal">
-            <option value="">-- Operario --</option>
-            <option *ngFor="let o of opcionesOperario" [ngValue]="o.valor">{{ o.valor }}</option>
+            <option value="">-- Supervisor --</option>
+            <option *ngFor="let o of opcionesSupervisor" [ngValue]="o.valor">{{ o.valor }}</option>
           </select>
           <button type="button" class="btn-agregar-hora" [disabled]="tieneRondaFinal" (click)="agregarRondaHora()">
             <i class="fa-solid fa-plus"></i> Agregar verificación de esta hora
@@ -375,9 +409,22 @@
                   [style.width]="anchoColumnaHora()">
                   <div class="th-hora">{{ ronda.hora }} <span *ngIf="ronda.final">(F)</span></div>
                   <div class="th-operario">{{ ronda.operario }}</div>
+
+                  <div class="selector-operario-registro"
+                    *ngIf="esSupervisor && registrosOperarioDisponibles.length > 0">
+                    <select [ngModel]="null" (ngModelChange)="seleccionarRegistroOperario(i, $event)"
+                      [ngModelOptions]="{standalone: true}">
+                      <option [ngValue]="null">-- Registro operario --</option>
+                      <option *ngFor="let reg of registrosOperarioDisponibles" [ngValue]="reg">
+                        {{ reg.operarioNombre }} — {{ reg.fechaGuardado | date:'HH:mm' }}
+                      </option>
+                    </select>
+                  </div>
+
                   <div class="th-cierre" *ngIf="ronda.cierreDeOperario">
                     <i class="fa-solid fa-check-circle"></i> {{ ronda.kilosDesperdicio }} kg
                   </div>
+
                   <button type="button" class="btn-cerrar-turno" *ngIf="!ronda.cierreDeOperario"
                     (click)="cerrarTurnoOperario(i)" title="Cerrar turno de este operario">
                     <i class="fa-solid fa-door-closed"></i>
@@ -414,9 +461,37 @@
                   <input type="text" [(ngModel)]="observaciones[c.id]" placeholder="Observación...">
                 </td>
               </tr>
+              <tr *ngIf="esSupervisor">
+                <td class="col-descripcion">Evidencia fotográfica</td>
+                <td *ngFor="let ronda of rondas; let i = index" class="col-valor">
+                  <div class="fotos-ronda-supervisor">
+                    <input type="file" accept="image/*" multiple (change)="seleccionarFotosRonda($event, i)" [id]="'fotos-input-' + i" style="display: none;">
+                    <label [for]="'fotos-input-' + i" class="btn-elegir-fotos">
+                      <i class="fa-solid fa-camera"></i> Elegir fotos
+                    </label>
+
+                    <div class="preview-fotos-ronda" *ngIf="(previewsFotosRonda[i]?.length ?? 0) > 0">
+                      <div class="foto-preview-item" *ngFor="let preview of previewsFotosRonda[i]">
+                        <img [src]="preview" class="miniatura-foto-grande">
+                        <a [href]="preview" target="_blank" class="btn-ver-foto">
+                          <i class="fa-solid fa-eye"></i> Ver
+                        </a>
+                      </div>
+                    </div>
+
+                    <button type="button" (click)="guardarVerificacionRonda(i)" title="Guardar fotos de esta hora"
+                      class="btn-guardar-fotos">
+                      <i class="fa-solid fa-check"></i> Guardar
+                    </button>
+                  </div>
+                </td>
+                <td class="col-obs"></td>
+              </tr>
             </tbody>
           </table>
         </div>
+
+
 
         <div class="vacio-rondas" *ngIf="rondas.length === 0">
           <p><i class="fa-solid fa-clock"></i> Aún no hay verificaciones registradas. Presione "Agregar verificación
@@ -426,9 +501,15 @@
       </div>
       <div class="form-section" *ngIf="vista === 'liberar'">
         <h3><i class="fa-solid fa-weight-scale"></i> Producción</h3>
-        <div class="fg">
-          <label>Producción (Kg/h)</label>
-          <input type="text" [(ngModel)]="form.produccionKgHora" placeholder="Ej: 45.5">
+        <div class="form-grid">
+          <div class="fg">
+            <label>Producción (Kg/h)</label>
+            <input type="text" [(ngModel)]="form.produccionKgHora" placeholder="Ej: 45.5">
+          </div>
+          <div class="fg">
+            <label>Desperdicio total (Kg)</label>
+            <input type="number" [(ngModel)]="form.desperdicioTotalKg" placeholder="Ej: 12.3">
+          </div>
         </div>
       </div>
 
@@ -505,6 +586,50 @@
           <span><i class="fa-solid fa-triangle-exclamation"></i> Motivo de cambio de parámetros:</span>
           <strong>{{ registroSeleccionado.variablesCriticasParsed.motivoCambio }}</strong>
         </div>
+
+        <h4 style="margin-top: 16px;">Parámetros registrados (último guardado)</h4>
+        <div class="detalle-grid" *ngIf="registroSeleccionado.variablesCriticasParsed">
+          <div class="detalle-item"><span class="det-label">Corona</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.corona || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Molde</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.molde || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 1</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona1 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 2</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona2 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 3</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona3 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 4</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona4 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 5</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona5 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Zona 6</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona6 || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Vel. Máquina</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.velocidades?.maquina || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Halador</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.velocidades?.halador || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Bobinador</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.velocidades?.bobinador || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Aire</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.aire || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Amperaje</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.amperaje || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Altura Burbuja</span><span>{{
+              registroSeleccionado.variablesCriticasParsed.alturaBurbuja || '-' }}</span></div>
+        </div>
+
+        <h4 style="margin-top: 16px;" *ngIf="registrosOperarioDisponibles.length > 0">Registros por operario</h4>
+        <div class="vc-grid" *ngIf="registrosOperarioDisponibles.length > 0">
+          <div class="vc-card" *ngFor="let reg of registrosOperarioDisponibles">
+            <p class="vc-card-titulo"><i class="fa-solid fa-user"></i> {{ reg.operarioNombre }} — {{ reg.fechaGuardado |
+              date:'dd/MM HH:mm' }}</p>
+            <div class="detalle-grid" *ngIf="parsearJson(reg.variablesCriticasJson) as vcOp">
+              <div class="detalle-item"><span class="det-label">Corona</span><span>{{ vcOp.corona || '-' }}</span></div>
+              <div class="detalle-item"><span class="det-label">Molde</span><span>{{ vcOp.molde || '-' }}</span></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="form-section">
@@ -535,11 +660,49 @@
                 </td>
                 <td class="col-obs">{{ registroSeleccionado.observacionesParsed[c.id] || '-' }}</td>
               </tr>
+              <tr>
+                <td class="col-descripcion">Evidencia fotográfica</td>
+                <td *ngFor="let ronda of registroSeleccionado.rondasParsed" class="col-valor">
+                  <div class="galeria-fotos-ronda" *ngIf="ronda.fotos?.length > 0">
+                    <div class="foto-preview-item" *ngFor="let foto of ronda.fotos">
+                      <img [src]="urlFotoRonda(foto)" class="miniatura-foto-grande">
+                      <a [href]="urlFotoRonda(foto)" target="_blank" class="btn-ver-foto">
+                        <i class="fa-solid fa-eye"></i> Ver
+                      </a>
+                    </div>
+                  </div>
+                  <span *ngIf="!ronda.fotos?.length" style="color: #999; font-size: 11px;">Sin fotos</span>
+                </td>
+                <td class="col-obs"></td>
+              </tr>
             </tbody>
           </table>
         </div>
         <div class="vacio-rondas" *ngIf="!registroSeleccionado.rondasParsed?.length">
           <p>No hay verificaciones registradas</p>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="registroSeleccionado.estado === 'Liberado'">
+        <h3>Datos de Liberación</h3>
+        <div class="detalle-grid">
+          <div class="detalle-item"><span class="det-label">Producción (Kg/h)</span><span>{{
+              registroSeleccionado.produccionKgHora || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Desperdicio total</span><span>{{
+              registroSeleccionado.desperdicioTotalKg || 0 }} kg</span></div>
+          <div class="detalle-item"><span class="det-label">Cargo de quien libera</span><span>{{
+              registroSeleccionado.cargoFirma || '-' }}</span></div>
+          <div class="detalle-item"><span class="det-label">Fecha de revisión</span><span>{{
+              registroSeleccionado.fechaRevision | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        </div>
+        <div class="fg" *ngIf="registroSeleccionado.explicacionNoLiberado" style="margin-top: 10px;">
+          <label>Motivo de no liberación</label>
+          <p>{{ registroSeleccionado.explicacionNoLiberado }}</p>
+        </div>
+        <div class="fg" *ngIf="registroSeleccionado.firmaDigital" style="margin-top: 10px;">
+          <label>Firma</label>
+          <img [src]="registroSeleccionado.firmaDigital"
+            style="max-width: 200px; border: 1px solid #e5e7eb; border-radius: 8px;">
         </div>
       </div>
 

@@ -206,6 +206,14 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'calidad'
     },
 
+    {
+        key: 'gestion-snc',
+        label: 'Gestión S.N.C.',
+        icon: 'fa-solid fa-triangle-exclamation',
+        ruta: '/calidad/gestion-snc',
+        modulo: 'calidad'
+    },
+
     // CONTROL DE ENVÍOS
 
     {

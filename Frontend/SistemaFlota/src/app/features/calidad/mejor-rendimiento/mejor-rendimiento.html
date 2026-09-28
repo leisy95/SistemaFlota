@@ -8,16 +8,17 @@
   </div>
 
   <div class="buscador">
-  <input type="text" [(ngModel)]="referenciaBusqueda" placeholder="Orden, referencia o cliente" (keyup.enter)="buscar()">
-  <select [(ngModel)]="maquinaBusqueda" style="max-width: 200px;">
-    <option [ngValue]="''">Todas las máquinas</option>
-    <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
-  </select>
-  <button class="btn-buscar" (click)="buscar()" [disabled]="buscando">
-    <i class="fa-solid" [class.fa-spinner]="buscando" [class.fa-spin]="buscando" [class.fa-magnifying-glass]="!buscando"></i>
-    {{ buscando ? 'Buscando...' : 'Buscar' }}
-  </button>
-</div>
+    <input type="text" [(ngModel)]="referenciaBusqueda" placeholder="Orden, referencia o cliente" (keyup.enter)="buscar()">
+    <select [(ngModel)]="maquinaBusqueda" style="max-width: 200px;">
+      <option [ngValue]="''">Todas las máquinas</option>
+      <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
+    </select>
+    <button class="btn-buscar" (click)="buscar()" [disabled]="buscando">
+      <i class="fa-solid" [class.fa-spinner]="buscando" [class.fa-spin]="buscando" [class.fa-magnifying-glass]="!buscando"></i>
+      {{ buscando ? 'Buscando...' : 'Buscar' }}
+    </button>
+  </div>
+
   <div class="vacio" *ngIf="mensajeVacio">
     <p><i class="fa-solid fa-inbox"></i> {{ mensajeVacio }}</p>
   </div>
@@ -31,10 +32,12 @@
     <!-- RESULTADO SELECCIONADO -->
     <div class="tarjeta-mejor">
       <div class="tarjeta-mejor-header">
-        <i class="fa-solid fa-trophy" *ngIf="seleccionado.id === resultado.mejor.id"></i>
+        <i class="fa-solid fa-thumbtack" *ngIf="seleccionado.esFijado || seleccionado.id === resultado.mejor.id && resultado.mejor.esFijado"></i>
+        <i class="fa-solid fa-trophy" *ngIf="!seleccionado.esFijado && seleccionado.id === resultado.mejor.id"></i>
         <i class="fa-solid fa-clipboard-list" *ngIf="seleccionado.id !== resultado.mejor.id"></i>
-        <h2>{{ seleccionado.id === resultado.mejor.id ? 'Mejor combinación encontrada' : 'Parámetros de la orden ' +
-          seleccionado.ordenProduccion }}</h2>
+        <h2>
+          {{ seleccionado.esFijado ? 'Registro fijado como oficial' : (seleccionado.id === resultado.mejor.id ? 'Mejor combinación encontrada' : 'Parámetros de la orden ' + seleccionado.ordenProduccion) }}
+        </h2>
       </div>
 
       <div class="metricas-grid">
@@ -58,6 +61,15 @@
           <span class="metrica-label">Fecha</span>
           <span class="metrica-valor">{{ seleccionado.fecha | date:'dd/MM/yyyy' }}</span>
         </div>
+      </div>
+
+      <div class="fijar-acciones" style="margin-top: 14px; display: flex; gap: 10px;">
+        <button class="btn-fijar" *ngIf="!seleccionado.esFijado" (click)="fijar(seleccionado)">
+          <i class="fa-solid fa-thumbtack"></i> Fijar como mejor rendimiento oficial
+        </button>
+        <button class="btn-quitar-fijado" *ngIf="seleccionado.esFijado" (click)="quitarFijado(seleccionado)">
+          <i class="fa-solid fa-thumbtack-slash"></i> Quitar fijado
+        </button>
       </div>
 
       <div class="variables-detalle" *ngIf="variablesDe(seleccionado.variablesCriticasJson) as vc">
@@ -102,16 +114,25 @@
             <th>Kg/h</th>
             <th>Desperdicio</th>
             <th>Puntaje</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let r of resultado.todos; let i = index" [class.fila-mejor]="i === 0"
             [class.fila-seleccionada]="seleccionado.id === r.id" (click)="seleccionar(r)">
-            <td data-label="Orden">{{ r.ordenProduccion }} <span *ngIf="i === 0" class="badge-top">🏆 Mejor</span></td>
+            <td data-label="Orden">{{ r.ordenProduccion }} <span *ngIf="i === 0" class="badge-top">🏆 Mejor</span> <span *ngIf="r.esFijado" class="badge-fijado">📌 Fijado</span></td>
             <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy' }}</td>
             <td data-label="Kg/h">{{ r.kgHora }}</td>
             <td data-label="Desperdicio">{{ r.desperdicioTotal }} kg</td>
             <td data-label="Puntaje">{{ r.puntaje | number:'1.2-2' }}</td>
+            <td data-label="Acciones" (click)="$event.stopPropagation()">
+              <button class="btn-fijar-mini" *ngIf="!r.esFijado" (click)="fijar(r)" title="Fijar como mejor">
+                <i class="fa-solid fa-thumbtack"></i>
+              </button>
+              <button class="btn-quitar-fijado-mini" *ngIf="r.esFijado" (click)="quitarFijado(r)" title="Quitar fijado">
+                <i class="fa-solid fa-thumbtack-slash"></i>
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
