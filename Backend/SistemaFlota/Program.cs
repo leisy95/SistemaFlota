@@ -9,6 +9,8 @@ using SistemaFlota.Configuracion;
 using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
@@ -129,6 +131,9 @@ builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>()
 // Compras no formalizadas
 builder.Services.AddScoped<IProveedorNoFormalizadoService,
     ProveedorNoFormalizadoService>();
+builder.Services.AddScoped<IMaterialNoFormalizadoService, MaterialNoFormalizadoService>();
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaService, OrdenCompraNoFormalizadaService>();
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaPdfService, OrdenCompraNoFormalizadaPdfService>();
 
 // TWILIO 
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();

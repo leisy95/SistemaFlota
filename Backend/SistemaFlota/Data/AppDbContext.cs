@@ -3,7 +3,9 @@ using SistemaFlota.Models;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
+using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Models.Consecutivo;
 using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
@@ -85,6 +87,10 @@ namespace SistemaFlota
         // -- Compras No Formalizadas --
         public DbSet<ProveedorNoFormalizado> ProveedoresNoFormalizados { get; set; }
         public DbSet<MaterialNoFormalizado> MaterialesNoFormalizados { get; set; }
+        public DbSet<OrdenCompraNoFormalizada> OrdenesCompraNoFormalizadas { get; set; }
+        public DbSet<OrdenCompraDetalleNoFormalizada> OrdenesCompraDetalleNoFormalizadas { get; set; }
+        public DbSet<RecepcionMercanciaNoFormalizada> RecepcionesMercanciasNoFormalizadas { get; set; }
+        public DbSet<RecepcionMercanciaDetalleNoFormalizada> RecepcionesMercanciaDetalleNoFormalizadas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -229,7 +235,66 @@ namespace SistemaFlota
                 .HasForeignKey(m => m.IdProveedorNoFormalizado)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Compras no formalizadas
+            modelBuilder.Entity<MaterialNoFormalizado>()
+                .HasOne(m => m.ProveedorNoFormalizado)
+                .WithMany(p => p.Materiales)
+                .HasForeignKey(m => m.IdProveedorNoFormalizado)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.ProveedorNoFormalizado)
+                .WithMany()
+                .HasForeignKey(o => o.ProveedorNoFormalizadoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioCreacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioActualizacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioEnvioCorreoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraDetalleNoFormalizada>()
+                .HasOne(d => d.OrdenCompraNoFormalizada)
+                .WithMany(o => o.Detalles)
+                .HasForeignKey(d => d.OrdenCompraNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenCompraDetalleNoFormalizada>()
+                .HasOne(d => d.MaterialNoFormalizado)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialNoFormalizadoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercanciaNoFormalizada>()
+                .HasOne(r => r.OrdenCompraNoFormalizada)
+                .WithMany(o => o.RecepcionesMercancia)
+                .HasForeignKey(r => r.OrdenCompraNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalleNoFormalizada>()
+                .HasOne(d => d.RecepcionMercanciaNoFormalizada)
+                .WithMany(r => r.Detalles)
+                .HasForeignKey(d => d.RecepcionMercanciaNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalleNoFormalizada>()
+                .HasOne(d => d.OrdenCompraDetalleNoFormalizada)
+                .WithMany()
+                .HasForeignKey(d => d.OrdenCompraDetalleNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

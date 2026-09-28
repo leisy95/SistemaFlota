@@ -11,8 +11,8 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260923160923_AgregarComprasNoFormalizadas")]
-    partial class AgregarComprasNoFormalizadas
+    [Migration("20260928150954_AgregarTablasComprasNoFormalizadas")]
+    partial class AgregarTablasComprasNoFormalizadas
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1214,6 +1214,143 @@ namespace SistemaFlota.Migrations
                     b.ToTable("MaterialesNoFormalizados");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraDetalleNoFormalizada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Bultos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("CantidadKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<decimal>("CostoKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("KgPorBulto")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("MaterialNoFormalizadoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrdenCompraNoFormalizadaId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialNoFormalizadoId");
+
+                    b.HasIndex("OrdenCompraNoFormalizadaId");
+
+                    b.ToTable("OrdenesCompraDetalleNoFormalizadas");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("CorreoEnviado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaEntrega")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaEnvioCorreo")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaOrden")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FormaPago")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("LugarEntrega")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("PorcentajeImpuesto")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("ProveedorNoFormalizadoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("TipoImpuesto")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("TotalBultos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("TotalItems")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalKg")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("TotalPagar")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int?>("UsuarioActualizacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioCreacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuarioEnvioCorreoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorImpuesto")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProveedorNoFormalizadoId");
+
+                    b.HasIndex("UsuarioActualizacionId");
+
+                    b.HasIndex("UsuarioCreacionId");
+
+                    b.HasIndex("UsuarioEnvioCorreoId");
+
+                    b.ToTable("OrdenesCompraNoFormalizadas");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.Proveedores.ProveedorNoFormalizado", b =>
                 {
                     b.Property<int>("IdProveedorNoFormalizado")
@@ -1262,6 +1399,101 @@ namespace SistemaFlota.Migrations
                     b.HasKey("IdProveedorNoFormalizado");
 
                     b.ToTable("ProveedoresNoFormalizados");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaDetalleNoFormalizada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BultosRecibidos")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("CantidadRecibida")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("EstadoMaterial")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("LoteProveedor")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("OrdenCompraDetalleNoFormalizadaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecepcionMercanciaNoFormalizadaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenCompraDetalleNoFormalizadaId");
+
+                    b.HasIndex("RecepcionMercanciaNoFormalizadaId");
+
+                    b.ToTable("RecepcionesMercanciaDetalleNoFormalizadas");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Conductor")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("EmbalajeAdecuado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("FechaConfirmacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaRecepcion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NumeroRecepcion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("OrdenCompraNoFormalizadaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Recibe")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TipoDocumento")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Transportadora")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("UsuarioConfirmacionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenCompraNoFormalizadaId");
+
+                    b.HasIndex("UsuarioConfirmacionId");
+
+                    b.ToTable("RecepcionesMercanciasNoFormalizadas");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Consecutivo.Consecutivo", b =>
@@ -3003,6 +3235,92 @@ namespace SistemaFlota.Migrations
                     b.Navigation("ProveedorNoFormalizado");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraDetalleNoFormalizada", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.Materiales.MaterialNoFormalizado", "MaterialNoFormalizado")
+                        .WithMany()
+                        .HasForeignKey("MaterialNoFormalizadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada", "OrdenCompraNoFormalizada")
+                        .WithMany("Detalles")
+                        .HasForeignKey("OrdenCompraNoFormalizadaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaterialNoFormalizado");
+
+                    b.Navigation("OrdenCompraNoFormalizada");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.Proveedores.ProveedorNoFormalizado", "ProveedorNoFormalizado")
+                        .WithMany()
+                        .HasForeignKey("ProveedorNoFormalizadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioActualizacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioActualizacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioCreacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioCreacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioEnvioCorreoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ProveedorNoFormalizado");
+
+                    b.Navigation("UsuarioActualizacion");
+
+                    b.Navigation("UsuarioCreacion");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaDetalleNoFormalizada", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraDetalleNoFormalizada", "OrdenCompraDetalleNoFormalizada")
+                        .WithMany()
+                        .HasForeignKey("OrdenCompraDetalleNoFormalizadaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada", "RecepcionMercanciaNoFormalizada")
+                        .WithMany("Detalles")
+                        .HasForeignKey("RecepcionMercanciaNoFormalizadaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrdenCompraDetalleNoFormalizada");
+
+                    b.Navigation("RecepcionMercanciaNoFormalizada");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada", "OrdenCompraNoFormalizada")
+                        .WithMany("RecepcionesMercancia")
+                        .HasForeignKey("OrdenCompraNoFormalizadaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Usuario", "UsuarioConfirmacion")
+                        .WithMany()
+                        .HasForeignKey("UsuarioConfirmacionId");
+
+                    b.Navigation("OrdenCompraNoFormalizada");
+
+                    b.Navigation("UsuarioConfirmacion");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.AjusteInventario", b =>
                 {
                     b.HasOne("SistemaFlota.Models.Costos.Inventario.Inventario", "Inventario")
@@ -3336,9 +3654,21 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Registros");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada", b =>
+                {
+                    b.Navigation("Detalles");
+
+                    b.Navigation("RecepcionesMercancia");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.Proveedores.ProveedorNoFormalizado", b =>
                 {
                     b.Navigation("Materiales");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Costos.Inventario.CortesInventario.CorteInventario", b =>

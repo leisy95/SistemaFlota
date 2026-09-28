@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
 
-namespace SistemaFlota.Controllers.ComprasNoFormalizadas
+namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
 {
     [ApiController]
     [Route("api/[controller]")]

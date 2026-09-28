@@ -317,12 +317,28 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'costos'
     },
 
-    // COMPRAS NO FORMALIZADAS
+    // COMPRAS NO FORMALIZADAS - MATERIALES
     {
         key: 'proveedores-no-formalizados',
         label: 'Proveedores',
         icon: 'fa-solid fa-user-tie',
         ruta: '/compras-no-formalizadas/proveedores',
+        modulo: 'compras-no-formalizadas'
+    },
+
+    {
+        key: 'materiales-no-formalizados',
+        label: 'Materiales',
+        icon: 'fa-solid fa-user-tie',
+        ruta: '/compras-no-formalizadas/materiales',
+        modulo: 'compras-no-formalizadas'
+    },
+
+    {
+        key: 'ordenes-compras-no-formalizadas',
+        label: 'Ord - Compras',
+        icon: 'fa-solid fa-cart-shopping',
+        ruta: '/compras-no-formalizadas/ordenes-compras',
         modulo: 'compras-no-formalizadas'
     }
 ];
