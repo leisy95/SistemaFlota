@@ -188,7 +188,7 @@ export class GestionSncComponent implements OnInit {
     seleccionarPdf(event: any) { this.evidenciaPdf = event.target.files[0]; }
     seleccionarPdfVerificacion(event: any) { this.evidenciaPdfVerificacion = event.target.files[0]; }
     urlEvidencia(nombreArchivo: string): string {
-        return `${environment.apiUrl.replace('/api', '')}/snc/${nombreArchivo}`;
+        return `${environment.fotosUrl}/snc/${nombreArchivo}`;
     }
     toggleTipoDefecto(opcion: string) {
         const idx = this.tiposDefectoSeleccionados.indexOf(opcion);
@@ -378,47 +378,47 @@ export class GestionSncComponent implements OnInit {
         });
     }
 
-   guardarVerificacion() {
-    if (!this.editandoId) return;
-    if (!this.firmaVerificacionUrl) { alert('Debe firmar la verificación'); return; }
+    guardarVerificacion() {
+        if (!this.editandoId) return;
+        if (!this.firmaVerificacionUrl) { alert('Debe firmar la verificación'); return; }
 
-    const dialogRef = this.dialog.open(DialogConfirmacion, {
-        data: {
-            titulo: 'Cerrar salida no conforme',
-            mensaje: '¿Confirma el cierre de este registro? No se podrá modificar después.',
-            textoConfirmar: 'Cerrar',
-            textoCancelar: 'Cancelar',
-            tipo: 'warning'
-        }
-    });
-
-    dialogRef.afterClosed().subscribe((confirmado: boolean) => {
-        if (!confirmado) return;
-
-        const fd = new FormData();
-        fd.append('VerificacionCumplimiento', this.formVerificacion.verificacionCumplimiento || '');
-        fd.append('RequiereInformacionCliente', String(this.formVerificacion.requiereInformacionCliente ?? ''));
-        fd.append('MotivoInformacionCliente', this.formVerificacion.motivoInformacionCliente || '');
-        fd.append('AceptacionBajoConcesion', String(this.formVerificacion.aceptacionBajoConcesion ?? ''));
-        fd.append('DetalleAceptacionConcesion', this.formVerificacion.detalleAceptacionConcesion || '');
-        fd.append('RevisadoPor', this.formVerificacion.revisadoPor || '');
-        fd.append('FirmaVerificacion', this.firmaVerificacionUrl || '');
-        if (this.evidenciaPdfVerificacion) fd.append('evidenciaPdf', this.evidenciaPdfVerificacion);
-
-        this.service.cerrar(this.editandoId!, fd).subscribe({
-            next: (r) => {
-                if (this.fotosSeleccionadas['Verificacion'].length > 0) {
-                    this.service.subirEvidencias(r.id, 'Verificacion', this.fotosSeleccionadas['Verificacion']).subscribe({
-                        next: () => { this.vista = 'lista'; this.cargar(); }
-                    });
-                } else {
-                    this.vista = 'lista'; this.cargar();
-                }
-            },
-            error: (e) => { console.error(e); alert('Error cerrando el registro'); }
+        const dialogRef = this.dialog.open(DialogConfirmacion, {
+            data: {
+                titulo: 'Cerrar salida no conforme',
+                mensaje: '¿Confirma el cierre de este registro? No se podrá modificar después.',
+                textoConfirmar: 'Cerrar',
+                textoCancelar: 'Cancelar',
+                tipo: 'warning'
+            }
         });
-    });
-}
+
+        dialogRef.afterClosed().subscribe((confirmado: boolean) => {
+            if (!confirmado) return;
+
+            const fd = new FormData();
+            fd.append('VerificacionCumplimiento', this.formVerificacion.verificacionCumplimiento || '');
+            fd.append('RequiereInformacionCliente', String(this.formVerificacion.requiereInformacionCliente ?? ''));
+            fd.append('MotivoInformacionCliente', this.formVerificacion.motivoInformacionCliente || '');
+            fd.append('AceptacionBajoConcesion', String(this.formVerificacion.aceptacionBajoConcesion ?? ''));
+            fd.append('DetalleAceptacionConcesion', this.formVerificacion.detalleAceptacionConcesion || '');
+            fd.append('RevisadoPor', this.formVerificacion.revisadoPor || '');
+            fd.append('FirmaVerificacion', this.firmaVerificacionUrl || '');
+            if (this.evidenciaPdfVerificacion) fd.append('evidenciaPdf', this.evidenciaPdfVerificacion);
+
+            this.service.cerrar(this.editandoId!, fd).subscribe({
+                next: (r) => {
+                    if (this.fotosSeleccionadas['Verificacion'].length > 0) {
+                        this.service.subirEvidencias(r.id, 'Verificacion', this.fotosSeleccionadas['Verificacion']).subscribe({
+                            next: () => { this.vista = 'lista'; this.cargar(); }
+                        });
+                    } else {
+                        this.vista = 'lista'; this.cargar();
+                    }
+                },
+                error: (e) => { console.error(e); alert('Error cerrando el registro'); }
+            });
+        });
+    }
 
     eliminar(id: number) {
         const dialogRef = this.dialog.open(DialogConfirmacion, {

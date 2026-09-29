@@ -701,7 +701,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         canvas.addEventListener('touchend', () => { dibujando = false; this.firmaDataUrl = canvas.toDataURL(); });
     }
     urlFotoRonda(nombreArchivo: string): string {
-        return `${environment.apiUrl.replace('/api', '')}/formatos-calidad/${nombreArchivo}`;
+        return `${environment.fotosUrl}/formatos-calidad/${nombreArchivo}`;
     }
     parsearJson(json: string | null): any {
         if (!json) return null;
