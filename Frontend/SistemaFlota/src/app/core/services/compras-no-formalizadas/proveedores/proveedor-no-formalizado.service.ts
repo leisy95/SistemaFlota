@@ -39,6 +39,26 @@ export class ProveedorNoFormalizadoService {
         );
     }
 
+    obtenerParaRecepcion(
+        search: string = '',
+        estado: string = 'Activo',
+        orden: string = '',
+        page: number = 1,
+        pageSize: number = 1000
+    ): Observable<ProveedorNoFormalizadoPaginado> {
+        const params = new HttpParams()
+            .set('search', search)
+            .set('estado', estado)
+            .set('orden', orden)
+            .set('page', page)
+            .set('pageSize', pageSize);
+
+        return this.http.get<ProveedorNoFormalizadoPaginado>(
+            `${this.apiUrl}/para-recepcion`,
+            { params }
+        );
+    }
+
     obtenerPorId(id: number): Observable<ProveedorNoFormalizado> {
         return this.http.get<ProveedorNoFormalizado>(
             `${this.apiUrl}/${id}`

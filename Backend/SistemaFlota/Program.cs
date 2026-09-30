@@ -9,9 +9,11 @@ using SistemaFlota.Configuracion;
 using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.Materiales;
 using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
+using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
@@ -134,6 +136,10 @@ builder.Services.AddScoped<IProveedorNoFormalizadoService,
 builder.Services.AddScoped<IMaterialNoFormalizadoService, MaterialNoFormalizadoService>();
 builder.Services.AddScoped<IOrdenCompraNoFormalizadaService, OrdenCompraNoFormalizadaService>();
 builder.Services.AddScoped<IOrdenCompraNoFormalizadaPdfService, OrdenCompraNoFormalizadaPdfService>();
+builder.Services.AddScoped<IRecepcionMercanciaNoFormalizadaService,
+    RecepcionMercanciaNoFormalizadaService>();
+builder.Services.AddScoped<IEtiquetasPdfNoFormalizadaService,
+    EtiquetasPdfNoFormalizadaService>();
 
 // TWILIO 
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();

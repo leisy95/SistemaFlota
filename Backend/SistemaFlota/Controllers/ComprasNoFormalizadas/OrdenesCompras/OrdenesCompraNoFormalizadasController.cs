@@ -64,6 +64,35 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(filtros);
         }
 
+        // Para mostrar las órdenes de compra en recepción de mercancía
+        [HttpGet("para-recepcion")]
+        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [ProducesResponseType(
+            typeof(OrdenCompraNoFormalizadaPaginadoDto),
+            StatusCodes.Status200OK)]
+        public async Task<ActionResult<OrdenCompraNoFormalizadaPaginadoDto>> ObtenerParaRecepcion(
+            [FromQuery] string? search,
+            [FromQuery] string? estado,
+            [FromQuery] int? proveedorNoFormalizadoId,
+            [FromQuery] string? formaPago,
+            [FromQuery] DateTime? fechaInicio,
+            [FromQuery] DateTime? fechaFin,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var resultado = await _service.ObtenerAsync(
+                search,
+                estado,
+                proveedorNoFormalizadoId,
+                formaPago,
+                fechaInicio,
+                fechaFin,
+                page,
+                pageSize);
+
+            return Ok(resultado);
+        }
+
         // Crear una nueva orden de compra
         [HttpPost]
         [Permiso("ordenes-compra-no-formalizadas", "crear")]
