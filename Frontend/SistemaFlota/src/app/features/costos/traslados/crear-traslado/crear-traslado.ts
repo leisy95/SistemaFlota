@@ -133,16 +133,6 @@ export class CrearTraslado {
     return Number(this.materialActual.cantidadKg ?? 0) > this.stockDisponible;
   }
 
-  calcularBultos(): void {
-    const cantidad = Number(this.materialActual.cantidadKg ?? 0);
-
-    if (cantidad > 0 && cantidad % 10 === 0) {
-      this.materialActual.bultos = cantidad / 10;
-    } else {
-      this.materialActual.bultos = 0;
-    }
-  }
-
   get totalKg(): number {
     return this.materiales.reduce((total, material) => total + Number(material.cantidadKg), 0);
   }
@@ -167,11 +157,6 @@ export class CrearTraslado {
 
     if (!cantidadKg || cantidadKg <= 0) {
       this.toastr.warning('La cantidad debe ser mayor a cero.', 'Cantidad inválida');
-      return;
-    }
-
-    if (cantidadKg % 10 !== 0) {
-      this.toastr.warning('La cantidad debe ser múltiplo de 10 kg.', 'Cantidad inválida');
       return;
     }
 

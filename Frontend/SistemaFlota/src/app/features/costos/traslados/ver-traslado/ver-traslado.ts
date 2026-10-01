@@ -31,10 +31,7 @@ export class VerTraslado implements OnInit {
 
   ngOnInit(): void {
     this.orden = this.data;
-
     this.cargando = false;
-
-    console.log('Orden recibida:', this.orden);
   }
 
   cerrar(): void {
