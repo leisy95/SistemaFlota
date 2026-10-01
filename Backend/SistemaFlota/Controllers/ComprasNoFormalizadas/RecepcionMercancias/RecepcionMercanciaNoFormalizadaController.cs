@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.RecepcionMercancias;
+using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
-using SistemaFlota.Services.ImpresionEtiquetas;
 
 namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
 {
@@ -13,11 +13,11 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
     public class RecepcionMercanciaNoFormalizadaController : ControllerBase
     {
         private readonly IRecepcionMercanciaNoFormalizadaService _service;
-        private readonly IEtiquetasPdfService _etiquetasPdfService;
+        private readonly IEtiquetasPdfNoFormalizadaService _etiquetasPdfService;
 
         public RecepcionMercanciaNoFormalizadaController(
             IRecepcionMercanciaNoFormalizadaService service,
-            IEtiquetasPdfService etiquetasPdfService)
+            IEtiquetasPdfNoFormalizadaService etiquetasPdfService)
         {
             _service = service;
             _etiquetasPdfService = etiquetasPdfService;

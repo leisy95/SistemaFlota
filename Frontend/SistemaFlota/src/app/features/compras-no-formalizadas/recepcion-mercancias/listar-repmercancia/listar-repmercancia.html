@@ -73,8 +73,9 @@
                 </div>
             </div>
 
-            <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)"
-                (click)="verRecepcion(ordenSeleccionada)">
+            <button class="btn btn-agregar" [disabled]="!puedeAccionar(ordenSeleccionada)" (click)="ordenSeleccionada.estado?.toLowerCase() === 'recepcionada'
+                    ? verRecepcion(ordenSeleccionada)
+                    : iniciarRecepcion()">
 
                 <i class="fa-solid" [ngClass]="getIconoBoton(ordenSeleccionada)">
                 </i>

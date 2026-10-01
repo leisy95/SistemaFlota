@@ -2,6 +2,7 @@
 using SistemaFlota.DTOs.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Notificaciones;
 
@@ -14,17 +15,20 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
         private readonly ICurrentUserService _currentUser;
         private readonly IConsecutivoService _consecutivoService;
         private readonly INotificacionRecepcionService _notificacion;
+        private readonly IInventarioNoFormalizadoService _inventarioService;
 
         public RecepcionMercanciaNoFormalizadaService(
             AppDbContext context,
             ICurrentUserService currentUser,
             IConsecutivoService consecutivoService,
-            INotificacionRecepcionService notificacion)
+            INotificacionRecepcionService notificacion,
+             IInventarioNoFormalizadoService inventarioService)
         {
             _context = context;
             _currentUser = currentUser;
             _consecutivoService = consecutivoService;
             _notificacion = notificacion;
+            _inventarioService = inventarioService;
         }
 
         public async Task<RecepcionMercanciaNoFormalizadaPaginadoDto> ObtenerAsync(
@@ -518,7 +522,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
             await _context.SaveChangesAsync();
 
-            await _notificacion.EnviarRecepcionMercanciaAsync(
+            await _notificacion.EnviarRecepcionMercanciaNoFormalizadaAsync(
                 recepcion.Id,
                 dto.Usuarios
             );
@@ -624,16 +628,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 );
             }
 
-            /*
-             * IMPORTANTE:
-             *
-             * No se llama al IInventarioService formal.
-             *
-             * La recepción no formalizada queda confirmada,
-             * pero el inventario no formalizado deberá tener
-             * su propio flujo cuando se implemente.
-             */
+            // se envia al inventario
+            await _inventarioService.ProcesarRecepcionAsync(id);
 
+            // si fue exitoso enviar
             recepcion.FechaConfirmacion =
                 DateTime.Now;
 

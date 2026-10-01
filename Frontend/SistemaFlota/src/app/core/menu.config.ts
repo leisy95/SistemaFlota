@@ -348,5 +348,13 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-cart-shopping',
         ruta: '/compras-no-formalizadas/recepcion-mercancias',
         modulo: 'compras-no-formalizadas'
+    },
+
+    {
+        key: 'invenatrio-compras-no-formalizadas',
+        label: 'Inventario',
+        icon: 'fa-solid fa-cart-shopping',
+        ruta: '/compras-no-formalizadas/inventario',
+        modulo: 'compras-no-formalizadas'
     }
 ];

@@ -1,0 +1,131 @@
+.modal {
+    width: 100%;
+    max-width: 1100px;
+    background: var(--blanco);
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+    padding-bottom: 14px;
+}
+
+.header span {
+    color: var(--gris-oscuro);
+    font-size: 1rem;
+}
+
+.btn-close {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #f3f4f6;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn-close:hover {
+    background: #e5e7eb;
+}
+
+.card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-medio);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.card h3 {
+    margin: 0 0 18px;
+    color: var(--gris-oscuro);
+    font-size: 1.45rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.info-grid label {
+    display: block;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    margin-bottom: 4px;
+}
+
+.info-grid span {
+    font-weight: 600;
+    color: var(--gris-oscuro);
+    font-weight: bold;
+    font-size: .95rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.totales {
+    display: flex;
+    justify-content: flex-end;
+    gap: 50px;
+}
+
+.totales label {
+    display: block;
+    color: var(--gris-oscuro);
+    font-size: .85rem;
+}
+
+.totales span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+    font-weight: bold;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+@media (max-width: 900px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .totales {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .footer {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+}

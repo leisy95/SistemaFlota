@@ -8,6 +8,7 @@ import { OrdenCompraNoFormalizadaService } from '../../../../core/services/compr
 import { ProveedorNoFormalizadoService } from '../../../../core/services/compras-no-formalizadas/proveedores/proveedor-no-formalizado.service';
 import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
 import { DetalleRepmercancia } from '../detalle-repmercancia/detalle-repmercancia';
+import { IniciarRepmercancia } from '../iniciar-repmercancia/iniciar-repmercancia';
 
 @Component({
   selector: 'app-listar-repmercancia',
@@ -150,6 +151,44 @@ export class ListarRepmercancia {
       if (resultado) {
         this.cargarOrdenes();
       }
+    });
+  }
+
+  iniciarRecepcion(): void {
+    if (!this.ordenSeleccionada) {
+      this.toastr.warning(
+        'Seleccione una orden.',
+        'Recepción'
+      );
+      return;
+    }
+
+    if (this.ordenSeleccionada.estado === 'Confirmada') {
+      this.toastr.info(
+        'Esta recepción ya fue confirmada.',
+        'Recepción'
+      );
+      return;
+    }
+
+    const dialogRef = this.dialog.open(IniciarRepmercancia, {
+      width: '1200px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      disableClose: true,
+      autoFocus: false,
+      data: this.ordenSeleccionada
+    });
+
+    dialogRef.afterClosed().subscribe(resultado => {
+      if (!resultado) return;
+
+      this.cargarOrdenes();
+
+      this.toastr.success(
+        'Recepción registrada correctamente.',
+        'Recepción no formalizada'
+      );
     });
   }
 

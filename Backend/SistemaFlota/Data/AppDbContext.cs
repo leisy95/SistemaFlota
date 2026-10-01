@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
+using SistemaFlota.Models.ComprasNoFormalizadas.Inventario;
+using SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
 using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
@@ -91,6 +93,10 @@ namespace SistemaFlota
         public DbSet<OrdenCompraDetalleNoFormalizada> OrdenesCompraDetalleNoFormalizadas { get; set; }
         public DbSet<RecepcionMercanciaNoFormalizada> RecepcionesMercanciasNoFormalizadas { get; set; }
         public DbSet<RecepcionMercanciaDetalleNoFormalizada> RecepcionesMercanciaDetalleNoFormalizadas { get; set; }
+        public DbSet<InventarioNoFormalizado> InventariosNoFormalizados { get; set; }
+        public DbSet<AjusteInventarioNoFormalizado> AjustesInventarioNoFormalizados { get; set; }
+        public DbSet<CorteInventarioNoFormalizado> CortesInventarioNoFormalizados { get; set; }
+        public DbSet<DetalleCorteInventarioNoFormalizado> DetallesCorteInventarioNoFormalizados { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -235,13 +241,6 @@ namespace SistemaFlota
                 .HasForeignKey(m => m.IdProveedorNoFormalizado)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Compras no formalizadas
-            modelBuilder.Entity<MaterialNoFormalizado>()
-                .HasOne(m => m.ProveedorNoFormalizado)
-                .WithMany(p => p.Materiales)
-                .HasForeignKey(m => m.IdProveedorNoFormalizado)
-                .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<OrdenCompraNoFormalizada>()
                 .HasOne(o => o.ProveedorNoFormalizado)
                 .WithMany()
@@ -294,6 +293,41 @@ namespace SistemaFlota
                 .HasOne(d => d.OrdenCompraDetalleNoFormalizada)
                 .WithMany()
                 .HasForeignKey(d => d.OrdenCompraDetalleNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Inventario - Compras No Formalizadas
+            modelBuilder.Entity<InventarioNoFormalizado>()
+                .HasOne(i => i.Material)
+                .WithMany()
+                .HasForeignKey(i => i.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InventarioNoFormalizado>()
+                .HasIndex(i => new { i.MaterialId, i.Color })
+                .IsUnique();
+
+            modelBuilder.Entity<AjusteInventarioNoFormalizado>()
+                .HasOne(a => a.Inventario)
+                .WithMany(i => i.AjustesInventario)
+                .HasForeignKey(a => a.InventarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AjusteInventarioNoFormalizado>()
+                .HasOne(a => a.Usuario)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CorteInventarioNoFormalizado>()
+                .HasMany(c => c.Detalles)
+                .WithOne(d => d.CorteInventario)
+                .HasForeignKey(d => d.CorteInventarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DetalleCorteInventarioNoFormalizado>()
+                .HasOne(d => d.Material)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

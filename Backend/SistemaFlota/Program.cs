@@ -10,6 +10,9 @@ using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Services.ComprasNoFormalizadas.Materiales;
 using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
@@ -23,6 +26,7 @@ using SistemaFlota.Services.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
+using SistemaFlota.Services.EtiquetasQr.ComprasNoFormalizadas;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
@@ -133,13 +137,36 @@ builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>()
 // Compras no formalizadas
 builder.Services.AddScoped<IProveedorNoFormalizadoService,
     ProveedorNoFormalizadoService>();
-builder.Services.AddScoped<IMaterialNoFormalizadoService, MaterialNoFormalizadoService>();
-builder.Services.AddScoped<IOrdenCompraNoFormalizadaService, OrdenCompraNoFormalizadaService>();
-builder.Services.AddScoped<IOrdenCompraNoFormalizadaPdfService, OrdenCompraNoFormalizadaPdfService>();
+
+builder.Services.AddScoped<IMaterialNoFormalizadoService,
+    MaterialNoFormalizadoService>();
+
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaService,
+    OrdenCompraNoFormalizadaService>();
+
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaPdfService,
+    OrdenCompraNoFormalizadaPdfService>();
+
 builder.Services.AddScoped<IRecepcionMercanciaNoFormalizadaService,
     RecepcionMercanciaNoFormalizadaService>();
+
+builder.Services.AddScoped<IRecepcionMercanciaNoFormalizadaPdfService,
+    RecepcionMercanciaNoFormalizadaPdfService>();
+
 builder.Services.AddScoped<IEtiquetasPdfNoFormalizadaService,
     EtiquetasPdfNoFormalizadaService>();
+
+builder.Services.AddScoped<IInventarioNoFormalizadoService,
+    InventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<IAjusteInventarioNoFormalizadoService,
+    AjusteInventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<ICorteInventarioNoFormalizadoService,
+    CorteInventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<ICorteInventarioNoFormalizadoPdfService,
+    CorteInventarioNoFormalizadoPdfService>();
 
 // TWILIO 
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();

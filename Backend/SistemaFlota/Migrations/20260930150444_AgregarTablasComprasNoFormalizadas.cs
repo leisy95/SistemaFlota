@@ -13,6 +13,23 @@ namespace SistemaFlota.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "CortesInventarioNoFormalizados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Estado = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CortesInventarioNoFormalizados", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ProveedoresNoFormalizados",
                 columns: table => new
                 {
@@ -154,6 +171,64 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "DetallesCorteInventarioNoFormalizados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CorteInventarioId = table.Column<int>(type: "int", nullable: false),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    Color = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StockSistema = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ConteoFisico = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DetallesCorteInventarioNoFormalizados", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DetallesCorteInventarioNoFormalizados_CortesInventarioNoForm~",
+                        column: x => x.CorteInventarioId,
+                        principalTable: "CortesInventarioNoFormalizados",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DetallesCorteInventarioNoFormalizados_MaterialesNoFormalizad~",
+                        column: x => x.MaterialId,
+                        principalTable: "MaterialesNoFormalizados",
+                        principalColumn: "IdMaterialNoFormalizado",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "InventariosNoFormalizados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MaterialId = table.Column<int>(type: "int", nullable: false),
+                    Color = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StockActual = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    CostoPromedio = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ValorInventario = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventariosNoFormalizados", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InventariosNoFormalizados_MaterialesNoFormalizados_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "MaterialesNoFormalizados",
+                        principalColumn: "IdMaterialNoFormalizado",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "OrdenesCompraDetalleNoFormalizadas",
                 columns: table => new
                 {
@@ -231,6 +306,47 @@ namespace SistemaFlota.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "AjustesInventarioNoFormalizados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NumeroAjuste = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    InventarioId = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Cantidad = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    StockAnterior = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    StockNuevo = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Motivo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CostoPromedio = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Observaciones = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AjustesInventarioNoFormalizados", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AjustesInventarioNoFormalizados_InventariosNoFormalizados_In~",
+                        column: x => x.InventarioId,
+                        principalTable: "InventariosNoFormalizados",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AjustesInventarioNoFormalizados_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "RecepcionesMercanciaDetalleNoFormalizadas",
                 columns: table => new
                 {
@@ -264,6 +380,32 @@ namespace SistemaFlota.Migrations
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AjustesInventarioNoFormalizados_InventarioId",
+                table: "AjustesInventarioNoFormalizados",
+                column: "InventarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AjustesInventarioNoFormalizados_UsuarioId",
+                table: "AjustesInventarioNoFormalizados",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DetallesCorteInventarioNoFormalizados_CorteInventarioId",
+                table: "DetallesCorteInventarioNoFormalizados",
+                column: "CorteInventarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DetallesCorteInventarioNoFormalizados_MaterialId",
+                table: "DetallesCorteInventarioNoFormalizados",
+                column: "MaterialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventariosNoFormalizados_MaterialId_Color",
+                table: "InventariosNoFormalizados",
+                columns: new[] { "MaterialId", "Color" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MaterialesNoFormalizados_IdProveedorNoFormalizado",
@@ -325,7 +467,19 @@ namespace SistemaFlota.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AjustesInventarioNoFormalizados");
+
+            migrationBuilder.DropTable(
+                name: "DetallesCorteInventarioNoFormalizados");
+
+            migrationBuilder.DropTable(
                 name: "RecepcionesMercanciaDetalleNoFormalizadas");
+
+            migrationBuilder.DropTable(
+                name: "InventariosNoFormalizados");
+
+            migrationBuilder.DropTable(
+                name: "CortesInventarioNoFormalizados");
 
             migrationBuilder.DropTable(
                 name: "OrdenesCompraDetalleNoFormalizadas");
