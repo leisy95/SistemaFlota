@@ -1,0 +1,30 @@
+﻿namespace SistemaFlota.DTOs.ComprasNoFormalizadas.Inventario
+{
+    public class InventarioNoFormalizadoDto
+    {
+        public int Id { get; set; }
+
+        public int MaterialId { get; set; }
+
+        public string Material { get; set; } = string.Empty;
+
+        public string Proveedor { get; set; } = string.Empty;
+
+        public string? Categoria { get; set; }
+
+        public string Color { get; set; } = string.Empty;
+
+        public string Densidad { get; set; } = string.Empty;
+
+        // Datos numéricos protegidos por permiso
+        public decimal? CantidadComprometida { get; set; }
+
+        public decimal? StockDisponible { get; set; }
+
+        public decimal? StockActual { get; set; }
+
+        public decimal? CostoPromedio { get; set; }
+
+        public decimal? ValorInventario { get; set; }
+    }
+}

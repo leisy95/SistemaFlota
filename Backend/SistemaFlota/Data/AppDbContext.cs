@@ -3,6 +3,13 @@ using SistemaFlota.Models;
 using SistemaFlota.Models.Calidad;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
+using SistemaFlota.Models.ComprasNoFormalizadas.Inventario;
+using SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario;
+using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras;
+using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesTraslado;
+using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
+using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Models.Consecutivo;
 using SistemaFlota.Models.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
@@ -84,6 +91,20 @@ namespace SistemaFlota
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<SalidaNoConforme> SalidasNoConforme { get; set; }
         public DbSet<SalidaNoConformeEvidencia> SalidasNoConformeEvidencias { get; set; }
+
+        // -- Compras No Formalizadas --
+        public DbSet<ProveedorNoFormalizado> ProveedoresNoFormalizados { get; set; }
+        public DbSet<MaterialNoFormalizado> MaterialesNoFormalizados { get; set; }
+        public DbSet<OrdenCompraNoFormalizada> OrdenesCompraNoFormalizadas { get; set; }
+        public DbSet<OrdenCompraDetalleNoFormalizada> OrdenesCompraDetalleNoFormalizadas { get; set; }
+        public DbSet<RecepcionMercanciaNoFormalizada> RecepcionesMercanciasNoFormalizadas { get; set; }
+        public DbSet<RecepcionMercanciaDetalleNoFormalizada> RecepcionesMercanciaDetalleNoFormalizadas { get; set; }
+        public DbSet<InventarioNoFormalizado> InventariosNoFormalizados { get; set; }
+        public DbSet<AjusteInventarioNoFormalizado> AjustesInventarioNoFormalizados { get; set; }
+        public DbSet<CorteInventarioNoFormalizado> CortesInventarioNoFormalizados { get; set; }
+        public DbSet<DetalleCorteInventarioNoFormalizado> DetallesCorteInventarioNoFormalizados { get; set; }
+        public DbSet<OrdenTrasladoNoFormalizada> OrdenesTrasladoNoFormalizadas { get; set; }
+        public DbSet<OrdenTrasladoDetalleNoFormalizada> OrdenesTrasladoDetalleNoFormalizadas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -221,7 +242,132 @@ namespace SistemaFlota
                 .HasIndex(x => x.Modulo)
                 .IsUnique();
 
-         
+            // Compras no formalizadas
+            modelBuilder.Entity<MaterialNoFormalizado>()
+                .HasOne(m => m.ProveedorNoFormalizado)
+                .WithMany(p => p.Materiales)
+                .HasForeignKey(m => m.IdProveedorNoFormalizado)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.ProveedorNoFormalizado)
+                .WithMany()
+                .HasForeignKey(o => o.ProveedorNoFormalizadoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioCreacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne(o => o.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioActualizacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraNoFormalizada>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(o => o.UsuarioEnvioCorreoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenCompraDetalleNoFormalizada>()
+                .HasOne(d => d.OrdenCompraNoFormalizada)
+                .WithMany(o => o.Detalles)
+                .HasForeignKey(d => d.OrdenCompraNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenCompraDetalleNoFormalizada>()
+                .HasOne(d => d.MaterialNoFormalizado)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialNoFormalizadoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercanciaNoFormalizada>()
+                .HasOne(r => r.OrdenCompraNoFormalizada)
+                .WithMany(o => o.RecepcionesMercancia)
+                .HasForeignKey(r => r.OrdenCompraNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalleNoFormalizada>()
+                .HasOne(d => d.RecepcionMercanciaNoFormalizada)
+                .WithMany(r => r.Detalles)
+                .HasForeignKey(d => d.RecepcionMercanciaNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RecepcionMercanciaDetalleNoFormalizada>()
+                .HasOne(d => d.OrdenCompraDetalleNoFormalizada)
+                .WithMany()
+                .HasForeignKey(d => d.OrdenCompraDetalleNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Inventario - Compras No Formalizadas
+            modelBuilder.Entity<InventarioNoFormalizado>()
+                .HasOne(i => i.Material)
+                .WithMany()
+                .HasForeignKey(i => i.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InventarioNoFormalizado>()
+                .HasIndex(i => new { i.MaterialId, i.Color })
+                .IsUnique();
+
+            modelBuilder.Entity<AjusteInventarioNoFormalizado>()
+                .HasOne(a => a.Inventario)
+                .WithMany(i => i.AjustesInventario)
+                .HasForeignKey(a => a.InventarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AjusteInventarioNoFormalizado>()
+                .HasOne(a => a.Usuario)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CorteInventarioNoFormalizado>()
+                .HasMany(c => c.Detalles)
+                .WithOne(d => d.CorteInventario)
+                .HasForeignKey(d => d.CorteInventarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DetalleCorteInventarioNoFormalizado>()
+                .HasOne(d => d.Material)
+                .WithMany()
+                .HasForeignKey(d => d.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Traslados - Compras No Formalizadas
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.Usuario)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.UsuarioVerificacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioVerificacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.UsuarioConfirmacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioConfirmacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasMany(x => x.Detalles)
+                .WithOne(x => x.OrdenTrasladoNoFormalizada)
+                .HasForeignKey(x => x.OrdenTrasladoNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenTrasladoDetalleNoFormalizada>()
+                .HasOne(x => x.MaterialNoFormalizado)
+                .WithMany()
+                .HasForeignKey(x => x.MaterialNoFormalizadoId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -1,0 +1,253 @@
+<div class="modal-overlay">
+    <div class="orden-modal">
+        <!-- HEADER -->
+        <div class="modal-header">
+            <div>
+                <h2>{{ modoEditar ? 'Editar Orden de Compra No Formalizada' : 'Nueva Orden de Compra No Formalizada' }}
+                </h2>
+                <p>Complete la información de la orden de compra no formalizada</p>
+            </div>
+            <button class="btn-close" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+            <!-- INFORMACIÓN GENERAL -->
+            <div class="card">
+                <h3>Información General</h3>
+                <div class="form-grid">
+                    <!-- PROVEEDOR -->
+                    <div class="form-group span-2">
+                        <label>Proveedor *</label>
+                        <select [(ngModel)]="orden.proveedorNoFormalizadoId"
+                            (ngModelChange)="obtenerMaterialesPorProveedor($event)"
+                            [class.input-error]="mostrarErrores && !orden.proveedorNoFormalizadoId">
+                            <option [ngValue]="0">Seleccione</option>
+                            <option *ngFor="let p of proveedores" [ngValue]="p.idProveedorNoFormalizado">{{ p.nombre }}
+                            </option>
+                        </select>
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.proveedorNoFormalizadoId">Debe
+                            seleccionar un proveedor.</div>
+                    </div>
+
+                    <!-- FORMA DE PAGO -->
+                    <div class="form-group">
+                        <label>Forma de Pago *</label>
+                        <select [(ngModel)]="orden.formaPago" [class.input-error]="mostrarErrores && !orden.formaPago">
+                            <option *ngFor="let forma of formasPago" [value]="forma">{{ forma }}</option>
+                        </select>
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.formaPago">Debe seleccionar una forma
+                            de pago.</div>
+                    </div>
+
+                    <!-- TIPO IMPUESTO -->
+                    <div class="form-group">
+                        <label>Tipo de impuesto</label>
+                        <input type="text" [(ngModel)]="orden.tipoImpuesto"
+                            placeholder="Ej: IVA, Impoconsumo, Retefuente">
+                    </div>
+
+                    <!-- PORCENTAJE -->
+                    <div class="form-group">
+                        <label>Porcentaje (%)</label>
+                        <input type="number" min="0" max="100" [(ngModel)]="orden.porcentajeImpuesto"
+                            (input)="actualizarTotales()"
+                            [class.input-error]="mostrarErrores && (orden.porcentajeImpuesto < 0 || orden.porcentajeImpuesto > 100)">
+                        <div class="error-message"
+                            *ngIf="mostrarErrores && (orden.porcentajeImpuesto < 0 || orden.porcentajeImpuesto > 100)">
+                            El porcentaje debe estar entre 0 y 100.</div>
+                    </div>
+
+                    <!-- FECHA ORDEN -->
+                    <div class="form-group">
+                        <label>Fecha de Orden</label>
+                        <input type="date" [(ngModel)]="orden.fechaOrden"
+                            [class.input-error]="mostrarErrores && !orden.fechaOrden">
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.fechaOrden">La fecha de orden es
+                            obligatoria.</div>
+                    </div>
+
+                    <!-- FECHA ENTREGA -->
+                    <div class="form-group">
+                        <label>Fecha de Entrega</label>
+                        <input type="date" [(ngModel)]="orden.fechaEntrega"
+                            [class.input-error]="mostrarErrores && (!orden.fechaEntrega || orden.fechaEntrega < orden.fechaOrden)">
+                        <div class="error-message" *ngIf="mostrarErrores && !orden.fechaEntrega">La fecha de entrega es
+                            obligatoria.</div>
+                        <div class="error-message"
+                            *ngIf="mostrarErrores && orden.fechaEntrega && orden.fechaOrden && orden.fechaEntrega < orden.fechaOrden">
+                            La fecha de entrega no puede ser anterior a la fecha de orden.</div>
+                    </div>
+
+                    <!-- LUGAR ENTREGA -->
+                    <div class="form-group span-2">
+                        <label>Lugar de entrega *</label>
+                        <select [(ngModel)]="orden.lugarEntrega">
+                            <option value="Recogemos en planta del proveedor">Recogemos en planta del proveedor</option>
+                            <option value="Mercancía puesta en nuestras instalaciones">Mercancía puesta en nuestras
+                                instalaciones</option>
+                        </select>
+                    </div>
+
+                    <!-- OBSERVACIONES -->
+                    <div class="form-group span-4">
+                        <label>Observaciones</label>
+                        <textarea [(ngModel)]="orden.observaciones" rows="3"
+                            placeholder="Ingrese observaciones de la orden"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEMS -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Items de la Orden</h3>
+                    <button class="btn-agregar" (click)="agregarItem()">
+                        <i class="fa-solid fa-plus"></i>
+                        Agregar Item
+                    </button>
+                </div>
+
+                <div class="tabla">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tipo Material</th>
+                                <th>Color</th>
+                                <th>Cantidad (KG)</th>
+                                <th>KG/Bulto</th>
+                                <th>Bultos (Auto)</th>
+                                <th>Costo/KG</th>
+                                <th>Subtotal</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of items; let i = index">
+                                <!-- MATERIAL -->
+                                <td data-label="Tipo Material">
+                                    <select [(ngModel)]="item.materialNoFormalizadoId"
+                                        (ngModelChange)="seleccionarMaterial(i, $event)"
+                                        [class.input-error]="mostrarErrores && !item.materialNoFormalizadoId">
+                                        <option [ngValue]="0">Seleccione</option>
+                                        <option *ngFor="let m of materiales" [ngValue]="m.idMaterialNoFormalizado">{{
+                                            m.nombreMaterial }}</option>
+                                    </select>
+                                    <div class="error-message" *ngIf="mostrarErrores && !item.materialNoFormalizadoId">
+                                        Seleccione un material.</div>
+                                </td>
+
+                                <!-- COLOR -->
+                                <td data-label="Color">
+                                    <input type="text" [(ngModel)]="item.color" readonly>
+                                </td>
+
+                                <!-- CANTIDAD KG -->
+                                <td data-label="Cantidad (KG)">
+                                    <input type="number" min="0" [(ngModel)]="item.kilos" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.kilos <= 0"
+                                        (wheel)="$any($event.target).blur()">
+                                    <div class="error-message" *ngIf="mostrarErrores && item.kilos <= 0">La cantidad
+                                        debe ser mayor a 0.</div>
+                                </td>
+
+                                <!-- KG BULTO -->
+                                <td data-label="KG/Bulto">
+                                    <input type="number" min="0" [(ngModel)]="item.kgBulto" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.kgBulto <= 0"
+                                        (wheel)="$any($event.target).blur()">
+                                    <div class="error-message" *ngIf="mostrarErrores && item.kgBulto <= 0">Los KG por
+                                        bulto deben ser mayores a 0.</div>
+                                </td>
+
+                                <!-- BULTOS -->
+                                <td data-label="Bultos">
+                                    <span class="valor">{{ item.bultos }}</span>
+                                </td>
+
+                                <!-- COSTO -->
+                                <td data-label="Costo/KG">
+                                    <input type="number" min="0" [(ngModel)]="item.costo" (input)="calcular(i)"
+                                        [class.input-error]="mostrarErrores && item.costo <= 0"
+                                        (wheel)="$any($event.target).blur()">
+                                    <div class="error-message" *ngIf="mostrarErrores && item.costo <= 0">El costo debe
+                                        ser mayor a 0.</div>
+                                </td>
+
+                                <!-- SUBTOTAL -->
+                                <td data-label="Subtotal" class="subtotal">
+                                    {{ item.subtotal | currency:'COP':'symbol':'1.0-0' }}
+                                </td>
+
+                                <!-- ACCIÓN -->
+                                <td data-label="Acción">
+                                    <button class="btn-eliminar" (click)="eliminarItem(i)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- RESUMEN -->
+                <div class="summary">
+                    <!-- TOTAL ITEMS -->
+                    <div class="card-resumen">
+                        <i class="fa-solid fa-boxes-stacked icono"></i>
+                        <small>Total Items</small>
+                        <h2>{{ items.length }}</h2>
+                    </div>
+
+                    <!-- TOTAL KG -->
+                    <div class="card-resumen">
+                        <i class="fa-solid fa-weight-hanging icono"></i>
+                        <small>Total KG</small>
+                        <h2>{{ totalKg }}</h2>
+                    </div>
+
+                    <!-- TOTAL BULTOS -->
+                    <div class="card-resumen">
+                        <i class="fa-solid fa-sack-dollar icono"></i>
+                        <small>Total Bultos</small>
+                        <h2>{{ totalBultos }}</h2>
+                    </div>
+
+                    <!-- TOTALES -->
+                    <div class="totales">
+                        <h3><i class="fa-solid fa-file-invoice-dollar"></i> Resumen de la Orden</h3>
+                        <div class="fila">
+                            <span>Subtotal</span>
+                            <strong>{{ subtotal | currency:'COP':'symbol':'1.0-0' }}</strong>
+                        </div>
+                        <div class="fila">
+                            <span>{{ orden.tipoImpuesto }} ({{ orden.porcentajeImpuesto }}%)</span>
+                            <strong>{{ valorImpuesto | currency:'COP':'symbol':'1.0-0' }}</strong>
+                        </div>
+                        <hr>
+                        <div class="fila total">
+                            <span>TOTAL</span>
+                            <strong>{{ totalPagar | currency:'COP':'symbol':'1.0-0' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+            <button class="btn-pdf" (click)="generarPdf()">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                Generar PDF
+            </button>
+            <button class="btn-save" (click)="guardarOrden()" [disabled]="guardando">
+                <i class="fa-solid" [class.fa-file-circle-check]="!modoEditar && !guardando"
+                    [class.fa-floppy-disk]="modoEditar && !guardando" [class.fa-spinner]="guardando"
+                    [class.fa-spin]="guardando"></i>
+                {{ guardando ? 'Guardando...' : (modoEditar ? 'Actualizar Orden' : 'Guardar Orden') }}
+            </button>
+        </div>
+    </div>
+</div>

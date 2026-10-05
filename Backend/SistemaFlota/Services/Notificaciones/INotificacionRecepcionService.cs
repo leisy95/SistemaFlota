@@ -3,4 +3,8 @@
 public interface INotificacionRecepcionService
 {
     Task EnviarRecepcionMercanciaAsync(int recepcionId, List<int> usuarios);
+
+    Task EnviarRecepcionMercanciaNoFormalizadaAsync(
+      int recepcionId,
+      List<int> usuarios);
 }

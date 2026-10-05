@@ -10,6 +10,15 @@ using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Calidad;
+using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
+using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventario;
+using SistemaFlota.Services.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras;
+using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado;
+using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
+using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
@@ -19,6 +28,7 @@ using SistemaFlota.Services.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
+using SistemaFlota.Services.EtiquetasQr.ComprasNoFormalizadas;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
@@ -128,7 +138,41 @@ builder.Services.AddScoped<AuditoriaService>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermisoPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
 
-// TWILIO
+builder.Services.AddScoped<IProveedorNoFormalizadoService,
+    ProveedorNoFormalizadoService>();
+
+builder.Services.AddScoped<IMaterialNoFormalizadoService,
+    MaterialNoFormalizadoService>();
+
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaService,
+    OrdenCompraNoFormalizadaService>();
+
+builder.Services.AddScoped<IOrdenCompraNoFormalizadaPdfService,
+    OrdenCompraNoFormalizadaPdfService>();
+
+builder.Services.AddScoped<IRecepcionMercanciaNoFormalizadaService,
+    RecepcionMercanciaNoFormalizadaService>();
+
+builder.Services.AddScoped<IRecepcionMercanciaNoFormalizadaPdfService,
+    RecepcionMercanciaNoFormalizadaPdfService>();
+
+builder.Services.AddScoped<IEtiquetasPdfNoFormalizadaService,
+    EtiquetasPdfNoFormalizadaService>();
+
+builder.Services.AddScoped<IInventarioNoFormalizadoService,
+    InventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<IAjusteInventarioNoFormalizadoService,
+    AjusteInventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<ICorteInventarioNoFormalizadoService,
+    CorteInventarioNoFormalizadoService>();
+
+builder.Services.AddScoped<ICorteInventarioNoFormalizadoPdfService,
+    CorteInventarioNoFormalizadoPdfService>();
+
+builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFormalizadaService>();
+
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
 builder.Services.AddScoped<EmpresaOrdenesService>();
@@ -143,7 +187,7 @@ builder.Services.AddScoped<ISalidaNoConformeService, SalidaNoConformeService>();
 
 Environment.SetEnvironmentVariable("TZ", "America/Bogota");
 
-//  Puerto â€” solo Railway en produccion 
+// Puerto — solo Railway en produccion
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";

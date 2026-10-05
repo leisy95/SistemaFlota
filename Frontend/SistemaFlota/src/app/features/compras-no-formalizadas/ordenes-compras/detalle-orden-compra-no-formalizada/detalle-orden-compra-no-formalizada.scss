@@ -1,0 +1,425 @@
+.modal {
+    width: 100%;
+    max-height: 90vh;
+    box-sizing: border-box;
+    background: var(--blanco);
+    border-radius: 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--gris-medio);
+    background: var(--blanco);
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+}
+
+.header span {
+    display: block;
+    margin-top: 14px;
+    color: var(--gris-oscuro);
+    font-size: 1rem;
+}
+
+.btn-close {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: var(--blanco);
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn-close:hover {
+    background: #e5e7eb;
+}
+
+.btn-close i {
+    font-size: 18px;
+}
+
+.card {
+    margin: 20px;
+    padding: 22px;
+    border-radius: 14px;
+    border: 1px solid var(--gris-claro);
+    box-shadow: 0 2px 8px var(--gris-oscuro);
+}
+
+.card h3 {
+    margin: 0 0 18px;
+    color: var(--gris-oscuro);
+    font-size: 1.7rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.info-grid label,
+.totales label,
+.card label {
+    display: block;
+    font-size: 1rem;
+    color: var(--gris-oscuro);
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.info-grid span,
+.totales span {
+    color: var(--gris-oscuro);
+    font-size: .9rem;
+    font-weight: 500;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.totales {
+    width: 340px;
+    margin-left: auto;
+}
+
+.totales>div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.total {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid var(--verde-principal);
+}
+
+.total label,
+.total span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--verde-oscuro);
+}
+
+.card p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--gris-oscuro);
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 22px 24px;
+    background: #fff;
+    border-top: 1px solid var(--gris-oscuro);
+}
+
+.btn-primary,
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: .2s;
+}
+
+.btn-primary {
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+}
+
+.btn-primary:hover {
+    background: var(--verde-oscuro);
+}
+
+.btn-secondary {
+    background: #eef0f2;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background: #dfe4e8;
+}
+
+@media (max-width: 1024px) {
+
+    .page-container {
+        margin-top: 65px;
+        padding: 15px;
+    }
+
+    .header-card {
+        padding: 25px;
+    }
+
+    .header-card h1 {
+        font-size: 1.7rem;
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .stat-card strong {
+        margin-top: 20px;
+        font-size: 1.6rem;
+    }
+
+    .filter-card {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 18px;
+    }
+
+    .btn-filter {
+        margin-top: 25px;
+    }
+
+    .table-card {
+        padding: 20px;
+    }
+
+    .table-card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 25px;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .page-container {
+        margin-top: 60px;
+        padding: 10px;
+    }
+
+    .header-card {
+        padding: 18px;
+        gap: 15px;
+    }
+
+    .header-card h1 {
+        font-size: 1.4rem;
+    }
+
+    .btn-agregar {
+        padding: 10px 13px;
+        font-size: 13px;
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .stat-card span {
+        font-size: .85rem;
+    }
+
+    .stat-card strong {
+        margin-top: 12px;
+        font-size: 1.4rem;
+    }
+
+    .filter-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .field label {
+        font-size: .85rem;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select {
+        height: 42px;
+        font-size: .9rem;
+    }
+
+    .btn-filter {
+        width: 100%;
+        margin-top: 5px;
+        height: 42px;
+    }
+
+    .table-card {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .table-card h2 {
+        font-size: 1.1rem;
+        margin-bottom: 18px;
+    }
+
+    .paginacion {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 15px 5px;
+    }
+
+    .info {
+        text-align: center;
+        font-size: .85rem;
+    }
+
+    .controles {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-pagina {
+        padding: 7px 13px;
+        font-size: .85rem;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .page-container {
+        padding: 8px;
+    }
+
+    .header h2 {
+        font-size: 1.38rem;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .header span {
+        margin-top: 6px;
+        font-size: .85rem;
+    }
+
+    .btn-agregar {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .stats-container {
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .stat-card {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .stat-card span {
+        font-size: .72rem;
+    }
+
+    .stat-card strong {
+        margin-top: 8px;
+        font-size: 1.05rem;
+    }
+
+    .filter-card {
+        padding: 13px;
+    }
+
+    .table-card {
+        padding: 12px;
+    }
+
+    .table-card h2 {
+        font-size: 1rem;
+    }
+
+    .totales {
+        width: 100%;
+        margin-left: 0;
+        box-sizing: border-box;
+    }
+
+    .totales>div {
+        padding: 7px 0;
+    }
+
+    .total {
+        margin-top: 5px;
+        padding-top: 9px;
+    }
+
+    .total label,
+    .total span {
+        font-size: .85rem;
+    }
+
+    .footer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+        padding: 9px 8px;
+        font-size: .72rem;
+        gap: 5px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
+
+    .footer .btn-secondary {
+        grid-column: 1 / -1;
+        order: 3;
+    }
+
+    .footer .btn-primary {
+        order: 1;
+    }
+
+    .footer .btn-primary+.btn-primary {
+        order: 2;
+    }
+}
