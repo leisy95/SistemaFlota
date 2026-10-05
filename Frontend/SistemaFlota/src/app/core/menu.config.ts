@@ -325,36 +325,40 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/compras-no-formalizadas/proveedores',
         modulo: 'compras-no-formalizadas'
     },
-
     {
         key: 'materiales-no-formalizados',
         label: 'Materiales',
-        icon: 'fa-solid fa-user-tie',
+        icon: 'fa-solid fa-boxes-stacked',
         ruta: '/compras-no-formalizadas/materiales',
         modulo: 'compras-no-formalizadas'
     },
-
     {
         key: 'ordenes-compras-no-formalizadas',
         label: 'Ord - Compras',
-        icon: 'fa-solid fa-cart-shopping',
+        icon: 'fa-solid fa-file-invoice-dollar',
         ruta: '/compras-no-formalizadas/ordenes-compras',
         modulo: 'compras-no-formalizadas'
     },
-
     {
         key: 'recepcion-compras-no-formalizadas',
-        label: 'Rep -Mercancias',
-        icon: 'fa-solid fa-cart-shopping',
+        label: 'Rep - Mercancias',
+        icon: 'fa-solid fa-truck-ramp-box',
         ruta: '/compras-no-formalizadas/recepcion-mercancias',
         modulo: 'compras-no-formalizadas'
     },
-
     {
         key: 'invenatrio-compras-no-formalizadas',
         label: 'Inventario',
-        icon: 'fa-solid fa-cart-shopping',
+        icon: 'fa-solid fa-warehouse',
         ruta: '/compras-no-formalizadas/inventario',
         modulo: 'compras-no-formalizadas'
+    },
+    {
+        key: 'traslado-compras-no-formalizadas',
+        label: 'Traslados',
+        icon: 'fa-solid fa-right-left',
+        ruta: '/compras-no-formalizadas/traslados',
+        modulo: 'compras-no-formalizadas'
     }
+
 ];

@@ -6,6 +6,7 @@ using SistemaFlota.Models.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
 using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras;
+using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Models.Consecutivo;
@@ -97,6 +98,8 @@ namespace SistemaFlota
         public DbSet<AjusteInventarioNoFormalizado> AjustesInventarioNoFormalizados { get; set; }
         public DbSet<CorteInventarioNoFormalizado> CortesInventarioNoFormalizados { get; set; }
         public DbSet<DetalleCorteInventarioNoFormalizado> DetallesCorteInventarioNoFormalizados { get; set; }
+        public DbSet<OrdenTrasladoNoFormalizada> OrdenesTrasladoNoFormalizadas { get; set; }
+        public DbSet<OrdenTrasladoDetalleNoFormalizada> OrdenesTrasladoDetalleNoFormalizadas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -328,6 +331,37 @@ namespace SistemaFlota
                 .HasOne(d => d.Material)
                 .WithMany()
                 .HasForeignKey(d => d.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Traslados - Compras No Formalizadas
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.Usuario)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.UsuarioVerificacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioVerificacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasOne(x => x.UsuarioConfirmacion)
+                .WithMany()
+                .HasForeignKey(x => x.UsuarioConfirmacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrdenTrasladoNoFormalizada>()
+                .HasMany(x => x.Detalles)
+                .WithOne(x => x.OrdenTrasladoNoFormalizada)
+                .HasForeignKey(x => x.OrdenTrasladoNoFormalizadaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrdenTrasladoDetalleNoFormalizada>()
+                .HasOne(x => x.MaterialNoFormalizado)
+                .WithMany()
+                .HasForeignKey(x => x.MaterialNoFormalizadoId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

@@ -15,6 +15,7 @@ using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Services.ComprasNoFormalizadas.Materiales;
 using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras;
+using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
 using SistemaFlota.Services.Consecutivos;
@@ -167,6 +168,8 @@ builder.Services.AddScoped<ICorteInventarioNoFormalizadoService,
 
 builder.Services.AddScoped<ICorteInventarioNoFormalizadoPdfService,
     CorteInventarioNoFormalizadoPdfService>();
+
+builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFormalizadaService>();
 
 // TWILIO 
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();

@@ -196,33 +196,74 @@
     }
 }
 
-.btn-agregar {
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-
+.btn-ver {
     display: flex;
     align-items: center;
-    gap: 9px;
-
-    background: var(--verde-principal);
-    color: var(--blanco);
-
-    font-weight: 600;
+    justify-content: center;
+    gap: 8px;
+    background: var(--verde-fondo-botones);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: var(--azul-cielo);
+    padding: 10px 20px;
+    border-radius: 12px;
     cursor: pointer;
-
-    transition: 0.2s;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    width: auto;
+    display: flex;
+    align-items: center;
 
     &:hover {
-        background: var(--verde-oscuro);
-        transform: translateY(-1px);
-    }
+        background: var(--azul-oscuro);
+        color: var(--blanco);
+        transform: translateY(-2px);
 
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
+        i {
+            color: var(--blanco);
+        }
     }
+}
+
+.btn-pdf {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--verde-fondo-botones);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: var(--rojo-oscuro);
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    width: auto;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        background: var(--azul-oscuro);
+        color: var(--blanco);
+        transform: translateY(-2px);
+
+        i {
+            color: var(--blanco);
+        }
+    }
+}
+
+.orden-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.orden-acciones .btn-agregar {
+    white-space: nowrap;
 }
 
 // LISTADO DE ORDENES
@@ -315,6 +356,30 @@
     }
 }
 
+// BTN ACCIONES
+.btn-acciones-recepcion {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--gris-medio);
+    border-radius: 10px;
+    background: var(--blanco);
+    color: var(--gris-oscuro);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: var(--verde-fondo-botones);
+        color: var(--verde-oscuro);
+        border-color: var(--verde-oscuro);
+        transform: translateY(-1px);
+    }
+}
+
 // ESTADOS
 
 .badge-estado {
@@ -349,6 +414,12 @@
     background: #dcfce7;
     color: #166534;
     border: 1px solid #86efac;
+}
+
+.estado-anulada {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
 }
 
 .estado-default {
@@ -397,6 +468,55 @@
     &:hover {
         background: #eafff0;
     }
+}
+
+//BOTONES DE VER Y CONTINUAR RECCEPCION
+.orden-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.orden-acciones .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s ease;
+    white-space: nowrap;
+}
+
+.orden-acciones .btn i {
+    font-size: .9rem;
+}
+
+.orden-acciones .btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.orden-acciones .btn-confirmar {
+    background: #eef2f7;
+    color: var(--azul-cielo);
+    border: 1px solid var(--azul-cielo);
+}
+
+.orden-acciones .btn-confirmar:hover:not(:disabled) {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.orden-acciones .btn:active:not(:disabled) {
+    transform: translateY(0);
 }
 
 // INFORMACION RECEPCION

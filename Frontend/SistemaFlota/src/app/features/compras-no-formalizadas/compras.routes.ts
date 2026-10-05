@@ -35,5 +35,12 @@ export const COMPRAS_ROUTES: Routes = [
             import('./inventario/listar-inventario-no-formalizado/listar-inventario-no-formalizado')
                 .then(c => c.ListarInventarioNoFormalizado),
         data: { animation: 'materiales' }
+    },
+    {
+        path: 'traslados',
+        loadComponent: () =>
+            import('./traslados/listar-traslado-no-formalizado/listar-traslado-no-formalizado')
+                .then(c => c.ListarTrasladoNoFormalizado),
+        data: { animation: 'materiales' }
     }
 ];

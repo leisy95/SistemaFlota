@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 using SistemaFlota.Services.Pdf.Components;
+using SistemaFlota.Services.Pdf.Styles;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 {
@@ -20,37 +22,47 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
         public async Task<byte[]> GenerarPdfAsync(int idRecepcion)
         {
-            var recepcion = await _context
-                .RecepcionesMercanciasNoFormalizadas
-                .AsNoTracking()
-                .Include(r => r.OrdenCompraNoFormalizada)
-                    .ThenInclude(o => o.ProveedorNoFormalizado)
-                .Include(r => r.Detalles)
-                    .ThenInclude(d => d.OrdenCompraDetalleNoFormalizada)
-                        .ThenInclude(od => od.MaterialNoFormalizado)
-                .FirstOrDefaultAsync(r => r.Id == idRecepcion);
+            var recepcion =
+                await _context
+                    .RecepcionesMercanciasNoFormalizadas
+                    .AsNoTracking()
+                    .Include(r => r.OrdenCompraNoFormalizada)
+                        .ThenInclude(o => o.ProveedorNoFormalizado)
+                    .Include(r => r.Detalles)
+                        .ThenInclude(d =>
+                            d.OrdenCompraDetalleNoFormalizada)
+                        .ThenInclude(od =>
+                            od.MaterialNoFormalizado)
+                    .FirstOrDefaultAsync(r => r.Id == idRecepcion);
 
             if (recepcion == null)
+            {
                 throw new Exception(
                     "La recepción de mercancía no formalizada no existe.");
+            }
 
-            var empresa = await _context.ConfiguracionEmpresa
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+            var empresa =
+                await _context.ConfiguracionEmpresa
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
 
             if (empresa == null)
+            {
                 throw new Exception(
                     "No existe la configuración de la empresa.");
+            }
 
             var documento = Document.Create(document =>
             {
                 document.Page(page =>
                 {
-                    page.Size(QuestPDF.Helpers.PageSizes.A4);
-                    page.Margin(20);
+                    page.Size(
+                        QuestPDF.Helpers.PageSizes.A4);
+
+                    page.Margin(25);
 
                     page.DefaultTextStyle(
-                        x => x.FontSize(10));
+                        x => x.FontSize(9));
 
                     ConstruirDocumento(
                         page,
@@ -62,177 +74,436 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             return documento.GeneratePdf();
         }
 
+        // DOCUMENTO
+
         private void ConstruirDocumento(
             PageDescriptor page,
             Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion,
             ConfiguracionEmpresa empresa)
         {
-            page.Header()
-                .Element(x =>
-                {
-                    HeaderEmpresa.Dibujar(
-                        x,
-                        ObtenerLogo(),
-                        empresa,
-                        "",
-                        "RECEPCIÓN DE MERCANCÍA NO FORMALIZADA",
-                        recepcion.NumeroRecepcion);
-                });
-
             page.Content()
-                .PaddingVertical(10)
+                .PaddingVertical(12)
                 .Column(col =>
                 {
-                    col.Spacing(7);
+                    col.Spacing(10);
 
-                    DibujarDatosRecepcion(
-                        col,
-                        recepcion);
-
-                    DibujarDatosOrden(
-                        col,
-                        recepcion);
-
-                    DibujarTransporte(
-                        col,
-                        recepcion);
-
+                    // HEADER
                     col.Item()
                         .Element(x =>
-                        {
-                            TablaRecepcionMercanciaNoFormalizada.Dibujar(
+                            HeaderEmpresa.Dibujar(
                                 x,
-                                recepcion.Detalles);
+                                ObtenerLogo(),
+                                empresa,
+                                "F-GC-009 V2",
+                                "RECEPCIÓN DE MERCANCÍA NO FORMALIZADA",
+                                recepcion.NumeroRecepcion));
+
+                    // NOTA INICIAL
+                    col.Item()
+                        .Background(PdfColors.GrisClaro)
+                        .Border(1)
+                        .BorderColor(PdfColors.GrisClaro)
+                        .CornerRadius(5)
+                        .Padding(10)
+                        .Column(nota =>
+                        {
+                            nota.Item()
+                                .Text("NOTA")
+                                .Bold()
+                                .FontSize(9)
+                                .FontColor(
+                                    PdfColors.VerdePrincipal);
+
+                            nota.Item()
+                                .PaddingTop(3)
+                                .Text(
+                                    "Las verificaciones consisten en comprobar la documentacion, condiciones de transporte, caracteristicas físicas de la materia prima, con los criterios de calidad definidos en el procedimiento de recepcion de materias primas.")
+                                .FontSize(8)
+                                .FontColor(
+                                    PdfColors.AzulOscuro);
                         });
 
+                    // DATOS DE RECEPCIÓN + ORDEN
+                    col.Item()
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Element(x =>
+                                    DibujarDatosRecepcion(
+                                        x,
+                                        recepcion));
+
+                            row.ConstantItem(10);
+
+                            row.RelativeItem()
+                                .Element(x =>
+                                    DibujarDatosOrden(
+                                        x,
+                                        recepcion));
+                        });
+
+                    // TRANSPORTE
+                    col.Item()
+                        .Element(x =>
+                            DibujarTransporte(
+                                x,
+                                recepcion));
+
+                    // DETALLES
+                    DibujarDetalles(
+                        col,
+                        recepcion);
+
+                    // RESUMEN
                     DibujarResumen(
                         col,
                         recepcion);
+
+                    // NOTA FINAL
+                    col.Item()
+                        .Background(PdfColors.GrisClaro)
+                        .Border(1)
+                        .BorderColor(PdfColors.GrisClaro)
+                        .CornerRadius(5)
+                        .Padding(10)
+                        .Column(nota =>
+                        {
+                            nota.Item()
+                                .Text("NOTA")
+                                .Bold()
+                                .FontSize(9)
+                                .FontColor(
+                                    PdfColors.VerdePrincipal);
+
+                            nota.Item()
+                                .PaddingTop(3)
+                                .Text(text =>
+                                {
+                                    text.Span("Los métodos de verificación de las características y los criterios de cumplimiento a tener en cuenta, están definidos en el ")
+                                        .FontSize(8)
+                                        .FontColor(PdfColors.AzulOscuro);
+
+                                    text.Span("\"procedimiento de Pruebas y Ensayos\"")
+                                        .Bold()
+                                        .FontSize(8)
+                                        .FontColor(PdfColors.AzulOscuro);
+
+                                    text.Span(" e ")
+                                        .FontSize(8)
+                                        .FontColor(PdfColors.AzulOscuro);
+
+                                    text.Span("\"Instructivos para Pruebas y Ensayos\"")
+                                        .Bold()
+                                        .FontSize(8)
+                                        .FontColor(PdfColors.AzulOscuro);
+
+                                    text.Span(".")
+                                        .FontSize(8)
+                                        .FontColor(PdfColors.AzulOscuro);
+                                });
+                        });
                 });
 
             page.Footer()
                 .Element(FooterEmpresa.Dibujar);
         }
 
+        // DATOS RECEPCIÓN
+
         private void DibujarDatosRecepcion(
-            ColumnDescriptor col,
+            IContainer container,
             Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
         {
-            col.Item()
-                .Element(x =>
+            Card.Dibujar(
+                container,
+                "DATOS DE LA RECEPCIÓN",
+                contenido =>
                 {
-                    Card.Dibujar(
-                        x,
-                        "DATOS DE LA RECEPCIÓN",
-                        contenido =>
+                    contenido.Item()
+                        .Row(row =>
                         {
-                            contenido.Item()
-                                .Row(row =>
+                            row.RelativeItem()
+                                .Column(c =>
                                 {
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Recepción: {recepcion.NumeroRecepcion}");
+                                    c.Item()
+                                        .Text("Número")
+                                        .Style(PdfStyles.Label);
 
-                                    row.RelativeItem()
+                                    c.Item()
                                         .Text(
-                                            $"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy}");
+                                            recepcion.NumeroRecepcion)
+                                        .Style(PdfStyles.Valor);
+                                });
 
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Recibe: {recepcion.Recibe}");
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Fecha")
+                                        .Style(PdfStyles.Label);
 
-                                    row.RelativeItem()
+                                    c.Item()
                                         .Text(
-                                            $"Cargo: {recepcion.Cargo}");
+                                            recepcion.FechaRecepcion
+                                                .ToString(
+                                                    "dd/MM/yyyy HH:mm"))
+                                        .Style(PdfStyles.Valor);
+                                });
+                        });
+
+                    contenido.Item()
+                        .PaddingTop(8)
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Recibe")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion.Recibe)
+                                        .Style(PdfStyles.Valor);
+                                });
+
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Cargo")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion.Cargo)
+                                        .Style(PdfStyles.Valor);
                                 });
                         });
                 });
         }
+        // ORDEN DE COMPRA
 
         private void DibujarDatosOrden(
-            ColumnDescriptor col,
+            IContainer container,
             Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
         {
-            col.Item()
-                .Element(x =>
+            Card.Dibujar(
+                container,
+                "ORDEN DE COMPRA",
+                contenido =>
                 {
-                    Card.Dibujar(
-                        x,
-                        "ORDEN DE COMPRA",
-                        contenido =>
+                    contenido.Item()
+                        .Row(row =>
                         {
-                            contenido.Item()
-                                .Row(row =>
+                            row.RelativeItem()
+                                .Column(c =>
                                 {
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Orden: {recepcion.OrdenCompraNoFormalizada?.Numero}");
+                                    c.Item()
+                                        .Text("Número")
+                                        .Style(PdfStyles.Label);
 
-                                    row.RelativeItem()
+                                    c.Item()
                                         .Text(
-                                            $"Proveedor: {recepcion.OrdenCompraNoFormalizada?.ProveedorNoFormalizado?.Nombre}");
-
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Fecha: {recepcion.OrdenCompraNoFormalizada?.FechaOrden:dd/MM/yyyy}");
-
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Estado: {recepcion.OrdenCompraNoFormalizada?.Estado}");
+                                            recepcion
+                                                .OrdenCompraNoFormalizada
+                                                ?.Numero ?? "-")
+                                        .Style(PdfStyles.Valor);
                                 });
 
-                            if (recepcion
-                                .OrdenCompraNoFormalizada
-                                ?.FechaEntrega != null)
-                            {
-                                contenido.Item()
-                                    .PaddingTop(3)
-                                    .Text(
-                                        $"Fecha de entrega: {recepcion.OrdenCompraNoFormalizada.FechaEntrega:dd/MM/yyyy}");
-                            }
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Proveedor")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion
+                                                .OrdenCompraNoFormalizada
+                                                ?.ProveedorNoFormalizado
+                                                ?.Nombre ?? "-")
+                                        .Style(PdfStyles.Valor);
+                                });
+                        });
+
+                    contenido.Item()
+                        .PaddingTop(8)
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Fecha")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion
+                                                .OrdenCompraNoFormalizada
+                                                ?.FechaOrden
+                                                .ToString(
+                                                    "dd/MM/yyyy")
+                                            ?? "-")
+                                        .Style(PdfStyles.Valor);
+                                });
+
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Entrega")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion
+                                                .OrdenCompraNoFormalizada
+                                                ?.FechaEntrega?
+                                                .ToString(
+                                                    "dd/MM/yyyy")
+                                            ?? "-")
+                                        .Style(PdfStyles.Valor);
+                                });
+                        });
+
+                    contenido.Item()
+                        .PaddingTop(8)
+                        .Column(c =>
+                        {
+                            c.Item()
+                                .Text("Estado")
+                                .Style(PdfStyles.Label);
+
+                            c.Item()
+                                .Text(
+                                    recepcion
+                                        .OrdenCompraNoFormalizada
+                                        ?.Estado ?? "-")
+                                .Style(PdfStyles.Valor);
                         });
                 });
         }
+
+        // TRANSPORTE
 
         private void DibujarTransporte(
-            ColumnDescriptor col,
+            IContainer container,
             Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
         {
-            col.Item()
-                .Element(x =>
+            Card.Dibujar(
+                container,
+                "TRANSPORTE",
+                contenido =>
                 {
-                    Card.Dibujar(
-                        x,
-                        "TRANSPORTE",
-                        contenido =>
+                    contenido.Item()
+                        .Row(row =>
                         {
-                            contenido.Item()
-                                .Row(row =>
+                            row.RelativeItem()
+                                .Column(c =>
                                 {
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Conductor: {recepcion.Conductor}");
+                                    c.Item()
+                                        .Text("Conductor")
+                                        .Style(PdfStyles.Label);
 
-                                    row.RelativeItem()
+                                    c.Item()
                                         .Text(
-                                            $"Transportadora: {recepcion.Transportadora}");
+                                            recepcion.Conductor)
+                                        .Style(PdfStyles.Valor);
+                                });
 
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Documento: {recepcion.TipoDocumento}");
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Transportadora")
+                                        .Style(PdfStyles.Label);
 
-                                    row.RelativeItem()
+                                    c.Item()
                                         .Text(
-                                            $"Embalaje: {(recepcion.EmbalajeAdecuado ? "Sí" : "No")}");
+                                            recepcion.Transportadora)
+                                        .Style(PdfStyles.Valor);
+                                });
+                        });
+
+                    contenido.Item()
+                        .PaddingTop(8)
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Tipo documento")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion.TipoDocumento)
+                                        .Style(PdfStyles.Valor);
+                                });
+
+                            row.RelativeItem()
+                                .Column(c =>
+                                {
+                                    c.Item()
+                                        .Text("Embalaje adecuado")
+                                        .Style(PdfStyles.Label);
+
+                                    c.Item()
+                                        .Text(
+                                            recepcion.EmbalajeAdecuado
+                                                ? "Sí"
+                                                : "No")
+                                        .Style(PdfStyles.Valor);
                                 });
                         });
                 });
         }
+
+        // DETALLES DE RECEPCIÓN
+
+        private void DibujarDetalles(
+            ColumnDescriptor col,
+            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+        {
+            col.Item()
+                .Text("DETALLE DE LA RECEPCIÓN")
+                .Style(PdfStyles.Subtitulo);
+
+            col.Item()
+                .Element(x =>
+                {
+                    TablaRecepcionMercanciaNoFormalizada.Dibujar(
+                        x,
+                        recepcion.Detalles);
+                });
+        }
+
+        // RESUMEN
 
         private void DibujarResumen(
             ColumnDescriptor col,
             Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
         {
+            var totalKg =
+                recepcion.Detalles
+                    .Sum(x => x.CantidadRecibida);
+
+            var totalBultos =
+                recepcion.Detalles
+                    .Sum(x => x.BultosRecibidos);
+
+            var totalItems =
+                recepcion.Detalles
+                    .Select(x =>
+                        x.OrdenCompraDetalleNoFormalizadaId)
+                    .Distinct()
+                    .Count();
+
             col.Item()
                 .Element(x =>
                 {
@@ -245,32 +516,89 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                 .Row(row =>
                                 {
                                     row.RelativeItem()
-                                        .Text(
-                                            $"Materiales: {recepcion.OrdenCompraNoFormalizada?.TotalItems}");
+                                        .Column(c =>
+                                        {
+                                            c.Item()
+                                                .Text("Materiales")
+                                                .Style(
+                                                    PdfStyles.Label);
+
+                                            c.Item()
+                                                .Text(
+                                                    totalItems.ToString())
+                                                .Style(
+                                                    PdfStyles.Total);
+                                        });
 
                                     row.RelativeItem()
-                                        .Text(
-                                            $"Total Kg: {recepcion.OrdenCompraNoFormalizada?.TotalKg:N2}");
+                                        .Column(c =>
+                                        {
+                                            c.Item()
+                                                .Text("Total KG")
+                                                .Style(
+                                                    PdfStyles.Label);
+
+                                            c.Item()
+                                                .Text(
+                                                    totalKg.ToString("N2"))
+                                                .Style(
+                                                    PdfStyles.Total);
+                                        });
 
                                     row.RelativeItem()
-                                        .Text(
-                                            $"Bultos: {recepcion.OrdenCompraNoFormalizada?.TotalBultos:N2}");
+                                        .Column(c =>
+                                        {
+                                            c.Item()
+                                                .Text("Total Bultos")
+                                                .Style(
+                                                    PdfStyles.Label);
 
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Subtotal: ${recepcion.OrdenCompraNoFormalizada?.Subtotal:N2}");
+                                            c.Item()
+                                                .Text(
+                                                    totalBultos.ToString("N2"))
+                                                .Style(
+                                                    PdfStyles.Total);
+                                        });
+                                });
 
-                                    row.RelativeItem()
-                                        .Text(
-                                            $"Impuesto: ${recepcion.OrdenCompraNoFormalizada?.ValorImpuesto:N2}");
+                            contenido.Item()
+                                .PaddingTop(15)
+                                .Text("ESTADO DE LA RECEPCIÓN")
+                                .Bold()
+                                .FontSize(11);
 
-                                    row.RelativeItem()
+                            contenido.Item()
+                                .PaddingTop(5)
+                                .PaddingLeft(15)
+                                .Column(c =>
+                                {
+                                    bool confirmada =
+                                        recepcion
+                                            .FechaConfirmacion
+                                            .HasValue;
+
+                                    c.Item()
                                         .Text(
-                                            $"Total: ${recepcion.OrdenCompraNoFormalizada?.TotalPagar:N2}");
+                                            $"Estado: {(confirmada
+                                                ? "Confirmada"
+                                                : "Pendiente")}");
+
+                                    c.Item()
+                                        .Text(
+                                            $"Usuario: {recepcion.UsuarioConfirmacionId?.ToString() ?? "---"}");
+
+                                    c.Item()
+                                        .Text(
+                                            $"Fecha: {(recepcion.FechaConfirmacion.HasValue
+                                                ? recepcion.FechaConfirmacion.Value
+                                                    .ToString("dd/MM/yyyy HH:mm")
+                                                : "---")}");
                                 });
                         });
                 });
         }
+
+        // LOGO
 
         private string ObtenerLogo()
         {

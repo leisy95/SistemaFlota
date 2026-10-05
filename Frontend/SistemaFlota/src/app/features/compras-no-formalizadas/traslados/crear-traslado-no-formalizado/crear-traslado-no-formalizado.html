@@ -1,0 +1,311 @@
+<div class="modal-overlay">
+    <div class="modal">
+
+        <div class="modal-header">
+            <div>
+                <h2>Nueva Orden de Traslado No Formalizada a Extrusión</h2>
+                <p>
+                    Registre el traslado de materiales no formalizados de bodega a extrusión
+                </p>
+            </div>
+
+            <button class="btn-cerrar" (click)="cerrar()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <!-- INFORMACIÓN DEL TRASLADO -->
+            <section class="seccion">
+                <h3>Información del Traslado</h3>
+
+                <div class="separador"></div>
+
+                <div class="form-grid">
+
+                    <div class="campo">
+                        <label>Fecha *</label>
+
+                        <div class="input-icon">
+                            <input type="text" [(ngModel)]="fecha" readonly />
+
+                            <i class="fa-regular fa-calendar"></i>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Destino *</label>
+
+                        <input type="text" [(ngModel)]="destino" readonly />
+                    </div>
+
+                    <div class="campo">
+                        <label>Usuario *</label>
+
+                        <input type="text" [(ngModel)]="usuario" readonly />
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- SELECCIÓN DE MATERIAL -->
+            <section class="seccion">
+
+                <h3>Seleccionar Material No Formalizado</h3>
+
+                <div class="separador"></div>
+
+                <div class="material-selector">
+
+                    <div class="material-grid">
+
+                        <!-- PROVEEDOR -->
+                        <div class="select-wrapper">
+
+                            <select [(ngModel)]="materialActual.proveedor" (ngModelChange)="cambiarProveedor()">
+
+                                <option value="">
+                                    Proveedor
+                                </option>
+
+                                <option *ngFor="let proveedor of proveedores" [value]="proveedor">
+
+                                    {{ proveedor }}
+
+                                </option>
+
+                            </select>
+
+                            <i class="fa-solid fa-chevron-down"></i>
+
+                        </div>
+
+
+                        <!-- MATERIAL -->
+                        <div class="select-wrapper">
+
+                            <select [(ngModel)]="materialActual.materialNoFormalizadoId"
+                                (change)="seleccionarMaterial()">
+
+                                <option [ngValue]="null">
+                                    Material
+                                </option>
+
+                                <option *ngFor="let material of inventariosFiltrados" [ngValue]="material.materialId">
+
+                                    {{ material.material || material.categoria }}
+
+                                </option>
+
+                            </select>
+
+                            <i class="fa-solid fa-chevron-down"></i>
+
+                        </div>
+
+
+                        <!-- CATEGORÍA -->
+                        <div class="campo-automatico">
+
+                            <input class="input-material" type="text" [(ngModel)]="materialActual.tipo"
+                                placeholder="Categoría" readonly />
+
+                        </div>
+
+
+                        <!-- DENSIDAD -->
+                        <div class="campo-automatico">
+
+                            <input class="input-material" type="text" [(ngModel)]="materialActual.densidad"
+                                placeholder="Densidad" readonly />
+
+                        </div>
+
+
+                        <!-- COLOR -->
+                        <div class="campo-automatico">
+
+                            <input class="input-material" type="text" [(ngModel)]="materialActual.color"
+                                placeholder="Color" readonly />
+
+                        </div>
+
+
+                        <!-- CANTIDAD KG -->
+                        <input class="input-material" [class.input-error]="cantidadSuperaStock" type="number"
+                            [(ngModel)]="materialActual.cantidadKg" placeholder="Cantidad (Kg)" min="0.01"
+                            step="0.01" />
+
+
+                        <!-- BULTOS -->
+                        <input class="input-material" type="number" [(ngModel)]="materialActual.bultos"
+                            placeholder="Bultos" min="1" step="1" />
+
+                    </div>
+
+
+                    <!-- INFORMACIÓN DE STOCK -->
+                    <div class="cantidad-container">
+
+                        <small *ngIf="materialActual.materialNoFormalizadoId" class="stock-info">
+
+                            Stock:
+                            {{ stockActual | number:'1.0-2' }} KG
+
+                            · Comprometido:
+                            {{ cantidadComprometida | number:'1.0-2' }} KG
+
+                            ·
+
+                            <strong>
+                                Disponible:
+                                {{ stockDisponible | number:'1.0-2' }} KG
+                            </strong>
+
+                        </small>
+
+
+                        <small *ngIf="cantidadSuperaStock" class="stock-error">
+
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+
+                            Stock insuficiente.
+                            Disponible:
+                            {{ stockDisponible | number:'1.0-2' }} KG
+
+                        </small>
+
+                    </div>
+
+
+                    <!-- AGREGAR MATERIAL -->
+                    <button class="btn-agregar" [disabled]="
+                            guardando ||
+                            cargandoInventario ||
+                            cantidadSuperaStock
+                        " (click)="agregarMaterial()">
+
+                        <i class="fa-solid fa-plus"></i>
+
+                        <span>
+                            Agregar Material
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- MATERIALES DEL TRASLADO -->
+            <section class="seccion materiales-seccion" *ngIf="materiales.length > 0">
+
+                <h3>
+                    Materiales del Traslado
+                    ({{ materiales.length }})
+                </h3>
+
+                <div class="separador"></div>
+
+                <div class="materiales-lista">
+
+                    <div class="material-item" *ngFor="
+                            let material of materiales;
+                            let i = index
+                        ">
+
+                        <div class="material-info">
+
+                            <strong>
+                                {{ material.proveedor }}
+                            </strong>
+
+                            <span>
+                                {{ material.material }}
+                                ·
+                                {{ material.tipo }}
+                                ·
+                                {{ material.densidad }}
+                                ·
+                                {{ material.cantidadKg }} kg /
+                                {{ material.bultos }} bultos
+                            </span>
+
+                            <span>
+                                - {{ material.color }}
+                            </span>
+
+                        </div>
+
+                        <button class="btn-eliminar" (click)="eliminarMaterial(i)">
+
+                            <i class="fa-regular fa-trash-can"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL -->
+                <div class="total-card">
+
+                    <div class="total-info">
+
+                        <strong>
+                            Total del Traslado
+                        </strong>
+
+                        <span>
+                            Este material se descontará del
+                            inventario no formalizado de bodega
+                        </span>
+
+                    </div>
+
+                    <div class="total-valores">
+
+                        <strong>
+                            {{ totalKg | number:'1.0-0' }} kg
+                        </strong>
+
+                        <span>
+                            {{ totalBultos }} bultos
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+
+            <button class="btn-agregar" [disabled]="
+                    materiales.length === 0 ||
+                    guardando
+                " (click)="generarOrden()">
+
+                <i *ngIf="guardando" class="fa-solid fa-spinner fa-spin">
+                </i>
+
+                {{
+                guardando
+                ? 'Generando...'
+                : 'Generar Orden de Traslado'
+                }}
+
+            </button>
+
+        </div>
+
+    </div>
+</div>

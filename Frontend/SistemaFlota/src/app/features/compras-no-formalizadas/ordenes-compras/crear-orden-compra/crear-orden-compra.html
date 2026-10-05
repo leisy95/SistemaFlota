@@ -147,7 +147,8 @@
                                 <!-- CANTIDAD KG -->
                                 <td data-label="Cantidad (KG)">
                                     <input type="number" min="0" [(ngModel)]="item.kilos" (input)="calcular(i)"
-                                        [class.input-error]="mostrarErrores && item.kilos <= 0">
+                                        [class.input-error]="mostrarErrores && item.kilos <= 0"
+                                        (wheel)="$any($event.target).blur()">
                                     <div class="error-message" *ngIf="mostrarErrores && item.kilos <= 0">La cantidad
                                         debe ser mayor a 0.</div>
                                 </td>
@@ -155,7 +156,8 @@
                                 <!-- KG BULTO -->
                                 <td data-label="KG/Bulto">
                                     <input type="number" min="0" [(ngModel)]="item.kgBulto" (input)="calcular(i)"
-                                        [class.input-error]="mostrarErrores && item.kgBulto <= 0">
+                                        [class.input-error]="mostrarErrores && item.kgBulto <= 0"
+                                        (wheel)="$any($event.target).blur()">
                                     <div class="error-message" *ngIf="mostrarErrores && item.kgBulto <= 0">Los KG por
                                         bulto deben ser mayores a 0.</div>
                                 </td>
@@ -168,7 +170,8 @@
                                 <!-- COSTO -->
                                 <td data-label="Costo/KG">
                                     <input type="number" min="0" [(ngModel)]="item.costo" (input)="calcular(i)"
-                                        [class.input-error]="mostrarErrores && item.costo <= 0">
+                                        [class.input-error]="mostrarErrores && item.costo <= 0"
+                                        (wheel)="$any($event.target).blur()">
                                     <div class="error-message" *ngIf="mostrarErrores && item.costo <= 0">El costo debe
                                         ser mayor a 0.</div>
                                 </td>

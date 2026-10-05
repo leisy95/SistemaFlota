@@ -6,4 +6,5 @@ export interface InventarioCorteNoFormalizado {
     color: string;
     sistema: number;
     conteo: number;
+    diferencia: number;
 }

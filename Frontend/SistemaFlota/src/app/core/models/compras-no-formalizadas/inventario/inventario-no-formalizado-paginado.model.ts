@@ -5,6 +5,6 @@ export interface InventarioNoFormalizadoPaginado {
     total: number;
     pagina: number;
     pageSize: number;
-    totalKg: number | null;
-    totalValorInventario: number | null;
+    totalKg: number;
+    totalValorInventario: number;
 }

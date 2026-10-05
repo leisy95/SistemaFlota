@@ -14,13 +14,18 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
     {
         private readonly IRecepcionMercanciaNoFormalizadaService _service;
         private readonly IEtiquetasPdfNoFormalizadaService _etiquetasPdfService;
+        private readonly IRecepcionMercanciaNoFormalizadaPdfService
+            _recepcionMercanciaNoFormalizadaPdfService;
 
         public RecepcionMercanciaNoFormalizadaController(
             IRecepcionMercanciaNoFormalizadaService service,
-            IEtiquetasPdfNoFormalizadaService etiquetasPdfService)
+            IEtiquetasPdfNoFormalizadaService etiquetasPdfService,
+            IRecepcionMercanciaNoFormalizadaPdfService recepcionMercanciaNoFormalizadaPdfService)
         {
             _service = service;
             _etiquetasPdfService = etiquetasPdfService;
+            _recepcionMercanciaNoFormalizadaPdfService =
+               recepcionMercanciaNoFormalizadaPdfService;
         }
 
         // Listar recepciones
@@ -77,6 +82,30 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             catch (Exception ex)
             {
                 return Conflict(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
+
+        // Ver PDF de recepción
+        [HttpGet("{id:int}/pdf")]
+        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        public async Task<IActionResult> ObtenerPdf(int id)
+        {
+            try
+            {
+                var pdf = await _recepcionMercanciaNoFormalizadaPdfService
+                    .GenerarPdfAsync(id);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"Recepcion_NoFormalizada_{id}.pdf");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new
                 {
                     mensaje = ex.Message
                 });

@@ -3,12 +3,13 @@ export interface InventarioNoFormalizado {
     materialId: number;
     material: string;
     proveedor: string;
-    categoria: string | null;
+    categoria: string;
+    tipoProduccion: string;
     color: string;
     densidad: string;
-    cantidadComprometida: number | null;
-    stockDisponible: number | null;
-    stockActual: number | null;
-    costoPromedio: number | null;
-    valorInventario: number | null;
+    stockActual: number;
+    cantidadComprometida: number;
+    stockDisponible: number;
+    costoPromedio: number;
+    valorInventario: number;
 }
