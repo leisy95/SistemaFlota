@@ -192,6 +192,19 @@ export class CrearOrdenCompra implements OnInit {
     this.actualizarTotales();
   }
 
+  obtenerNombreMaterial(materialId: number): string {
+
+    if (!materialId) {
+      return '';
+    }
+
+    const material = this.materiales.find(
+      m => m.idMaterial === materialId
+    );
+
+    return material?.nombreMaterial ?? '';
+  }
+
   eliminarItem(index: number): void {
     this.items.splice(index, 1);
     this.actualizarTotales();

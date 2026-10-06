@@ -216,28 +216,38 @@
                             <tr *ngFor="let item of items; let i = index">
 
                                 <!-- MATERIAL -->
+                                <!-- MATERIAL -->
                                 <td data-label="Tipo Material">
 
-                                    <select [(ngModel)]="item.materialId"
+                                    <div class="material-tooltip" *ngIf="item.materialId"
+                                        [attr.data-tooltip]="obtenerNombreMaterial(item.materialId)">
+                                        <select [(ngModel)]="item.materialId"
+                                            (ngModelChange)="seleccionarMaterial(i, $event)"
+                                            [class.input-error]="mostrarErrores && !item.materialId">
+                                            <option [ngValue]="0">
+                                                Seleccione
+                                            </option>
+
+                                            <option *ngFor="let m of materiales" [ngValue]="m.idMaterial">
+                                                {{ m.nombreMaterial }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <select *ngIf="!item.materialId" [(ngModel)]="item.materialId"
                                         (ngModelChange)="seleccionarMaterial(i, $event)"
                                         [class.input-error]="mostrarErrores && !item.materialId">
-
                                         <option [ngValue]="0">
                                             Seleccione
                                         </option>
 
                                         <option *ngFor="let m of materiales" [ngValue]="m.idMaterial">
-
                                             {{ m.nombreMaterial }}
-
                                         </option>
-
                                     </select>
 
                                     <div class="error-message" *ngIf="mostrarErrores && !item.materialId">
-
                                         Seleccione un material.
-
                                     </div>
 
                                 </td>
@@ -245,7 +255,11 @@
                                 <!-- COLOR -->
                                 <td data-label="Color">
 
-                                    <input type="text" [(ngModel)]="item.color" readonly>
+                                    <div class="material-tooltip" *ngIf="item.color" [attr.data-tooltip]="item.color">
+                                        <input type="text" [(ngModel)]="item.color" readonly>
+                                    </div>
+
+                                    <input *ngIf="!item.color" type="text" [(ngModel)]="item.color" readonly>
 
                                 </td>
 
