@@ -5,18 +5,16 @@
             <div class="header-info">
                 <h2>Formulario de Recepción No Formalizada</h2>
                 <p>
-                    Complete los datos de la recepción no formalizada y genere etiquetas QR para cada bulto
+                    Complete los datos de la recepción y genere etiquetas QR para cada bulto
                 </p>
             </div>
-
-            <button class="btn-close" (click)="cerrar()">
+            <button type="button" class="btn-close" (click)="cerrar()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
         <!-- Body -->
         <div class="modal-body">
-
             <!-- Orden -->
             <section class="orden-card">
                 <h3>
@@ -24,7 +22,7 @@
                 </h3>
 
                 <p>
-                    <strong>Proveedor:</strong>
+                    <strong>Proveedor No Formalizado:</strong>
                     {{ orden.proveedor }}
                 </p>
 
@@ -42,42 +40,28 @@
                 </h3>
 
                 <div class="form-grid">
-
                     <div class="field">
                         <label>Número de Recepción</label>
-
                         <input class="input" value="Se generará automáticamente" readonly>
                     </div>
 
                     <div class="field">
                         <label>Nombre del Conductor</label>
-
                         <input class="input" formControlName="conductor" placeholder="Nombre completo"
-                            [class.is-invalid]="
-                                form.get('conductor')?.invalid &&
-                                form.get('conductor')?.touched
-                            ">
+                            [class.is-invalid]="form.get('conductor')?.invalid && form.get('conductor')?.touched">
 
-                        <small class="error" *ngIf="
-                                form.get('conductor')?.invalid &&
-                                form.get('conductor')?.touched
-                            ">
+                        <small class="error" *ngIf="form.get('conductor')?.invalid && form.get('conductor')?.touched">
                             Campo obligatorio
                         </small>
                     </div>
 
                     <div class="field">
                         <label>Empresa de Transporte</label>
+                        <input class="input" formControlName="transportadora" placeholder="Empresa"
+                            [class.is-invalid]="form.get('transportadora')?.invalid && form.get('transportadora')?.touched">
 
-                        <input class="input" formControlName="transportadora" placeholder="Empresa" [class.is-invalid]="
-                                form.get('transportadora')?.invalid &&
-                                form.get('transportadora')?.touched
-                            ">
-
-                        <small class="error" *ngIf="
-                                form.get('transportadora')?.invalid &&
-                                form.get('transportadora')?.touched
-                            ">
+                        <small class="error"
+                            *ngIf="form.get('transportadora')?.invalid && form.get('transportadora')?.touched">
                             Campo obligatorio
                         </small>
                     </div>
@@ -86,12 +70,11 @@
                         <label>Tipo Documento</label>
 
                         <select class="select" formControlName="tipoDocumento">
-                            <option>Factura</option>
-                            <option>Remisión</option>
-                            <option>Otro</option>
+                            <option value="Factura">Factura</option>
+                            <option value="Remisión">Remisión</option>
+                            <option value="Otro">Otro</option>
                         </select>
                     </div>
-
                 </div>
 
                 <div class="checkbox">
@@ -109,14 +92,9 @@
                 </h3>
 
                 <div formArrayName="detalles">
-
-                    <div class="item-card" *ngFor="
-                            let item of detalles.controls;
-                            let i = index
-                        " [formGroupName]="i">
+                    <div class="item-card" *ngFor="let item of detalles.controls; let i = index" [formGroupName]="i">
 
                         <div class="item-header">
-
                             <label>
                                 <input type="checkbox" formControlName="seleccionado">
 
@@ -126,49 +104,39 @@
                             </label>
 
                             <div class="item-resumen">
-
                                 <span>
                                     <strong>Pedido:</strong>
-                                    {{ item.get('cantidadOrdenada')?.value | number:'1.0-2' }}
-                                    KG /
-                                    {{ item.get('bultosOrdenados')?.value | number:'1.0-2' }}
-                                    bultos
+                                    {{ item.get('cantidadOrdenada')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosOrdenados')?.value | number:'1.0-2' }} bultos
                                 </span>
 
                                 <span>
                                     <strong>Recibido:</strong>
-                                    {{ item.get('cantidadRecibidaAnterior')?.value | number:'1.0-2' }}
-                                    KG /
-                                    {{ item.get('bultosRecibidosAnterior')?.value | number:'1.0-2' }}
-                                    bultos
+                                    {{ item.get('cantidadRecibidaAnterior')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosRecibidosAnterior')?.value | number:'1.0-2' }} bultos
                                 </span>
 
                                 <span class="pendiente">
                                     <strong>Pendiente:</strong>
-                                    {{ item.get('cantidadPendiente')?.value | number:'1.0-2' }}
-                                    KG /
-                                    {{ item.get('bultosPendientes')?.value | number:'1.0-2' }}
-                                    bultos
+                                    {{ item.get('cantidadPendiente')?.value | number:'1.0-2' }} KG
+                                    /
+                                    {{ item.get('bultosPendientes')?.value | number:'1.0-2' }} bultos
                                 </span>
-
                             </div>
                         </div>
 
                         <div class="form-grid">
-
                             <div class="field">
                                 <label>Cantidad Recibida (KG)</label>
 
                                 <input type="number" class="input" formControlName="cantidadRecibida"
-                                    (wheel)="$any($event.target).blur()" [class.is-invalid]="
-                                        item.get('cantidadRecibida')?.invalid &&
-                                        item.get('cantidadRecibida')?.touched
-                                    ">
+                                    (wheel)="$any($event.target).blur()"
+                                    [class.is-invalid]="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
 
-                                <small class="error" *ngIf="
-                                        item.get('cantidadRecibida')?.invalid &&
-                                        item.get('cantidadRecibida')?.touched
-                                    ">
+                                <small class="error"
+                                    *ngIf="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
                                     Cantidad requerida
                                 </small>
                             </div>
@@ -177,15 +145,11 @@
                                 <label>Bultos Recibidos</label>
 
                                 <input type="number" class="input" formControlName="bultosRecibidos"
-                                    (wheel)="$any($event.target).blur()" [class.is-invalid]="
-                                        item.get('bultosRecibidos')?.invalid &&
-                                        item.get('bultosRecibidos')?.touched
-                                    ">
+                                    (wheel)="$any($event.target).blur()"
+                                    [class.is-invalid]="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
 
-                                <small class="error" *ngIf="
-                                        item.get('bultosRecibidos')?.invalid &&
-                                        item.get('bultosRecibidos')?.touched
-                                    ">
+                                <small class="error"
+                                    *ngIf="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
                                     Bultos requeridos
                                 </small>
                             </div>
@@ -196,15 +160,11 @@
                                     Lote del Proveedor
                                 </label>
 
-                                <input class="input" formControlName="loteProveedor" [class.is-invalid]="
-                                        item.get('loteProveedor')?.invalid &&
-                                        item.get('loteProveedor')?.touched
-                                    ">
+                                <input class="input" formControlName="loteProveedor"
+                                    [class.is-invalid]="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
 
-                                <small class="error" *ngIf="
-                                        item.get('loteProveedor')?.invalid &&
-                                        item.get('loteProveedor')?.touched
-                                    ">
+                                <small class="error"
+                                    *ngIf="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
                                     Lote obligatorio
                                 </small>
                             </div>
@@ -212,23 +172,20 @@
                             <div class="field">
                                 <label>Estado del Material</label>
 
-                                <select class="select" formControlName="estadoMaterial" [class.is-invalid]="
-                                        item.get('estadoMaterial')?.invalid &&
-                                        item.get('estadoMaterial')?.touched
-                                    ">
-                                    <option>Conforme</option>
-                                    <option>No Conforme</option>
-                                    <option>Condicional</option>
+                                <select class="select" formControlName="estadoMaterial"
+                                    [class.is-invalid]="item.get('estadoMaterial')?.invalid && item.get('estadoMaterial')?.touched">
+
+                                    <option value="Conforme">Conforme</option>
+                                    <option value="No Conforme">No Conforme</option>
+                                    <option value="Condicional">Condicional</option>
                                 </select>
                             </div>
 
                             <div class="field full">
                                 <label>Observaciones</label>
 
-                                <textarea class="textarea" rows="4" formControlName="observaciones">
-                                </textarea>
+                                <textarea class="textarea" rows="4" formControlName="observaciones"></textarea>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -242,35 +199,29 @@
                 </h3>
 
                 <div class="form-grid">
-
                     <div class="field">
                         <label>Firma quien Recibe</label>
-
                         <input class="input" formControlName="recibe">
                     </div>
 
                     <div class="field">
                         <label>Cargo</label>
-
                         <input class="input" formControlName="cargo">
                     </div>
 
                     <div class="field full">
                         <label>Observaciones Generales</label>
 
-                        <textarea class="textarea" rows="5" formControlName="observaciones">
-                        </textarea>
+                        <textarea class="textarea" rows="5" formControlName="observaciones"></textarea>
                     </div>
-
                 </div>
             </section>
 
             <!-- Resumen -->
             <section class="resumen-card">
-                <h3>Resumen de Recepción No Formalizada</h3>
+                <h3>Resumen de Recepción</h3>
 
                 <div class="resumen-grid">
-
                     <div>
                         <span>Items Seleccionados</span>
                         <strong>{{ totalItems }}</strong>
@@ -285,46 +236,31 @@
                         <span>Total Bultos</span>
                         <strong>{{ totalBultos }}</strong>
                     </div>
-
                 </div>
 
                 <div class="mensaje">
                     <i class="fa-solid fa-file-lines"></i>
-
                     Se generarán
                     <strong>{{ totalBultos }}</strong>
                     etiquetas QR (una por bulto)
                 </div>
             </section>
-
         </div>
 
         <!-- Footer -->
         <div class="modal-footer">
-
-            <button class="btn-cancelar" (click)="cerrar()">
+            <button type="button" class="btn-cancelar" (click)="cerrar()">
                 Cancelar
             </button>
 
-            <button *ngIf="permisos.puedeCrear('recepcion-mercancia-no-formalizada')" class="btn-agregar"
+            <button type="button" *ngIf="permisos.puedeCrear('recepcion-mercancia-no-formalizada')" class="btn-agregar"
                 (click)="finalizarRecepcion()" [disabled]="form.invalid || guardando">
 
-                <i class="fa-solid" [ngClass]="
-                        guardando
-                            ? 'fa-spinner fa-spin'
-                            : 'fa-qrcode'
-                    ">
+                <i class="fa-solid" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-qrcode'">
                 </i>
 
-                {{
-                guardando
-                ? 'Procesando recepción...'
-                : 'Finalizar Recepción y Generar Etiquetas'
-                }}
-
+                {{ guardando ? 'Procesando recepción...' : 'Finalizar Recepción y Generar Etiquetas' }}
             </button>
-
         </div>
-
     </div>
 </div>

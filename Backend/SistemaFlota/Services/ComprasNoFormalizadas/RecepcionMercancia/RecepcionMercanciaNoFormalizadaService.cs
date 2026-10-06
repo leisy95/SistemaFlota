@@ -22,7 +22,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             ICurrentUserService currentUser,
             IConsecutivoService consecutivoService,
             INotificacionRecepcionService notificacion,
-             IInventarioNoFormalizadoService inventarioService)
+            IInventarioNoFormalizadoService inventarioService)
         {
             _context = context;
             _currentUser = currentUser;
@@ -31,6 +31,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             _inventarioService = inventarioService;
         }
 
+        // OBTENER RECEPCIONES
         public async Task<RecepcionMercanciaNoFormalizadaPaginadoDto> ObtenerAsync(
             string? search,
             DateTime? fechaInicio,
@@ -39,8 +40,102 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             int page,
             int pageSize)
         {
-            throw new NotImplementedException();
+            page = page <= 0 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+
+            var query = _context.RecepcionesMercanciasNoFormalizadas
+                .AsNoTracking()
+                .Include(r => r.OrdenCompraNoFormalizada)
+                    .ThenInclude(o => o.ProveedorNoFormalizado)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(r =>
+                    r.NumeroRecepcion.Contains(search) ||
+                    r.OrdenCompraNoFormalizada!.Numero.Contains(search) ||
+                    r.OrdenCompraNoFormalizada!
+                        .ProveedorNoFormalizado!.Nombre.Contains(search));
+            }
+
+            if (fechaInicio.HasValue)
+            {
+                query = query.Where(r =>
+                    r.FechaRecepcion >= fechaInicio.Value.Date);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                var fechaFinAjustada =
+                    fechaFin.Value.Date.AddDays(1);
+
+                query = query.Where(r =>
+                    r.FechaRecepcion < fechaFinAjustada);
+            }
+
+            if (proveedorId.HasValue)
+            {
+                query = query.Where(r =>
+                    r.OrdenCompraNoFormalizada!
+                        .ProveedorNoFormalizadoId ==
+                    proveedorId.Value);
+            }
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(r => r.FechaRecepcion)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new RecepcionMercanciaNoFormalizadaDto
+                {
+                    Id = r.Id,
+
+                    ConsecutivoEntrada =
+                        r.NumeroRecepcion,
+
+                    OrdenCompraNoFormalizadaId =
+                        r.OrdenCompraNoFormalizadaId,
+
+                    NumeroOrden =
+                        r.OrdenCompraNoFormalizada!.Numero,
+
+                    Proveedor =
+                        r.OrdenCompraNoFormalizada!
+                            .ProveedorNoFormalizado!.Nombre,
+
+                    FechaRecepcion =
+                        r.FechaRecepcion,
+
+                    Conductor =
+                        r.Conductor,
+
+                    Transportadora =
+                        r.Transportadora,
+
+                    EmbalajeAdecuado =
+                        r.EmbalajeAdecuado,
+
+                    TotalKg =
+                        r.Detalles.Sum(x => x.CantidadRecibida),
+
+                    TotalBultos =
+                        r.Detalles.Sum(x => x.BultosRecibidos)
+                })
+                .ToListAsync();
+
+            return new RecepcionMercanciaNoFormalizadaPaginadoDto
+            {
+                Data = items,
+                TotalRegistros = total,
+                PaginaActual = page,
+                TotalPaginas = (int)Math.Ceiling((double)total / pageSize)
+            };
         }
+
+        // OBTENER POR ID
 
         public async Task<RecepcionMercanciaNoFormalizadaDto?> ObtenerPorIdAsync(
             int id)
@@ -49,10 +144,13 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Include(r => r.OrdenCompraNoFormalizada)
                         .ThenInclude(o => o.ProveedorNoFormalizado)
+
                     .Include(r => r.Detalles)
                         .ThenInclude(d =>
                             d.OrdenCompraDetalleNoFormalizada)
-                        .ThenInclude(d => d.MaterialNoFormalizado)
+                        .ThenInclude(d =>
+                            d.MaterialNoFormalizado)
+
                     .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recepcion == null)
@@ -118,11 +216,22 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                     x.EstadoMaterial,
 
                                 Observaciones =
-                                    x.Observaciones
+                                    x.Observaciones,
+
+                                NumeroEntrega =
+                                    x.NumeroEntrega,
+
+                                FechaEntrega =
+                                    x.FechaEntrega,
+
+                                ProcesadoInventario =
+                                    x.ProcesadoInventario
                             })
                         .ToList()
             };
         }
+
+        // FORMULARIO
 
         public async Task<RecepcionFormularioNoFormalizadaDto?>
             ObtenerFormularioAsync(int ordenCompraId)
@@ -132,15 +241,25 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     .Include(o => o.ProveedorNoFormalizado)
                     .Include(o => o.Detalles)
                         .ThenInclude(d => d.MaterialNoFormalizado)
-                    .FirstOrDefaultAsync(o => o.Id == ordenCompraId);
+                    .FirstOrDefaultAsync(o =>
+                        o.Id == ordenCompraId);
 
             if (orden == null)
                 return null;
 
+            if (orden.Estado?.Equals(
+                    "Anulada",
+                    StringComparison.OrdinalIgnoreCase) == true)
+            {
+                throw new InvalidOperationException(
+                    "No se puede registrar una recepción para una orden de compra anulada.");
+            }
+
             var recepcionesAnteriores =
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Where(r =>
-                        r.OrdenCompraNoFormalizadaId == ordenCompraId)
+                        r.OrdenCompraNoFormalizadaId ==
+                        ordenCompraId)
                     .SelectMany(r => r.Detalles)
                     .ToListAsync();
 
@@ -164,12 +283,14 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     var cantidadPendiente =
                         Math.Max(
                             0,
-                            d.CantidadKg - cantidadRecibida);
+                            d.CantidadKg -
+                            cantidadRecibida);
 
                     var bultosPendientes =
                         Math.Max(
                             0,
-                            d.Bultos - bultosRecibidos);
+                            d.Bultos -
+                            bultosRecibidos);
 
                     return
                         new RecepcionMercanciaDetalleFormularioNoFormalizadaDto
@@ -234,6 +355,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             };
         }
 
+        // CREAR RECEPCIÓN
+
         public async Task<RecepcionMercanciaNoFormalizadaDto> CrearAsync(
             CrearRecepcionMercanciaNoFormalizadaDto dto)
         {
@@ -249,9 +372,22 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 throw new Exception(
                     "La orden de compra no existe.");
 
-            // Buscar una recepción pendiente existente.
-            // Si existe, se reutiliza para acumular
-            // entregas parciales.
+            var estadosNoRecepcionables =
+                new[]
+                {
+                    "Anulada",
+                    "Recepcionada",
+                    "Confirmada"
+                };
+
+            if (estadosNoRecepcionables.Contains(
+                    orden.Estado ?? string.Empty,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    $"No se puede registrar una recepción para una orden en estado '{orden.Estado}'.");
+            }
+
             var recepcion =
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Include(r => r.Detalles)
@@ -260,8 +396,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                             dto.OrdenCompraNoFormalizadaId &&
                         r.FechaConfirmacion == null);
 
-            // Si no existe recepción pendiente,
-            // crear una nueva.
             if (recepcion == null)
             {
                 var numeroRecepcion =
@@ -299,15 +433,44 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                             dto.Observaciones,
 
                         FechaRecepcion =
-                            DateTime.Now
+                            DateTime.Now,
+
+                        NumeroUltimaEntrega = 0
                     };
 
                 _context.RecepcionesMercanciasNoFormalizadas
                     .Add(recepcion);
             }
+            else
+            {
+                recepcion.Conductor =
+                    dto.Conductor;
 
-            // Todos los detalles recibidos anteriormente
-            // para esta orden.
+                recepcion.Transportadora =
+                    dto.Transportadora;
+
+                recepcion.TipoDocumento =
+                    dto.TipoDocumento;
+
+                recepcion.EmbalajeAdecuado =
+                    dto.EmbalajeAdecuado;
+
+                recepcion.Recibe =
+                    dto.Recibe;
+
+                recepcion.Cargo =
+                    dto.Cargo;
+
+                recepcion.Observaciones =
+                    dto.Observaciones;
+            }
+
+            var numeroEntrega =
+                recepcion.NumeroUltimaEntrega + 1;
+
+            var fechaEntrega =
+                DateTime.Now;
+
             var recepcionesAnteriores =
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Where(r =>
@@ -316,7 +479,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     .SelectMany(r => r.Detalles)
                     .ToListAsync();
 
-            // Acumuladores de la entrega actual.
             var cantidadesNuevaEntrega =
                 new Dictionary<int, decimal>();
 
@@ -338,8 +500,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     throw new Exception(
                         $"El detalle " +
                         $"{item.OrdenCompraDetalleNoFormalizadaId} " +
-                        $"no pertenece a la orden de compra."
-                    );
+                        $"no pertenece a la orden de compra.");
                 }
 
                 if (item.CantidadRecibida < 0)
@@ -347,8 +508,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     throw new Exception(
                         $"La cantidad recibida de " +
                         $"{detalleOrden.MaterialNoFormalizado?.NombreMaterial} " +
-                        $"no puede ser negativa."
-                    );
+                        $"no puede ser negativa.");
                 }
 
                 if (item.BultosRecibidos < 0)
@@ -356,11 +516,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     throw new Exception(
                         $"Los bultos recibidos de " +
                         $"{detalleOrden.MaterialNoFormalizado?.NombreMaterial} " +
-                        $"no pueden ser negativos."
-                    );
+                        $"no pueden ser negativos.");
                 }
 
-                // Si no recibió nada, no se agrega.
                 if (item.CantidadRecibida == 0 &&
                     item.BultosRecibidos == 0)
                 {
@@ -387,7 +545,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     item.OrdenCompraDetalleNoFormalizadaId] +=
                     item.BultosRecibidos;
 
-                // Total recibido anteriormente.
                 var cantidadRecibidaAnterior =
                     recepcionesAnteriores
                         .Where(r =>
@@ -402,7 +559,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                             item.OrdenCompraDetalleNoFormalizadaId)
                         .Sum(r => r.BultosRecibidos);
 
-                // Cantidad pendiente.
                 var cantidadPendiente =
                     Math.Max(
                         0,
@@ -415,7 +571,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                         detalleOrden.Bultos -
                         bultosRecibidosAnterior);
 
-                // Cantidad de esta entrega.
                 var cantidadNueva =
                     cantidadesNuevaEntrega[
                         item.OrdenCompraDetalleNoFormalizadaId];
@@ -430,8 +585,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                         $"La cantidad recibida de " +
                         $"{detalleOrden.MaterialNoFormalizado?.NombreMaterial} " +
                         $"supera la cantidad pendiente. " +
-                        $"Pendiente: {cantidadPendiente} kg."
-                    );
+                        $"Pendiente: {cantidadPendiente} kg.");
                 }
 
                 if (bultosNuevos > bultosPendientes)
@@ -440,8 +594,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                         $"Los bultos recibidos de " +
                         $"{detalleOrden.MaterialNoFormalizado?.NombreMaterial} " +
                         $"superan los bultos pendientes. " +
-                        $"Pendientes: {bultosPendientes}."
-                    );
+                        $"Pendientes: {bultosPendientes}.");
                 }
 
                 var detalle =
@@ -466,7 +619,16 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                             item.EstadoMaterial,
 
                         Observaciones =
-                            item.Observaciones
+                            item.Observaciones,
+
+                        NumeroEntrega =
+                            numeroEntrega,
+
+                        FechaEntrega =
+                            fechaEntrega,
+
+                        ProcesadoInventario =
+                            false
                     };
 
                 recepcion.Detalles.Add(detalle);
@@ -475,13 +637,14 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             if (!agregoDetalle)
             {
                 throw new Exception(
-                    "Debe ingresar al menos una cantidad o bulto recibido."
-                );
+                    "Debe ingresar al menos una cantidad o bulto recibido.");
             }
+
+            recepcion.NumeroUltimaEntrega =
+                numeroEntrega;
 
             await _context.SaveChangesAsync();
 
-            // Volver a consultar todo lo recibido.
             var todosLosDetallesRecibidos =
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Where(r =>
@@ -511,21 +674,17 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                            bultosRecibidos >= d.Bultos;
                 });
 
-            if (ordenCompleta)
-            {
-                orden.Estado = "Recepcionada";
-            }
-            else
-            {
-                orden.Estado = "Parcial";
-            }
+            orden.Estado =
+                ordenCompleta
+                    ? "Recepcionada"
+                    : "Parcial";
 
             await _context.SaveChangesAsync();
 
-            await _notificacion.EnviarRecepcionMercanciaNoFormalizadaAsync(
-                recepcion.Id,
-                dto.Usuarios
-            );
+            await _notificacion
+                .EnviarRecepcionMercanciaNoFormalizadaAsync(
+                    recepcion.Id,
+                    dto.Usuarios);
 
             return new RecepcionMercanciaNoFormalizadaDto
             {
@@ -567,27 +726,41 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             };
         }
 
+        // CONFIRMAR RECEPCIÓN
+
         public async Task ConfirmarRecepcionAsync(int id)
         {
-            var recepcion =
-                await _context.RecepcionesMercanciasNoFormalizadas
-                    .Include(r => r.OrdenCompraNoFormalizada)
-                        .ThenInclude(o => o.Detalles)
-                    .FirstOrDefaultAsync(r => r.Id == id);
+            var recepcion = await _context.RecepcionesMercanciasNoFormalizadas
+                .Include(r => r.OrdenCompraNoFormalizada)
+                    .ThenInclude(o => o.Detalles)
+                .Include(r => r.Detalles)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recepcion == null)
-                throw new Exception(
-                    "La recepción no existe.");
-
-            if (recepcion.FechaConfirmacion.HasValue)
-                throw new Exception(
-                    "Esta recepción ya fue confirmada.");
+                throw new Exception("La recepción no existe.");
 
             if (recepcion.OrdenCompraNoFormalizada == null)
-                throw new Exception(
-                    "La orden de compra no existe.");
+                throw new Exception("La orden de compra no existe.");
 
-            // Traer todo lo recibido para la orden.
+            // Buscar únicamente los detalles de esta recepción
+            // que todavía no han sido procesados en inventario.
+            var detallesPendientes = recepcion.Detalles
+                .Where(d => !d.ProcesadoInventario)
+                .ToList();
+
+            if (!detallesPendientes.Any())
+            {
+                throw new Exception(
+                    "No existen materiales pendientes por ingresar al inventario."
+                );
+            }
+
+            // Procesar únicamente los detalles pendientes
+            // de esta recepción.
+            await _inventarioService.ProcesarRecepcionAsync(id);
+
+            // Consultar nuevamente todos los detalles recibidos
+            // para esta orden.
             var detallesRecibidos =
                 await _context.RecepcionesMercanciasNoFormalizadas
                     .Where(r =>
@@ -596,70 +769,157 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     .SelectMany(r => r.Detalles)
                     .ToListAsync();
 
-            // Verificar que la orden esté completamente recibida.
+            // Verificar si la orden ya quedó completamente recibida.
             var ordenCompleta =
-                recepcion.OrdenCompraNoFormalizada
-                    .Detalles
-                    .All(d =>
-                    {
-                        var kgRecibidos =
-                            detallesRecibidos
-                                .Where(x =>
-                                    x.OrdenCompraDetalleNoFormalizadaId ==
-                                    d.Id)
-                                .Sum(x => x.CantidadRecibida);
+                recepcion.OrdenCompraNoFormalizada.Detalles.All(d =>
+                {
+                    var kgRecibidos = detallesRecibidos
+                        .Where(x =>
+                            x.OrdenCompraDetalleNoFormalizadaId == d.Id)
+                        .Sum(x => x.CantidadRecibida);
 
-                        var bultosRecibidos =
-                            detallesRecibidos
-                                .Where(x =>
-                                    x.OrdenCompraDetalleNoFormalizadaId ==
-                                    d.Id)
-                                .Sum(x => x.BultosRecibidos);
+                    var bultosRecibidos = detallesRecibidos
+                        .Where(x =>
+                            x.OrdenCompraDetalleNoFormalizadaId == d.Id)
+                        .Sum(x => x.BultosRecibidos);
 
-                        return kgRecibidos >= d.CantidadKg &&
-                               bultosRecibidos >= d.Bultos;
-                    });
+                    return kgRecibidos >= d.CantidadKg &&
+                           bultosRecibidos >= d.Bultos;
+                });
 
-            if (!ordenCompleta)
+            if (ordenCompleta)
             {
-                throw new Exception(
-                    "La recepción todavía está incompleta. " +
-                    "Debe recibirse toda la mercancía antes de confirmar."
-                );
+                // Ya llegó toda la mercancía y la recepción
+                // pendiente fue procesada en inventario.
+                recepcion.OrdenCompraNoFormalizada.Estado = "Confirmada";
+
+                recepcion.FechaConfirmacion = DateTime.Now;
+
+                recepcion.UsuarioConfirmacionId =
+                    _currentUser.IdUsuario!.Value;
             }
-
-            // se envia al inventario
-            await _inventarioService.ProcesarRecepcionAsync(id);
-
-            // si fue exitoso enviar
-            recepcion.FechaConfirmacion =
-                DateTime.Now;
-
-            recepcion.UsuarioConfirmacionId =
-                _currentUser.IdUsuario!.Value;
-
-            recepcion.OrdenCompraNoFormalizada.Estado =
-                "Confirmada";
+            else
+            {
+                // La mercancía recibida ya entró a inventario,
+                // pero todavía falta mercancía por recibir.
+                recepcion.OrdenCompraNoFormalizada.Estado = "Parcial";
+            }
 
             await _context.SaveChangesAsync();
         }
+
+        //ACTUALIZAR
 
         public async Task<bool> ActualizarAsync(
             int id,
             ActualizarRecepcionMercanciaNoFormalizadaDto dto)
         {
-            throw new NotImplementedException();
+            var recepcion =
+                await _context.RecepcionesMercanciasNoFormalizadas
+                    .Include(r => r.Detalles)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recepcion == null)
+                return false;
+
+            if (recepcion.FechaConfirmacion.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "No se puede modificar una recepción ya confirmada.");
+            }
+
+            if (recepcion.Detalles.Any(d =>
+                    d.ProcesadoInventario))
+            {
+                throw new InvalidOperationException(
+                    "No se puede modificar una recepción cuyos materiales ya ingresaron al inventario.");
+            }
+
+            recepcion.Conductor =
+                dto.Conductor;
+
+            recepcion.Transportadora =
+                dto.Transportadora;
+
+            recepcion.TipoDocumento =
+                dto.TipoDocumento;
+
+            recepcion.EmbalajeAdecuado =
+                dto.EmbalajeAdecuado;
+
+            recepcion.Recibe =
+                dto.Recibe;
+
+            recepcion.Cargo =
+                dto.Cargo;
+
+            recepcion.Observaciones =
+                dto.Observaciones;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
+        // ELIMINAR
         public async Task<bool> EliminarAsync(int id)
         {
-            throw new NotImplementedException();
+            var recepcion =
+                await _context.RecepcionesMercanciasNoFormalizadas
+                    .Include(r => r.Detalles)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recepcion == null)
+                return false;
+
+            if (recepcion.FechaConfirmacion.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "No se puede eliminar una recepción ya confirmada.");
+            }
+
+            if (recepcion.Detalles.Any(d =>
+                    d.ProcesadoInventario))
+            {
+                throw new InvalidOperationException(
+                    "No se puede eliminar una recepción cuyos materiales ya ingresaron al inventario.");
+            }
+
+            _context.RecepcionesMercanciasNoFormalizadas
+                .Remove(recepcion);
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
+
+        // FILTROS
 
         public async Task<FiltrosRecepcionMercanciaNoFormalizadaDto>
             ObtenerFiltrosAsync()
         {
-            throw new NotImplementedException();
+            var proveedores =
+                await _context.ProveedoresNoFormalizados
+                    .AsNoTracking()
+                    .Where(p => p.Activo)
+                    .OrderBy(p => p.Nombre)
+                    .Select(p => new
+                    {
+                        Id = p.IdProveedorNoFormalizado,
+                        Nombre = p.Nombre
+                    })
+                    .ToListAsync();
+
+            return new FiltrosRecepcionMercanciaNoFormalizadaDto
+            {
+                Proveedores = proveedores
+                    .Select(p => new FiltroProveedorNoFormalizadoDto
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre
+                    })
+                    .ToList()
+            };
         }
     }
 }

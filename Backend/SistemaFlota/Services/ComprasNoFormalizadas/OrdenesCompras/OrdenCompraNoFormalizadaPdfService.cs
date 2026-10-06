@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using SistemaFlota.Services.Pdf.Components;
 using SistemaFlota.Services.Pdf.Styles;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 {
-    public class OrdenCompraNoFormalizadaPdfService : IOrdenCompraNoFormalizadaPdfService
+    public class OrdenCompraNoFormalizadaPdfService
+        : IOrdenCompraNoFormalizadaPdfService
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
@@ -19,6 +21,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
             _environment = environment;
         }
 
+        //  GENERAR PDF
         public async Task<byte[]> GenerarPdfAsync(int idOrden)
         {
             var orden = await ObtenerOrden(idOrden);
@@ -27,7 +30,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                 .FirstOrDefaultAsync();
 
             if (empresa == null)
-                throw new Exception("No existe la configuración de la empresa.");
+                throw new Exception(
+                    "No existe la configuración de la empresa.");
 
             var pdf = Document.Create(document =>
             {
@@ -35,30 +39,55 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                 {
                     page.Size(PageSizes.A4);
                     page.Margin(20);
-                    page.DefaultTextStyle(x => x.FontSize(10));
 
-                    ConstruirDocumento(page, orden, empresa);
+                    page.DefaultTextStyle(
+                        x => x.FontSize(10));
+
+                    ConstruirDocumento(
+                        page,
+                        orden,
+                        empresa);
                 });
             });
 
             return pdf.GeneratePdf();
         }
 
-        private async Task<Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada> ObtenerOrden(int id)
+        // OBTENER ORDEN
+
+        private async Task<
+            Models.ComprasNoFormalizadas.OrdenesCompras
+                .OrdenCompraNoFormalizada>
+            ObtenerOrden(int id)
         {
-            var orden = await _context.OrdenesCompraNoFormalizadas
-                .Include(x => x.ProveedorNoFormalizado)
-                .Include(x => x.Detalles)
-                    .ThenInclude(x => x.MaterialNoFormalizado)
-                .Include(x => x.UsuarioCreacion)
-                .Include(x => x.UsuarioActualizacion)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var orden = await _context
+                .OrdenesCompraNoFormalizadas
+
+                .Include(x =>
+                    x.ProveedorNoFormalizado)
+
+                .Include(x =>
+                    x.Detalles)
+                    .ThenInclude(x =>
+                        x.MaterialNoFormalizado)
+
+                .Include(x =>
+                    x.UsuarioCreacion)
+
+                .Include(x =>
+                    x.UsuarioActualizacion)
+
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id);
 
             if (orden == null)
-                throw new Exception("La orden de compra no existe.");
+                throw new Exception(
+                    "La orden de compra no formalizada no existe.");
 
             return orden;
         }
+
+        // MARCA DE AGUA
 
         private string ObtenerMarcaAgua()
         {
@@ -70,6 +99,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
             );
         }
 
+        // LOGO
         private string ObtenerLogo(string? logo)
         {
             return Path.Combine(
@@ -80,17 +110,22 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
             );
         }
 
+        // CONSTRUIR DOCUMENTO
+
         private void ConstruirDocumento(
             PageDescriptor page,
-            Models.ComprasNoFormalizadas.OrdenesCompras.OrdenCompraNoFormalizada orden,
+            Models.ComprasNoFormalizadas.OrdenesCompras
+                .OrdenCompraNoFormalizada orden,
             ConfiguracionEmpresa empresa)
         {
+            // MARCA DE AGUA
             page.Background()
                 .Element(container =>
                     MarcaAgua.Dibujar(
                         container,
                         ObtenerMarcaAgua()));
 
+            // HEADER
             page.Header()
                 .Element(container =>
                 {
@@ -99,86 +134,117 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                         ObtenerLogo(empresa.Logo),
                         empresa,
                         "F-GC-027 V2",
+                        "",
                         "PEDIDO DE COMPRA",
                         orden.Numero
                     );
                 });
 
+            // CONTENIDO
             page.Content()
                 .PaddingTop(20)
                 .Column(col =>
                 {
-                    col.Item().Row(row =>
-                    {
-                        // Card Proveedor
-                        row.RelativeItem()
-                            .Element(container =>
-                            {
-                                Card.Dibujar(
-                                    container,
-                                    "Proveedor",
-                                    contenido =>
-                                    {
-                                        contenido.Item().Text(
-                                            $"Nombre: {orden.ProveedorNoFormalizado?.Nombre}");
+                    // PROVEEDOR + INFORMACIÓN DE LA ORDEN
+                    col.Item()
+                        .Row(row =>
+                        {
+                            // PROVEEDOR
+                            row.RelativeItem()
+                                .Element(container =>
+                                {
+                                    Card.Dibujar(
+                                        container,
+                                        "Proveedor",
+                                        contenido =>
+                                        {
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Nombre: " +
+                                                    $"{orden.ProveedorNoFormalizado?.Nombre ?? "-"}");
 
-                                        contenido.Item().Text(
-                                            $"Documento: {orden.ProveedorNoFormalizado?.Documento ?? "-"}");
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Documento: " +
+                                                    $"{orden.ProveedorNoFormalizado?.Documento ?? "-"}");
 
-                                        contenido.Item().Text(
-                                            $"Contacto: {orden.ProveedorNoFormalizado?.Contacto ?? "-"}");
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Contacto: " +
+                                                    $"{orden.ProveedorNoFormalizado?.Contacto ?? "-"}");
 
-                                        contenido.Item().Text(
-                                            $"Dirección: {orden.ProveedorNoFormalizado?.Direccion ?? "-"}");
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Dirección: " +
+                                                    $"{orden.ProveedorNoFormalizado?.Direccion ?? "-"}");
 
-                                        contenido.Item().Text(
-                                            $"Ciudad: {orden.ProveedorNoFormalizado?.Ciudad ?? "-"}");
-                                    });
-                            });
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Ciudad: " +
+                                                    $"{orden.ProveedorNoFormalizado?.Ciudad ?? "-"}");
+                                        });
+                                });
 
-                        row.ConstantItem(15);
+                            row.ConstantItem(15);
 
-                        // Card Información Orden
-                        row.RelativeItem()
-                            .Element(container =>
-                            {
-                                Card.Dibujar(
-                                    container,
-                                    "Información de la orden",
-                                    contenido =>
-                                    {
-                                        contenido.Item().Text(
-                                            $"Fecha: {orden.FechaOrden:dd/MM/yyyy}");
+                            // INFORMACIÓN DE LA ORDEN
 
-                                        contenido.Item().Text(
-                                            $"Entrega: {(orden.FechaEntrega.HasValue ? orden.FechaEntrega.Value.ToString("dd/MM/yyyy") : "-")}");
+                            row.RelativeItem()
+                                .Element(container =>
+                                {
+                                    Card.Dibujar(
+                                        container,
+                                        "Información de la orden",
+                                        contenido =>
+                                        {
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Fecha: " +
+                                                    $"{orden.FechaOrden:dd/MM/yyyy}");
 
-                                        contenido.Item().Text(
-                                            $"Forma de pago: {orden.FormaPago}");
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Entrega: " +
+                                                    $"{(
+                                                        orden.FechaEntrega.HasValue
+                                                            ? orden.FechaEntrega.Value
+                                                                .ToString("dd/MM/yyyy")
+                                                            : "-"
+                                                    )}");
 
-                                        contenido.Item().Text(
-                                            $"Lugar de entrega: {orden.LugarEntrega}");
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Forma de pago: " +
+                                                    $"{orden.FormaPago ?? "-"}");
 
-                                        contenido.Item()
-                                            .PaddingTop(5)
-                                            .Row(row =>
-                                            {
-                                                row.ConstantItem(60)
-                                                    .Text("Estado:")
-                                                    .Style(PdfStyles.Label);
+                                            contenido.Item()
+                                                .Text(
+                                                    $"Lugar de entrega: " +
+                                                    $"{orden.LugarEntrega ?? "-"}");
 
-                                                row.AutoItem()
-                                                    .Element(container =>
-                                                    {
-                                                        EstadoBadge.Dibujar(
-                                                            container,
-                                                            orden.Estado
-                                                        );
-                                                    });
-                                            });
-                                    });
-                            });
-                    });
+                                            contenido.Item()
+                                                .PaddingTop(5)
+                                                .Row(row =>
+                                                {
+                                                    row.ConstantItem(60)
+                                                        .Text("Estado:")
+                                                        .Style(
+                                                            PdfStyles.Label);
+
+                                                    row.AutoItem()
+                                                        .Element(container =>
+                                                        {
+                                                            EstadoBadge.Dibujar(
+                                                                container,
+                                                                orden.Estado
+                                                            );
+                                                        });
+                                                });
+                                        });
+                                });
+                        });
+
+                    // DETALLES DE LA ORDEN
 
                     col.Item()
                         .PaddingTop(20)
@@ -190,7 +256,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                             );
                         });
 
-                    // Totales
+                    // TOTALES
                     col.Item()
                         .PaddingTop(40)
                         .Element(container =>
@@ -205,7 +271,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                             );
                         });
 
-                    // Observaciones
+                    // OBSERVACIONES
+
                     col.Item()
                         .PaddingTop(30)
                         .Element(container =>
@@ -215,15 +282,17 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                                 "OBSERVACIONES",
                                 contenido =>
                                 {
-                                    contenido.Item().Text(
-                                        string.IsNullOrWhiteSpace(orden.Observaciones)
-                                            ? "Sin observaciones."
-                                            : orden.Observaciones
-                                    );
+                                    contenido.Item()
+                                        .Text(
+                                            string.IsNullOrWhiteSpace(
+                                                orden.Observaciones)
+                                                ? "Sin observaciones."
+                                                : orden.Observaciones
+                                        );
                                 });
                         });
 
-                    // Trazabilidad
+                    // TRAZABILIDAD
                     col.Item()
                         .PaddingTop(25)
                         .Element(container =>
@@ -235,19 +304,31 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                                 {
                                     contenido.Item()
                                         .Text(
-                                            $"Creada por: {orden.UsuarioCreacion?.Username ?? "-"}");
+                                            $"Creada por: " +
+                                            $"{orden.UsuarioCreacion?.Username ?? "-"}");
 
                                     contenido.Item()
                                         .Text(
-                                            $"Fecha creación: {orden.FechaCreacion:dd/MM/yyyy HH:mm}");
+                                            $"Fecha creación: " +
+                                            $"{orden.FechaCreacion:dd/MM/yyyy HH:mm}");
 
                                     contenido.Item()
                                         .Text(
-                                            $"Actualizada por: {orden.UsuarioActualizacion?.Username ?? "-"}");
+                                            $"Actualizada por: " +
+                                            $"{orden.UsuarioActualizacion?.Username ?? "-"}");
+
+                                    if (orden.FechaActualizacion.HasValue)
+                                    {
+                                        contenido.Item()
+                                            .Text(
+                                                $"Fecha actualización: " +
+                                                $"{orden.FechaActualizacion.Value:dd/MM/yyyy HH:mm}");
+                                    }
                                 });
                         });
                 });
 
+            // FOOTER
             page.Footer()
                 .Element(FooterEmpresa.Dibujar);
         }

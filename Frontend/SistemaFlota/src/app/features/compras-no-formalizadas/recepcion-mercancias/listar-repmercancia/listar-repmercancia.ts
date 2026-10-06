@@ -6,14 +6,13 @@ import { ToastrService } from 'ngx-toastr';
 
 import { OrdenCompraNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/ordenes-compras/OrdenCompraNoFormalizadaService';
 import { ProveedorNoFormalizadoService } from '../../../../core/services/compras-no-formalizadas/proveedores/proveedor-no-formalizado.service';
+import { RecepcionMercanciaNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/recepcion-mercancias/recepcion-mercancianoformalizada.service';
 
 import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
 
 import { DetalleRepmercancia } from '../detalle-repmercancia/detalle-repmercancia';
 import { IniciarRepmercancia } from '../iniciar-repmercancia/iniciar-repmercancia';
-import { RecepcionMercanciaNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/recepcion-mercancias/recepcion-mercancianoformalizada.service';
 import { AccionesRecepcionDialogNoFormalizada } from '../acciones-recepcion-dialog-no-formalizada/acciones-recepcion-dialog-no-formalizada';
-
 
 @Component({
   selector: 'app-listar-repmercancia',
@@ -24,488 +23,248 @@ import { AccionesRecepcionDialogNoFormalizada } from '../acciones-recepcion-dial
     DecimalPipe
   ],
   templateUrl: './listar-repmercancia.html',
-  styleUrl: './listar-repmercancia.scss',
+  styleUrl: './listar-repmercancia.scss'
 })
 export class ListarRepmercancia {
-
   pagina = 1;
   pageSize = 10;
   total = 0;
 
   buscar = '';
   estado = '';
-
-  proveedorNoFormalizadoId?: number;
+  proveedorNoFormalizadoId: number | undefined = undefined;
 
   proveedores: any[] = [];
-  estados: string[] = [];
+  estados: string[] = [
+    'Pendiente',
+    'Parcial',
+    'Recepcionada',
+    'Confirmada',
+    'Anulada'
+  ];
 
-  ordenSeleccionada: OrdenCompraNoFormalizadaResponse | null = null;
   ordenes: OrdenCompraNoFormalizadaResponse[] = [];
-
+  ordenSeleccionada: OrdenCompraNoFormalizadaResponse | null = null;
+  cargando = false;
 
   constructor(
-    private toastr: ToastrService,
+    private ordenCompraService: OrdenCompraNoFormalizadaService,
+    private proveedorService: ProveedorNoFormalizadoService,
+    private recepcionService: RecepcionMercanciaNoFormalizadaService,
     private dialog: MatDialog,
-
-    private ordenCompraService:
-      OrdenCompraNoFormalizadaService,
-
-    private proveedorService:
-      ProveedorNoFormalizadoService,
-
-    private recepcionService:
-      RecepcionMercanciaNoFormalizadaService
-
+    private toastr: ToastrService
   ) { }
 
-
   ngOnInit(): void {
-
-    this.estados = [
-      'Pendiente',
-      'Parcial',
-      'Recepcionada',
-      'Confirmada',
-      'Anulada'
-    ];
-
     this.cargarProveedores();
     this.cargarOrdenes();
-
   }
-
 
   cargarProveedores(): void {
-
-    this.proveedorService
-      .obtenerParaRecepcion(
-        '',
-        'Activo',
-        '',
-        1,
-        1000
-      )
-      .subscribe({
-
-        next: (respuesta) => {
-
-          this.proveedores = respuesta.datos;
-
-        },
-
-        error: () => {
-
-          this.toastr.error(
-            'No fue posible cargar los proveedores no formalizados.',
-            'Recepción'
-          );
-
-        }
-
-      });
-
+    this.proveedorService.obtenerParaRecepcion('', 'Activo', '', 1, 1000).subscribe({
+      next: (respuesta: any) => {
+        this.proveedores = respuesta?.datos ?? [];
+      },
+      error: () => {
+        this.proveedores = [];
+        this.toastr.error('No fue posible cargar los proveedores no formalizados.');
+      }
+    });
   }
-
 
   cargarOrdenes(): void {
+    this.cargando = true;
 
-    this.ordenCompraService
-      .obtenerParaRecepcion(
-        this.buscar,
-        this.estado,
-        this.proveedorNoFormalizadoId,
-        this.pagina,
-        this.pageSize
-      )
-      .subscribe({
-
-        next: (resp) => {
-
-          this.ordenes = resp.items;
-          this.total = resp.total;
-
-        },
-
-        error: () => {
-
-          this.toastr.error(
-            'No fue posible cargar las órdenes no formalizadas.',
-            'Recepción'
-          );
-
-        }
-
-      });
-
+    this.ordenCompraService.obtenerParaRecepcion(
+      this.buscar || '',
+      this.estado || '',
+      this.proveedorNoFormalizadoId,
+      this.pagina,
+      this.pageSize
+    ).subscribe({
+      next: (respuesta: any) => {
+        this.ordenes = respuesta?.items ?? [];
+        this.total = respuesta?.total ?? 0;
+        this.cargando = false;
+      },
+      error: () => {
+        this.ordenes = [];
+        this.total = 0;
+        this.cargando = false;
+        this.toastr.error('No fue posible cargar las órdenes de compra no formalizadas.');
+      }
+    });
   }
 
+  buscarOrden(): void {
+    this.pagina = 1;
+    this.cargarOrdenes();
+  }
 
   aplicarFiltros(): void {
-
     this.pagina = 1;
-    this.ordenSeleccionada = null;
-
     this.cargarOrdenes();
-
   }
 
-
   limpiarFiltros(): void {
-
     this.buscar = '';
     this.estado = '';
     this.proveedorNoFormalizadoId = undefined;
-
     this.pagina = 1;
-    this.ordenSeleccionada = null;
-
     this.cargarOrdenes();
-
   }
-
-
-  buscarOrden(): void {
-
-    this.ordenSeleccionada = null;
-
-    this.cargarOrdenes();
-
-  }
-
-
-  get totalPaginas(): number {
-
-    return Math.ceil(
-      this.total / this.pageSize
-    );
-
-  }
-
 
   cambiarPagina(pagina: number): void {
-
-    if (
-      pagina < 1 ||
-      pagina > this.totalPaginas
-    ) {
+    if (pagina < 1 || pagina > this.totalPaginas) {
       return;
     }
 
     this.pagina = pagina;
-
     this.cargarOrdenes();
-
   }
 
+  get totalPaginas(): number {
+    return Math.ceil(this.total / this.pageSize);
+  }
 
-  abrirOrden(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): void {
-
+  abrirOrden(orden: OrdenCompraNoFormalizadaResponse): void {
     this.ordenSeleccionada = orden;
-
-    this.toastr.success(
-      `Orden ${orden.numero} seleccionada`,
-      'Recepción no formalizada'
-    );
-
   }
 
-
-  verRecepcion(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): void {
-
+  verRecepcion(orden: OrdenCompraNoFormalizadaResponse): void {
     if (!orden.recepcionId) {
-
       this.toastr.warning(
         'No se encontró la recepción asociada.',
-        'Recepción no formalizada'
+        'Recepción'
       );
-
       return;
     }
 
-    this.dialog.open(
-      DetalleRepmercancia,
-      {
-        width: '1200px',
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        disableClose: true,
-
-        data: {
-          id: orden.recepcionId
-        }
+    this.dialog.open(DetalleRepmercancia, {
+      width: '95%',
+      maxWidth: '1200px',
+      maxHeight: '95vh',
+      disableClose: true,
+      data: {
+        id: orden.recepcionId
       }
-    )
-      .afterClosed()
-      .subscribe(resultado => {
-
-        if (resultado) {
-          this.cargarOrdenes();
-        }
-
-      });
-
+    }).afterClosed().subscribe(resultado => {
+      if (resultado) {
+        this.cargarOrdenes();
+      }
+    });
   }
 
-
-  verPdfRecepcion(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): void {
-
+  verPdfRecepcion(orden: OrdenCompraNoFormalizadaResponse): void {
     if (!orden.recepcionId) {
-
       this.toastr.warning(
         'No se encontró la recepción asociada.',
-        'Recepción no formalizada'
+        'Recepción'
       );
-
       return;
     }
 
-    this.recepcionService
-      .obtenerPdf(orden.recepcionId)
-      .subscribe({
-
-        next: pdf => {
-
-          const url =
-            URL.createObjectURL(pdf);
-
-          window.open(
-            url,
-            '_blank'
-          );
-
-        },
-
-        error: () => {
-
-          this.toastr.error(
-            'No fue posible generar el PDF de la recepción.',
-            'Error'
-          );
-
-        }
-
-      });
-
+    this.recepcionService.obtenerPdf(orden.recepcionId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.toastr.error(
+          'No fue posible generar el PDF de la recepción.'
+        );
+      }
+    });
   }
 
-
-  generarEtiquetas(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): void {
-
+  generarEtiquetas(orden: OrdenCompraNoFormalizadaResponse): void {
     if (!orden.recepcionId) {
-
       this.toastr.warning(
         'No se encontró la recepción asociada.',
-        'Recepción no formalizada'
+        'Recepción'
       );
-
       return;
     }
 
-    this.recepcionService
-      .obtenerEtiquetas(orden.recepcionId)
-      .subscribe({
-
-        next: pdf => {
-
-          const url =
-            URL.createObjectURL(pdf);
-
-          window.open(
-            url,
-            '_blank'
-          );
-
-          this.toastr.success(
-            'Las etiquetas fueron generadas correctamente.',
-            'Etiquetas'
-          );
-
-        },
-
-        error: () => {
-
-          this.toastr.error(
-            'No fue posible generar las etiquetas.',
-            'Error'
-          );
-
-        }
-
-      });
-
+    this.recepcionService.obtenerEtiquetas(orden.recepcionId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.toastr.error(
+          'No fue posible generar las etiquetas.'
+        );
+      }
+    });
   }
 
-
-  iniciarRecepcion(): void {
+  iniciarRecepcion(orden?: OrdenCompraNoFormalizadaResponse): void {
+    if (orden) {
+      this.ordenSeleccionada = orden;
+    }
 
     if (!this.ordenSeleccionada) {
-
-      this.toastr.warning(
-        'Seleccione una orden.',
-        'Recepción no formalizada'
-      );
-
+      this.toastr.warning('Seleccione una orden de compra.');
       return;
     }
 
+    const dialogRef = this.dialog.open(IniciarRepmercancia, {
+      width: '95%',
+      maxWidth: '1200px',
+      disableClose: true,
+      data: {
+        orden: this.ordenSeleccionada
+      }
+    });
 
-    const estado =
-      this.ordenSeleccionada.estado
-        ?.trim()
-        .toLowerCase();
-
-
-    if (estado === 'anulada') {
-
-      this.toastr.warning(
-        'No se puede registrar una recepción para una orden anulada.',
-        'Recepción no formalizada'
-      );
-
-      return;
-    }
-
-
-    if (estado === 'confirmada') {
-
-      this.toastr.info(
-        'Esta recepción ya fue confirmada.',
-        'Recepción no formalizada'
-      );
-
-      return;
-    }
-
-
-    const dialogRef =
-      this.dialog.open(
-        IniciarRepmercancia,
-        {
-          width: '1200px',
-          maxWidth: '95vw',
-          maxHeight: '95vh',
-          disableClose: true,
-          autoFocus: false,
-
-          data: this.ordenSeleccionada
-        }
-      );
-
-
-    dialogRef
-      .afterClosed()
-      .subscribe(resultado => {
-
-        if (!resultado) {
-          return;
-        }
-
+    dialogRef.afterClosed().subscribe((resultado) => {
+      if (resultado) {
         this.cargarOrdenes();
-
-        this.toastr.success(
-          'Recepción no formalizada registrada correctamente.',
-          'Recepción'
-        );
-
-      });
-
+        this.ordenSeleccionada = null;
+      }
+    });
   }
 
+  abrirAcciones(orden: OrdenCompraNoFormalizadaResponse): void {
+    const dialogRef = this.dialog.open(AccionesRecepcionDialogNoFormalizada, {
+      width: '500px',
+      data: {
+        orden
+      }
+    });
 
-  abrirAcciones(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): void {
+    dialogRef.afterClosed().subscribe((accion: string) => {
+      if (!accion) {
+        return;
+      }
 
-    const dialogRef =
-      this.dialog.open(
-        AccionesRecepcionDialogNoFormalizada,
-        {
-          width: '500px',
-          maxWidth: '95vw',
-          autoFocus: false,
-          restoreFocus: false,
-          disableClose: false,
+      switch (accion) {
+        case 'ver':
+          this.verRecepcion(orden);
+          break;
 
-          data: {
-            orden: orden
-          }
-        }
-      );
+        case 'pdf':
+          this.verPdfRecepcion(orden);
+          break;
 
+        case 'etiquetas':
+          this.generarEtiquetas(orden);
+          break;
 
-    dialogRef
-      .afterClosed()
-      .subscribe(
-        (accion: string | undefined) => {
-
-          if (!accion) {
-            return;
-          }
-
-
-          switch (accion) {
-
-            case 'pdf':
-
-              this.verPdfRecepcion(
-                orden
-              );
-
-              break;
-
-
-            case 'etiquetas':
-
-              this.generarEtiquetas(
-                orden
-              );
-
-              break;
-
-
-            case 'confirmar':
-
-              this.verRecepcion(
-                orden
-              );
-
-              break;
-
-
-            case 'iniciar':
-            case 'continuar':
-
-              this.abrirOrden(
-                orden
-              );
-
-              break;
-
-          }
-
-        }
-      );
-
+        case 'iniciar':
+        case 'continuar':
+          this.ordenSeleccionada = orden;
+          this.iniciarRecepcion();
+          break;
+      }
+    });
   }
 
-
-  getClaseEstado(
-    estado: string
-  ): string {
-
-    switch (
-    estado?.toLowerCase()
-    ) {
-
+  getClaseEstado(estado: string | null | undefined): string {
+    switch (estado?.trim()?.toLowerCase()) {
       case 'pendiente':
         return 'estado-pendiente';
 
@@ -513,8 +272,6 @@ export class ListarRepmercancia {
         return 'estado-parcial';
 
       case 'recepcionada':
-        return 'estado-recepcionada';
-
       case 'confirmada':
         return 'estado-confirmada';
 
@@ -522,21 +279,12 @@ export class ListarRepmercancia {
         return 'estado-anulada';
 
       default:
-        return 'estado-default';
-
+        return '';
     }
-
   }
 
-
-  getIconoEstado(
-    estado: string
-  ): string {
-
-    switch (
-    estado?.toLowerCase()
-    ) {
-
+  getIconoEstado(estado: string | null | undefined): string {
+    switch (estado?.trim()?.toLowerCase()) {
       case 'pendiente':
         return 'fa-clock';
 
@@ -544,7 +292,7 @@ export class ListarRepmercancia {
         return 'fa-truck-ramp-box';
 
       case 'recepcionada':
-        return 'fa-circle-check';
+        return 'fa-box-open';
 
       case 'confirmada':
         return 'fa-circle-check';
@@ -553,21 +301,14 @@ export class ListarRepmercancia {
         return 'fa-ban';
 
       default:
-        return 'fa-circle-info';
-
+        return 'fa-circle-question';
     }
-
   }
 
+  getTextoBoton(orden: OrdenCompraNoFormalizadaResponse): string {
+    const estado = orden.estado?.trim()?.toLowerCase();
 
-  getTextoBoton(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): string {
-
-    switch (
-    orden.estado?.toLowerCase()
-    ) {
-
+    switch (estado) {
       case 'pendiente':
         return 'Iniciar Recepción';
 
@@ -575,56 +316,42 @@ export class ListarRepmercancia {
         return 'Continuar Recepción';
 
       case 'recepcionada':
-        return 'Revisar y Confirmar Recepción';
+        return 'Ver Recepción';
 
       case 'confirmada':
-        return 'Recepción Confirmada';
+        return 'Ver Recepción';
+
+      case 'anulada':
+        return 'Ver Orden';
 
       default:
-        return 'Iniciar Recepción';
-
+        return 'Ver';
     }
-
   }
 
+  getIconoBoton(orden: OrdenCompraNoFormalizadaResponse): string {
+    const estado = orden.estado?.trim()?.toLowerCase();
 
-  getIconoBoton(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): string {
-
-    switch (
-    orden.estado?.toLowerCase()
-    ) {
-
+    switch (estado) {
       case 'pendiente':
-        return 'fa-cube';
+        return 'fa-play';
 
       case 'parcial':
         return 'fa-truck-ramp-box';
 
       case 'recepcionada':
-        return 'fa-clipboard-check';
-
       case 'confirmada':
-        return 'fa-circle-check';
+      case 'anulada':
+        return 'fa-eye';
 
       default:
-        return 'fa-cube';
-
+        return 'fa-eye';
     }
-
   }
 
+  puedeAccionar(orden: OrdenCompraNoFormalizadaResponse): boolean {
+    const estado = orden.estado?.trim()?.toLowerCase();
 
-  puedeAccionar(
-    orden: OrdenCompraNoFormalizadaResponse
-  ): boolean {
-
-    return (
-      orden.estado?.toLowerCase() !==
-      'confirmada'
-    );
-
+    return estado !== 'confirmada' && estado !== 'anulada';
   }
-
 }

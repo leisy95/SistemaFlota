@@ -9,13 +9,9 @@ import { environment } from '../../../../../environments/environment';
 export class RecepcionMercanciaNoFormalizadaService {
     private apiUrl = `${environment.apiUrl}/RecepcionMercanciaNoFormalizada`;
 
-    constructor(
-        private http: HttpClient
-    ) { }
+    constructor(private http: HttpClient) { }
 
-    obtenerFormulario(
-        ordenCompraNoFormalizadaId: number
-    ): Observable<any> {
+    obtenerFormulario(ordenCompraNoFormalizadaId: number): Observable<any> {
         return this.http.get<any>(
             `${this.apiUrl}/formulario/${ordenCompraNoFormalizadaId}`
         );
@@ -37,18 +33,14 @@ export class RecepcionMercanciaNoFormalizadaService {
     obtenerPdf(id: number): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/${id}/pdf`,
-            {
-                responseType: 'blob'
-            }
+            { responseType: 'blob' }
         );
     }
 
     obtenerEtiquetas(id: number): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/${id}/etiquetas`,
-            {
-                responseType: 'blob'
-            }
+            { responseType: 'blob' }
         );
     }
 

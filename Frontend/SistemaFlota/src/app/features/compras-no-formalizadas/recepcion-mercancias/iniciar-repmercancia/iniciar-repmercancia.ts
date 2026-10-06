@@ -11,9 +11,7 @@ import { SelectorUsuarios } from '../../../../shared/reutilizable/selector-usuar
 @Component({
   selector: 'app-iniciar-repmercancia',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './iniciar-repmercancia.html',
   styleUrl: './iniciar-repmercancia.scss',
 })
@@ -32,9 +30,9 @@ export class IniciarRepmercancia implements OnInit {
     private dialogRef: MatDialogRef<IniciarRepmercancia>,
     private recepcionService: RecepcionMercanciaNoFormalizadaService,
     public permisos: PermisosService,
-    @Inject(MAT_DIALOG_DATA) public data: OrdenCompraNoFormalizadaResponse
+    @Inject(MAT_DIALOG_DATA) public data: { orden: OrdenCompraNoFormalizadaResponse }
   ) {
-    this.orden = data;
+    this.orden = data.orden;
   }
 
   ngOnInit(): void {
@@ -66,38 +64,43 @@ export class IniciarRepmercancia implements OnInit {
         });
 
         data.items.forEach((x: any) => {
-          this.detalles.push(
-            this.fb.group({
-              ordenCompraDetalleNoFormalizadaId: [x.ordenCompraDetalleNoFormalizadaId],
-              material: [x.material],
-              cantidadOrdenada: [x.cantidad],
-              bultosOrdenados: [x.bultos],
-              cantidadRecibidaAnterior: [x.cantidadRecibida],
-              bultosRecibidosAnterior: [x.bultosRecibidos],
-              cantidadPendiente: [x.cantidadPendiente],
-              bultosPendientes: [x.bultosPendientes],
-              seleccionado: [true],
-              cantidadRecibida: [
-                x.cantidadPendiente,
-                [
-                  Validators.required,
-                  Validators.min(0.01),
-                  Validators.max(x.cantidadPendiente)
-                ]
-              ],
-              bultosRecibidos: [
-                Number(x.bultosPendientes),
-                [
-                  Validators.required,
-                  Validators.min(0.01),
-                  Validators.max(x.bultosPendientes)
-                ]
-              ],
-              loteProveedor: ['', Validators.required],
-              estadoMaterial: ['Conforme', Validators.required],
-              observaciones: ['']
-            })
-          );
+          const detalle = this.fb.group({
+            ordenCompraDetalleNoFormalizadaId: [x.ordenCompraDetalleNoFormalizadaId],
+            material: [x.material],
+            cantidadOrdenada: [x.cantidad],
+            bultosOrdenados: [x.bultos],
+            cantidadRecibidaAnterior: [x.cantidadRecibida],
+            bultosRecibidosAnterior: [x.bultosRecibidos],
+            cantidadPendiente: [x.cantidadPendiente],
+            bultosPendientes: [x.bultosPendientes],
+            seleccionado: [true],
+            cantidadRecibida: [
+              x.cantidadPendiente,
+              [
+                Validators.required,
+                Validators.min(0.01),
+                Validators.max(x.cantidadPendiente)
+              ]
+            ],
+            bultosRecibidos: [
+              Number(x.bultosPendientes),
+              [
+                Validators.required,
+                Validators.min(0.01),
+                Validators.max(x.bultosPendientes)
+              ]
+            ],
+            loteProveedor: ['', Validators.required],
+            estadoMaterial: ['Conforme', Validators.required],
+            observaciones: ['']
+          });
+
+          detalle.get('seleccionado')?.valueChanges.subscribe(seleccionado => {
+            this.actualizarValidadoresDetalle(detalle, seleccionado === true);
+            this.calcularResumen();
+          });
+
+          this.detalles.push(detalle);
         });
 
         this.calcularResumen();
@@ -120,6 +123,47 @@ export class IniciarRepmercancia implements OnInit {
     });
   }
 
+  private actualizarValidadoresDetalle(
+    detalle: FormGroup,
+    seleccionado: boolean
+  ): void {
+    const cantidad = detalle.get('cantidadRecibida');
+    const bultos = detalle.get('bultosRecibidos');
+    const lote = detalle.get('loteProveedor');
+    const estado = detalle.get('estadoMaterial');
+
+    if (seleccionado) {
+      cantidad?.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        Validators.max(
+          Number(detalle.get('cantidadPendiente')?.value || 0)
+        )
+      ]);
+
+      bultos?.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        Validators.max(
+          Number(detalle.get('bultosPendientes')?.value || 0)
+        )
+      ]);
+
+      lote?.setValidators([Validators.required]);
+      estado?.setValidators([Validators.required]);
+    } else {
+      cantidad?.clearValidators();
+      bultos?.clearValidators();
+      lote?.clearValidators();
+      estado?.clearValidators();
+    }
+
+    cantidad?.updateValueAndValidity({ emitEvent: false });
+    bultos?.updateValueAndValidity({ emitEvent: false });
+    lote?.updateValueAndValidity({ emitEvent: false });
+    estado?.updateValueAndValidity({ emitEvent: false });
+  }
+
   calcularResumen(): void {
     const items = this.detalles.controls.filter(
       x => x.get('seleccionado')?.value
@@ -128,14 +172,14 @@ export class IniciarRepmercancia implements OnInit {
     this.totalItems = items.length;
 
     this.totalKg = items.reduce(
-      (a, b) =>
-        a + Number(b.get('cantidadRecibida')?.value || 0),
+      (total, item) =>
+        total + Number(item.get('cantidadRecibida')?.value || 0),
       0
     );
 
     this.totalBultos = items.reduce(
-      (a, b) =>
-        a + Number(b.get('bultosRecibidos')?.value || 0),
+      (total, item) =>
+        total + Number(item.get('bultosRecibidos')?.value || 0),
       0
     );
   }
@@ -145,21 +189,38 @@ export class IniciarRepmercancia implements OnInit {
   }
 
   finalizarRecepcion(): void {
-    if (this.guardando)
-      return;
+    if (this.guardando) return;
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-
       this.toastr.warning(
         'Complete los campos obligatorios.',
         'Validación'
       );
-
       return;
     }
 
     const datos = this.form.getRawValue();
+
+    const detallesSeleccionados = datos.detalles
+      .filter((x: any) => x.seleccionado)
+      .map((x: any) => ({
+        ordenCompraDetalleNoFormalizadaId:
+          Number(x.ordenCompraDetalleNoFormalizadaId),
+        cantidadRecibida: Number(x.cantidadRecibida),
+        bultosRecibidos: Number(x.bultosRecibidos),
+        loteProveedor: x.loteProveedor,
+        estadoMaterial: x.estadoMaterial,
+        observaciones: x.observaciones || null
+      }));
+
+    if (!detallesSeleccionados.length) {
+      this.toastr.warning(
+        'Seleccione al menos un material para recibir.',
+        'Recepción'
+      );
+      return;
+    }
 
     const recepcion = {
       ordenCompraNoFormalizadaId: this.orden.id,
@@ -170,17 +231,7 @@ export class IniciarRepmercancia implements OnInit {
       recibe: datos.recibe,
       cargo: datos.cargo,
       observaciones: datos.observaciones,
-      detalles: datos.detalles
-        .filter((x: any) => x.seleccionado)
-        .map((x: any) => ({
-          ordenCompraDetalleNoFormalizadaId:
-            Number(x.ordenCompraDetalleNoFormalizadaId),
-          cantidadRecibida: Number(x.cantidadRecibida),
-          bultosRecibidos: Number(x.bultosRecibidos),
-          loteProveedor: x.loteProveedor,
-          estadoMaterial: x.estadoMaterial,
-          observaciones: x.observaciones || null
-        }))
+      detalles: detallesSeleccionados
     };
 
     this.dialog.open(SelectorUsuarios, {
@@ -198,7 +249,6 @@ export class IniciarRepmercancia implements OnInit {
       }
 
       this.guardando = true;
-
       (recepcion as any).usuarios = idsUsuarios;
 
       this.recepcionService.crear(recepcion).subscribe({
@@ -214,6 +264,7 @@ export class IniciarRepmercancia implements OnInit {
               );
 
               this.dialogRef.close(respuesta);
+              URL.revokeObjectURL(url);
             },
             error: () => {
               this.guardando = false;
@@ -222,6 +273,8 @@ export class IniciarRepmercancia implements OnInit {
                 'La recepción fue guardada, pero no fue posible generar las etiquetas.',
                 'Recepción'
               );
+
+              this.dialogRef.close(respuesta);
             }
           });
         },
@@ -238,6 +291,7 @@ export class IniciarRepmercancia implements OnInit {
           }
 
           this.toastr.error(
+            error.error?.mensaje ??
             'No fue posible guardar la recepción no formalizada.',
             'Error'
           );
@@ -247,9 +301,7 @@ export class IniciarRepmercancia implements OnInit {
   }
 
   cerrar(): void {
-    if (this.guardando)
-      return;
-
+    if (this.guardando) return;
     this.dialogRef.close();
   }
 }

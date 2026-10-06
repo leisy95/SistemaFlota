@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 
 export const COMPRAS_ROUTES: Routes = [
     {
+        path: '',
+        redirectTo: 'ordenes-compras',
+        pathMatch: 'full'
+    },
+    {
         path: 'proveedores',
         loadComponent: () =>
             import('./proveedores/listar-proveedores/listar-proveedores')

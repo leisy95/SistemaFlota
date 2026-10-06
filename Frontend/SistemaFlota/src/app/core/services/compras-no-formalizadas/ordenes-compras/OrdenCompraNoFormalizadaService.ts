@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../../../environments/environment';
+
 import { OrdenCompraNoFormalizadaResponse } from '../../../models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
 import { CrearOrdenCompraNoFormalizadaRequest } from '../../../models/compras-no-formalizadas/ordenes-compras/crearordencompra-no-formalizada.model';
 import { OrdenCompraNoFormalizadaPaginada } from '../../../models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-paginado.model';
@@ -39,7 +41,10 @@ export class OrdenCompraNoFormalizadaService {
             params = params.set('estado', estado);
 
         if (proveedorNoFormalizadoId)
-            params = params.set('proveedorNoFormalizadoId', proveedorNoFormalizadoId);
+            params = params.set(
+                'proveedorNoFormalizadoId',
+                proveedorNoFormalizadoId
+            );
 
         if (formaPago)
             params = params.set('formaPago', formaPago);
@@ -76,7 +81,10 @@ export class OrdenCompraNoFormalizadaService {
             params = params.set('estado', estado);
 
         if (proveedorNoFormalizadoId)
-            params = params.set('proveedorNoFormalizadoId', proveedorNoFormalizadoId);
+            params = params.set(
+                'proveedorNoFormalizadoId',
+                proveedorNoFormalizadoId
+            );
 
         return this.http.get<OrdenCompraNoFormalizadaPaginada>(
             `${this.api}/para-recepcion`,
@@ -96,7 +104,9 @@ export class OrdenCompraNoFormalizadaService {
         );
     }
 
-    crear(data: CrearOrdenCompraNoFormalizadaRequest): Observable<OrdenCompraNoFormalizadaResponse> {
+    crear(
+        data: CrearOrdenCompraNoFormalizadaRequest
+    ): Observable<OrdenCompraNoFormalizadaResponse> {
         return this.http.post<OrdenCompraNoFormalizadaResponse>(
             this.api,
             data
@@ -125,6 +135,14 @@ export class OrdenCompraNoFormalizadaService {
     enviarCorreo(id: number): Observable<any> {
         return this.http.post<any>(
             `${this.api}/${id}/enviar-correo`,
+            {}
+        );
+    }
+
+    // Anular orden de compra no formalizada
+    anular(id: number): Observable<{ mensaje: string }> {
+        return this.http.put<{ mensaje: string }>(
+            `${this.api}/${id}/anular`,
             {}
         );
     }

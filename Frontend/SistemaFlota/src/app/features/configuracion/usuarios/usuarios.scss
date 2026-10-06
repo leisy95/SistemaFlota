@@ -103,7 +103,7 @@
   }
 }
 
-// ── BUSCADOR Y PAGINACIÓN ─────────────────────────────────────────────────────
+//BUSCADOR Y PAGINACIÓN
 .filtros-bar {
   display: flex;
   justify-content: space-between;
@@ -295,7 +295,7 @@ tbody {
   }
 }
 
-// ── BADGES ROL ────────────────────────────────────────────────────────────────
+// BADGES ROL
 .badge-admin {
   background: #fef3c7;
   color: #92400e;
@@ -612,6 +612,30 @@ tbody {
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     }
   }
+}
+
+.permiso-grupo {
+  width: 100%;
+  background: #f1f5f9;
+  border-top: 1px solid #dbe2ea;
+  border-bottom: 1px solid #dbe2ea;
+}
+
+.permiso-grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.permiso-grupo-titulo i {
+  font-size: 14px;
+  color: #64748b;
 }
 
 // PERMISOS

@@ -1,25 +1,28 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
-import { FiltrosOrdenCompraNoFormalizada } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/filtrosordencompra-no-formalizada.model';
-import { ToastrService } from 'ngx-toastr';
-import { OrdenCompraNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/ordenes-compras/OrdenCompraNoFormalizadaService';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
+
 import { CrearOrdenCompra } from '../crear-orden-compra/crear-orden-compra';
 import { AccionesOrdenCompraNoFormalizada } from '../acciones-orden-compra-no-formalizada/acciones-orden-compra-no-formalizada';
+import { DialogConfirmacion } from '../../../../shared/dialog-confirmacion/dialog-confirmacion';
+
+import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
+import { FiltrosOrdenCompraNoFormalizada } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/filtrosordencompra-no-formalizada.model';
+import { OrdenCompraNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/ordenes-compras/OrdenCompraNoFormalizadaService';
 
 @Component({
   selector: 'app-listar-orden-compra',
   standalone: true,
   imports: [
     FormsModule,
-    CommonModule],
+    CommonModule
+  ],
   templateUrl: './listar-orden-compra.html',
   styleUrl: './listar-orden-compra.scss',
 })
 export class ListarOrdenCompra {
-
   buscar = '';
   proveedorFiltro?: number;
   estadoFiltro = '';
@@ -102,8 +105,8 @@ export class ListarOrdenCompra {
       this.proveedorFiltro ? Number(this.proveedorFiltro) : undefined
     ).subscribe({
       next: resp => {
-        this.ordenes = resp.items.map(item => ({ ...item }));
-        this.total = resp.total;
+        this.ordenes = resp.items?.map(item => ({ ...item })) ?? [];
+        this.total = resp.total ?? 0;
       },
       error: err => {
         console.error('ERROR:', err);
@@ -162,6 +165,7 @@ export class ListarOrdenCompra {
           break;
 
         case 'anular':
+          this.confirmarAnulacion(item);
           break;
       }
     });
@@ -176,6 +180,47 @@ export class ListarOrdenCompra {
       },
       error: () => {
         this.toastr.error('No fue posible generar el PDF.', 'Error');
+      }
+    });
+  }
+
+  confirmarAnulacion(item: OrdenCompraNoFormalizadaResponse): void {
+    const dialog = this.dialog.open(DialogConfirmacion, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        titulo: 'Anular orden de compra no formalizada',
+        mensaje: `¿Está seguro de anular la orden ${item.numero}?`,
+        textoConfirmar: 'Sí, anular',
+        textoCancelar: 'Cancelar',
+        tipo: 'warning'
+      }
+    });
+
+    dialog.afterClosed().subscribe(confirmado => {
+      if (!confirmado) return;
+      this.anularOrden(item);
+    });
+  }
+
+  anularOrden(item: OrdenCompraNoFormalizadaResponse): void {
+    this.ordenCompraService.anular(item.id).subscribe({
+      next: resp => {
+        this.toastr.success(
+          resp.mensaje,
+          'Orden anulada'
+        );
+        this.cargar();
+      },
+      error: err => {
+        const mensaje =
+          err?.error?.mensaje ||
+          'No fue posible anular la orden de compra no formalizada.';
+
+        this.toastr.error(
+          mensaje,
+          'No se pudo anular'
+        );
       }
     });
   }

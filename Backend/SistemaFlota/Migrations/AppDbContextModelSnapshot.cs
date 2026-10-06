@@ -1876,15 +1876,24 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("FechaEntrega")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("LoteProveedor")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("NumeroEntrega")
+                        .HasColumnType("int");
 
                     b.Property<string>("Observaciones")
                         .HasColumnType("longtext");
 
                     b.Property<int>("OrdenCompraDetalleNoFormalizadaId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("ProcesadoInventario")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("RecepcionMercanciaNoFormalizadaId")
                         .HasColumnType("int");
@@ -1924,6 +1933,9 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("NumeroRecepcion")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("NumeroUltimaEntrega")
+                        .HasColumnType("int");
 
                     b.Property<string>("Observaciones")
                         .HasColumnType("longtext");

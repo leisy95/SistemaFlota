@@ -113,16 +113,18 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
         }
 
         // Imprimir etiquetas
-        [HttpGet("{id}/etiquetas")]
+        [HttpGet("{id:int}/etiquetas")]
         [Permiso("recepcion-mercancia-no-formalizada", "ver")]
-        public async Task<IActionResult> ImprimirEtiquetas(int id)
+        public async Task<IActionResult> ImprimirEtiquetas(
+            int id,
+            [FromQuery] int numeroEntrega)
         {
             var pdf = await _etiquetasPdfService.GenerarAsync(id);
 
             return File(
                 pdf,
                 "application/pdf",
-                $"Etiquetas_NoFormalizada_{id}.pdf");
+                $"Etiquetas_NoFormalizada_{id}_Entrega_{numeroEntrega}.pdf");
         }
 
         // Crear recepción

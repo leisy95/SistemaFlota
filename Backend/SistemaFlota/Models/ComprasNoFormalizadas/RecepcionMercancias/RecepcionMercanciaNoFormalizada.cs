@@ -39,6 +39,9 @@ namespace SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias
         [ForeignKey(nameof(UsuarioConfirmacionId))]
         public virtual Usuario? UsuarioConfirmacion { get; set; }
 
+        // Control de la última entrega registrada
+        public int NumeroUltimaEntrega { get; set; } = 0;
+
         public virtual ICollection<RecepcionMercanciaDetalleNoFormalizada> Detalles { get; set; }
             = new List<RecepcionMercanciaDetalleNoFormalizada>();
     }

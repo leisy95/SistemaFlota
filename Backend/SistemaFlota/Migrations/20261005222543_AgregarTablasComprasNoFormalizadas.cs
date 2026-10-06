@@ -141,7 +141,7 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_MaterialesNoFormalizados", x => x.IdMaterialNoFormalizado);
                     table.ForeignKey(
-                        name: "FK_MaterialesNoFormalizados_ProveedoresNoFormalizados_IdProveed~",
+                        name: "FK_MaterialesNoFormalizados_ProveedoresNoFormalizados_IdProveedorNoFormalizado",
                         column: x => x.IdProveedorNoFormalizado,
                         principalTable: "ProveedoresNoFormalizados",
                         principalColumn: "IdProveedorNoFormalizado",
@@ -190,7 +190,7 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_OrdenesCompraNoFormalizadas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrdenesCompraNoFormalizadas_ProveedoresNoFormalizados_Provee~",
+                        name: "FK_OrdenesCompraNoFormalizadas_ProveedoresNoFormalizados_ProveedorNoFormalizadoId",
                         column: x => x.ProveedorNoFormalizadoId,
                         principalTable: "ProveedoresNoFormalizados",
                         principalColumn: "IdProveedorNoFormalizado",
@@ -233,13 +233,13 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_DetallesCorteInventarioNoFormalizados", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DetallesCorteInventarioNoFormalizados_CortesInventarioNoForm~",
+                        name: "FK_DetallesCorteInventarioNoFormalizados_CortesInventarioNoFormalizados_CorteInventarioId",
                         column: x => x.CorteInventarioId,
                         principalTable: "CortesInventarioNoFormalizados",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DetallesCorteInventarioNoFormalizados_MaterialesNoFormalizad~",
+                        name: "FK_DetallesCorteInventarioNoFormalizados_MaterialesNoFormalizados_MaterialId",
                         column: x => x.MaterialId,
                         principalTable: "MaterialesNoFormalizados",
                         principalColumn: "IdMaterialNoFormalizado",
@@ -301,13 +301,13 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_OrdenesTrasladoDetalleNoFormalizadas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrdenesTrasladoDetalleNoFormalizadas_MaterialesNoFormalizado~",
+                        name: "FK_OrdenesTrasladoDetalleNoFormalizadas_MaterialesNoFormalizados_MaterialNoFormalizadoId",
                         column: x => x.MaterialNoFormalizadoId,
                         principalTable: "MaterialesNoFormalizados",
                         principalColumn: "IdMaterialNoFormalizado",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_OrdenesTrasladoDetalleNoFormalizadas_OrdenesTrasladoNoFormal~",
+                        name: "FK_OrdenesTrasladoDetalleNoFormalizadas_OrdenesTrasladoNoFormalizadas_OrdenTrasladoNoFormalizadaId",
                         column: x => x.OrdenTrasladoNoFormalizadaId,
                         principalTable: "OrdenesTrasladoNoFormalizadas",
                         principalColumn: "Id",
@@ -335,13 +335,13 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_OrdenesCompraDetalleNoFormalizadas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrdenesCompraDetalleNoFormalizadas_MaterialesNoFormalizados_~",
+                        name: "FK_OrdenesCompraDetalleNoFormalizadas_MaterialesNoFormalizados_MaterialNoFormalizadoId",
                         column: x => x.MaterialNoFormalizadoId,
                         principalTable: "MaterialesNoFormalizados",
                         principalColumn: "IdMaterialNoFormalizado",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_OrdenesCompraDetalleNoFormalizadas_OrdenesCompraNoFormalizad~",
+                        name: "FK_OrdenesCompraDetalleNoFormalizadas_OrdenesCompraNoFormalizadas_OrdenCompraNoFormalizadaId",
                         column: x => x.OrdenCompraNoFormalizadaId,
                         principalTable: "OrdenesCompraNoFormalizadas",
                         principalColumn: "Id",
@@ -373,19 +373,20 @@ namespace SistemaFlota.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FechaRecepcion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FechaConfirmacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    UsuarioConfirmacionId = table.Column<int>(type: "int", nullable: true)
+                    UsuarioConfirmacionId = table.Column<int>(type: "int", nullable: true),
+                    NumeroUltimaEntrega = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RecepcionesMercanciasNoFormalizadas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercanciasNoFormalizadas_OrdenesCompraNoFormaliza~",
+                        name: "FK_RecepcionesMercanciasNoFormalizadas_OrdenesCompraNoFormalizadas_OrdenCompraNoFormalizadaId",
                         column: x => x.OrdenCompraNoFormalizadaId,
                         principalTable: "OrdenesCompraNoFormalizadas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercanciasNoFormalizadas_Usuarios_UsuarioConfirma~",
+                        name: "FK_RecepcionesMercanciasNoFormalizadas_Usuarios_UsuarioConfirmacionId",
                         column: x => x.UsuarioConfirmacionId,
                         principalTable: "Usuarios",
                         principalColumn: "Id");
@@ -419,7 +420,7 @@ namespace SistemaFlota.Migrations
                 {
                     table.PrimaryKey("PK_AjustesInventarioNoFormalizados", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AjustesInventarioNoFormalizados_InventariosNoFormalizados_In~",
+                        name: "FK_AjustesInventarioNoFormalizados_InventariosNoFormalizados_InventarioId",
                         column: x => x.InventarioId,
                         principalTable: "InventariosNoFormalizados",
                         principalColumn: "Id",
@@ -448,19 +449,22 @@ namespace SistemaFlota.Migrations
                     EstadoMaterial = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Observaciones = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NumeroEntrega = table.Column<int>(type: "int", nullable: false),
+                    FechaEntrega = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ProcesadoInventario = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RecepcionesMercanciaDetalleNoFormalizadas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercanciaDetalleNoFormalizadas_OrdenesCompraDetal~",
+                        name: "FK_RecepcionesMercanciaDetalleNoFormalizadas_OrdenesCompraDetalleNoFormalizadas_OrdenCompraDetalleNoFormalizadaId",
                         column: x => x.OrdenCompraDetalleNoFormalizadaId,
                         principalTable: "OrdenesCompraDetalleNoFormalizadas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RecepcionesMercanciaDetalleNoFormalizadas_RecepcionesMercanc~",
+                        name: "FK_RecepcionesMercanciaDetalleNoFormalizadas_RecepcionesMercanciasNoFormalizadas_RecepcionMercanciaNoFormalizadaId",
                         column: x => x.RecepcionMercanciaNoFormalizadaId,
                         principalTable: "RecepcionesMercanciasNoFormalizadas",
                         principalColumn: "Id",
@@ -535,7 +539,7 @@ namespace SistemaFlota.Migrations
                 column: "MaterialNoFormalizadoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrdenesTrasladoDetalleNoFormalizadas_OrdenTrasladoNoFormaliz~",
+                name: "IX_OrdenesTrasladoDetalleNoFormalizadas_OrdenTrasladoNoFormalizadaId",
                 table: "OrdenesTrasladoDetalleNoFormalizadas",
                 column: "OrdenTrasladoNoFormalizadaId");
 
@@ -555,17 +559,17 @@ namespace SistemaFlota.Migrations
                 column: "UsuarioVerificacionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecepcionesMercanciaDetalleNoFormalizadas_OrdenCompraDetalle~",
+                name: "IX_RecepcionesMercanciaDetalleNoFormalizadas_OrdenCompraDetalleNoFormalizadaId",
                 table: "RecepcionesMercanciaDetalleNoFormalizadas",
                 column: "OrdenCompraDetalleNoFormalizadaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecepcionesMercanciaDetalleNoFormalizadas_RecepcionMercancia~",
+                name: "IX_RecepcionesMercanciaDetalleNoFormalizadas_RecepcionMercanciaNoFormalizadaId",
                 table: "RecepcionesMercanciaDetalleNoFormalizadas",
                 column: "RecepcionMercanciaNoFormalizadaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecepcionesMercanciasNoFormalizadas_OrdenCompraNoFormalizada~",
+                name: "IX_RecepcionesMercanciasNoFormalizadas_OrdenCompraNoFormalizadaId",
                 table: "RecepcionesMercanciasNoFormalizadas",
                 column: "OrdenCompraNoFormalizadaId");
 

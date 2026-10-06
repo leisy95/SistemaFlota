@@ -174,9 +174,6 @@ namespace SistemaFlota.Controllers.Costos.OrdenCompra
 
         [HttpPut("{id:int}/anular")]
         [Permiso("orden-compra", "editar")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Anular(int id)
         {
             try

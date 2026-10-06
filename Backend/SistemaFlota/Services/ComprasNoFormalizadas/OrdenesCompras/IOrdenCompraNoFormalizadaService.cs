@@ -16,14 +16,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 
         Task<OrdenCompraNoFormalizadaDto?> ObtenerPorIdAsync(int id);
 
-        Task<OrdenCompraNoFormalizadaDto> CrearAsync(CrearOrdenCompraNoFormalizadaDto dto);
+        Task<OrdenCompraNoFormalizadaDto> CrearAsync(
+            CrearOrdenCompraNoFormalizadaDto dto);
 
-        Task<bool> ActualizarAsync(int id, ActualizarOrdenCompraNoFormalizadaDto dto);
+        Task<bool> ActualizarAsync(
+            int id,
+            ActualizarOrdenCompraNoFormalizadaDto dto);
 
         Task<bool> EliminarAsync(int id);
 
         Task<FiltrosOrdenCompraNoFormalizadaDto> ObtenerFiltrosAsync();
 
         Task<bool> EnviarPorCorreoAsync(int id);
+
+        Task<bool> AnularAsync(int id);
     }
 }

@@ -23,5 +23,11 @@ namespace SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias
         public string EstadoMaterial { get; set; } = string.Empty;
 
         public string? Observaciones { get; set; }
+
+        public int NumeroEntrega { get; set; }
+
+        public DateTime FechaEntrega { get; set; } = DateTime.Now;
+
+        public bool ProcesadoInventario { get; set; } = false;
     }
 }

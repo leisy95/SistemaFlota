@@ -26,13 +26,21 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 await _context
                     .RecepcionesMercanciasNoFormalizadas
                     .AsNoTracking()
+
+                    // ORDEN DE COMPRA + PROVEEDOR
                     .Include(r => r.OrdenCompraNoFormalizada)
                         .ThenInclude(o => o.ProveedorNoFormalizado)
+
+                    // DETALLES + ORDEN DE COMPRA DETALLE + MATERIAL
                     .Include(r => r.Detalles)
                         .ThenInclude(d =>
                             d.OrdenCompraDetalleNoFormalizada)
                         .ThenInclude(od =>
                             od.MaterialNoFormalizado)
+
+                    // USUARIO QUE CONFIRMA
+                    .Include(r => r.UsuarioConfirmacion)
+
                     .FirstOrDefaultAsync(r => r.Id == idRecepcion);
 
             if (recepcion == null)
@@ -75,10 +83,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
         }
 
         // DOCUMENTO
-
         private void ConstruirDocumento(
             PageDescriptor page,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion,
+            Models.ComprasNoFormalizadas.RecepcionMercancias
+                .RecepcionMercanciaNoFormalizada recepcion,
             ConfiguracionEmpresa empresa)
         {
             page.Content()
@@ -87,15 +95,16 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 {
                     col.Spacing(10);
 
-                    // HEADER
+                    //  HEADER
                     col.Item()
                         .Element(x =>
                             HeaderEmpresa.Dibujar(
                                 x,
                                 ObtenerLogo(),
                                 empresa,
-                                "F-GC-009 V2",
                                 "RECEPCIÓN DE MERCANCÍA NO FORMALIZADA",
+                                "F-GC-009 V2",
+                                "30/07/2026",
                                 recepcion.NumeroRecepcion));
 
                     // NOTA INICIAL
@@ -149,8 +158,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                 x,
                                 recepcion));
 
-                    // DETALLES
-                    DibujarDetalles(
+                    // HISTORIAL DE ENTREGAS
+                    DibujarEntregas(
                         col,
                         recepcion);
 
@@ -179,27 +188,35 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                 .PaddingTop(3)
                                 .Text(text =>
                                 {
-                                    text.Span("Los métodos de verificación de las características y los criterios de cumplimiento a tener en cuenta, están definidos en el ")
+                                    text.Span(
+                                        "Los métodos de verificación de las características y los criterios de cumplimiento a tener en cuenta, están definidos en el ")
                                         .FontSize(8)
-                                        .FontColor(PdfColors.AzulOscuro);
+                                        .FontColor(
+                                            PdfColors.AzulOscuro);
 
-                                    text.Span("\"procedimiento de Pruebas y Ensayos\"")
+                                    text.Span(
+                                        "\"procedimiento de Pruebas y Ensayos\"")
                                         .Bold()
                                         .FontSize(8)
-                                        .FontColor(PdfColors.AzulOscuro);
+                                        .FontColor(
+                                            PdfColors.AzulOscuro);
 
                                     text.Span(" e ")
                                         .FontSize(8)
-                                        .FontColor(PdfColors.AzulOscuro);
+                                        .FontColor(
+                                            PdfColors.AzulOscuro);
 
-                                    text.Span("\"Instructivos para Pruebas y Ensayos\"")
+                                    text.Span(
+                                        "\"Instructivos para Pruebas y Ensayos\"")
                                         .Bold()
                                         .FontSize(8)
-                                        .FontColor(PdfColors.AzulOscuro);
+                                        .FontColor(
+                                            PdfColors.AzulOscuro);
 
                                     text.Span(".")
                                         .FontSize(8)
-                                        .FontColor(PdfColors.AzulOscuro);
+                                        .FontColor(
+                                            PdfColors.AzulOscuro);
                                 });
                         });
                 });
@@ -209,10 +226,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
         }
 
         // DATOS RECEPCIÓN
-
         private void DibujarDatosRecepcion(
             IContainer container,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+            Models.ComprasNoFormalizadas.RecepcionMercancias
+                .RecepcionMercanciaNoFormalizada recepcion)
         {
             Card.Dibujar(
                 container,
@@ -283,11 +300,12 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                         });
                 });
         }
-        // ORDEN DE COMPRA
 
+        // ORDEN DE COMPRA
         private void DibujarDatosOrden(
             IContainer container,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+            Models.ComprasNoFormalizadas.RecepcionMercancias
+                .RecepcionMercanciaNoFormalizada recepcion)
         {
             Card.Dibujar(
                 container,
@@ -389,10 +407,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
         }
 
         // TRANSPORTE
-
         private void DibujarTransporte(
             IContainer container,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+            Models.ComprasNoFormalizadas.RecepcionMercancias
+                .RecepcionMercanciaNoFormalizada recepcion)
         {
             Card.Dibujar(
                 container,
@@ -464,30 +482,119 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 });
         }
 
-        // DETALLES DE RECEPCIÓN
-
-        private void DibujarDetalles(
-            ColumnDescriptor col,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+        // HISTORIAL DE ENTREGAS
+        private void DibujarEntregas(
+    ColumnDescriptor col,
+    Models.ComprasNoFormalizadas.RecepcionMercancias
+        .RecepcionMercanciaNoFormalizada recepcion)
         {
+            var entregas = recepcion.Detalles
+                .GroupBy(d => d.NumeroEntrega)
+                .OrderBy(g => g.Key)
+                .ToList();
+
             col.Item()
-                .Text("DETALLE DE LA RECEPCIÓN")
+                .Text("HISTORIAL DE ENTREGAS")
                 .Style(PdfStyles.Subtitulo);
 
-            col.Item()
-                .Element(x =>
-                {
-                    TablaRecepcionMercanciaNoFormalizada.Dibujar(
-                        x,
-                        recepcion.Detalles);
-                });
+            if (!entregas.Any())
+            {
+                col.Item()
+                    .Text("No existen entregas registradas.")
+                    .Style(PdfStyles.Valor);
+
+                return;
+            }
+
+            foreach (var entrega in entregas)
+            {
+                var fechaEntrega = entrega
+                    .Min(x => x.FechaEntrega);
+
+                var totalKg = entrega
+                    .Sum(x => x.CantidadRecibida);
+
+                var totalBultos = entrega
+                    .Sum(x => x.BultosRecibidos);
+
+                var procesada = entrega
+                    .All(x => x.ProcesadoInventario);
+
+                col.Item()
+                    .Element(x =>
+                    {
+                        Card.Dibujar(
+                            x,
+                            $"ENTREGA #{entrega.Key}",
+                            contenido =>
+                            {
+                                // INFORMACIÓN DE LA ENTREGA
+                                contenido.Item()
+                                    .Row(row =>
+                                    {
+                                        row.RelativeItem()
+                                            .Column(c =>
+                                            {
+                                                c.Item()
+                                                    .Text("Fecha de entrega")
+                                                    .Style(PdfStyles.Label);
+
+                                                c.Item()
+                                                    .Text(
+                                                        fechaEntrega.ToString(
+                                                            "dd/MM/yyyy HH:mm"))
+                                                    .Style(PdfStyles.Valor);
+                                            });
+
+                                        row.RelativeItem()
+                                            .Column(c =>
+                                            {
+                                                c.Item()
+                                                    .Text("Estado")
+                                                    .Style(PdfStyles.Label);
+
+                                                c.Item()
+                                                    .Text(
+                                                        procesada
+                                                            ? "Ingresada a inventario"
+                                                            : "Pendiente de inventario")
+                                                    .Style(PdfStyles.Valor);
+                                            });
+                                    });
+
+                                // TABLA DE LA ENTREGA
+                                contenido.Item()
+                                    .PaddingTop(10)
+                                    .Element(tabla =>
+                                        TablaRecepcionMercanciaNoFormalizada.Dibujar(
+                                            tabla,
+                                            entrega.ToList()));
+
+                                // TOTALES DE LA ENTREGA
+                                contenido.Item()
+                                    .PaddingTop(8)
+                                    .Row(row =>
+                                    {
+                                        row.RelativeItem()
+                                            .Text(
+                                                $"Total KG: {totalKg:N2}")
+                                            .Style(PdfStyles.Valor);
+
+                                        row.RelativeItem()
+                                            .Text(
+                                                $"Total Bultos: {totalBultos:N2}")
+                                            .Style(PdfStyles.Valor);
+                                    });
+                            });
+                    });
+            }
         }
 
         // RESUMEN
-
         private void DibujarResumen(
             ColumnDescriptor col,
-            Models.ComprasNoFormalizadas.RecepcionMercancias.RecepcionMercanciaNoFormalizada recepcion)
+            Models.ComprasNoFormalizadas.RecepcionMercancias
+                .RecepcionMercanciaNoFormalizada recepcion)
         {
             var totalKg =
                 recepcion.Detalles
@@ -497,10 +604,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 recepcion.Detalles
                     .Sum(x => x.BultosRecibidos);
 
-            var totalItems =
+            var totalEntregas =
                 recepcion.Detalles
-                    .Select(x =>
-                        x.OrdenCompraDetalleNoFormalizadaId)
+                    .Select(x => x.NumeroEntrega)
                     .Distinct()
                     .Count();
 
@@ -512,6 +618,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                         "RESUMEN DE LA RECEPCIÓN",
                         contenido =>
                         {
+                            // TOTALES
                             contenido.Item()
                                 .Row(row =>
                                 {
@@ -519,13 +626,14 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                         .Column(c =>
                                         {
                                             c.Item()
-                                                .Text("Materiales")
+                                                .Text("Entregas")
                                                 .Style(
                                                     PdfStyles.Label);
 
                                             c.Item()
                                                 .Text(
-                                                    totalItems.ToString())
+                                                    totalEntregas
+                                                        .ToString())
                                                 .Style(
                                                     PdfStyles.Total);
                                         });
@@ -540,7 +648,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
                                             c.Item()
                                                 .Text(
-                                                    totalKg.ToString("N2"))
+                                                    totalKg
+                                                        .ToString("N2"))
                                                 .Style(
                                                     PdfStyles.Total);
                                         });
@@ -555,15 +664,18 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
                                             c.Item()
                                                 .Text(
-                                                    totalBultos.ToString("N2"))
+                                                    totalBultos
+                                                        .ToString("N2"))
                                                 .Style(
                                                     PdfStyles.Total);
                                         });
                                 });
 
+                            // ESTADO
                             contenido.Item()
                                 .PaddingTop(15)
-                                .Text("ESTADO DE LA RECEPCIÓN")
+                                .Text(
+                                    "ESTADO DE LA RECEPCIÓN")
                                 .Bold()
                                 .FontSize(11);
 
@@ -585,13 +697,20 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
                                     c.Item()
                                         .Text(
-                                            $"Usuario: {recepcion.UsuarioConfirmacionId?.ToString() ?? "---"}");
+                                            $"Usuario: {recepcion
+                                                .UsuarioConfirmacion
+                                                ?.Username ?? "---"}");
 
                                     c.Item()
                                         .Text(
-                                            $"Fecha: {(recepcion.FechaConfirmacion.HasValue
-                                                ? recepcion.FechaConfirmacion.Value
-                                                    .ToString("dd/MM/yyyy HH:mm")
+                                            $"Fecha: {(recepcion
+                                                .FechaConfirmacion
+                                                .HasValue
+                                                ? recepcion
+                                                    .FechaConfirmacion
+                                                    .Value
+                                                    .ToString(
+                                                        "dd/MM/yyyy HH:mm")
                                                 : "---")}");
                                 });
                         });

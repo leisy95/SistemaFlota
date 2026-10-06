@@ -23,76 +23,105 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
         {
             var recepcion = await ObtenerRecepcionAsync(recepcionId);
 
-            foreach (var detalle in recepcion.Detalles)
+            var detallesPendientes = recepcion.Detalles
+                .Where(d => !d.ProcesadoInventario)
+                .ToList();
+
+            if (!detallesPendientes.Any())
             {
-                await ActualizarInventarioAsync(detalle);
+                throw new Exception(
+                    "No existen materiales pendientes por ingresar al inventario."
+                );
+            }
+
+            var grupos = detallesPendientes
+                .GroupBy(d => new
+                {
+                    MaterialId = d.OrdenCompraDetalleNoFormalizada!.MaterialNoFormalizadoId,
+                    Color = d.OrdenCompraDetalleNoFormalizada.Color
+                })
+                .ToList();
+
+            foreach (var grupo in grupos)
+            {
+                var detallesGrupo = grupo.ToList();
+
+                var materialId = grupo.Key.MaterialId;
+                var color = grupo.Key.Color;
+
+                var inventario = await _context.InventariosNoFormalizados
+                    .FirstOrDefaultAsync(i =>
+                        i.MaterialId == materialId &&
+                        i.Color == color);
+
+                var cantidadTotal = detallesGrupo.Sum(d => d.CantidadRecibida);
+
+                var valorTotalCompra = detallesGrupo.Sum(d =>
+                    d.CantidadRecibida *
+                    d.OrdenCompraDetalleNoFormalizada!.CostoKg);
+
+                if (inventario == null)
+                {
+                    var costoPromedio = cantidadTotal > 0
+                        ? valorTotalCompra / cantidadTotal
+                        : 0;
+
+                    inventario =
+                        new Models.ComprasNoFormalizadas.Inventario.InventarioNoFormalizado
+                        {
+                            MaterialId = materialId,
+                            Color = color,
+                            StockActual = cantidadTotal,
+                            CostoPromedio = costoPromedio,
+                            ValorInventario = valorTotalCompra,
+                            FechaCreacion = DateTime.Now,
+                            FechaActualizacion = DateTime.Now
+                        };
+
+                    _context.InventariosNoFormalizados.Add(inventario);
+                }
+                else
+                {
+                    var stockAnterior = inventario.StockActual;
+                    var costoAnterior = inventario.CostoPromedio;
+
+                    var nuevoStock = stockAnterior + cantidadTotal;
+
+                    var nuevoCostoPromedio = nuevoStock > 0
+                        ? ((stockAnterior * costoAnterior) + valorTotalCompra)
+                          / nuevoStock
+                        : 0;
+
+                    inventario.StockActual = nuevoStock;
+                    inventario.CostoPromedio = nuevoCostoPromedio;
+                    inventario.ValorInventario =
+                        nuevoStock * nuevoCostoPromedio;
+                    inventario.FechaActualizacion = DateTime.Now;
+                }
+
+                foreach (var detalle in detallesGrupo)
+                {
+                    detalle.ProcesadoInventario = true;
+                }
             }
 
             await _context.SaveChangesAsync();
         }
 
-        private async Task<RecepcionMercanciaNoFormalizada> ObtenerRecepcionAsync(int recepcionId)
+        private async Task<RecepcionMercanciaNoFormalizada> ObtenerRecepcionAsync(
+            int recepcionId)
         {
-            var recepcion = await _context.RecepcionesMercanciasNoFormalizadas
-                .Include(r => r.Detalles)
-                    .ThenInclude(d => d.OrdenCompraDetalleNoFormalizada)
-                        .ThenInclude(o => o.MaterialNoFormalizado)
-                .FirstOrDefaultAsync(r => r.Id == recepcionId);
+            var recepcion =
+                await _context.RecepcionesMercanciasNoFormalizadas
+                    .Include(r => r.Detalles)
+                        .ThenInclude(d => d.OrdenCompraDetalleNoFormalizada)
+                            .ThenInclude(o => o.MaterialNoFormalizado)
+                    .FirstOrDefaultAsync(r => r.Id == recepcionId);
 
             if (recepcion == null)
                 throw new Exception("La recepción no existe.");
 
             return recepcion;
-        }
-
-        private async Task ActualizarInventarioAsync(
-            RecepcionMercanciaDetalleNoFormalizada detalle)
-        {
-            var ordenDetalle = detalle.OrdenCompraDetalleNoFormalizada;
-
-            if (ordenDetalle == null)
-                throw new Exception("El detalle de la orden de compra no existe.");
-
-            var materialId = ordenDetalle.MaterialNoFormalizadoId;
-            var color = ordenDetalle.Color;
-            var cantidadCompra = detalle.CantidadRecibida;
-            var costoCompra = ordenDetalle.CostoKg;
-
-            var inventario = await _context.InventariosNoFormalizados
-                .FirstOrDefaultAsync(i =>
-                    i.MaterialId == materialId &&
-                    i.Color == color);
-
-            if (inventario == null)
-            {
-                inventario = new Models.ComprasNoFormalizadas.Inventario.InventarioNoFormalizado
-                {
-                    MaterialId = materialId,
-                    Color = color,
-                    StockActual = cantidadCompra,
-                    CostoPromedio = costoCompra,
-                    ValorInventario = cantidadCompra * costoCompra,
-                    FechaCreacion = DateTime.Now,
-                    FechaActualizacion = DateTime.Now
-                };
-
-                _context.InventariosNoFormalizados.Add(inventario);
-                return;
-            }
-
-            var stockAnterior = inventario.StockActual;
-            var costoAnterior = inventario.CostoPromedio;
-            var nuevoStock = stockAnterior + cantidadCompra;
-
-            var nuevoCostoPromedio =
-                ((stockAnterior * costoAnterior) +
-                 (cantidadCompra * costoCompra)) /
-                nuevoStock;
-
-            inventario.StockActual = nuevoStock;
-            inventario.CostoPromedio = nuevoCostoPromedio;
-            inventario.ValorInventario = nuevoStock * nuevoCostoPromedio;
-            inventario.FechaActualizacion = DateTime.Now;
         }
 
         public async Task<InventarioNoFormalizadoPaginadoDto> ObtenerAsync(
@@ -120,11 +149,11 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     (i.Material.DescripcionCompra != null &&
                      i.Material.DescripcionCompra.Contains(search)) ||
                     i.Material.ProveedorNoFormalizado!.Nombre.Contains(search) ||
+                    i.Color.Contains(search) ||
                     i.Material.Categoria.Contains(search) ||
                     i.Material.Densidad.Contains(search) ||
                     (i.Material.TipoProduccion != null &&
-                     i.Material.TipoProduccion.Contains(search)) ||
-                    i.Color.Contains(search));
+                     i.Material.TipoProduccion.Contains(search)));
             }
 
             if (proveedorId.HasValue)
@@ -141,7 +170,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
 
             if (!string.IsNullOrWhiteSpace(color))
             {
-                query = query.Where(i => i.Color == color);
+                query = query.Where(i =>
+                    i.Color == color);
             }
 
             var total = await query.CountAsync();
@@ -152,7 +182,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
             if (puedeVerDatosNumericos)
             {
                 totalKg = await query.SumAsync(i => i.StockActual);
-                totalValorInventario = await query.SumAsync(i => i.ValorInventario);
+                totalValorInventario =
+                    await query.SumAsync(i => i.ValorInventario);
             }
 
             var items = await query
@@ -164,21 +195,49 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                 {
                     Id = i.Id,
                     MaterialId = i.MaterialId,
-                    Material = i.Material!.NombreMaterial,
+                    Material = i.Material!.NombreMaterial ?? "",
                     Proveedor = i.Material.ProveedorNoFormalizado!.Nombre,
                     Categoria = i.Material.Categoria,
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
+
                     StockActual = puedeVerDatosNumericos
                         ? i.StockActual
                         : null,
-                    CantidadComprometida = null,
-                    StockDisponible = puedeVerDatosNumericos
-                        ? i.StockActual
+
+                    CantidadComprometida = puedeVerDatosNumericos
+                        ? _context.OrdenesTrasladoNoFormalizadas
+                            .Where(o =>
+                                o.Estado == "Pendiente" ||
+                                o.Estado == "Verificando")
+                            .SelectMany(o => o.Detalles)
+                            .Where(d =>
+                                d.MaterialNoFormalizadoId == i.MaterialId &&
+                                d.Color == i.Color)
+                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m
                         : null,
+
+                    StockDisponible = puedeVerDatosNumericos
+                        ? Math.Max(
+                            i.StockActual -
+                            (
+                                _context.OrdenesTrasladoNoFormalizadas
+                                    .Where(o =>
+                                        o.Estado == "Pendiente" ||
+                                        o.Estado == "Verificando")
+                                    .SelectMany(o => o.Detalles)
+                                    .Where(d =>
+                                        d.MaterialNoFormalizadoId == i.MaterialId &&
+                                        d.Color == i.Color)
+                                    .Sum(d => (decimal?)d.CantidadKg) ?? 0m
+                            ),
+                            0m)
+                        : null,
+
                     CostoPromedio = puedeVerDatosNumericos
                         ? i.CostoPromedio
                         : null,
+
                     ValorInventario = puedeVerDatosNumericos
                         ? i.ValorInventario
                         : null
@@ -247,11 +306,11 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     (i.Material.DescripcionCompra != null &&
                      i.Material.DescripcionCompra.Contains(search)) ||
                     i.Material.ProveedorNoFormalizado!.Nombre.Contains(search) ||
+                    i.Color.Contains(search) ||
                     i.Material.Categoria.Contains(search) ||
                     i.Material.Densidad.Contains(search) ||
                     (i.Material.TipoProduccion != null &&
-                     i.Material.TipoProduccion.Contains(search)) ||
-                    i.Color.Contains(search));
+                     i.Material.TipoProduccion.Contains(search)));
             }
 
             if (proveedorId.HasValue)
@@ -268,7 +327,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
 
             if (!string.IsNullOrWhiteSpace(color))
             {
-                query = query.Where(i => i.Color == color);
+                query = query.Where(i =>
+                    i.Color == color);
             }
 
             var inventario = await query
@@ -285,11 +345,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Reporte Inventario");
 
-            var ultimaColumna = puedeVerDatosNumericos ? "G" : "D";
-            var cantidadColumnas = puedeVerDatosNumericos ? 7 : 4;
+            var ultimaColumna =
+                puedeVerDatosNumericos ? "H" : "E";
+
+            var cantidadColumnas =
+                puedeVerDatosNumericos ? 8 : 5;
 
             ws.Range($"A1:{ultimaColumna}1").Merge();
-            ws.Cell("A1").Value = empresa?.NombreEmpresa ?? "EMPRESA";
+            ws.Cell("A1").Value =
+                empresa?.NombreEmpresa ?? "EMPRESA";
             ws.Cell("A1").Style.Font.Bold = true;
             ws.Cell("A1").Style.Font.FontSize = 18;
             ws.Cell("A1").Style.Alignment.Horizontal =
@@ -325,6 +389,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     "Proveedor",
                     "Categoría",
                     "Color",
+                    "Densidad",
                     "Stock Actual",
                     "Costo Promedio",
                     "Valor Inventario"
@@ -334,7 +399,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     "Material",
                     "Proveedor",
                     "Categoría",
-                    "Color"
+                    "Color",
+                    "Densidad"
                 };
 
             for (int i = 0; i < headers.Length; i++)
@@ -372,11 +438,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                 ws.Cell(fila, 4).Value =
                     item.Color;
 
+                ws.Cell(fila, 5).Value =
+                    item.Material?.Densidad;
+
                 if (puedeVerDatosNumericos)
                 {
-                    ws.Cell(fila, 5).Value = item.StockActual;
-                    ws.Cell(fila, 6).Value = item.CostoPromedio;
-                    ws.Cell(fila, 7).Value = item.ValorInventario;
+                    ws.Cell(fila, 6).Value =
+                        item.StockActual;
+
+                    ws.Cell(fila, 7).Value =
+                        item.CostoPromedio;
+
+                    ws.Cell(fila, 8).Value =
+                        item.ValorInventario;
 
                     totalStock += item.StockActual;
                     totalValor += item.ValorInventario;
@@ -398,24 +472,30 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
 
             if (puedeVerDatosNumericos)
             {
-                ws.Cell(fila + 1, 4).Value = "TOTAL";
-                ws.Cell(fila + 1, 4).Style.Font.Bold = true;
-
-                ws.Cell(fila + 1, 5).Value = totalStock;
+                ws.Cell(fila + 1, 5).Value = "TOTAL";
                 ws.Cell(fila + 1, 5).Style.Font.Bold = true;
 
-                ws.Cell(fila + 1, 7).Value = totalValor;
-                ws.Cell(fila + 1, 7).Style.Font.Bold = true;
+                ws.Cell(fila + 1, 6).Value = totalStock;
+                ws.Cell(fila + 1, 6).Style.Font.Bold = true;
 
-                ws.Column(5).Style.NumberFormat.Format = "#,##0.00";
-                ws.Column(6).Style.NumberFormat.Format = "$ #,##0";
-                ws.Column(7).Style.NumberFormat.Format = "$ #,##0";
+                ws.Cell(fila + 1, 8).Value = totalValor;
+                ws.Cell(fila + 1, 8).Style.Font.Bold = true;
+
+                ws.Column(6).Style.NumberFormat.Format =
+                    "#,##0.00";
+
+                ws.Column(7).Style.NumberFormat.Format =
+                    "$ #,##0";
+
+                ws.Column(8).Style.NumberFormat.Format =
+                    "$ #,##0";
             }
 
             ws.Columns().AdjustToContents();
             ws.SheetView.FreezeRows(filaInicio);
 
             using var stream = new MemoryStream();
+
             workbook.SaveAs(stream);
 
             return stream.ToArray();

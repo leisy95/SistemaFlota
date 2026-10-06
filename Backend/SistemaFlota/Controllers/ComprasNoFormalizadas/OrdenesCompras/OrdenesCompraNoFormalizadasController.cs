@@ -185,5 +185,41 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
                 });
             }
         }
+        // Anular orden de compra
+        [HttpPut("{id:int}/anular")]
+        [Permiso("ordenes-compra-no-formalizadas", "editar")]
+        public async Task<IActionResult> Anular(int id)
+        {
+            try
+            {
+                await _service.AnularAsync(id);
+
+                return Ok(new
+                {
+                    mensaje = "La orden de compra no formalizada fue anulada correctamente."
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
     }
 }
