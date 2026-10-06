@@ -42,9 +42,27 @@ public static class EtiquetaComponent
                     .AlignMiddle()
                     .Element(qr =>
                     {
+                        string numeroOrden =
+                            recepcion.OrdenCompra!.Numero;
+
+                        string fechaOrden =
+                            recepcion.OrdenCompra.FechaOrden
+                                .ToString("dd/MM/yyyy");
+
+                        string lote =
+                            detalle.LoteProveedor?.Trim() ?? "";
+
+                        // Información completa que tendrá el QR
+                        string contenidoQr =
+                            $"Orden: {numeroOrden}\n" +
+                            $"Fecha: {fechaOrden}\n" +
+                            $"Lote: {lote}\n" +
+                            $"Trazabilidad: {codigoFormateado}\n" +
+                            $"Bulto: {numeroBulto}/{totalBultos}";
+
                         QrComponent.Dibujar(
                             qr,
-                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id};BULTO:{numeroBulto}/{totalBultos}",
+                            contenidoQr,
                             codigoFormateado);
                     });
             });

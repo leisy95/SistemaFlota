@@ -33,12 +33,13 @@ public class EtiquetasPdfService : IEtiquetasPdfService
             ? recepcion.Detalles.Max(x => x.NumeroEntrega)
             : 1;
 
-        // 3. Filtrar los detalles recibidos en esta entrega específica para generar sus etiquetas
+        // 3. Filtrar los detalles recibidos en esta entrega específica
         var detallesEntregaActual = recepcion.Detalles
             .Where(x => x.NumeroEntrega == ultimaEntregaActual)
             .ToList();
 
-        // 4. Obtener todos los detalles de entregas ANTERIORES para la misma Orden de Compra
+        // 4. Obtener todos los detalles de entregas ANTERIORES
+        //    para la misma Orden de Compra
         var detallesAnteriores = await _context.RecepcionesMercancias
             .AsNoTracking()
             .Where(x => x.OrdenCompraId == recepcion.OrdenCompraId)
@@ -53,7 +54,7 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 int bultosActuales = (int)detalle.BultosRecibidos;
                 int ordenCompraDetalleId = detalle.OrdenCompraDetalleId;
 
-                // Sumar bultos ingresados en entregas estrictamente anteriores
+                // Sumar bultos ingresados en entregas anteriores
                 int bultosAnteriores = detallesAnteriores
                     .Where(x => x.OrdenCompraDetalleId == ordenCompraDetalleId)
                     .Sum(x => (int)x.BultosRecibidos);
@@ -61,15 +62,27 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 // Total de bultos programados en la Orden de Compra
                 int totalBultos = (int)detalle.OrdenCompraDetalle!.Bultos;
 
+                // CÓDIGO DE TRAZABILIDAD
+
                 string numeroOrden = recepcion.OrdenCompra!.Numero;
 
+                // Últimos 3 números de la orden
                 string ultimosTresOrden = numeroOrden.Length >= 3
                     ? numeroOrden[^3..]
                     : numeroOrden.PadLeft(3, '0');
 
-                string diaMes = recepcion.OrdenCompra.FechaOrden.ToString("ddMM");
+                // Día de la fecha
+                string dia = recepcion.OrdenCompra.FechaOrden
+                    .ToString("dd");
 
+                // Últimos 2 dígitos del año
+                string año = recepcion.OrdenCompra.FechaOrden
+                    .ToString("yy");
+
+                // Lote completo
                 string lote = detalle.LoteProveedor?.Trim() ?? "";
+
+                // Parte del lote después del último "-"
                 string ultimoNumeroLote = "";
 
                 if (!string.IsNullOrWhiteSpace(lote))
@@ -80,10 +93,12 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                         .Trim();
                 }
 
-                string codigoFormateado =
-                    $"{ultimosTresOrden} · {diaMes[..2]} · {diaMes[2..]} · {ultimoNumeroLote}";
 
-                // Generar páginas consecutivas
+                string codigoFormateado =
+                    $"{ultimosTresOrden} · {dia} · {año} · {ultimoNumeroLote}";
+
+                // GENERAR PÁGINAS CONSECUTIVAS
+
                 for (int i = 1; i <= bultosActuales; i++)
                 {
                     int numeroBulto = bultosAnteriores + i;

@@ -40,9 +40,30 @@ public static class EtiquetaNoFormalizadaComponent
                     .AlignMiddle()
                     .Element(qr =>
                     {
+                        string numeroOrden =
+                            recepcion
+                                .OrdenCompraNoFormalizada!
+                                .Numero;
+
+                        string fechaOrden =
+                            recepcion
+                                .OrdenCompraNoFormalizada
+                                .FechaOrden
+                                .ToString("dd/MM/yyyy");
+
+                        string lote =
+                            detalle.LoteProveedor?.Trim() ?? "";
+
+                        string contenidoQr =
+                            $"Orden: {numeroOrden}\n" +
+                            $"Fecha: {fechaOrden}\n" +
+                            $"Lote: {lote}\n" +
+                            $"Trazabilidad: {codigoFormateado}\n" +
+                            $"Bulto: {numeroBulto}/{totalBultos}";
+
                         QrComponent.Dibujar(
                             qr,
-                            $"RECEPCION:{recepcion.Id};DETALLE:{detalle.Id};BULTO:{numeroBulto}/{totalBultos}",
+                            contenidoQr,
                             codigoFormateado);
                     });
             });

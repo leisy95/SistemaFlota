@@ -45,11 +45,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormal
                         ? numeroOrden[^3..]
                         : numeroOrden.PadLeft(3, '0');
 
-                    string diaMes =
+                    // Día de la orden: 06
+                    string dia =
                         recepcion
                             .OrdenCompraNoFormalizada
                             .FechaOrden
-                            .ToString("ddMM");
+                            .ToString("dd");
+
+                    // Año de la orden: 26
+                    string año =
+                        recepcion
+                            .OrdenCompraNoFormalizada
+                            .FechaOrden
+                            .ToString("yy");
 
                     string lote =
                         detalle.LoteProveedor?.Trim() ?? "";
@@ -64,13 +72,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormal
                             .Trim();
                     }
 
+                    // Código interno completo
                     string codigo =
-                        $"{ultimosTresOrden}{diaMes}{ultimoNumeroLote}";
+                        $"{ultimosTresOrden}{dia}{año}{ultimoNumeroLote}";
 
+                    // Código que se muestra debajo del QR
                     string codigoFormateado =
                         $"{ultimosTresOrden} · " +
-                        $"{diaMes[..2]} · " +
-                        $"{diaMes[2..]} · " +
+                        $"{dia} · " +
+                        $"{año} · " +
                         $"{ultimoNumeroLote}";
 
                     for (
