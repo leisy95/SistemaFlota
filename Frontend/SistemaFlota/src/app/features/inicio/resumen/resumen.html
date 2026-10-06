@@ -1,47 +1,23 @@
 <section class="resumen">
 
-    <div class="card empleados">
-
-        <div class="icono">
-            <i class="fa-solid fa-users"></i>
-        </div>
-
-        <div class="info">
-
-            <span class="titulo">
-                Empleados
-            </span>
-
-            <h2>
-                0
-            </h2>
-
-            <small>
-                +0 este mes
-            </small>
-
-        </div>
-
-    </div>
-
     <div class="card pedidos">
 
         <div class="icono">
-            <i class="fa-solid fa-box"></i>
+            <i class="fa-solid fa-file-invoice"></i>
         </div>
 
         <div class="info">
 
             <span class="titulo">
-                Pedidos
+                Órdenes de compra
             </span>
 
             <h2>
-                0
+                {{ resumen.ordenesCompra }}
             </h2>
 
             <small>
-                0 pendientes
+                {{ resumen.ordenesPendientes }} pendientes
             </small>
 
         </div>
@@ -61,7 +37,7 @@
             </span>
 
             <h2>
-                0
+                {{ resumen.vehiculos }}
             </h2>
 
             <small>
@@ -72,24 +48,50 @@
 
     </div>
 
-    <div class="card alertas">
+
+    <div class="card empleados">
 
         <div class="icono">
-            <i class="fa-solid fa-triangle-exclamation"></i>
+            <i class="fa-solid fa-users"></i>
         </div>
 
         <div class="info">
 
             <span class="titulo">
-                Alertas
+                Empleados
             </span>
 
             <h2>
-                0
+                {{ resumen.empleados }}
             </h2>
 
             <small>
-                Requieren atención
+                Personal activo
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <div class="card alertas">
+
+        <div class="icono">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+
+        <div class="info">
+
+            <span class="titulo">
+                Mantenimientos
+            </span>
+
+            <h2>
+                {{ resumen.mantenimientos }}
+            </h2>
+
+            <small>
+                {{ resumen.mantenimientosProximos }} próximos
             </small>
 
         </div>

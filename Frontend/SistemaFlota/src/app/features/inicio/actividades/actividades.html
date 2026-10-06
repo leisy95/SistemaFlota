@@ -5,137 +5,96 @@
     <div class="panel">
 
         <h2>
-
             <i class="fa-solid fa-clock-rotate-left"></i>
-
             Actividad reciente
-
         </h2>
 
-        <div class="item">
+        <div class="item" *ngFor="let actividad of resumen?.actividades">
 
-            <i class="fa-solid fa-circle-check ok"></i>
+            <i *ngIf="actividad.tipo === 'orden'" class="fa-solid fa-file-circle-check ok"></i>
+
+            <i *ngIf="actividad.tipo === 'mantenimiento'" class="fa-solid fa-screwdriver-wrench naranja"></i>
 
             <div>
 
-                <strong>Pedido #4582</strong>
+                <strong>
+                    {{ actividad.descripcion }}
+                </strong>
 
-                <small>Hace 10 minutos</small>
+                <small>
+                    {{ actividad.fecha | date:'dd/MM/yyyy HH:mm' }}
+                </small>
 
             </div>
 
         </div>
 
-        <div class="item">
-
-            <i class="fa-solid fa-user-plus azul"></i>
-
+        <div class="item" *ngIf="!resumen?.actividades?.length">
             <div>
-
-                <strong>Nuevo empleado registrado</strong>
-
-                <small>Hace 1 hora</small>
-
+                <strong>No hay actividad reciente</strong>
             </div>
-
-        </div>
-
-        <div class="item">
-
-            <i class="fa-solid fa-truck naranja"></i>
-
-            <div>
-
-                <strong>Vehículo enviado a mantenimiento</strong>
-
-                <small>Hoy</small>
-
-            </div>
-
         </div>
 
     </div>
+
 
     <!-- Accesos -->
 
     <div class="panel">
 
         <h2>
-
             <i class="fa-solid fa-bolt"></i>
-
             Accesos rápidos
-
         </h2>
 
-        <button>
-
-            <i class="fa-solid fa-user-plus"></i>
-
-            Nuevo empleado
-
+        <button routerLink="/costos/orden-compra">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            Nueva orden de compra
         </button>
 
-        <button>
-
-            <i class="fa-solid fa-box"></i>
-
-            Nuevo pedido
-
-        </button>
-
-        <button>
-
+        <button routerLink="/flota/vehiculos">
             <i class="fa-solid fa-truck"></i>
-
             Registrar vehículo
+        </button>
 
+        <button routerLink="/flota/mantenimiento">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            Registrar mantenimiento
         </button>
 
         <button>
-
-            <i class="fa-solid fa-chart-column"></i>
-
-            Ver reportes
-
+            <i class="fa-solid fa-user-plus"></i>
+            Nuevo empleado
         </button>
 
     </div>
+
 
     <!-- Vencimientos -->
 
     <div class="panel">
 
         <h2>
-
             <i class="fa-solid fa-calendar-days"></i>
-
             Próximos vencimientos
-
         </h2>
 
-        <div class="vencimiento">
+        <div class="vencimiento" *ngFor="let vencimiento of resumen?.vencimientos">
 
-            <span>SOAT</span>
+            <span>
+                {{ vencimiento.descripcion }}
+            </span>
 
-            <strong>3 días</strong>
-
-        </div>
-
-        <div class="vencimiento">
-
-            <span>Licencia conductor</span>
-
-            <strong>8 días</strong>
+            <strong>
+                {{ vencimiento.dias }} días
+            </strong>
 
         </div>
 
-        <div class="vencimiento">
-
-            <span>Mantenimiento camión</span>
-
-            <strong>12 días</strong>
-
+        <div class="vencimiento" *ngIf="!resumen?.vencimientos?.length">
+            <span>
+                No hay vencimientos próximos
+            </span>
         </div>
 
     </div>
