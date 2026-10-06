@@ -22,5 +22,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             int id,
             ActualizarProveedorNoFormalizadoDto dto
         );
+
+        Task<bool> EliminarAsync(int id);
     }
 }

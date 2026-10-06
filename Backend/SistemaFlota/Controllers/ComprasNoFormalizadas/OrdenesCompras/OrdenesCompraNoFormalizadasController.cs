@@ -22,9 +22,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             _pdfService = pdfService;
         }
 
-        // Listar órdenes de compra
+        // ============================================================
+        // LISTAR ÓRDENES DE COMPRA
+        // ============================================================
+
         [HttpGet]
-        [Permiso("ordenes-compra-no-formalizadas", "ver")]
+        [Permiso("ordenes-compras-no-formalizadas", "ver")]
         [ProducesResponseType(
             typeof(OrdenCompraNoFormalizadaPaginadoDto),
             StatusCodes.Status200OK)]
@@ -51,9 +54,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(resultado);
         }
 
-        // Obtener filtros dinámicos
+        // ============================================================
+        // FILTROS
+        // ============================================================
+
         [HttpGet("filtros")]
-        [Permiso("ordenes-compra-no-formalizadas", "ver")]
+        [Permiso("ordenes-compras-no-formalizadas", "ver")]
         [ProducesResponseType(
             typeof(FiltrosOrdenCompraNoFormalizadaDto),
             StatusCodes.Status200OK)]
@@ -64,9 +70,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(filtros);
         }
 
-        // Para mostrar las órdenes de compra en recepción de mercancía
+        // ============================================================
+        // ÓRDENES PARA RECEPCIÓN DE MERCANCÍA
+        // ============================================================
+
         [HttpGet("para-recepcion")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         [ProducesResponseType(
             typeof(OrdenCompraNoFormalizadaPaginadoDto),
             StatusCodes.Status200OK)]
@@ -93,9 +102,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(resultado);
         }
 
-        // Crear una nueva orden de compra
+        // ============================================================
+        // CREAR
+        // ============================================================
+
         [HttpPost]
-        [Permiso("ordenes-compra-no-formalizadas", "crear")]
+        [Permiso("ordenes-compras-no-formalizadas", "crear")]
         [ProducesResponseType(
             typeof(OrdenCompraNoFormalizadaDto),
             StatusCodes.Status200OK)]
@@ -111,9 +123,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(orden);
         }
 
-        // Generar PDF de la orden de compra
+        // ============================================================
+        // GENERAR PDF
+        // ============================================================
+
         [HttpGet("{id:int}/pdf")]
-        [Permiso("ordenes-compra-no-formalizadas", "ver")]
+        [Permiso("ordenes-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> GenerarPdf(int id)
         {
             var pdf = await _pdfService.GenerarPdfAsync(id);
@@ -124,14 +139,18 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
                 $"OrdenCompraNoFormalizada-{id}.pdf");
         }
 
-        // Obtener orden por id
+        // ============================================================
+        // OBTENER POR ID
+        // ============================================================
+
         [HttpGet("{id:int}")]
-        [Permiso("ordenes-compra-no-formalizadas", "ver")]
+        [Permiso("ordenes-compras-no-formalizadas", "ver")]
         [ProducesResponseType(
             typeof(OrdenCompraNoFormalizadaDto),
             StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<OrdenCompraNoFormalizadaDto>> ObtenerPorId(int id)
+        public async Task<ActionResult<OrdenCompraNoFormalizadaDto>> ObtenerPorId(
+            int id)
         {
             var orden = await _service.ObtenerPorIdAsync(id);
 
@@ -141,9 +160,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(orden);
         }
 
-        // Actualizar una orden
+        // ============================================================
+        // ACTUALIZAR
+        // ============================================================
+
         [HttpPut("{id:int}")]
-        [Permiso("ordenes-compra-no-formalizadas", "editar")]
+        [Permiso("ordenes-compras-no-formalizadas", "editar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Actualizar(
@@ -161,9 +183,12 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok();
         }
 
-        // Enviar orden de compra por correo
+        // ============================================================
+        // ENVIAR POR CORREO
+        // ============================================================
+
         [HttpPost("{id:int}/enviar-correo")]
-        [Permiso("ordenes-compra-no-formalizadas", "enviar-correo")]
+        [Permiso("ordenes-compras-no-formalizadas", "enviar-correo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EnviarCorreo(int id)
@@ -174,7 +199,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
 
                 return Ok(new
                 {
-                    mensaje = "La orden de compra fue enviada correctamente por correo."
+                    mensaje =
+                        "La orden de compra fue enviada correctamente por correo."
                 });
             }
             catch (Exception ex)
@@ -185,9 +211,13 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
                 });
             }
         }
-        // Anular orden de compra
+
+        // ============================================================
+        // ANULAR
+        // ============================================================
+
         [HttpPut("{id:int}/anular")]
-        [Permiso("ordenes-compra-no-formalizadas", "editar")]
+        [Permiso("ordenes-compras-no-formalizadas", "editar")]
         public async Task<IActionResult> Anular(int id)
         {
             try
@@ -196,7 +226,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
 
                 return Ok(new
                 {
-                    mensaje = "La orden de compra no formalizada fue anulada correctamente."
+                    mensaje =
+                        "La orden de compra no formalizada fue anulada correctamente."
                 });
             }
             catch (KeyNotFoundException ex)

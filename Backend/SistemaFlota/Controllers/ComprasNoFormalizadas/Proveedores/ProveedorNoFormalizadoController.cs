@@ -19,10 +19,10 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
             _service = service;
         }
 
-        // GET: api/ProveedorNoFormalizado
+        // Listar proveedores
         [HttpGet]
         [Permiso("proveedores-no-formalizados", "ver")]
-        public async Task<IActionResult> Obtener(
+        public async Task<ActionResult<ProveedorNoFormalizadoPaginadoDto>> Obtener(
             [FromQuery] string? search,
             [FromQuery] string? estado,
             [FromQuery] string? orden,
@@ -39,9 +39,9 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
             return Ok(resultado);
         }
 
-        // GET: api/ProveedorNoFormalizado/para-recepcion
+        // Proveedores para recepción de mercancía
         [HttpGet("para-recepcion")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<ActionResult<ProveedorNoFormalizadoPaginadoDto>> ObtenerParaRecepcion(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -59,28 +59,33 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
             return Ok(resultado);
         }
 
-        // GET: api/ProveedorNoFormalizado/5
+        // Obtener proveedor por ID
         [HttpGet("{id:int}")]
         [Permiso("proveedores-no-formalizados", "ver")]
-        public async Task<IActionResult> ObtenerPorId(int id)
+        public async Task<ActionResult<ProveedorNoFormalizadoDto>> ObtenerPorId(int id)
         {
             var proveedor = await _service.ObtenerPorIdAsync(id);
 
             if (proveedor == null)
+            {
                 return NotFound(new
                 {
                     message = "Proveedor no formalizado no encontrado."
                 });
+            }
 
             return Ok(proveedor);
         }
 
-        // POST: api/ProveedorNoFormalizado
+        // Crear proveedor
         [HttpPost]
         [Permiso("proveedores-no-formalizados", "crear")]
-        public async Task<IActionResult> Crear(
+        public async Task<ActionResult<ProveedorNoFormalizadoDto>> Crear(
             [FromBody] CrearProveedorNoFormalizadoDto dto)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
             try
             {
                 var proveedor = await _service.CrearAsync(dto);
@@ -96,22 +101,27 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
             }
         }
 
-        // PUT: api/ProveedorNoFormalizado/5
+        // Actualizar proveedor
         [HttpPut("{id:int}")]
         [Permiso("proveedores-no-formalizados", "editar")]
         public async Task<IActionResult> Actualizar(
             int id,
             [FromBody] ActualizarProveedorNoFormalizadoDto dto)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
             try
             {
                 var actualizado = await _service.ActualizarAsync(id, dto);
 
                 if (!actualizado)
+                {
                     return NotFound(new
                     {
                         message = "Proveedor no formalizado no encontrado."
                     });
+                }
 
                 return NoContent();
             }
@@ -122,6 +132,19 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Proveedores
                     message = ex.Message
                 });
             }
+        }
+
+        // Eliminar / desactivar proveedor
+        [HttpDelete("{id:int}")]
+        [Permiso("proveedores-no-formalizados", "eliminar")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var eliminado = await _service.EliminarAsync(id);
+
+            if (!eliminado)
+                return NotFound();
+
+            return NoContent();
         }
     }
 }

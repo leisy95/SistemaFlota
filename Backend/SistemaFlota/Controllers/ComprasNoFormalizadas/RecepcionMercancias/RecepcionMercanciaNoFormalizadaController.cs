@@ -14,8 +14,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
     {
         private readonly IRecepcionMercanciaNoFormalizadaService _service;
         private readonly IEtiquetasPdfNoFormalizadaService _etiquetasPdfService;
-        private readonly IRecepcionMercanciaNoFormalizadaPdfService
-            _recepcionMercanciaNoFormalizadaPdfService;
+        private readonly IRecepcionMercanciaNoFormalizadaPdfService _recepcionMercanciaNoFormalizadaPdfService;
 
         public RecepcionMercanciaNoFormalizadaController(
             IRecepcionMercanciaNoFormalizadaService service,
@@ -24,13 +23,11 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
         {
             _service = service;
             _etiquetasPdfService = etiquetasPdfService;
-            _recepcionMercanciaNoFormalizadaPdfService =
-               recepcionMercanciaNoFormalizadaPdfService;
+            _recepcionMercanciaNoFormalizadaPdfService = recepcionMercanciaNoFormalizadaPdfService;
         }
 
-        // Listar recepciones
         [HttpGet]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> Obtener(
             [FromQuery] string? search,
             [FromQuery] DateTime? fechaInicio,
@@ -50,9 +47,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             return Ok(resultado);
         }
 
-        // Obtener recepción por ID
         [HttpGet("{id:int}")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ObtenerPorId(int id)
         {
             var recepcion = await _service.ObtenerPorIdAsync(id);
@@ -63,9 +59,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             return Ok(recepcion);
         }
 
-        // Formulario de recepción
         [HttpGet("formulario/{ordenCompraNoFormalizadaId:int}")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ObtenerFormulario(
             int ordenCompraNoFormalizadaId)
         {
@@ -88,9 +83,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             }
         }
 
-        // Ver PDF de recepción
         [HttpGet("{id:int}/pdf")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ObtenerPdf(int id)
         {
             try
@@ -112,9 +106,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             }
         }
 
-        // Imprimir etiquetas
         [HttpGet("{id:int}/etiquetas")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ImprimirEtiquetas(
             int id,
             [FromQuery] int numeroEntrega)
@@ -127,9 +120,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
                 $"Etiquetas_NoFormalizada_{id}_Entrega_{numeroEntrega}.pdf");
         }
 
-        // Crear recepción
         [HttpPost]
-        [Permiso("recepcion-mercancia-no-formalizada", "crear")]
+        [Permiso("recepcion-compras-no-formalizadas", "crear")]
         public async Task<IActionResult> Crear(
             [FromBody] CrearRecepcionMercanciaNoFormalizadaDto dto)
         {
@@ -148,9 +140,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             }
         }
 
-        // Confirmar recepción de mercancía
-        [HttpPut("{id}/confirmar")]
-        [Permiso("recepcion-mercancia-no-formalizada", "editar")]
+        [HttpPut("{id:int}/confirmar")]
+        [Permiso("recepcion-compras-no-formalizadas", "editar")]
         public async Task<IActionResult> ConfirmarRecepcion(int id)
         {
             await _service.ConfirmarRecepcionAsync(id);
@@ -161,9 +152,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             });
         }
 
-        // Actualizar recepción
         [HttpPut("{id:int}")]
-        [Permiso("recepcion-mercancia-no-formalizada", "editar")]
+        [Permiso("recepcion-compras-no-formalizadas", "editar")]
         public async Task<IActionResult> Actualizar(
             int id,
             [FromBody] ActualizarRecepcionMercanciaNoFormalizadaDto dto)
@@ -176,9 +166,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             return NoContent();
         }
 
-        // Eliminar recepción
         [HttpDelete("{id:int}")]
-        [Permiso("recepcion-mercancia-no-formalizada", "eliminar")]
+        [Permiso("recepcion-compras-no-formalizadas", "eliminar")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var eliminado = await _service.EliminarAsync(id);
@@ -189,9 +178,8 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.RecepcionMercancias
             return NoContent();
         }
 
-        // Filtros de recepción
         [HttpGet("filtros")]
-        [Permiso("recepcion-mercancia-no-formalizada", "ver")]
+        [Permiso("recepcion-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ObtenerFiltros()
         {
             var filtros = await _service.ObtenerFiltrosAsync();

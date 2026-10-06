@@ -253,13 +253,16 @@
                 Cancelar
             </button>
 
-            <button type="button" *ngIf="permisos.puedeCrear('recepcion-mercancia-no-formalizada')" class="btn-agregar"
+            <button *ngIf="permisos.puedeCrear('recepcion-compras-no-formalizadas')" class="btn-agregar"
                 (click)="finalizarRecepcion()" [disabled]="form.invalid || guardando">
 
                 <i class="fa-solid" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-qrcode'">
                 </i>
 
-                {{ guardando ? 'Procesando recepción...' : 'Finalizar Recepción y Generar Etiquetas' }}
+                {{ guardando
+                ? 'Procesando recepción...'
+                : 'Finalizar Recepción y Generar Etiquetas'
+                }}
             </button>
         </div>
     </div>

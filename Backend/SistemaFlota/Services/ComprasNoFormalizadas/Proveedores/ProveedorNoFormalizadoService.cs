@@ -19,8 +19,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             string? estado,
             string? orden,
             int page,
-            int pageSize
-        )
+            int pageSize)
         {
             var query = _context.ProveedoresNoFormalizados
                 .AsNoTracking()
@@ -46,9 +45,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             {
                 bool activo = estado == "Activo";
 
-                query = query.Where(p =>
-                    p.Activo == activo
-                );
+                query = query.Where(p => p.Activo == activo);
             }
 
             query = orden switch
@@ -118,8 +115,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
 
         // Crear proveedor no formalizado
         public async Task<ProveedorNoFormalizadoDto> CrearAsync(
-            CrearProveedorNoFormalizadoDto dto
-        )
+            CrearProveedorNoFormalizadoDto dto)
         {
             dto.Nombre = dto.Nombre.Trim();
             dto.Documento = dto.Documento?.Trim();
@@ -130,7 +126,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             dto.Ciudad = dto.Ciudad?.Trim();
             dto.Departamento = dto.Departamento?.Trim();
 
-            // Validar documento duplicado
             if (!string.IsNullOrWhiteSpace(dto.Documento))
             {
                 bool existeDocumento = await _context.ProveedoresNoFormalizados
@@ -182,13 +177,11 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
         // Actualizar proveedor no formalizado
         public async Task<bool> ActualizarAsync(
             int id,
-            ActualizarProveedorNoFormalizadoDto dto
-        )
+            ActualizarProveedorNoFormalizadoDto dto)
         {
             var proveedor = await _context.ProveedoresNoFormalizados
                 .FirstOrDefaultAsync(
-                    p => p.IdProveedorNoFormalizado == id
-                );
+                    p => p.IdProveedorNoFormalizado == id);
 
             if (proveedor == null)
                 return false;
@@ -202,14 +195,12 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             dto.Ciudad = dto.Ciudad?.Trim();
             dto.Departamento = dto.Departamento?.Trim();
 
-            // Validar documento duplicado
             if (!string.IsNullOrWhiteSpace(dto.Documento))
             {
                 bool existeDocumento = await _context.ProveedoresNoFormalizados
                     .AnyAsync(p =>
                         p.Documento == dto.Documento &&
-                        p.IdProveedorNoFormalizado != id
-                    );
+                        p.IdProveedorNoFormalizado != id);
 
                 if (existeDocumento)
                 {
@@ -227,6 +218,24 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             proveedor.Direccion = dto.Direccion;
             proveedor.Ciudad = dto.Ciudad;
             proveedor.Departamento = dto.Departamento;
+            proveedor.FechaActualizacion = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // Eliminar / desactivar proveedor
+        public async Task<bool> EliminarAsync(int id)
+        {
+            var proveedor = await _context.ProveedoresNoFormalizados
+                .FirstOrDefaultAsync(
+                    p => p.IdProveedorNoFormalizado == id);
+
+            if (proveedor == null)
+                return false;
+
+            proveedor.Activo = false;
             proveedor.FechaActualizacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
