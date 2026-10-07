@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using SistemaFlota.DTOs.Usuarios;
 
 namespace SistemaFlota
 {
@@ -9,18 +10,16 @@ namespace SistemaFlota
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
     {
-        private const string V = "Impresion";
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
-
         private static readonly string[] UsuariosOcultos = { "maestro_sf" };
 
-        public static readonly string[] RolesValidos = {
-            "Admin", "Auxiliar", "Conductor", "Jefe",
-            "Facturacion", "Bodega", "Porteria",
-            "RecursosHumanos", "PESV", "Vendedor", "Impresion", "Calidad",
-            "SST", "Compras", "Precorte", "Extrusion", "Sellado", "Produccion"
-
+        public static readonly string[] RolesValidos =
+        {
+            "Admin", "Auxiliar", "Conductor", "Jefe", "Facturacion", "Bodega",
+            "Porteria", "RecursosHumanos", "PESV", "Vendedor", "Impresion",
+            "Calidad", "SST", "Compras", "Precorte", "Extrusion", "Sellado",
+            "Produccion"
         };
 
         public UsuariosController(AppDbContext context, AuditoriaService auditoria)
@@ -29,10 +28,8 @@ namespace SistemaFlota
             _auditoria = auditoria;
         }
 
-        private string GetUsuario() =>
-            User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
-        private string GetRol() =>
-            User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
+        private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
+        private string GetRol() => User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         [HttpGet]
         [Authorize(Roles = "Admin,RecursosHumanos,PESV")]
@@ -49,7 +46,10 @@ namespace SistemaFlota
             if (!string.IsNullOrWhiteSpace(buscar))
                 query = query.Where(u =>
                     u.Username.Contains(buscar) ||
-                    (u.Email != null && u.Email.Contains(buscar)));
+                    (u.Email != null && u.Email.Contains(buscar)) ||
+                    (u.Nombres != null && u.Nombres.Contains(buscar)) ||
+                    (u.Apellidos != null && u.Apellidos.Contains(buscar)) ||
+                    (u.Telefono != null && u.Telefono.Contains(buscar)));
 
             var total = await query.CountAsync();
 
@@ -61,6 +61,9 @@ namespace SistemaFlota
                 {
                     u.Id,
                     u.Username,
+                    u.Nombres,
+                    u.Apellidos,
+                    u.Telefono,
                     u.Rol,
                     u.Email,
                     u.Activo,
@@ -88,24 +91,16 @@ namespace SistemaFlota
             });
         }
 
-        // Obtener destinatarios
         [HttpGet("destinatarios")]
         [Authorize]
         public async Task<IActionResult> GetDestinatarios()
         {
             var usuarios = await _context.Usuarios
-                .Where(u =>
-                    u.Activo &&
-                    !string.IsNullOrWhiteSpace(u.Email) &&
-                    !UsuariosOcultos.Contains(u.Username))
+                .Where(u => u.Activo &&
+                            !string.IsNullOrWhiteSpace(u.Email) &&
+                            !UsuariosOcultos.Contains(u.Username))
                 .OrderBy(u => u.Username)
-                .Select(u => new
-                {
-                    u.Id,
-                    u.Username,
-                    u.Email,
-                    u.Rol
-                })
+                .Select(u => new { u.Id, u.Username, u.Email, u.Rol })
                 .ToListAsync();
 
             return Ok(usuarios);
@@ -126,6 +121,9 @@ namespace SistemaFlota
                 {
                     u.Id,
                     u.Username,
+                    u.Nombres,
+                    u.Apellidos,
+                    u.Telefono,
                     u.Rol,
                     u.Email,
                     u.Activo,
@@ -143,11 +141,9 @@ namespace SistemaFlota
                 })
                 .FirstOrDefaultAsync();
 
-            if (usuario == null) return NotFound();
-            return Ok(usuario);
+            return usuario == null ? NotFound() : Ok(usuario);
         }
 
-        // ── CREAR USUARIO — contraseña hasheada con BCrypt ────────────────────
         [HttpPost]
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> Post([FromBody] CrearUsuarioDto dto)
@@ -155,8 +151,7 @@ namespace SistemaFlota
             if (UsuariosOcultos.Contains(dto.Username))
                 return BadRequest("Nombre de usuario no permitido");
 
-            if (string.IsNullOrWhiteSpace(dto.Username) ||
-                string.IsNullOrWhiteSpace(dto.Password))
+            if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
                 return BadRequest("Usuario y contraseña son requeridos");
 
             if (dto.Password.Length < 6)
@@ -165,14 +160,17 @@ namespace SistemaFlota
             if (!RolesValidos.Contains(dto.Rol))
                 return BadRequest($"Rol inválido. Roles permitidos: {string.Join(", ", RolesValidos)}");
 
-            var existe = await _context.Usuarios.AnyAsync(u => u.Username == dto.Username);
-            if (existe) return BadRequest("El nombre de usuario ya existe");
+            if (await _context.Usuarios.AnyAsync(u => u.Username == dto.Username))
+                return BadRequest("El nombre de usuario ya existe");
 
             var usuario = new Usuario
             {
                 Username = dto.Username,
-                Password = string.Empty,                                    // no guardar texto plano
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),   // ← BCrypt
+                Password = string.Empty,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Nombres = dto.Nombres,
+                Apellidos = dto.Apellidos,
+                Telefono = dto.Telefono,
                 Rol = dto.Rol,
                 Email = dto.Email,
                 Activo = true
@@ -201,24 +199,24 @@ namespace SistemaFlota
                     });
 
                     if (p.PuedeVer && !inicioAsignado)
-                    {
                         inicioAsignado = true;
-                    }
                 }
+
                 await _context.SaveChangesAsync();
             }
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Crear", modulo: "Usuarios",
-                detalle: $"Usuario creado — Username: {dto.Username}, Rol: {dto.Rol}",
-                registroId: usuario.Id
-            );
+                GetUsuario(), GetRol(), "Crear", "Usuarios",
+                $"Usuario creado — Username: {dto.Username}, Rol: {dto.Rol}",
+                usuario.Id);
 
             return Ok(new
             {
                 usuario.Id,
                 usuario.Username,
+                usuario.Nombres,
+                usuario.Apellidos,
+                usuario.Telefono,
                 usuario.Rol,
                 usuario.Email,
                 usuario.Activo,
@@ -226,7 +224,6 @@ namespace SistemaFlota
             });
         }
 
-        // ── EDITAR USUARIO — hashear si cambia contraseña ─────────────────────
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,RecursosHumanos")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearUsuarioDto dto)
@@ -242,7 +239,11 @@ namespace SistemaFlota
                 return BadRequest($"Rol inválido. Roles permitidos: {string.Join(", ", RolesValidos)}");
 
             var usernameAnterior = usuario.Username;
+
             usuario.Username = dto.Username;
+            usuario.Nombres = dto.Nombres;
+            usuario.Apellidos = dto.Apellidos;
+            usuario.Telefono = dto.Telefono;
             usuario.Rol = dto.Rol;
             usuario.Email = dto.Email;
             usuario.Activo = dto.Activo;
@@ -252,7 +253,6 @@ namespace SistemaFlota
                 if (dto.Password.Length < 6)
                     return BadRequest("La contraseña debe tener al menos 6 caracteres");
 
-                // ── Hashear nueva contraseña ──────────────────────────────────
                 usuario.Password = string.Empty;
                 usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             }
@@ -279,25 +279,24 @@ namespace SistemaFlota
                     });
 
                     if (p.PuedeVer && !inicioAsignado)
-                    {
                         inicioAsignado = true;
-                    }
                 }
             }
 
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Editar", modulo: "Usuarios",
-                detalle: $"Usuario editado — Username: {usernameAnterior}, Nuevo rol: {dto.Rol}",
-                registroId: id
-            );
+                GetUsuario(), GetRol(), "Editar", "Usuarios",
+                $"Usuario editado — Username: {usernameAnterior}, Nuevo rol: {dto.Rol}",
+                id);
 
             return Ok(new
             {
                 usuario.Id,
                 usuario.Username,
+                usuario.Nombres,
+                usuario.Apellidos,
+                usuario.Telefono,
                 usuario.Rol,
                 usuario.Email,
                 usuario.Activo,
@@ -317,16 +316,15 @@ namespace SistemaFlota
             if (UsuariosOcultos.Contains(usuario.Username)) return Forbid();
 
             var nombreUsuario = usuario.Username;
+
             _context.UsuarioPermisos.RemoveRange(usuario.Permisos);
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Eliminar", modulo: "Usuarios",
-                detalle: $"Usuario eliminado — Username: {nombreUsuario}",
-                registroId: id
-            );
+                GetUsuario(), GetRol(), "Eliminar", "Usuarios",
+                $"Usuario eliminado — Username: {nombreUsuario}",
+                id);
 
             return Ok(new { mensaje = "Usuario eliminado correctamente" });
         }
@@ -336,6 +334,7 @@ namespace SistemaFlota
         public async Task<IActionResult> CambiarEstado(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
+
             if (usuario == null) return NotFound();
             if (UsuariosOcultos.Contains(usuario.Username)) return Forbid();
 
@@ -343,11 +342,9 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Editar", modulo: "Usuarios",
-                detalle: $"Estado cambiado — Username: {usuario.Username}, Activo: {usuario.Activo}",
-                registroId: id
-            );
+                GetUsuario(), GetRol(), "Editar", "Usuarios",
+                $"Estado cambiado — Username: {usuario.Username}, Activo: {usuario.Activo}",
+                id);
 
             return Ok(new { usuario.Id, usuario.Username, usuario.Activo });
         }
@@ -363,20 +360,25 @@ namespace SistemaFlota
                 return Ok(new { mensaje = "Si el correo existe, recibirás el token" });
 
             var token = Guid.NewGuid().ToString("N")[..8].ToUpper();
+
             usuario.TokenRecuperacion = token;
             usuario.TokenExpiracion = DateTime.Now.AddHours(1);
+
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: usuario.Username, rol: usuario.Rol,
-                accion: "RecuperarPassword", modulo: "Usuarios",
-                detalle: $"Solicitud de recuperación — Email: {dto.Email}"
-            );
+                usuario.Username, usuario.Rol,
+                "RecuperarPassword", "Usuarios",
+                $"Solicitud de recuperación — Email: {dto.Email}");
 
-            return Ok(new { mensaje = "Token generado correctamente", token, expira = usuario.TokenExpiracion });
+            return Ok(new
+            {
+                mensaje = "Token generado correctamente",
+                token,
+                expira = usuario.TokenExpiracion
+            });
         }
 
-        // ── CAMBIAR CONTRASEÑA — hashear con BCrypt ───────────────────────────
         [HttpPost("cambiar-password")]
         [AllowAnonymous]
         public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordDto dto)
@@ -390,54 +392,81 @@ namespace SistemaFlota
                     u.TokenRecuperacion == dto.Token);
 
             if (usuario == null) return BadRequest("Token inválido");
-            if (usuario.TokenExpiracion < DateTime.Now) return BadRequest("Token expirado");
+            if (usuario.TokenExpiracion < DateTime.Now)
+                return BadRequest("Token expirado");
 
-            // ── Hashear nueva contraseña ──────────────────────────────────────
             usuario.Password = string.Empty;
             usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaPassword);
             usuario.TokenRecuperacion = null;
             usuario.TokenExpiracion = null;
+
             await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
-                usuario: usuario.Username, rol: usuario.Rol,
-                accion: "CambiarPassword", modulo: "Usuarios",
-                detalle: $"Contraseña cambiada — Email: {dto.Email}"
-            );
+                usuario.Username, usuario.Rol,
+                "CambiarPassword", "Usuarios",
+                $"Contraseña cambiada — Email: {dto.Email}");
 
             return Ok(new { mensaje = "Contraseña cambiada correctamente" });
         }
 
-
         [HttpPut("{id}/password-modulo")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SetPasswordModulo(int id, [FromBody] PasswordModuloDto dto)
+        public async Task<IActionResult> SetPasswordModulo(
+            int id,
+            [FromBody] PasswordModuloDto dto)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
+
             if (usuario == null) return NotFound();
-            usuario.PasswordConductores = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            usuario.PasswordConductores =
+                BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
             await _context.SaveChangesAsync();
+
             return Ok(new { mensaje = "Contrasena actualizada" });
         }
 
         [HttpPost("verificar-modulo")]
         [AllowAnonymous]
-        public async Task<IActionResult> VerificarModulo([FromBody] VerificarModuloDto dto)
+        public async Task<IActionResult> VerificarModulo(
+            [FromBody] VerificarModuloDto dto)
         {
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == dto.Username && u.Activo);
-            if (usuario == null) return Unauthorized(new { error = "Usuario no encontrado" });
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u =>
+                    u.Username == dto.Username && u.Activo);
+
+            if (usuario == null)
+                return Unauthorized(new { error = "Usuario no encontrado" });
+
             if (string.IsNullOrWhiteSpace(usuario.PasswordConductores))
                 return Unauthorized(new { error = "Sin contrasena de modulo" });
-            bool ok = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordConductores);
-            if (!ok) return Unauthorized(new { error = "Contrasena incorrecta" });
-            await _auditoria.RegistrarAsync(usuario.Username, usuario.Rol, "Acceso", "Conductores", "Acceso modulo Conductores", resultado: "Exitoso");
+
+            var ok = BCrypt.Net.BCrypt.Verify(
+                dto.Password,
+                usuario.PasswordConductores);
+
+            if (!ok)
+                return Unauthorized(new { error = "Contrasena incorrecta" });
+
+            await _auditoria.RegistrarAsync(
+                usuario.Username,
+                usuario.Rol,
+                "Acceso",
+                "Conductores",
+                "Acceso modulo Conductores",
+                resultado: "Exitoso");
+
             return Ok(new { mensaje = "Acceso permitido" });
         }
+
         [HttpGet("mis-permisos")]
         [Authorize]
         public async Task<IActionResult> MisPermisos()
         {
             var username = User.Identity?.Name;
+
             var usuario = await _context.Usuarios
                 .Include(u => u.Permisos)
                 .FirstOrDefaultAsync(u => u.Username == username);
@@ -457,36 +486,5 @@ namespace SistemaFlota
 
             return Ok(new { permisos });
         }
-    }
-
-    public class PasswordModuloDto { public string Password { get; set; } = string.Empty; }
-    public class VerificarModuloDto { public string Username { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; }
-    public class CrearUsuarioDto
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty;
-        public string? Email { get; set; }
-        public bool Activo { get; set; } = true;
-        public List<PermisoDto>? Permisos { get; set; }
-    }
-
-    public class PermisoDto
-    {
-        public string Modulo { get; set; } = string.Empty;
-        public bool PuedeVer { get; set; } = true;
-        public bool PuedeCrear { get; set; } = false;
-        public bool PuedeEditar { get; set; } = false;
-        public bool PuedeEliminar { get; set; } = false;
-        public bool PuedeEnviarCorreo { get; set; } = false;
-        public bool PuedeVerDatosNumericos { get; set; } = false;
-    }
-
-    public class RecuperarDto { public string Email { get; set; } = string.Empty; }
-    public class CambiarPasswordDto
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty;
-        public string NuevaPassword { get; set; } = string.Empty;
     }
 }

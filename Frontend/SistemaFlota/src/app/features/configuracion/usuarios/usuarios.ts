@@ -26,14 +26,27 @@ export class UsuariosComponent implements OnInit {
   totalPaginas = 0;
   buscar = '';
 
-  nuevoUsuario = {
-    username: '',
-    password: '',
-    rol: 'Auxiliar',
-    email: '',
-    activo: true,
-    permisos: [] as PermisoGranular[]
-  };
+  nuevoUsuario: {
+    username: string;
+    password: string;
+    nombres: string;
+    apellidos: string;
+    telefono: string;
+    rol: string;
+    email: string;
+    activo: boolean;
+    permisos: PermisoGranular[];
+  } = {
+      username: '',
+      password: '',
+      nombres: '',
+      apellidos: '',
+      telefono: '',
+      rol: 'Auxiliar',
+      email: '',
+      activo: true,
+      permisos: []
+    };
 
   emailRecuperar = '';
   tokenRecuperar = '';
@@ -345,16 +358,17 @@ export class UsuariosComponent implements OnInit {
   agregarUsuario(): void {
     this.editando = false;
     this.usuarioEditarId = null;
-
     this.nuevoUsuario = {
       username: '',
       password: '',
+      nombres: '',
+      apellidos: '',
+      telefono: '',
       rol: 'Auxiliar',
       email: '',
       activo: true,
       permisos: []
     };
-
     this.passwordConductores = '';
     this.mostrarModal = true;
   }
@@ -424,6 +438,9 @@ export class UsuariosComponent implements OnInit {
     this.nuevoUsuario = {
       username: usuario.username,
       password: '',
+      nombres: usuario.nombres ?? '',
+      apellidos: usuario.apellidos ?? '',
+      telefono: usuario.telefono ?? '',
       rol: usuario.rol,
       email: usuario.email ?? '',
       activo: usuario.activo,
@@ -576,14 +593,4 @@ export class UsuariosComponent implements OnInit {
         return 'badge-auxiliar';
     }
   }
-}
-
-interface PermisoGranular {
-  modulo: string;
-  puedeVer: boolean;
-  puedeCrear: boolean;
-  puedeEditar: boolean;
-  puedeEliminar: boolean;
-  puedeEnviarCorreo: boolean;
-  puedeVerDatosNumericos: boolean;
 }

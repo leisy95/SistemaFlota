@@ -141,14 +141,30 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 NumeroOrden = orden.Numero,
                 Proveedor = orden.Proveedor?.Nombre ?? string.Empty,
                 FechaOrden = orden.FechaOrden,
-                Recibe = _currentUser.Usuario,
-                Cargo = _currentUser.Rol,
+                Recibe = _currentUser.Nombre ?? string.Empty,
+                Cargo = _currentUser.Rol ?? string.Empty,
                 Items = items
             };
         }
 
         public async Task<RecepcionMercanciaDto> CrearAsync(CrearRecepcionMercanciaDto dto)
         {
+            var usuarioId = _currentUser.IdUsuario;
+            var nombreUsuario = _currentUser.Nombre;
+            var rolUsuario = _currentUser.Rol;
+
+            if (usuarioId == null)
+                throw new UnauthorizedAccessException(
+                    "No se pudo identificar al usuario autenticado.");
+
+            if (string.IsNullOrWhiteSpace(nombreUsuario))
+                throw new UnauthorizedAccessException(
+                    "El usuario autenticado no tiene un nombre configurado.");
+
+            if (string.IsNullOrWhiteSpace(rolUsuario))
+                throw new UnauthorizedAccessException(
+                    "El usuario autenticado no tiene un rol configurado.");
+
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Detalles)
                     .ThenInclude(d => d.Material)
@@ -187,8 +203,8 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     Transportadora = dto.Transportadora,
                     TipoDocumento = dto.TipoDocumento,
                     EmbalajeAdecuado = dto.EmbalajeAdecuado,
-                    Recibe = dto.Recibe,
-                    Cargo = dto.Cargo,
+                    Recibe = nombreUsuario,
+                    Cargo = rolUsuario,
                     Observaciones = dto.Observaciones,
                     FechaRecepcion = DateTime.Now,
                     NumeroUltimaEntrega = 0
@@ -203,8 +219,8 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 recepcion.Transportadora = dto.Transportadora;
                 recepcion.TipoDocumento = dto.TipoDocumento;
                 recepcion.EmbalajeAdecuado = dto.EmbalajeAdecuado;
-                recepcion.Recibe = dto.Recibe;
-                recepcion.Cargo = dto.Cargo;
+                recepcion.Recibe = nombreUsuario;
+                recepcion.Cargo = rolUsuario;
                 recepcion.Observaciones = dto.Observaciones;
             }
 

@@ -7,7 +7,10 @@ namespace SistemaFlota
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty; // ← se mantiene por compatibilidad
-        public string? PasswordHash { get; set; }            // ← nuevo campo BCrypt
+        public string? PasswordHash { get; set; }
+        public string? Nombres { get; set; }
+        public string? Apellidos { get; set; }
+        public string? Telefono { get; set; }
         public string Rol { get; set; } = "Admin";
         public bool Activo { get; set; } = true;
         public string? Email { get; set; }

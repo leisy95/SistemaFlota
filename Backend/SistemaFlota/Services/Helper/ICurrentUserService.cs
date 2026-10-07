@@ -6,6 +6,7 @@ public interface ICurrentUserService
 {
     int? IdUsuario { get; }
     string? Usuario { get; }
+    string? Nombre { get; }
     string? Email { get; }
     string? Rol { get; }
 

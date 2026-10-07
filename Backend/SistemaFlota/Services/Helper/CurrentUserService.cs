@@ -38,6 +38,9 @@ public class CurrentUserService : ICurrentUserService
         UsuarioActual?
             .FindFirst(ClaimTypes.Name)?.Value;
 
+    public string? Nombre =>
+        UsuarioActual?.FindFirst("nombre")?.Value;
+
     public string? Rol =>
     UsuarioActual?
         .FindFirst(ClaimTypes.Role)?.Value;

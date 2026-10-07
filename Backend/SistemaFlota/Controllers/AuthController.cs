@@ -122,14 +122,17 @@ namespace SistemaFlota
 
             _intentosFallidos.TryRemove(ip, out _);
 
+            var nombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}".Trim();
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name,  usuario.Username),
+                new Claim(ClaimTypes.Name, usuario.Username),
+                new Claim("nombre", nombreCompleto),
                 new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
-                new Claim(ClaimTypes.Role,  usuario.Rol),
+                new Claim(ClaimTypes.Role, usuario.Rol),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+};
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
