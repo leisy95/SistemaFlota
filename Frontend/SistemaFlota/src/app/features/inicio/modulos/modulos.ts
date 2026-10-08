@@ -168,6 +168,41 @@ export class Modulos {
         );
         break;
 
+      case '/historial-odo':
+      case '/historial-odo/movimiento-producto':
+      case '/historial-odo/pedido-compra':
+
+        nombreModulo = 'Historial ODO';
+
+        const menuHistorialOdo = MENU_MODULOS.find(m =>
+          m.ruta === ruta
+        );
+
+        // Si es la entrada principal /historial-odo,
+        // basta con tener permiso para cualquiera de sus submódulos.
+        if (ruta === '/historial-odo') {
+
+          const modulosHistorialOdo = MENU_MODULOS
+            .filter(m => m.modulo === 'historial-odo')
+            .map(m => m.key);
+
+          permitido = this.permisos.some(p =>
+            p.puedeVer &&
+            modulosHistorialOdo.includes(p.modulo)
+          );
+
+        } else {
+
+          // Para un submódulo se valida exactamente su permiso.
+          permitido = !!menuHistorialOdo &&
+            this.permisos.some(p =>
+              p.puedeVer &&
+              p.modulo === menuHistorialOdo.key
+            );
+        }
+
+        break;
+
       case '/configuracion':
         nombreModulo = 'Configuración';
         permitido = this.permisos.some(p =>

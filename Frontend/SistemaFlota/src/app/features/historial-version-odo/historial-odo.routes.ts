@@ -4,11 +4,17 @@ export const HISTORIALODO_ROUTES: Routes = [
 
     {
         path: '',
+        redirectTo: 'movimiento-producto',
+        pathMatch: 'full'
+    },
+
+    {
+        path: 'movimiento-producto',
         loadComponent: () =>
             import('./movimiento-producto/movimiento-producto')
                 .then(c => c.MovimientoProducto),
         data: {
-            animation: 'historial-odo',
+            animation: 'historial-odo'
         }
     },
 

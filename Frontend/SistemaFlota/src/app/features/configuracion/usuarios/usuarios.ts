@@ -114,7 +114,12 @@ export class UsuariosComponent implements OnInit {
     { key: 'ordenes-compras-no-formalizadas', label: 'Ord - Compras', grupo: 'COMPRAS NO FORMALIZADAS' },
     { key: 'recepcion-compras-no-formalizadas', label: 'Rep - Mercancías', grupo: 'COMPRAS NO FORMALIZADAS' },
     { key: 'inventario-compras-no-formalizadas', label: 'Inventario', grupo: 'COMPRAS NO FORMALIZADAS' },
-    { key: 'traslado-compras-no-formalizadas', label: 'Traslados', grupo: 'COMPRAS NO FORMALIZADAS' }
+    { key: 'traslado-compras-no-formalizadas', label: 'Traslados', grupo: 'COMPRAS NO FORMALIZADAS' },
+
+
+    // HISTORIAL ODO
+    { key: 'historial-odo-pedido-compra', label: 'pedido-compra', grupo: 'HISTORIAL-VERSION-ODO' },
+    { key: 'historial-odo-movimiento-producto', label: 'movimiento-producto', grupo: 'HISTORIAL-VERSION-ODO' },
   ];
 
   gruposModulos: any[] = [];
@@ -154,7 +159,8 @@ export class UsuariosComponent implements OnInit {
       'CONTROL DE ENVIOS': 'CONTROL DE ENVÍOS',
       'COMPRAS Y MATERIALES': 'COMPRAS Y MATERIALES',
       'COMPRAS NO FORMALIZADAS': 'COMPRAS NO FORMALIZADAS',
-      'CALIDAD': 'CALIDAD'
+      'CALIDAD': 'CALIDAD',
+      'HISTORIAL-VERSION-ODO': 'HISTORIAL-VERSION-ODO'
     };
 
     return nombres[nombre] ?? nombre;

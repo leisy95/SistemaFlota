@@ -124,5 +124,77 @@ namespace SistemaFlota.Services.HistorialVersionOdo
                 })
                 .FirstOrDefaultAsync();
         }
+
+        // Para las estadisticas
+        public async Task<EstadisticasPedidoCompraDto> ObtenerEstadisticasAsync(
+            string? buscar = null,
+            string? prioridad = null,
+            string? estado = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null)
+                {
+                    var query = _context.PedidosCompra
+                        .AsNoTracking()
+                        .AsQueryable();
+
+                    // Búsqueda general
+                    if (!string.IsNullOrWhiteSpace(buscar))
+                    {
+                        buscar = buscar.Trim();
+
+                        query = query.Where(x =>
+                            x.ReferenciaOrden.Contains(buscar) ||
+                            x.Proveedor.Contains(buscar) ||
+                            x.Comprador.Contains(buscar) ||
+                            x.Estado.Contains(buscar));
+                    }
+
+                    // Prioridad
+                    if (!string.IsNullOrWhiteSpace(prioridad))
+                    {
+                        query = query.Where(x => x.Prioridad == prioridad);
+                    }
+
+                    // Estado
+                    if (!string.IsNullOrWhiteSpace(estado))
+                    {
+                        query = query.Where(x => x.Estado == estado);
+                    }
+
+                    // Fecha desde
+                    if (fechaDesde.HasValue)
+                    {
+                        query = query.Where(x =>
+                            x.FechaLimiteOrden >= fechaDesde.Value);
+                    }
+
+                    // Fecha hasta
+                    if (fechaHasta.HasValue)
+                    {
+                        var fechaFinal = fechaHasta.Value.Date.AddDays(1);
+
+                        query = query.Where(x =>
+                            x.FechaLimiteOrden < fechaFinal);
+                    }
+
+                    var estadisticas = await query
+                        .GroupBy(x => 1)
+                        .Select(g => new EstadisticasPedidoCompraDto
+                        {
+                            TotalPedidos = g.Count(),
+
+                            PedidosActivos = g.Count(x =>
+                                x.Estado != "Cancelado"),
+
+                            PedidosCancelados = g.Count(x =>
+                                x.Estado == "Cancelado"),
+
+                            ValorTotal = g.Sum(x => x.Total)
+                        })
+                        .FirstOrDefaultAsync();
+
+                    return estadisticas ?? new EstadisticasPedidoCompraDto();
+        }
+
     }
 }

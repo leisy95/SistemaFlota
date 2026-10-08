@@ -1,8 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FiltrosMovimientoProducto, MovimientoProductoService } from '../../../core/services/HistorialVersionOdo/movimiento-producto.service';
+
+import {
+  FiltrosMovimientoProducto,
+  MovimientoProductoService
+} from '../../../core/services/HistorialVersionOdo/movimiento-producto.service';
+
 import { MovimientoProductoModel } from '../../../core/models/HistorialVersionOdo/movimiento-producto.model';
+import { EstadisticasMovimientoProducto } from '../../../core/models/HistorialVersionOdo/estadisticas-movimiento-producto.model';
 
 @Component({
   selector: 'app-movimiento-producto',
@@ -17,6 +23,13 @@ import { MovimientoProductoModel } from '../../../core/models/HistorialVersionOd
 export class MovimientoProducto implements OnInit {
 
   movimientos: MovimientoProductoModel[] = [];
+
+  estadisticas: EstadisticasMovimientoProducto = {
+    totalMovimientos: 0,
+    movimientosActivos: 0,
+    movimientosCancelados: 0,
+    cantidadTotal: 0
+  };
 
   pagina = 1;
   porPagina = 50;
@@ -33,6 +46,7 @@ export class MovimientoProducto implements OnInit {
   fechaHasta = '';
 
   cargando = false;
+  cargandoEstadisticas = false;
   error = '';
 
   constructor(
@@ -82,9 +96,44 @@ export class MovimientoProducto implements OnInit {
         this.cargando = false;
       }
     });
+
+    this.cargarEstadisticas();
+  }
+
+  cargarEstadisticas(): void {
+
+    this.cargandoEstadisticas = true;
+
+    const filtros: FiltrosMovimientoProducto = {
+      buscar: this.buscar,
+      producto: this.producto,
+      proveedor: this.proveedor,
+      estado: this.estado,
+      unidadMedida: this.unidadMedida,
+      fechaDesde: this.fechaDesde,
+      fechaHasta: this.fechaHasta
+    };
+
+    this.movimientoProductoService
+      .obtenerEstadisticas(filtros)
+      .subscribe({
+        next: (respuesta) => {
+
+          this.estadisticas = respuesta;
+          this.cargandoEstadisticas = false;
+        },
+
+        error: (error) => {
+
+          console.error(error);
+
+          this.cargandoEstadisticas = false;
+        }
+      });
   }
 
   buscarMovimientos(): void {
+
     this.pagina = 1;
     this.cargarMovimientos();
   }
@@ -128,7 +177,11 @@ export class MovimientoProducto implements OnInit {
 
     const paginas: number[] = [];
 
-    const inicio = Math.max(1, this.pagina - 2);
+    const inicio = Math.max(
+      1,
+      this.pagina - 2
+    );
+
     const fin = Math.min(
       this.totalPaginas,
       this.pagina + 2

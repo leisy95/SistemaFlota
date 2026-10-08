@@ -7,9 +7,70 @@
         </div>
     </div>
 
+    <!-- ESTADÍSTICAS -->
+
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div class="stat-content">
+                <span>Total Movimientos</span>
+                <strong>
+                    {{ estadisticas.totalMovimientos | number:'1.0-0' }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon activo">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="stat-content">
+                <span>Movimientos Activos</span>
+                <strong>
+                    {{ estadisticas.movimientosActivos | number:'1.0-0' }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon cancelado">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+
+            <div class="stat-content">
+                <span>Cancelados</span>
+                <strong>
+                    {{ estadisticas.movimientosCancelados | number:'1.0-0' }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon cantidad">
+                <i class="fa-solid fa-cubes"></i>
+            </div>
+
+            <div class="stat-content">
+                <span>Cantidad Total</span>
+                <strong>
+                    {{ estadisticas.cantidadTotal | number:'1.2-2' }}
+                </strong>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- FILTROS -->
+
     <div class="filtros">
 
         <!-- Buscar -->
+
         <div class="campo campo-busqueda">
             <label>Buscar</label>
 
@@ -18,6 +79,7 @@
         </div>
 
         <!-- Producto -->
+
         <div class="campo">
             <label>Producto</label>
 
@@ -25,6 +87,7 @@
         </div>
 
         <!-- Proveedor -->
+
         <div class="campo">
             <label>Proveedor</label>
 
@@ -32,16 +95,20 @@
         </div>
 
         <!-- Estado -->
+
         <div class="campo">
             <label>Estado</label>
 
             <select [(ngModel)]="estado" (ngModelChange)="buscarMovimientos()">
+
                 <option value="">Todos</option>
                 <option value="done">Done</option>
+
             </select>
         </div>
 
         <!-- Unidad -->
+
         <div class="campo">
             <label>Unidad</label>
 
@@ -49,6 +116,7 @@
         </div>
 
         <!-- Desde -->
+
         <div class="campo">
             <label>Desde</label>
 
@@ -56,6 +124,7 @@
         </div>
 
         <!-- Hasta -->
+
         <div class="campo">
             <label>Hasta</label>
 
@@ -65,22 +134,31 @@
         <div class="acciones">
 
             <button type="button" class="btn-secundario" (click)="limpiarFiltros()">
+
                 Limpiar
+
             </button>
 
         </div>
 
     </div>
 
+    <!-- ERROR -->
+
     <div class="mensaje-error" *ngIf="error">
+
         {{ error }}
+
     </div>
+
+    <!-- TABLA -->
 
     <div class="tabla-contenedor">
 
         <table>
 
             <thead>
+
                 <tr>
                     <th>Fecha</th>
                     <th>Referencia</th>
@@ -90,20 +168,29 @@
                     <th>Unidad</th>
                     <th>Estado</th>
                 </tr>
+
             </thead>
 
             <tbody>
 
                 <tr *ngIf="cargando">
+
                     <td colspan="7" class="centrado">
+
                         Cargando...
+
                     </td>
+
                 </tr>
 
                 <tr *ngIf="!cargando && movimientos.length === 0">
+
                     <td colspan="7" class="centrado">
+
                         No se encontraron movimientos.
+
                     </td>
+
                 </tr>
 
                 <tr *ngFor="let movimiento of movimientos">
@@ -133,9 +220,11 @@
                     </td>
 
                     <td>
+
                         <span class="estado">
                             {{ movimiento.estado }}
                         </span>
+
                     </td>
 
                 </tr>
@@ -145,6 +234,8 @@
         </table>
 
     </div>
+
+    <!-- PAGINACIÓN -->
 
     <div class="paginacion">
 
@@ -169,16 +260,22 @@
         <div class="controles">
 
             <button type="button" (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
+
                 ‹
+
             </button>
 
             <button type="button" *ngFor="let numero of obtenerPaginas()" [class.activa]="numero === pagina"
                 (click)="cambiarPagina(numero)">
+
                 {{ numero }}
+
             </button>
 
             <button type="button" (click)="cambiarPagina(pagina + 1)" [disabled]="pagina === totalPaginas">
+
                 ›
+
             </button>
 
         </div>
@@ -186,10 +283,12 @@
         <div class="por-pagina">
 
             <select [(ngModel)]="porPagina" (change)="cambiarPorPagina()">
+
                 <option [ngValue]="10">10</option>
                 <option [ngValue]="20">20</option>
                 <option [ngValue]="50">50</option>
                 <option [ngValue]="100">100</option>
+
             </select>
 
             <span>por página</span>

@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 
 import { Paginacion } from '../../models/HistorialVersionOdo/paginacion.model';
 import { PedidoCompraModel } from '../../models/HistorialVersionOdo/pedido-compra.model';
+import { EstadisticasPedidoCompra } from '../../models/HistorialVersionOdo/estadisticas-pedido-compra.model';
 
 export interface FiltrosPedidoCompra {
     pagina?: number;
@@ -62,6 +63,38 @@ export class PedidoCompraService {
 
         return this.http.get<Paginacion<PedidoCompraModel>>(
             this.apiUrl,
+            { params }
+        );
+    }
+
+    obtenerEstadisticas(
+        filtros: FiltrosPedidoCompra = {}
+    ): Observable<EstadisticasPedidoCompra> {
+
+        let params = new HttpParams();
+
+        if (filtros.buscar?.trim()) {
+            params = params.set('buscar', filtros.buscar.trim());
+        }
+
+        if (filtros.prioridad?.trim()) {
+            params = params.set('prioridad', filtros.prioridad.trim());
+        }
+
+        if (filtros.estado?.trim()) {
+            params = params.set('estado', filtros.estado.trim());
+        }
+
+        if (filtros.fechaDesde) {
+            params = params.set('fechaDesde', filtros.fechaDesde);
+        }
+
+        if (filtros.fechaHasta) {
+            params = params.set('fechaHasta', filtros.fechaHasta);
+        }
+
+        return this.http.get<EstadisticasPedidoCompra>(
+            `${this.apiUrl}/estadisticas`,
             { params }
         );
     }

@@ -376,8 +376,9 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     // HISTORIAL ODO
+    // HISTORIAL ODO
     {
-        key: 'historial-odo-pedido',
+        key: 'historial-odo-pedido-compra',
         label: 'Pedido Compra',
         icon: 'fa-solid fa-cart-shopping',
         ruta: '/historial-odo/pedido-compra',
@@ -385,10 +386,10 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     {
-        key: 'historial-odo-movimientos',
+        key: 'historial-odo-movimiento-producto',
         label: 'Movimiento Producto',
         icon: 'fa-solid fa-right-left',
-        ruta: '/historial-odo',
+        ruta: '/historial-odo/movimiento-producto',
         modulo: 'historial-odo'
     },
 

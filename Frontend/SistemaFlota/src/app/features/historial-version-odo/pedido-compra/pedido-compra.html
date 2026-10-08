@@ -1,11 +1,61 @@
 <div class="pagina">
 
+    <!-- ENCABEZADO -->
+
     <div class="encabezado">
         <div>
             <h1>Pedidos de compra</h1>
             <p>Consulta y seguimiento de pedidos registrados.</p>
         </div>
     </div>
+
+
+    <!-- ESTADÍSTICAS -->
+
+    <!-- CARDS RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div class="stat-content">
+                <span>Total Pedidos</span>
+                <strong>{{ estadisticas.totalPedidos | number:'1.0-0' }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon activo">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <span>Pedidos Activos</span>
+                <strong>{{ estadisticas.pedidosActivos | number:'1.0-0' }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon cancelado">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div class="stat-content">
+                <span>Cancelados</span>
+                <strong>{{ estadisticas.pedidosCancelados | number:'1.0-0' }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon valor">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="stat-content">
+                <span>Valor Total</span>
+                <strong>{{ formatearTotal(estadisticas.valorTotal) }}</strong>
+            </div>
+        </div>
+
+    </section>
 
     <!-- FILTROS -->
 
@@ -18,6 +68,7 @@
                 placeholder="Orden, proveedor o comprador..." />
         </div>
 
+
         <div class="campo">
             <label>Prioridad</label>
 
@@ -28,16 +79,19 @@
             </select>
         </div>
 
+
         <div class="campo">
             <label>Estado</label>
 
             <select [(ngModel)]="estado" (ngModelChange)="buscarPedidos()">
                 <option value="">Todos</option>
+
                 <option value="Pedido de compra">
                     Pedido de compra
                 </option>
             </select>
         </div>
+
 
         <div class="campo">
             <label>Desde</label>
@@ -45,11 +99,13 @@
             <input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="buscarPedidos()" />
         </div>
 
+
         <div class="campo">
             <label>Hasta</label>
 
             <input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="buscarPedidos()" />
         </div>
+
 
         <div class="acciones">
 
@@ -61,11 +117,13 @@
 
     </div>
 
+
     <!-- ERROR -->
 
     <div class="mensaje-error" *ngIf="error">
         {{ error }}
     </div>
+
 
     <!-- TABLA -->
 
@@ -74,6 +132,7 @@
         <table>
 
             <thead>
+
                 <tr>
                     <th>Prioridad</th>
                     <th>Orden</th>
@@ -83,21 +142,29 @@
                     <th>Total</th>
                     <th>Estado</th>
                 </tr>
+
             </thead>
+
 
             <tbody>
 
                 <tr *ngIf="cargando">
+
                     <td colspan="7" class="centrado">
                         Cargando...
                     </td>
+
                 </tr>
 
+
                 <tr *ngIf="!cargando && pedidos.length === 0">
+
                     <td colspan="7" class="centrado">
                         No se encontraron pedidos.
                     </td>
+
                 </tr>
+
 
                 <tr *ngFor="let pedido of pedidos">
 
@@ -105,30 +172,38 @@
                         {{ pedido.prioridad }}
                     </td>
 
+
                     <td class="referencia">
                         {{ pedido.referenciaOrden }}
                     </td>
+
 
                     <td>
                         {{ pedido.proveedor }}
                     </td>
 
+
                     <td>
                         {{ pedido.comprador }}
                     </td>
+
 
                     <td>
                         {{ pedido.fechaLimiteOrden | date:'dd/MM/yyyy HH:mm' }}
                     </td>
 
+
                     <td class="total">
                         {{ formatearTotal(pedido.total) }}
                     </td>
 
+
                     <td>
+
                         <span class="estado">
                             {{ pedido.estado }}
                         </span>
+
                     </td>
 
                 </tr>
@@ -138,6 +213,7 @@
         </table>
 
     </div>
+
 
     <!-- PAGINACIÓN -->
 
@@ -161,22 +237,26 @@
 
         </div>
 
+
         <div class="controles">
 
             <button type="button" (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
                 ‹
             </button>
 
+
             <button type="button" *ngFor="let numero of obtenerPaginas()" [class.activa]="numero === pagina"
                 (click)="cambiarPagina(numero)">
                 {{ numero }}
             </button>
+
 
             <button type="button" (click)="cambiarPagina(pagina + 1)" [disabled]="pagina === totalPaginas">
                 ›
             </button>
 
         </div>
+
 
         <div class="por-pagina">
 
@@ -187,7 +267,9 @@
                 <option [ngValue]="100">100</option>
             </select>
 
-            <span>por página</span>
+            <span>
+                por página
+            </span>
 
         </div>
 

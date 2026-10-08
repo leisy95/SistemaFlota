@@ -36,7 +36,6 @@ namespace SistemaFlota.Services.HistorialVersionOdo
                 .AsNoTracking()
                 .AsQueryable();
 
-            // Búsqueda general
             if (!string.IsNullOrWhiteSpace(buscar))
             {
                 buscar = buscar.Trim();
@@ -48,42 +47,36 @@ namespace SistemaFlota.Services.HistorialVersionOdo
                     x.Estado.Contains(buscar));
             }
 
-            // Filtro producto
             if (!string.IsNullOrWhiteSpace(producto))
             {
                 query = query.Where(x =>
                     x.Producto == producto);
             }
 
-            // Filtro proveedor
             if (!string.IsNullOrWhiteSpace(proveedor))
             {
                 query = query.Where(x =>
                     x.Proveedor == proveedor);
             }
 
-            // Filtro estado
             if (!string.IsNullOrWhiteSpace(estado))
             {
                 query = query.Where(x =>
                     x.Estado == estado);
             }
 
-            // Filtro unidad de medida
             if (!string.IsNullOrWhiteSpace(unidadMedida))
             {
                 query = query.Where(x =>
                     x.UnidadMedida == unidadMedida);
             }
 
-            // Filtro fecha desde
             if (fechaDesde.HasValue)
             {
                 query = query.Where(x =>
                     x.Fecha >= fechaDesde.Value);
             }
 
-            // Filtro fecha hasta
             if (fechaHasta.HasValue)
             {
                 var fechaFinal = fechaHasta.Value.Date.AddDays(1);
@@ -122,6 +115,82 @@ namespace SistemaFlota.Services.HistorialVersionOdo
                 TotalRegistros = totalRegistros,
                 TotalPaginas = totalPaginas
             };
+        }
+
+        public async Task<EstadisticasMovimientoProductoDto> ObtenerEstadisticasAsync(
+            string? buscar = null,
+            string? producto = null,
+            string? proveedor = null,
+            string? estado = null,
+            string? unidadMedida = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null)
+        {
+            var query = _context.MovimientosProducto
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                buscar = buscar.Trim();
+
+                query = query.Where(x =>
+                    x.Referencia.Contains(buscar) ||
+                    x.Producto.Contains(buscar) ||
+                    x.Proveedor.Contains(buscar) ||
+                    x.Estado.Contains(buscar));
+            }
+
+            if (!string.IsNullOrWhiteSpace(producto))
+            {
+                query = query.Where(x =>
+                    x.Producto == producto);
+            }
+
+            if (!string.IsNullOrWhiteSpace(proveedor))
+            {
+                query = query.Where(x =>
+                    x.Proveedor == proveedor);
+            }
+
+            if (!string.IsNullOrWhiteSpace(estado))
+            {
+                query = query.Where(x =>
+                    x.Estado == estado);
+            }
+
+            if (!string.IsNullOrWhiteSpace(unidadMedida))
+            {
+                query = query.Where(x =>
+                    x.UnidadMedida == unidadMedida);
+            }
+
+            if (fechaDesde.HasValue)
+            {
+                query = query.Where(x =>
+                    x.Fecha >= fechaDesde.Value);
+            }
+
+            if (fechaHasta.HasValue)
+            {
+                var fechaFinal = fechaHasta.Value.Date.AddDays(1);
+
+                query = query.Where(x =>
+                    x.Fecha < fechaFinal);
+            }
+
+            var estadisticas = await query
+                .GroupBy(x => 1)
+                .Select(g => new EstadisticasMovimientoProductoDto
+                {
+                    TotalMovimientos = g.Count(),
+                    MovimientosActivos = g.Count(x => x.Estado != "Cancelado"),
+                    MovimientosCancelados = g.Count(x => x.Estado == "Cancelado"),
+                    CantidadTotal = g.Sum(x => x.Cantidad)
+                })
+                .FirstOrDefaultAsync();
+
+            return estadisticas ?? new EstadisticasMovimientoProductoDto();
         }
 
         public async Task<MovimientoProductoDto?> ObtenerPorIdAsync(int id)

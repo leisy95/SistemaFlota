@@ -15,6 +15,15 @@ namespace SistemaFlota.Services.HistorialVersionOdo
             DateTime? fechaDesde = null,
             DateTime? fechaHasta = null);
 
+        Task<EstadisticasMovimientoProductoDto> ObtenerEstadisticasAsync(
+            string? buscar = null,
+            string? producto = null,
+            string? proveedor = null,
+            string? estado = null,
+            string? unidadMedida = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null);
+
         Task<MovimientoProductoDto?> ObtenerPorIdAsync(int id);
     }
 }

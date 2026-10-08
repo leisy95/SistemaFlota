@@ -115,22 +115,6 @@
             </div>
         </div>
 
-        <div [class.modulo-bloqueado]="!puedeVerModulo('configuracion')" class="card-link"
-            (click)="navegarModulo('/configuracion')">
-            <div class="card">
-                <div class="barra gris"></div>
-                <div class="icono gris">
-                    <i class="fa-solid fa-gear"></i>
-                </div>
-                <h3>Configuración</h3>
-                <p>Parámetros generales del sistema.</p>
-                <div class="footer">
-                    <span>{{ cantidadSubmodulos('configuracion') }} Submódulos</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-
         <div [class.modulo-bloqueado]="!puedeVerModulo('historial-odo')" class="card-link"
             (click)="navegarModulo('/historial-odo')">
 
@@ -150,7 +134,22 @@
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
+        </div>
 
+        <div [class.modulo-bloqueado]="!puedeVerModulo('configuracion')" class="card-link"
+            (click)="navegarModulo('/configuracion')">
+            <div class="card">
+                <div class="barra gris"></div>
+                <div class="icono gris">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+                <h3>Configuración</h3>
+                <p>Parámetros generales del sistema.</p>
+                <div class="footer">
+                    <span>{{ cantidadSubmodulos('configuracion') }} Submódulos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
         </div>
 
     </div>

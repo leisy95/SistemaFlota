@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.HistorialVersionOdo;
 using SistemaFlota.Services.HistorialVersionOdo;
 
@@ -19,6 +20,7 @@ namespace SistemaFlota.Controllers.HistorialVersionOdo
         }
 
         [HttpGet]
+        [Permiso("historial-odo-movimiento-producto", "ver")]
         public async Task<ActionResult<PaginacionDto<MovimientoProductoDto>>> Get(
             [FromQuery] int pagina = 1,
             [FromQuery] int porPagina = 50,
@@ -44,7 +46,31 @@ namespace SistemaFlota.Controllers.HistorialVersionOdo
             return Ok(resultado);
         }
 
+        [HttpGet("estadisticas")]
+        [Permiso("historial-odo-movimiento-producto", "ver")]
+        public async Task<ActionResult<EstadisticasMovimientoProductoDto>> GetEstadisticas(
+            [FromQuery] string? buscar = null,
+            [FromQuery] string? producto = null,
+            [FromQuery] string? proveedor = null,
+            [FromQuery] string? estado = null,
+            [FromQuery] string? unidadMedida = null,
+            [FromQuery] DateTime? fechaDesde = null,
+            [FromQuery] DateTime? fechaHasta = null)
+        {
+            var resultado = await _movimientoProductoService.ObtenerEstadisticasAsync(
+                buscar,
+                producto,
+                proveedor,
+                estado,
+                unidadMedida,
+                fechaDesde,
+                fechaHasta);
+
+            return Ok(resultado);
+        }
+
         [HttpGet("{id}")]
+        [Permiso("historial-odo-movimiento-producto", "ver")]
         public async Task<ActionResult<MovimientoProductoDto>> GetById(int id)
         {
             var movimiento =
