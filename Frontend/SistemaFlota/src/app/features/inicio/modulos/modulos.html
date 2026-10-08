@@ -131,6 +131,28 @@
             </div>
         </div>
 
+        <div [class.modulo-bloqueado]="!puedeVerModulo('historial-odo')" class="card-link"
+            (click)="navegarModulo('/historial-odo')">
+
+            <div class="card">
+                <div class="barra verde"></div>
+
+                <div class="icono verde">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+
+                <h3>Historial ODO</h3>
+
+                <p>Consulta movimientos de productos y pedidos de compra.</p>
+
+                <div class="footer">
+                    <span>{{ cantidadSubmodulos('historial-odo') }} Submódulos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
 </section>

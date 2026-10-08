@@ -8,6 +8,7 @@ using SistemaFlota.Authorization;
 using SistemaFlota.Configuracion;
 using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
+using SistemaFlota.Repositories.Calidad;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Calidad;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
@@ -28,11 +29,11 @@ using SistemaFlota.Services.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
+using SistemaFlota.Services.HistorialVersionOdo;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
-using SistemaFlota.Repositories.Calidad;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -179,6 +180,10 @@ builder.Services.AddScoped<ImportacionExcelOrdenesService>();
 builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConContingencia>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
+
+// Historial Odo
+builder.Services.AddScoped<IPedidoCompraService, PedidoCompraService>();
+builder.Services.AddScoped<IMovimientoProductoService, MovimientoProductoService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();

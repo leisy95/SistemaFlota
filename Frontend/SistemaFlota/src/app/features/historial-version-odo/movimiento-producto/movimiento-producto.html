@@ -1,0 +1,201 @@
+<div class="pagina">
+
+    <div class="encabezado">
+        <div>
+            <h1 class="title">Movimientos de producto</h1>
+            <p>Consulta el historial de movimientos registrados.</p>
+        </div>
+    </div>
+
+    <div class="filtros">
+
+        <!-- Buscar -->
+        <div class="campo campo-busqueda">
+            <label>Buscar</label>
+
+            <input type="text" [(ngModel)]="buscar" (ngModelChange)="buscarMovimientos()"
+                placeholder="Referencia, producto o proveedor..." />
+        </div>
+
+        <!-- Producto -->
+        <div class="campo">
+            <label>Producto</label>
+
+            <input type="text" [(ngModel)]="producto" (ngModelChange)="buscarMovimientos()" placeholder="Producto" />
+        </div>
+
+        <!-- Proveedor -->
+        <div class="campo">
+            <label>Proveedor</label>
+
+            <input type="text" [(ngModel)]="proveedor" (ngModelChange)="buscarMovimientos()" placeholder="Proveedor" />
+        </div>
+
+        <!-- Estado -->
+        <div class="campo">
+            <label>Estado</label>
+
+            <select [(ngModel)]="estado" (ngModelChange)="buscarMovimientos()">
+                <option value="">Todos</option>
+                <option value="done">Done</option>
+            </select>
+        </div>
+
+        <!-- Unidad -->
+        <div class="campo">
+            <label>Unidad</label>
+
+            <input type="text" [(ngModel)]="unidadMedida" (ngModelChange)="buscarMovimientos()" placeholder="kg" />
+        </div>
+
+        <!-- Desde -->
+        <div class="campo">
+            <label>Desde</label>
+
+            <input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="buscarMovimientos()" />
+        </div>
+
+        <!-- Hasta -->
+        <div class="campo">
+            <label>Hasta</label>
+
+            <input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="buscarMovimientos()" />
+        </div>
+
+        <div class="acciones">
+
+            <button type="button" class="btn-secundario" (click)="limpiarFiltros()">
+                Limpiar
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="mensaje-error" *ngIf="error">
+        {{ error }}
+    </div>
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Referencia</th>
+                    <th>Producto</th>
+                    <th>Proveedor</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngIf="cargando">
+                    <td colspan="7" class="centrado">
+                        Cargando...
+                    </td>
+                </tr>
+
+                <tr *ngIf="!cargando && movimientos.length === 0">
+                    <td colspan="7" class="centrado">
+                        No se encontraron movimientos.
+                    </td>
+                </tr>
+
+                <tr *ngFor="let movimiento of movimientos">
+
+                    <td>
+                        {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
+                    </td>
+
+                    <td class="referencia">
+                        {{ movimiento.referencia }}
+                    </td>
+
+                    <td>
+                        {{ movimiento.producto }}
+                    </td>
+
+                    <td>
+                        {{ movimiento.proveedor }}
+                    </td>
+
+                    <td class="cantidad">
+                        {{ movimiento.cantidad | number:'1.2-2' }}
+                    </td>
+
+                    <td>
+                        {{ movimiento.unidadMedida }}
+                    </td>
+
+                    <td>
+                        <span class="estado">
+                            {{ movimiento.estado }}
+                        </span>
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="paginacion">
+
+        <div class="resumen">
+
+            Mostrando
+
+            <strong>
+                {{ movimientos.length }}
+            </strong>
+
+            de
+
+            <strong>
+                {{ totalRegistros }}
+            </strong>
+
+            registros
+
+        </div>
+
+        <div class="controles">
+
+            <button type="button" (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
+                ‹
+            </button>
+
+            <button type="button" *ngFor="let numero of obtenerPaginas()" [class.activa]="numero === pagina"
+                (click)="cambiarPagina(numero)">
+                {{ numero }}
+            </button>
+
+            <button type="button" (click)="cambiarPagina(pagina + 1)" [disabled]="pagina === totalPaginas">
+                ›
+            </button>
+
+        </div>
+
+        <div class="por-pagina">
+
+            <select [(ngModel)]="porPagina" (change)="cambiarPorPagina()">
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+            </select>
+
+            <span>por página</span>
+
+        </div>
+
+    </div>
+
+</div>

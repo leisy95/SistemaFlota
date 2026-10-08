@@ -325,48 +325,71 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'costos'
     },
 
-    // COMPRAS NO FORMALIZADAS - MATERIALES
+    // COMPRAS - MÓDULO 2
+
     {
-        key: 'proveedores-no-formalizados',
+        key: 'compras-2-proveedores',
         label: 'Proveedores',
         icon: 'fa-solid fa-user-tie',
-        ruta: '/compras-no-formalizadas/proveedores',
-        modulo: 'compras-no-formalizadas'
+        ruta: '/compras/2/proveedores',
+        modulo: 'compras-2'
     },
+
     {
-        key: 'materiales-no-formalizados',
+        key: 'compras-2-materiales',
         label: 'Materiales',
         icon: 'fa-solid fa-boxes-stacked',
-        ruta: '/compras-no-formalizadas/materiales',
-        modulo: 'compras-no-formalizadas'
+        ruta: '/compras/2/materiales',
+        modulo: 'compras-2'
     },
+
     {
-        key: 'ordenes-compras-no-formalizadas',
+        key: 'compras-2-ordenes',
         label: 'Ord - Compras',
         icon: 'fa-solid fa-file-invoice-dollar',
-        ruta: '/compras-no-formalizadas/ordenes-compras',
-        modulo: 'compras-no-formalizadas'
+        ruta: '/compras/2/ordenes-compras',
+        modulo: 'compras-2'
     },
+
     {
-        key: 'recepcion-compras-no-formalizadas',
+        key: 'compras-2-recepcion',
         label: 'Rep - Mercancias',
         icon: 'fa-solid fa-truck-ramp-box',
-        ruta: '/compras-no-formalizadas/recepcion-mercancias',
-        modulo: 'compras-no-formalizadas'
+        ruta: '/compras/2/recepcion-mercancias',
+        modulo: 'compras-2'
     },
+
     {
-        key: 'invenatrio-compras-no-formalizadas',
+        key: 'compras-2-inventario',
         label: 'Inventario',
         icon: 'fa-solid fa-warehouse',
-        ruta: '/compras-no-formalizadas/inventario',
-        modulo: 'compras-no-formalizadas'
+        ruta: '/compras/2/inventario',
+        modulo: 'compras-2'
     },
+
     {
-        key: 'traslado-compras-no-formalizadas',
+        key: 'compras-2-traslados',
         label: 'Traslados',
         icon: 'fa-solid fa-right-left',
-        ruta: '/compras-no-formalizadas/traslados',
-        modulo: 'compras-no-formalizadas'
-    }
+        ruta: '/compras/2/traslados',
+        modulo: 'compras-2'
+    },
+
+    // HISTORIAL ODO
+    {
+        key: 'historial-odo-pedido',
+        label: 'Pedido Compra',
+        icon: 'fa-solid fa-cart-shopping',
+        ruta: '/historial-odo/pedido-compra',
+        modulo: 'historial-odo'
+    },
+
+    {
+        key: 'historial-odo-movimientos',
+        label: 'Movimiento Producto',
+        icon: 'fa-solid fa-right-left',
+        ruta: '/historial-odo',
+        modulo: 'historial-odo'
+    },
 
 ];

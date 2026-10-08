@@ -99,20 +99,31 @@ export class Sidebar implements OnInit {
 
     if (url.startsWith('/flota')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('flota');
+
     } else if (url.startsWith('/rrhh')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('rrhh');
+
     } else if (url.startsWith('/calidad')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('calidad');
+
     } else if (url.startsWith('/control-envios')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('control-envios');
+
     } else if (url.startsWith('/reportes')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('reportes');
+
     } else if (url.startsWith('/configuracion')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('configuracion');
+
     } else if (url.startsWith('/costos')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('costos');
-    } else if (url.startsWith('/compras-no-formalizadas')) {
-      this.modulosVisibles = this.obtenerMenuPorModulo('compras-no-formalizadas');
+
+    } else if (url.startsWith('/compras/2')) {
+      this.modulosVisibles = this.obtenerMenuPorModulo('compras-2');
+
+    } else if (url.startsWith('/historial-odo')) {
+      this.modulosVisibles = this.obtenerMenuPorModulo('historial-odo');
+
     } else {
       this.modulosVisibles = [];
     }

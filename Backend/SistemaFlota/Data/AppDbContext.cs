@@ -16,6 +16,7 @@ using SistemaFlota.Models.Costos.Inventario.CortesInventario;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Models.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Models.HistorialVersionOdo;
 using SistemaFlota.Models.Idempotencia;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
@@ -105,6 +106,10 @@ namespace SistemaFlota
         public DbSet<DetalleCorteInventarioNoFormalizado> DetallesCorteInventarioNoFormalizados { get; set; }
         public DbSet<OrdenTrasladoNoFormalizada> OrdenesTrasladoNoFormalizadas { get; set; }
         public DbSet<OrdenTrasladoDetalleNoFormalizada> OrdenesTrasladoDetalleNoFormalizadas { get; set; }
+
+        // Historial Version Odo
+        public DbSet<PedidoCompra> PedidosCompra { get; set; }
+        public DbSet<MovimientoProducto> MovimientosProducto { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

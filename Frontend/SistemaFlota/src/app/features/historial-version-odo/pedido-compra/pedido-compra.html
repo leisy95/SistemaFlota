@@ -1,0 +1,196 @@
+<div class="pagina">
+
+    <div class="encabezado">
+        <div>
+            <h1>Pedidos de compra</h1>
+            <p>Consulta y seguimiento de pedidos registrados.</p>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+
+    <div class="filtros">
+
+        <div class="campo campo-busqueda">
+            <label>Buscar</label>
+
+            <input type="text" [(ngModel)]="buscar" (ngModelChange)="buscarPedidos()"
+                placeholder="Orden, proveedor o comprador..." />
+        </div>
+
+        <div class="campo">
+            <label>Prioridad</label>
+
+            <select [(ngModel)]="prioridad" (ngModelChange)="buscarPedidos()">
+                <option value="">Todas</option>
+                <option value="Normal">Normal</option>
+                <option value="Urgente">Urgente</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Estado</label>
+
+            <select [(ngModel)]="estado" (ngModelChange)="buscarPedidos()">
+                <option value="">Todos</option>
+                <option value="Pedido de compra">
+                    Pedido de compra
+                </option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Desde</label>
+
+            <input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="buscarPedidos()" />
+        </div>
+
+        <div class="campo">
+            <label>Hasta</label>
+
+            <input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="buscarPedidos()" />
+        </div>
+
+        <div class="acciones">
+
+            <button type="button" class="btn-secundario" (click)="limpiarFiltros()">
+                Limpiar
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ERROR -->
+
+    <div class="mensaje-error" *ngIf="error">
+        {{ error }}
+    </div>
+
+    <!-- TABLA -->
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Prioridad</th>
+                    <th>Orden</th>
+                    <th>Proveedor</th>
+                    <th>Comprador</th>
+                    <th>Fecha límite</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngIf="cargando">
+                    <td colspan="7" class="centrado">
+                        Cargando...
+                    </td>
+                </tr>
+
+                <tr *ngIf="!cargando && pedidos.length === 0">
+                    <td colspan="7" class="centrado">
+                        No se encontraron pedidos.
+                    </td>
+                </tr>
+
+                <tr *ngFor="let pedido of pedidos">
+
+                    <td>
+                        {{ pedido.prioridad }}
+                    </td>
+
+                    <td class="referencia">
+                        {{ pedido.referenciaOrden }}
+                    </td>
+
+                    <td>
+                        {{ pedido.proveedor }}
+                    </td>
+
+                    <td>
+                        {{ pedido.comprador }}
+                    </td>
+
+                    <td>
+                        {{ pedido.fechaLimiteOrden | date:'dd/MM/yyyy HH:mm' }}
+                    </td>
+
+                    <td class="total">
+                        {{ formatearTotal(pedido.total) }}
+                    </td>
+
+                    <td>
+                        <span class="estado">
+                            {{ pedido.estado }}
+                        </span>
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- PAGINACIÓN -->
+
+    <div class="paginacion">
+
+        <div class="resumen">
+
+            Mostrando
+
+            <strong>
+                {{ pedidos.length }}
+            </strong>
+
+            de
+
+            <strong>
+                {{ totalRegistros }}
+            </strong>
+
+            registros
+
+        </div>
+
+        <div class="controles">
+
+            <button type="button" (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1">
+                ‹
+            </button>
+
+            <button type="button" *ngFor="let numero of obtenerPaginas()" [class.activa]="numero === pagina"
+                (click)="cambiarPagina(numero)">
+                {{ numero }}
+            </button>
+
+            <button type="button" (click)="cambiarPagina(pagina + 1)" [disabled]="pagina === totalPaginas">
+                ›
+            </button>
+
+        </div>
+
+        <div class="por-pagina">
+
+            <select [(ngModel)]="porPagina" (change)="cambiarPorPagina()">
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+            </select>
+
+            <span>por página</span>
+
+        </div>
+
+    </div>
+
+</div>

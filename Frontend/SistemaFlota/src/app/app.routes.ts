@@ -70,7 +70,7 @@ export const routes: Routes = [
       },
 
       {
-        path: 'compras-no-formalizadas',
+        path: 'compras',
         loadChildren: () =>
           import('./features/compras-no-formalizadas/compras.routes')
             .then(r => r.COMPRAS_ROUTES)
@@ -81,6 +81,13 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/configuracion/configuracion.routes')
             .then(r => r.CONFIGURACION_ROUTES)
+      },
+
+      {
+        path: 'historial-odo',
+        loadChildren: () =>
+          import('./features/historial-version-odo/historial-odo.routes')
+            .then(r => r.HISTORIALODO_ROUTES)
       }
 
     ]
