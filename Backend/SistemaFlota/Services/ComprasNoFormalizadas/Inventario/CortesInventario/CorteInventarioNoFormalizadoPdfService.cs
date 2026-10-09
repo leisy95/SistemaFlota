@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -21,16 +22,43 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
             _environment = environment;
         }
 
-        public async Task<byte[]> GenerarPdfAsync()
+        public async Task<byte[]> GenerarPdfAsync(
+            string? material,
+            string? proveedor)
         {
             // INVENTARIO
-
-            var inventarios = await _context
+            var consulta = _context
                 .InventariosNoFormalizados
                 .Include(x => x.Material)
                     .ThenInclude(x =>
                         x!.ProveedorNoFormalizado)
                 .AsNoTracking()
+                .AsQueryable();
+
+            // FILTRO POR MATERIAL
+            if (!string.IsNullOrWhiteSpace(material))
+            {
+                var busqueda = material.Trim();
+
+                consulta = consulta.Where(x =>
+                    x.Material != null &&
+                    x.Material.NombreMaterial.Contains(busqueda));
+            }
+
+            // FILTRO POR PROVEEDOR NO FORMALIZADO
+            if (!string.IsNullOrWhiteSpace(proveedor))
+            {
+                var proveedorBusqueda = proveedor.Trim();
+
+                consulta = consulta.Where(x =>
+                    x.Material != null &&
+                    x.Material.ProveedorNoFormalizado != null &&
+                    x.Material.ProveedorNoFormalizado.Nombre
+                        == proveedorBusqueda);
+            }
+
+            // ORDENAR Y OBTENER LOS REGISTROS FILTRADOS
+            var inventarios = await consulta
                 .OrderBy(x =>
                     x.Material!
                         .ProveedorNoFormalizado!
@@ -53,7 +81,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                     "No existe configuración de empresa.");
 
             // RECURSOS
-
             var logo = ObtenerLogo();
             var marcaAgua = ObtenerMarcaAgua();
 
@@ -61,7 +88,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                 inventarios.Sum(x => x.StockActual);
 
             // DOCUMENTO
-
             var document = Document.Create(container =>
             {
                 container.Page(page =>
@@ -91,7 +117,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                 });
 
                             // INFORMACIÓN DEL CONTEO
-
                             column.Item()
                                 .PaddingTop(12)
                                 .Element(info =>
@@ -104,7 +129,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                             col.Item()
                                                 .Row(row =>
                                                 {
-
                                                     row.RelativeItem()
                                                         .Column(c =>
                                                         {
@@ -141,7 +165,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                         });
 
                                                     // BODEGA
-
                                                     row.RelativeItem()
                                                         .Column(c =>
                                                         {
@@ -163,7 +186,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                 });
 
                             // TABLA DE CONTEO
-
                             column.Item()
                                 .PaddingTop(12)
                                 .Element(content =>
@@ -209,7 +231,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                             });
 
                                                         // HEADER TABLA
-
                                                         t.Header(header =>
                                                         {
                                                             header.Cell()
@@ -276,11 +297,8 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                                         .HeaderTabla);
                                                         });
 
-                                                        // DATOS
-
-                                                        foreach (
-                                                            var item
-                                                            in inventarios)
+                                                        // DATOS FILTRADOS
+                                                        foreach (var item in inventarios)
                                                         {
                                                             t.Cell()
                                                                 .Element(
@@ -325,19 +343,18 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                                 .AlignRight()
                                                                 .Text(
                                                                     item.StockActual
-                                                                        .ToString(
-                                                                            "N2"))
+                                                                        .ToString("N2"))
                                                                 .Style(
                                                                     PdfStyles
                                                                         .CeldaTabla);
 
-                                                            // Conteo físico
+                                                            // CONTEO FÍSICO
                                                             t.Cell()
                                                                 .Element(
                                                                     CeldaParaEscribir)
                                                                 .Text("");
 
-                                                            // Diferencia
+                                                            // DIFERENCIA
                                                             t.Cell()
                                                                 .Element(
                                                                     CeldaParaEscribir)
@@ -348,8 +365,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                         });
                                 });
 
-                            //RESUMEN
-
+                            // RESUMEN
                             column.Item()
                                 .PaddingTop(12)
                                 .Element(resumen =>
@@ -362,8 +378,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                             col.Item()
                                                 .Row(row =>
                                                 {
-                                                    
-
                                                     row.RelativeItem()
                                                         .Column(c =>
                                                         {
@@ -394,13 +408,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                                 .PaddingTop(3)
                                                                 .Text(
                                                                     totalKgSistema
-                                                                        .ToString(
-                                                                            "N2"))
+                                                                        .ToString("N2"))
                                                                 .Style(
                                                                     PdfStyles.Valor);
                                                         });
-
-                                                
 
                                                     row.RelativeItem()
                                                         .Column(c =>
@@ -418,7 +429,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                                 .Style(
                                                                     PdfStyles.Valor);
                                                         });
-
 
                                                     row.RelativeItem()
                                                         .Column(c =>
@@ -439,7 +449,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                                 });
 
                                             // RESULTADO
-
                                             col.Item()
                                                 .PaddingTop(10)
                                                 .Row(row =>
@@ -526,7 +535,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                     row.ConstantItem(40);
 
                                     // RESPONSABLE REVISIÓN
-
                                     row.RelativeItem()
                                         .Column(col =>
                                         {
@@ -556,7 +564,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                         });
 
                     // MARCA DE AGUA
-
                     page.Background()
                         .Element(background =>
                         {
@@ -566,7 +573,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                         });
 
                     // PIE DE PÁGINA
-
                     page.Footer()
                         .Element(FooterEmpresa.Dibujar);
                 });

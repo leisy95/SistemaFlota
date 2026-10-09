@@ -93,17 +93,38 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Inventario.CortesInvena
             return Ok(resultado);
         }
 
-        // Imprimir PDF
+        // Imprimir PDF con filtros
         [HttpGet("pdf")]
         [Permiso("inventario", "ver")]
-        public async Task<IActionResult> GenerarPdf()
+        public async Task<IActionResult> GenerarPdf(
+            [FromQuery] string? material,
+            [FromQuery] string? proveedor)
         {
-            var pdf = await _pdfService.GenerarPdfAsync();
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    material,
+                    proveedor
+                );
 
-            return File(
-                pdf,
-                "application/pdf",
-                $"CorteInventarioNoFormalizado-{DateTime.Now:yyyy-MM-dd}.pdf");
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"CorteInventarioNoFormalizado-{DateTime.Now:yyyy-MM-dd}.pdf"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(
+                    $"Error al generar el PDF no formalizado: {ex}"
+                );
+
+                return StatusCode(500, new
+                {
+                    mensaje = "No fue posible generar el PDF del corte de inventario no formalizado."
+                });
+            }
         }
+
     }
 }

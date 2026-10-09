@@ -4,16 +4,49 @@
         <div>
             <h2>
                 <i class="fa-solid fa-boxes-stacked"></i>
-                Corte de Inventario - Mes
+                Corte de Inventario - No Formalizado
             </h2>
             <p>Ingrese el conteo físico de cada item</p>
         </div>
 
-        <button class="close" (click)="cerrarModal()">
+        <button type="button" class="close" (click)="cerrarModal()">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 
+    <!-- FILTROS -->
+    <div class="filtros">
+
+        <div class="filtro">
+            <label for="filtroProveedor">Proveedor</label>
+
+            <select id="filtroProveedor" [(ngModel)]="proveedorSeleccionado" (change)="cambiarProveedor()">
+
+                <option value="">Todos los proveedores</option>
+
+                <option *ngFor="let proveedor of proveedores" [value]="proveedor">
+                    {{ proveedor }}
+                </option>
+
+            </select>
+        </div>
+
+        <div class="filtro">
+            <label for="filtroMaterial">Material</label>
+
+            <input id="filtroMaterial" type="text" [(ngModel)]="materialSeleccionado" (input)="cambiarMaterial()"
+                placeholder="Buscar material...">
+        </div>
+
+        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
+
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            Limpiar filtros
+        </button>
+
+    </div>
+
+    <!-- TABLA DE INVENTARIO -->
     <div class="table-container">
 
         <table>
@@ -30,7 +63,8 @@
             </thead>
 
             <tbody>
-                <tr *ngFor="let item of items" [class.fila-negativa]="item.diferencia < 0">
+
+                <tr *ngFor="let item of itemsFiltrados" [class.fila-negativa]="item.diferencia < 0">
 
                     <td class="proveedor">
                         {{ item.proveedor }}
@@ -49,8 +83,8 @@
                     </td>
 
                     <td>
-                        <input type="number" [(ngModel)]="item.conteo" (input)="actualizar(item)" min="0"
-                            [class.input-error]="item.conteo < 0">
+                        <input type="number" [(ngModel)]="item.conteo" (input)="actualizar(item)"
+                            (wheel)="$any($event.target).blur()" min="0" [class.input-error]="item.conteo < 0">
                     </td>
 
                     <td>
@@ -58,25 +92,36 @@
                     </td>
 
                 </tr>
+
+                <tr *ngIf="itemsFiltrados.length === 0">
+                    <td colspan="6" class="sin-resultados">
+                        No se encontraron materiales con los filtros seleccionados.
+                    </td>
+                </tr>
+
             </tbody>
 
         </table>
 
     </div>
 
+    <!-- BOTONES -->
     <div class="footer">
 
-        <button class="btn-cancelar" (click)="cerrarModal()">
+        <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+
             <i class="fa-solid fa-ban"></i>
             Cancelar
         </button>
 
-        <button class="btn-agregar" (click)="imprimirPdf()">
+        <button type="button" class="btn-agregar" (click)="imprimirPdf()">
+
             <i class="fa-solid fa-print"></i>
             Imprimir Hoja
         </button>
 
-        <button class="btn-agregar" (click)="guardar()">
+        <button type="button" class="btn-agregar" (click)="guardar()">
+
             <i class="fa-solid fa-floppy-disk"></i>
             Guardar Corte
         </button>

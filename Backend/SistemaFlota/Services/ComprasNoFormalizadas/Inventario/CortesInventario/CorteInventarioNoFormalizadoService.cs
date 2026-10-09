@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Services.Auth;
@@ -19,7 +20,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
             _currentUser = currentUser;
         }
 
-        public async Task<List<CorteInventarioNoFormalizadoDto>> ObtenerCorteAsync()
+        // OBTENER INVENTARIO PARA EL CORTE
+        public async Task<List<CorteInventarioNoFormalizadoDto>>
+            ObtenerCorteAsync()
         {
             return await _context.InventariosNoFormalizados
                 .Include(x => x.Material)
@@ -45,6 +48,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                 .ToListAsync();
         }
 
+        // GUARDAR CORTE DE INVENTARIO
         public async Task GuardarCorteAsync(
             CrearCorteInventarioNoFormalizadoDto dto)
         {
@@ -100,6 +104,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
             await _context.SaveChangesAsync();
         }
 
+        // OBTENER HISTORIAL DE CORTES
         public async Task<List<HistorialCorteInventarioNoFormalizadoDto>>
             ObtenerHistorialAsync()
         {
@@ -121,6 +126,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                 .ToListAsync();
         }
 
+        // OBTENER DETALLE DE UN CORTE DEL HISTORIAL
         public async Task<HistorialCorteDetalleNoFormalizadoDto?>
             ObtenerDetalleAsync(int id)
         {
