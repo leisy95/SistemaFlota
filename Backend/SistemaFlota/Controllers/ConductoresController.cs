@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using Microsoft.AspNetCore.Authorization;
-
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs;
 
 namespace SistemaFlota
@@ -40,11 +38,9 @@ namespace SistemaFlota
             return limpio;
         }
 
-        // GET
-
+        // GET: Listar conductores
         [HttpGet]
-        [Authorize(Roles = "Admin,Conductor,Facturacion,jefe,Vendedor,Bodega")]
-
+        [Permiso("conductores", "ver")]
         public async Task<IActionResult>
             Get()
         {
@@ -81,12 +77,9 @@ namespace SistemaFlota
             return Ok(lista);
         }
 
-        // =========================
-        // POST
-        // =========================
-
-        [HttpPost]
-
+        // POST: Crear conductor
+        [HttpPost] 
+        [Permiso("conductores", "crear")]
         public async Task<IActionResult>
             Post(
 
@@ -213,12 +206,10 @@ namespace SistemaFlota
             }
         }
 
-        // =========================
-        // PUT
-        // =========================
+        // PUT: Actualizar conductor
 
         [HttpPut("{id}")]
-
+        [Permiso("conductores", "editar")]
         public async Task<IActionResult>
             Put(
 
@@ -346,12 +337,9 @@ namespace SistemaFlota
             }
         }
 
-        // =========================
-        // DELETE
-        // =========================
-
+        // DELETE: Eliminar conductor
         [HttpDelete("{id}")]
-
+        [Permiso("conductores", "eliminar")]
         public async Task<IActionResult>
             Delete(int id)
         {

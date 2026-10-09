@@ -47,40 +47,38 @@ export class Modulos {
 
     switch (ruta) {
 
-      case '/flota':
-
+      case '/flota': {
         nombreModulo = 'Flota';
 
-        const modulosFlota = MENU_MODULOS
-          .filter(m => m.modulo === 'flota')
-          .map(m => m.key);
-
-        permitido = this.permisos.some(p =>
-          p.puedeVer && modulosFlota.includes(p.modulo)
+        const modulosFlota = MENU_MODULOS.filter(
+          m => m.modulo === 'flota'
         );
 
+        const permisosFlota = this.permisos.filter(
+          p => p.puedeVer &&
+            modulosFlota.some(m => m.key === p.modulo)
+        );
+
+        permitido = permisosFlota.length > 0;
+
         if (permitido) {
+          const permisoInicio = permisosFlota.find(p => p.esInicio);
+          const permisoDestino = permisoInicio ?? permisosFlota[0];
 
-          const inicio = this.permisos.find(p =>
-            p.puedeVer && p.esInicio
+          const menuDestino = modulosFlota.find(
+            m => m.key === permisoDestino.modulo
           );
 
-          if (inicio) {
-            this.router.navigate(['/flota', inicio.modulo]);
+          if (menuDestino) {
+            this.router.navigate([menuDestino.ruta]);
             return;
           }
 
-          const primero = this.permisos.find(p =>
-            p.puedeVer && modulosFlota.includes(p.modulo)
-          );
-
-          if (primero) {
-            this.router.navigate(['/flota', primero.modulo]);
-            return;
-          }
+          permitido = false;
         }
 
         break;
+      }
 
       case '/costos':
         nombreModulo = 'Costos';
