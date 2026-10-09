@@ -4,7 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { CorteInventarioService } from '../../../../core/services/costos/inventario/cortesinventario/corteinventario.service';
-import { FiltrosCorteInventario, InventarioCorte } from '../../../../core/models/costos/inventario/cortesinventario/corteinventario.models';
+import {
+  FiltrosCorteInventario,
+  InventarioCorte
+} from '../../../../core/models/costos/inventario/cortesinventario/corteinventario.models';
 
 @Component({
   selector: 'app-corte-inventario',
@@ -14,14 +17,19 @@ import { FiltrosCorteInventario, InventarioCorte } from '../../../../core/models
   styleUrl: './corte-inventario.scss'
 })
 export class CorteInventario implements OnInit {
+
   items: InventarioCorte[] = [];
   itemsFiltrados: InventarioCorte[] = [];
+
   filtros: FiltrosCorteInventario = {
     proveedores: [],
     materiales: []
   };
+
   proveedorSeleccionado = '';
-  materialSeleccionado: number | null = null;
+
+  // Ahora permite escribir el nombre del material
+  materialSeleccionado = '';
 
   constructor(
     private toastr: ToastrService,
@@ -35,19 +43,22 @@ export class CorteInventario implements OnInit {
     this.cargarCorte();
   }
 
-  cargarFiltros() {
+  cargarFiltros(): void {
     this.corteService.obtenerFiltros().subscribe({
       next: (data) => {
         this.filtros = data;
       },
       error: (err) => {
         console.error(err);
-        this.toastr.error('No se pudieron cargar los filtros', 'Error');
+        this.toastr.error(
+          'No se pudieron cargar los filtros',
+          'Error'
+        );
       }
     });
   }
 
-  cargarCorte() {
+  cargarCorte(): void {
     this.corteService.obtenerCorte().subscribe({
       next: (data) => {
         this.items = data.map(item => ({
@@ -60,11 +71,14 @@ export class CorteInventario implements OnInit {
           diferencia: 0
         }));
 
-        this.itemsFiltrados = [...this.items];
+        this.filtrar();
       },
       error: (err) => {
         console.error(err);
-        this.toastr.error('No se pudo cargar el inventario', 'Error');
+        this.toastr.error(
+          'No se pudo cargar el inventario',
+          'Error'
+        );
       }
     });
   }
@@ -79,44 +93,65 @@ export class CorteInventario implements OnInit {
     );
   }
 
-  filtrar() {
+  filtrar(): void {
+    const textoMaterial = this.materialSeleccionado
+      .trim()
+      .toLocaleLowerCase();
+
+    const proveedor = this.proveedorSeleccionado
+      .trim()
+      .toLocaleLowerCase();
+
     this.itemsFiltrados = this.items.filter(item => {
+
       const coincideProveedor =
-        !this.proveedorSeleccionado ||
-        item.proveedor === this.proveedorSeleccionado;
+        !proveedor ||
+        item.proveedor.toLocaleLowerCase() === proveedor;
 
       const coincideMaterial =
-        this.materialSeleccionado === null ||
-        item.materialId === this.materialSeleccionado;
+        !textoMaterial ||
+        item.material.toLocaleLowerCase().includes(textoMaterial);
 
       return coincideProveedor && coincideMaterial;
     });
   }
 
-  cambiarProveedor() {
-    this.materialSeleccionado = null;
+  cambiarProveedor(): void {
     this.filtrar();
   }
 
-  cambiarMaterial() {
+  cambiarMaterial(): void {
     this.filtrar();
   }
 
-  actualizar(item: InventarioCorte) {
+  actualizar(item: InventarioCorte): void {
     item.diferencia = item.conteo - item.sistema;
   }
 
   imprimirPdf(): void {
-    this.corteService.generarPdf().subscribe({
+    this.corteService.generarPdf(
+      this.materialSeleccionado,
+      this.proveedorSeleccionado
+    ).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
+        const ventana = window.open(url, '_blank');
+
+        if (!ventana) {
+          window.URL.revokeObjectURL(url);
+          this.toastr.warning(
+            'Permite las ventanas emergentes para abrir el PDF.',
+            'Aviso'
+          );
+          return;
+        }
 
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
-        }, 3000);
+        }, 60000);
       },
-      error: () => {
+      error: (err) => {
+        console.error(err);
         this.toastr.error(
           'No fue posible generar la hoja de corte.',
           'Error'
@@ -125,7 +160,7 @@ export class CorteInventario implements OnInit {
     });
   }
 
-  guardar() {
+  guardar(): void {
     const dto = {
       detalles: this.items.map(item => ({
         materialId: item.materialId,
@@ -140,6 +175,7 @@ export class CorteInventario implements OnInit {
           'El corte de inventario fue guardado correctamente',
           'Corte guardado'
         );
+
         this.dialogRef.close(true);
       },
       error: (err) => {
@@ -151,13 +187,13 @@ export class CorteInventario implements OnInit {
     });
   }
 
-  limpiarFiltros() {
+  limpiarFiltros(): void {
     this.proveedorSeleccionado = '';
-    this.materialSeleccionado = null;
-    this.itemsFiltrados = [...this.items];
+    this.materialSeleccionado = '';
+    this.filtrar();
   }
 
-  cerrarModal() {
+  cerrarModal(): void {
     this.dialogRef.close();
   }
 }

@@ -72,18 +72,40 @@ namespace SistemaFlota.Controllers.Costos.Inventario.CortesInventario
             return Ok(resultado);
         }
 
-        // Imprimir pdf
+        // Imprimir PDF con filtros
         [HttpGet("pdf")]
         [Permiso("inventario", "ver")]
-        public async Task<IActionResult> GenerarPdf()
+        public async Task<IActionResult> GenerarPdf(
+            [FromQuery] string? material,
+            [FromQuery] string? proveedor)
         {
-            var pdf = await _pdfService.GenerarPdfAsync();
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    material,
+                    proveedor
+                );
 
-            return File(
-                pdf,
-                "application/pdf",
-                $"CorteInventario-{DateTime.Now:yyyy-MM-dd}.pdf");
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"CorteInventario-{DateTime.Now:yyyy-MM-dd}.pdf"
+                );
+            }
+            catch (Exception ex)
+            {
+                // Registrar el error para facilitar el diagnóstico
+                Console.Error.WriteLine(
+                    $"Error al generar el PDF del corte de inventario: {ex}"
+                );
+
+                return StatusCode(500, new
+                {
+                    mensaje = "No fue posible generar el PDF del corte de inventario."
+                });
+            }
         }
+
 
         // Filtros
         [HttpGet("filtros")]

@@ -27,13 +27,12 @@
 
         <div class="filtro">
             <label>Material</label>
-            <select [(ngModel)]="materialSeleccionado" (change)="cambiarMaterial()">
-                <option [ngValue]="null">Todos los materiales</option>
-                <option *ngFor="let material of materialesFiltrados" [ngValue]="material.materialId">
-                    {{ material.material }}
-                </option>
-            </select>
+
+            <input type="text" [(ngModel)]="materialSeleccionado" (input)="cambiarMaterial()"
+                placeholder="Buscar material...">
+
         </div>
+
 
         <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
             <i class="fa-solid fa-filter-circle-xmark"></i>

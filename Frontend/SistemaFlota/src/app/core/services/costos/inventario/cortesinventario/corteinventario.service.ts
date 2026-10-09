@@ -42,10 +42,24 @@ export class CorteInventarioService {
         );
     }
 
-    generarPdf(): Observable<Blob> {
+    generarPdf(material: string = '', proveedor: string = ''): Observable<Blob> {
+        const params: any = {};
+
+        if (material.trim()) {
+            params.material = material.trim();
+        }
+
+        if (proveedor.trim()) {
+            params.proveedor = proveedor.trim();
+        }
+
         return this.http.get(
             `${this.apiUrl}/pdf`,
-            { responseType: 'blob' }
+            {
+                params,
+                responseType: 'blob'
+            }
         );
     }
+
 }
