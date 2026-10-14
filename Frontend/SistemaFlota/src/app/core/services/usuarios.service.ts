@@ -26,6 +26,22 @@ export class UsuariosService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
+  // Para obtener usuarios en incidentes de ruta
+  obtenerUsuariosParaIncidentes(
+    pagina = 1,
+    porPagina = 20,
+    buscar = ''
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('pagina', pagina.toString())
+      .set('porPagina', porPagina.toString());
+
+    if (buscar?.trim())
+      params = params.set('buscar', buscar.trim());
+
+    return this.http.get<any>(this.apiUrl, { params });
+  }
+
   // GET POR ID
   obtenerPorId(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);

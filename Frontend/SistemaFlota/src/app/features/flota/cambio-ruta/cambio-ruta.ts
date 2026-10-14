@@ -79,7 +79,7 @@ export class CambioRutaComponent implements OnInit {
   }
 
   cargarConductores() {
-    this.conductoresService.obtenerConductores().subscribe({
+    this.conductoresService.obtenerConductoresIncidentes().subscribe({
       next: (data) => this.conductores = data,
       error: (err) => console.error(err)
     });

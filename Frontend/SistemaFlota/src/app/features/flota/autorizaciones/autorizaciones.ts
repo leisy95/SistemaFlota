@@ -38,7 +38,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   conductorSeleccionado: any = null;
   autorizacionActual: any = null;
 
-  // ── Paginación ────────────────────────────────────────────────────────────
+  // Paginación
   paginaActual = 1;
   porPagina = 10;
   totalPaginas = 1;
@@ -240,7 +240,7 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
     this.mostrarModalSalidaRapida = true;
     this.cdr.markForCheck();
   }
- obtenerPendienteConductor(conductorId: number): any {
+  obtenerPendienteConductor(conductorId: number): any {
     const haceVeinteMinutos = new Date(Date.now() - 20 * 60000);
     return (this.autorizaciones ?? []).find(a =>
       a.conductorId === conductorId && !a.aplazadaPorChat && (
@@ -426,8 +426,8 @@ export class AutorizacionesComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   obtenerConductores() {
-    this.conductoresService.obtenerConductores().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.conductores = data; this.cdr.markForCheck(); },
+    this.conductoresService.obtenerConductoresIncidentes().subscribe({
+      next: (data) => this.conductores = data,
       error: (err) => console.error(err)
     });
   }

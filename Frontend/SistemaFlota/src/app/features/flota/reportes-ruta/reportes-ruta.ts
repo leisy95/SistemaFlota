@@ -59,9 +59,13 @@ export class ReporteRutaComponent implements OnInit {
   }
 
   obtenerConductores() {
-    this.conductoresService.obtenerConductores().subscribe({
-      next: (data) => this.conductores = data,
-      error: (err) => console.error(err)
+    this.conductoresService.obtenerConductoresIncidentes().subscribe({
+      next: (data) => {
+        this.conductores = data;
+      },
+      error: (err) => {
+        console.error('Error cargando conductores para el reporte:', err);
+      }
     });
   }
 

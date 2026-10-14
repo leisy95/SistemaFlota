@@ -77,6 +77,23 @@ namespace SistemaFlota
             return Ok(lista);
         }
 
+        // Para cargar conductores en reportes ruta 
+        // GET: Conductores para seleccionar en reportes de rutas
+        [HttpGet("para-reportes")]
+        [Permiso("reporte-ruta", "ver")]
+        public async Task<IActionResult> GetParaReportes()
+        {
+            var lista = await _context.Conductores
+                .Select(c => new
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre
+                })
+                .ToListAsync();
+
+            return Ok(lista);
+        }
+
         // POST: Crear conductor
         [HttpPost] 
         [Permiso("conductores", "crear")]
