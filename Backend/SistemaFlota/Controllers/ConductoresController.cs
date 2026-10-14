@@ -80,7 +80,7 @@ namespace SistemaFlota
         // Para cargar conductores en reportes ruta 
         // GET: Conductores para seleccionar en reportes de rutas
         [HttpGet("para-reportes")]
-        [Permiso("reporte-ruta", "ver")]
+        [PermisoAlternativo("reporte-ruta", "autorizaciones", "ver")]
         public async Task<IActionResult> GetParaReportes()
         {
             var lista = await _context.Conductores

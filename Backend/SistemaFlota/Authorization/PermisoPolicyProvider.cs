@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
 namespace SistemaFlota.Authorization
@@ -14,7 +15,8 @@ namespace SistemaFlota.Authorization
         public override async Task<AuthorizationPolicy?> GetPolicyAsync(
             string policyName)
         {
-            if (policyName.StartsWith("Permiso:"))
+            if (policyName.StartsWith("Permiso:") ||
+                policyName.StartsWith("PermisoAlternativo:"))
             {
                 return new AuthorizationPolicyBuilder()
                     .AddRequirements(

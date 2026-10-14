@@ -31,7 +31,7 @@ namespace SistemaFlota
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
         [HttpGet]
-        [Permiso("reporte-ruta", "ver")]
+        [Permiso("incidentes", "ver")]
         public async Task<IActionResult> Get()
         {
             var lista = await _context.Incidentes
@@ -62,7 +62,7 @@ namespace SistemaFlota
         }
 
         [HttpGet("{id}")]
-        [Permiso("Incidentes", "ver")]
+        [Permiso("incidentes", "ver")]
         public async Task<IActionResult> GetById(int id)
         {
             var incidente = await _context.Incidentes
@@ -94,7 +94,7 @@ namespace SistemaFlota
         }
 
         [HttpPost]
-        [Permiso("reporte-ruta", "crear")]
+        [Permiso("incidentes", "crear")]
         public async Task<IActionResult> Post(
             [FromForm] int ConductorId,
             [FromForm] int VehiculoId,
@@ -183,7 +183,7 @@ namespace SistemaFlota
         }
 
         [HttpPut("{id}/revisar")]
-        [Permiso("Incidentes", "editar")]
+        [Permiso("incidentes", "editar")]
         public async Task<IActionResult> Revisar(int id, [FromBody] RevisarIncidenteDto dto)
         {
             var incidente = await _context.Incidentes
@@ -225,7 +225,7 @@ namespace SistemaFlota
         }
 
         [HttpGet("contactos-whatsapp")]
-        [Permiso("Incidentes", "ver")]
+        [Permiso("incidentes", "ver")]
         public async Task<IActionResult> GetContactos()
         {
             var contactos = await _context.ContactosNotificacion
