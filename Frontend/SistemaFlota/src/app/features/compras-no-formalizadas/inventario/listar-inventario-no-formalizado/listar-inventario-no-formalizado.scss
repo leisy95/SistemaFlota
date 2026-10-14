@@ -424,6 +424,271 @@
     cursor: not-allowed;
 }
 
+
+/* Tabla de inventario */
+.table-responsive {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-card {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.table-responsive table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-responsive thead th {
+    padding: 16px 14px;
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.table-responsive tbody td {
+    padding: 15px 14px;
+    border-bottom: 1px solid var(--gris-claro);
+    color: var(--gris-oscuro);
+    vertical-align: middle;
+}
+
+.table-responsive tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.material-nombre {
+    font-weight: 700;
+    color: var(--verde-oscuro) !important;
+}
+
+.acciones-material {
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+.acciones-material button {
+    flex-shrink: 0;
+}
+
+/* Paginación */
+.paginacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 0;
+    padding: 18px 22px;
+    background: var(--blanco);
+    border-top: 1px solid var(--gris-suave);
+    border-radius: 0 0 18px 18px;
+}
+
+.paginacion-acciones {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.paginacion-acciones select {
+    max-width: 100%;
+}
+
+.paginacion-acciones button {
+    flex-shrink: 0;
+}
+
+.pagina-actual {
+    white-space: nowrap;
+    color: var(--gris-oscuro);
+    font-size: 13px;
+}
+
+/* Tablets: conservar la tabla y permitir desplazamiento */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table-responsive table {
+        min-width: 900px;
+    }
+
+    .paginacion {
+        align-items: flex-start;
+    }
+
+    .paginacion-acciones {
+        max-width: 100%;
+    }
+}
+
+/* Celulares: filas convertidas en cards */
+@media (max-width: 600px) {
+    .table-responsive {
+        overflow-x: hidden;
+        padding: 12px;
+    }
+
+    .table-responsive table {
+        width: 100%;
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-responsive thead {
+        display: none;
+    }
+
+    .table-responsive tbody tr.fila-material {
+        display: block;
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 7px 13px;
+        background: var(--blanco);
+        border: 1px solid var(--gris-medio);
+        border-radius: 14px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
+        overflow: hidden;
+    }
+
+    .table-responsive tbody tr.fila-material:last-child {
+        margin-bottom: 0;
+    }
+
+    .table-responsive tbody tr.fila-material td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--gris-claro);
+        text-align: right !important;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .table-responsive tbody tr.fila-material td:last-child {
+        border-bottom: none;
+    }
+
+    .table-responsive tbody tr.fila-material td::before {
+        content: attr(data-label);
+        flex: 0 0 42%;
+        max-width: 42%;
+        text-align: left;
+        color: var(--gris-oscuro);
+        font-weight: 700;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .table-responsive tbody tr.fila-material td.material-nombre {
+        color: var(--verde-oscuro) !important;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    /* Las acciones permanecen agrupadas a la derecha */
+    .table-responsive tbody tr.fila-material td.acciones-material {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .table-responsive tbody tr.fila-material td.acciones-material::before {
+        margin-right: auto;
+    }
+
+    .acciones-material button {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+    }
+
+    /* Mensaje cuando no existen registros */
+    .table-responsive tbody tr.fila-sin-datos {
+        display: block;
+        width: 100%;
+    }
+
+    .table-responsive tbody tr.fila-sin-datos td {
+        display: block;
+        width: 100%;
+        padding: 25px 12px;
+        border: none;
+        text-align: center !important;
+    }
+
+    .table-responsive tbody tr.fila-sin-datos td::before {
+        content: none;
+    }
+
+    /* Paginación adaptada a móviles */
+    .paginacion {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 15px 12px;
+    }
+
+    .paginacion .info {
+        font-size: 13px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    .paginacion-acciones {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .paginacion-acciones select {
+        flex: 1 1 100%;
+        width: 100%;
+        min-height: 40px;
+    }
+
+    .paginacion-acciones button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .pagina-actual {
+        font-size: 12px;
+    }
+}
+
+
 @media (max-width:1200px) {
 
     .cards-resumen,

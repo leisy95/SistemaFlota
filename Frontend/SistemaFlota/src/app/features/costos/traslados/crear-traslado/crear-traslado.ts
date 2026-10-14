@@ -90,14 +90,15 @@ export class CrearTraslado {
     this.colores = [...new Set(this.inventarios.map(x => x.color).filter(x => !!x))];
   }
 
+
   get inventariosFiltrados(): Inventario_Costos[] {
+    const proveedor = this.materialActual.proveedor?.trim();
+
     return this.inventarios.filter(x =>
-      (!this.materialActual.proveedor || x.proveedor === this.materialActual.proveedor) &&
-      (!this.materialActual.tipo || x.categoria === this.materialActual.tipo) &&
-      (!this.materialActual.densidad || x.densidad === this.materialActual.densidad) &&
-      (!this.materialActual.color || x.color === this.materialActual.color)
+      !proveedor || x.proveedor?.trim() === proveedor
     );
   }
+
 
   seleccionarMaterial(): void {
     if (!this.materialActual.materialId) return;

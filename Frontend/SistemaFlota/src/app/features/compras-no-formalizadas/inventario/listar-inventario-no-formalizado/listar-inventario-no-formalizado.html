@@ -1,6 +1,6 @@
 <div class="container">
     <div class="header-card">
-        <h1 class="title">Inventario Actual - Compras No Formalizadas</h1>
+        <h1 class="title">Inventario Actual - Compras de Compras G</h1>
 
         <div class="header-actions">
             <button *ngIf="permisos.puedeVer('inventario')" class="btn-excel" (click)="exportarExcel()">
@@ -239,179 +239,135 @@
 
         </div>
 
+
         <div class="table-card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Proveedor</th>
+                            <th>Categoría</th>
+                            <th>Color</th>
+                            <th>Densidad</th>
 
-            <table>
+                            <th *ngIf="puedeVerDatosNumericos" class="text-right">
+                                Stock
+                            </th>
+                            <th *ngIf="puedeVerDatosNumericos" class="text-right">
+                                Costo Promedio
+                            </th>
+                            <th *ngIf="puedeVerDatosNumericos" class="text-right">
+                                Valor Total
+                            </th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
 
-                <thead>
-                    <tr>
-                        <th>Material</th>
-                        <th>Proveedor</th>
-                        <th>Categoría</th>
-                        <th>Color</th>
-                        <th>Densidad</th>
+                    <tbody>
+                        <tr *ngFor="let material of materiales" class="fila-material">
+                            <td data-label="Material" class="material-nombre">
+                                {{ material.material }}
+                            </td>
 
-                        <th *ngIf="puedeVerDatosNumericos" class="text-right">
-                            Stock
-                        </th>
+                            <td data-label="Proveedor">
+                                {{ material.proveedor }}
+                            </td>
 
-                        <th *ngIf="puedeVerDatosNumericos" class="text-right">
-                            Costo Promedio
-                        </th>
+                            <td data-label="Categoría">
+                                {{ material.categoria }}
+                            </td>
 
-                        <th *ngIf="puedeVerDatosNumericos" class="text-right">
-                            Valor Total
-                        </th>
+                            <td data-label="Color">
+                                {{ material.color }}
+                            </td>
 
-                        <th class="text-center">
-                            Acciones
-                        </th>
-                    </tr>
-                </thead>
+                            <td data-label="Densidad">
+                                {{ material.densidad }}
+                            </td>
 
-                <tbody>
+                            <td *ngIf="puedeVerDatosNumericos" data-label="Stock" class="text-right">
+                                {{ material.stockActual | number:'1.0-2' }} KG
+                            </td>
 
-                    <tr *ngFor="let material of materiales">
+                            <td *ngIf="puedeVerDatosNumericos" data-label="Costo Promedio" class="text-right">
+                                {{ material.costoPromedio | currency:'COP':'symbol':'1.0-0' }}
+                            </td>
 
-                        <td>
-                            {{ material.material }}
-                        </td>
+                            <td *ngIf="puedeVerDatosNumericos" data-label="Valor Total" class="text-right">
+                                {{ material.valorInventario | currency:'COP':'symbol':'1.0-0' }}
+                            </td>
 
-                        <td>
-                            {{ material.proveedor }}
-                        </td>
+                            <td data-label="Acciones" class="acciones acciones-material">
+                                <button *ngIf="permisos.puedeEditar('inventario')" class="btn-editar" type="button"
+                                    title="Ajustar inventario" aria-label="Ajustar inventario"
+                                    (click)="editar(material)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
 
-                        <td>
-                            {{ material.categoria }}
-                        </td>
+                                <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon warning" type="button"
+                                    title="Movimientos" aria-label="Movimientos" (click)="historial(material)">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </button>
 
-                        <td>
-                            {{ material.color }}
-                        </td>
+                                <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon" type="button"
+                                    title="Historial de cortes" aria-label="Historial de cortes"
+                                    (click)="historialCortes()">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </button>
+                            </td>
+                        </tr>
 
-                        <td>
-                            {{ material.densidad }}
-                        </td>
-
-                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
-
-                            {{ material.stockActual | number:'1.0-2' }} KG
-
-                        </td>
-
-                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
-
-                            {{ material.costoPromedio | currency:'COP':'symbol':'1.0-0' }}
-
-                        </td>
-
-                        <td *ngIf="puedeVerDatosNumericos" class="text-right">
-
-                            {{ material.valorInventario | currency:'COP':'symbol':'1.0-0' }}
-
-                        </td>
-
-                        <td class="acciones">
-
-                            <button *ngIf="permisos.puedeEditar('inventario')" class="btn-editar"
-                                title="Ajustar inventario" (click)="editar(material)">
-
-                                <i class="fa-solid fa-pen"></i>
-
-                            </button>
-
-                            <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon warning" title="Movimientos"
-                                (click)="historial(material)">
-
-                                <i class="fa-solid fa-chart-line"></i>
-
-                            </button>
-
-                            <button *ngIf="permisos.puedeVer('inventario')" class="btn-icon" title="Historial de cortes"
-                                (click)="historialCortes()">
-
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                    <tr *ngIf="materiales.length === 0">
-
-                        <td [attr.colspan]="puedeVerDatosNumericos ? 9 : 6" class="text-center">
-
-                            No hay registros de inventario.
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
+                        <tr *ngIf="materiales.length === 0" class="fila-sin-datos">
+                            <td [attr.colspan]="puedeVerDatosNumericos ? 9 : 6" class="text-center">
+                                No hay registros de inventario.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div class="paginacion">
-
                 <div class="info">
-
                     Mostrando
                     {{ totalRegistros === 0 ? 0 : ((page - 1) * pageSize) + 1 }}
-                    -
-                    {{ hastaRegistro }}
-                    de
-                    {{ totalRegistros }}
-                    registros
-
+                    - {{ hastaRegistro }}
+                    de {{ totalRegistros }} registros
                 </div>
 
-                <div class="acciones">
-
-                    <select [(ngModel)]="pageSize" (change)="cambiarPageSize()">
-
+                <div class="acciones paginacion-acciones">
+                    <select [(ngModel)]="pageSize" (change)="cambiarPageSize()" aria-label="Registros por página">
                         <option *ngFor="let s of pageSizes" [ngValue]="s">
-
                             {{ s }} por página
-
                         </option>
-
                     </select>
 
-                    <button (click)="cambiarPagina(1)" [disabled]="page == 1">
-
+                    <button type="button" (click)="cambiarPagina(1)" [disabled]="page == 1" aria-label="Primera página">
                         <i class="fa-solid fa-angles-left"></i>
-
                     </button>
 
-                    <button (click)="cambiarPagina(page - 1)" [disabled]="page == 1">
-
+                    <button type="button" (click)="cambiarPagina(page - 1)" [disabled]="page == 1"
+                        aria-label="Página anterior">
                         <i class="fa-solid fa-angle-left"></i>
-
                     </button>
 
-                    <span>
+                    <span class="pagina-actual">
                         Página {{ page }} de {{ totalPaginas }}
                     </span>
 
-                    <button (click)="cambiarPagina(page + 1)" [disabled]="page == totalPaginas || totalPaginas === 0">
-
+                    <button type="button" (click)="cambiarPagina(page + 1)"
+                        [disabled]="page == totalPaginas || totalPaginas === 0" aria-label="Página siguiente">
                         <i class="fa-solid fa-angle-right"></i>
-
                     </button>
 
-                    <button (click)="cambiarPagina(totalPaginas)"
-                        [disabled]="page == totalPaginas || totalPaginas === 0">
-
+                    <button type="button" (click)="cambiarPagina(totalPaginas)"
+                        [disabled]="page == totalPaginas || totalPaginas === 0" aria-label="Última página">
                         <i class="fa-solid fa-angles-right"></i>
-
                     </button>
-
                 </div>
-
             </div>
-
         </div>
+
 
         <div class="footer-resumen" *ngIf="puedeVerDatosNumericos">
 

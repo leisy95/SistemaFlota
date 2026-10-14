@@ -1,6 +1,6 @@
 <div class="recepcion-container">
     <section class="page-header">
-        <h1>Recepción de Mercancías No Formalizadas</h1>
+        <h1>Recepción de Mercancías de Compras G</h1>
         <p>Sistema de marcado y registro de llegada de materiales no formalizados</p>
     </section>
 
@@ -8,7 +8,7 @@
         <div class="filtros-header">
             <div>
                 <h2>Filtros</h2>
-                <p>Filtra las órdenes no formalizadas disponibles para recepción</p>
+                <p>Filtra las órdenes de Compras G disponibles para recepción</p>
             </div>
         </div>
 
@@ -25,7 +25,7 @@
             </div>
 
             <div class="input-container">
-                <label>Proveedor No Formalizado</label>
+                <label>Proveedor de Compras G</label>
                 <select [(ngModel)]="proveedorNoFormalizadoId" (change)="aplicarFiltros()">
                     <option [ngValue]="undefined">Todos los proveedores</option>
                     <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.idProveedorNoFormalizado">
@@ -121,7 +121,7 @@
     </section>
 
     <section class="card ordenes-card">
-        <h2>Órdenes Disponibles para Recepción No Formalizadas</h2>
+        <h2>Órdenes Disponibles para Recepción de Compras G</h2>
 
         <div class="orden-item" [ngClass]="{
             'orden-pendiente': orden.estado === 'Pendiente',

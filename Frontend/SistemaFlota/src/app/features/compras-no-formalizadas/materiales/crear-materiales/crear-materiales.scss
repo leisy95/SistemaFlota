@@ -1,3 +1,13 @@
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 .overlay {
     position: fixed;
     inset: 0;
@@ -5,73 +15,107 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
     z-index: 999;
 }
 
 .modal {
     width: 720px;
-    max-width: 95%;
+    max-width: 100%;
     max-height: 90vh;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: var(--blanco);
     border-radius: 18px;
     padding: 30px;
-    box-shadow: 0 15px 45px var(--gris-oscuro);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, .2);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 16px;
     margin-bottom: 25px;
 }
 
+.modal-header>div {
+    flex: 1;
+    min-width: 0;
+}
+
+.modal-header h2 {
+    margin: 0 0 8px;
+    color: var(--gris-oscuro);
+    font-size: 1.6rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
 .modal-header p {
+    margin: 0;
     color: var(--gris-oscuro);
     font-size: .9rem;
+    line-height: 1.5;
 }
 
 .cerrar {
+    flex-shrink: 0;
     border: none;
     background: none;
     cursor: pointer;
     font-size: 1.5rem;
     color: var(--gris-medio);
+    padding: 4px;
+}
+
+form {
+    width: 100%;
+    min-width: 0;
 }
 
 .grid2 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
 .grid3 {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
 }
 
 .campo {
+    min-width: 0;
     margin-bottom: 18px;
 }
 
-.campo label {
+.campo.ancho {
+    width: 100%;
+}
+
+.campo label:not(.pdf-upload) {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
     font-size: 1rem;
+    color: var(--gris-oscuro);
 }
 
-.campo input,
+.campo input:not([type="file"]),
 .campo select {
+    display: block;
     width: 100%;
+    min-width: 0;
     height: 50px;
     border: 1px solid var(--gris-medio);
     color: var(--gris-oscuro);
     border-radius: 12px;
-    padding: 0 15px;
+    padding: 0 12px;
     font-size: 1rem;
     outline: none;
+    background: var(--blanco);
 }
 
 .campo input:focus,
@@ -80,17 +124,18 @@
 }
 
 .campo textarea {
+    display: block;
     width: 100%;
+    min-width: 0;
     min-height: 110px;
     border: 1px solid var(--gris-medio);
     color: var(--gris-oscuro);
     border-radius: 12px;
     padding: 14px 15px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     resize: vertical;
     outline: none;
     transition: .2s;
-    box-sizing: border-box;
 }
 
 .campo textarea:focus {
@@ -102,17 +147,13 @@
     color: var(--gris-medio);
 }
 
-.botones {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 25px;
-}
-
+/* Carga de ficha técnica PDF */
 .pdf-upload {
     display: flex;
     align-items: center;
     gap: 18px;
+    width: 100%;
+    min-width: 0;
     padding: 18px 20px;
     border: 2px dashed #cfd8dc;
     border-radius: 14px;
@@ -126,11 +167,12 @@
     background: #fff5f5;
 }
 
-.pdf-upload input {
+.pdf-upload input[type="file"] {
     display: none;
 }
 
-.pdf-upload i {
+.pdf-upload>i {
+    flex-shrink: 0;
     font-size: 2rem;
     color: var(--verde-oscuro);
 }
@@ -138,6 +180,8 @@
 .pdf-info {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .pdf-info strong {
@@ -149,6 +193,7 @@
     font-size: .82rem;
     color: #757575;
     margin-top: 3px;
+    line-height: 1.5;
 }
 
 .pdf-ayuda {
@@ -163,6 +208,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
     padding: 12px 15px;
     border-radius: 10px;
     background: #fff3f3;
@@ -172,7 +218,13 @@
 }
 
 .pdf-seleccionado i {
+    flex-shrink: 0;
     font-size: 1.4rem;
+}
+
+.pdf-seleccionado span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .pdf-actual {
@@ -180,10 +232,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    max-width: 100%;
     text-decoration: none;
     color: #1565c0;
     font-weight: 600;
-    transition: .2s;
+    overflow-wrap: anywhere;
 }
 
 .pdf-actual:hover {
@@ -191,26 +244,39 @@
 }
 
 .pdf-actual i {
+    flex-shrink: 0;
     color: var(--verde-oscuro);
     font-size: 1.2rem;
 }
 
-.cancelar {
+/* Botones */
+.botones {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.btn-cancelar,
+.guardar {
+    min-height: 44px;
     padding: 12px 28px;
-    border: 1px solid var(--gris-medio);
     border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
 }
 
+.btn-cancelar {
+    border: 1px solid var(--gris-medio);
+    background: var(--blanco);
+    color: var(--gris-oscuro);
+}
+
 .guardar {
-    padding: 12px 28px;
-    border: none;
-    border-radius: 12px;
+    border: 1px solid var(--verde-oscuro);
     background: var(--verde-oscuro);
     color: var(--blanco);
-    cursor: pointer;
-    font-weight: 600;
 }
 
 .guardar:hover {
@@ -218,10 +284,103 @@
     color: var(--verde-oscuro);
 }
 
-@media(max-width:768px) {
+/* Tablet */
+@media (max-width: 768px) {
+    .overlay {
+        padding: 16px;
+    }
+
+    .modal {
+        width: 100%;
+        padding: 24px;
+        max-height: 92vh;
+        border-radius: 16px;
+    }
 
     .grid2,
     .grid3 {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .modal-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+    .overlay {
+        padding: 10px;
+        align-items: center;
+    }
+
+    .modal {
+        padding: 18px 14px;
+        max-height: 94vh;
+        border-radius: 14px;
+    }
+
+    .modal-header {
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.2rem;
+        line-height: 1.35;
+    }
+
+    .modal-header p {
+        font-size: .82rem;
+    }
+
+    .campo {
+        margin-bottom: 15px;
+    }
+
+    .campo label:not(.pdf-upload) {
+        font-size: .92rem;
+    }
+
+    .campo input:not([type="file"]),
+    .campo select {
+        height: 46px;
+        padding: 0 10px;
+        font-size: 16px;
+    }
+
+    .campo textarea {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .pdf-upload {
+        gap: 12px;
+        padding: 14px 12px;
+    }
+
+    .pdf-upload>i {
+        font-size: 1.6rem;
+    }
+
+    .pdf-info strong {
+        font-size: .88rem;
+    }
+
+    .pdf-info span {
+        font-size: .78rem;
+    }
+
+    .botones {
+        flex-direction: column-reverse;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-cancelar,
+    .guardar {
+        width: 100%;
+        padding: 12px;
     }
 }

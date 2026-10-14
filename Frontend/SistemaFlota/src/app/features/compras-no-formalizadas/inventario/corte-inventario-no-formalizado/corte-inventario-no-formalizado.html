@@ -4,7 +4,7 @@
         <div>
             <h2>
                 <i class="fa-solid fa-boxes-stacked"></i>
-                Corte de Inventario - No Formalizado
+                Corte de Inventario - Compras G
             </h2>
             <p>Ingrese el conteo físico de cada item</p>
         </div>
@@ -47,10 +47,9 @@
     </div>
 
     <!-- TABLA DE INVENTARIO -->
+
     <div class="table-container">
-
         <table>
-
             <thead>
                 <tr>
                     <th>Proveedor</th>
@@ -63,47 +62,44 @@
             </thead>
 
             <tbody>
-
-                <tr *ngFor="let item of itemsFiltrados" [class.fila-negativa]="item.diferencia < 0">
-
-                    <td class="proveedor">
+                <tr *ngFor="let item of itemsFiltrados" [class.fila-negativa]="item.diferencia < 0"
+                    class="fila-inventario">
+                    <td class="proveedor" data-label="Proveedor">
                         {{ item.proveedor }}
                     </td>
 
-                    <td>
+                    <td data-label="Material">
                         {{ item.material }}
                     </td>
 
-                    <td class="color">
+                    <td class="color" data-label="Color">
                         {{ item.color }}
                     </td>
 
-                    <td class="numero">
+                    <td class="numero" data-label="Peso (KG)">
                         {{ item.sistema }}
                     </td>
 
-                    <td>
+                    <td data-label="Conteo físico (KG)">
                         <input type="number" [(ngModel)]="item.conteo" (input)="actualizar(item)"
                             (wheel)="$any($event.target).blur()" min="0" [class.input-error]="item.conteo < 0">
                     </td>
 
-                    <td>
+                    <td data-label="Diferencia" [class.negativo]="item.diferencia < 0"
+                        [class.positivo]="item.diferencia > 0">
                         {{ item.diferencia }}
                     </td>
-
                 </tr>
 
-                <tr *ngIf="itemsFiltrados.length === 0">
+                <tr *ngIf="itemsFiltrados.length === 0" class="fila-vacia">
                     <td colspan="6" class="sin-resultados">
                         No se encontraron materiales con los filtros seleccionados.
                     </td>
                 </tr>
-
             </tbody>
-
         </table>
-
     </div>
+
 
     <!-- BOTONES -->
     <div class="footer">

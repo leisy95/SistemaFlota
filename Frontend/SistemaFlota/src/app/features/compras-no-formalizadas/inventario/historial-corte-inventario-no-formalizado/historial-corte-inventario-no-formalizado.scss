@@ -1,41 +1,62 @@
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 .modal {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     background: var(--blanco);
     border-radius: 20px;
     padding: 30px;
     border: 1px solid var(--gris-claro);
-    box-shadow: 0 10px 30px var(--gris-medio);
-    width: 100%;
-    max-width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
 .header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 25px;
+}
 
-    h2 {
-        margin: 0;
-        font-size: 1.375rem;
-        font-weight: 700;
-        color: var(--gris-oscuro);
+.header>div {
+    min-width: 0;
+}
 
-        i {
-            margin-right: 10px;
-            color: var(--verde-oscuro);
-        }
-    }
+.header h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+    overflow-wrap: anywhere;
+}
 
-    p {
-        margin: 6px 0 0;
-        color: var(--gris-oscuro);
-        font-size: 1rem;
-    }
+.header h2 i {
+    margin-right: 8px;
+    color: var(--verde-oscuro);
+}
+
+.header p {
+    margin: 8px 0 0;
+    color: var(--gris-oscuro);
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 .table-container {
     width: 100%;
+    min-width: 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -44,13 +65,182 @@ table {
     font-size: 14px;
 }
 
+thead th {
+    padding: 14px 12px;
+    text-align: left;
+    white-space: nowrap;
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+}
+
+tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--gris-claro);
+    color: var(--gris-oscuro);
+    overflow-wrap: anywhere;
+}
+
 .numero {
     text-align: center;
     font-weight: 600;
+}
+
+.celda-accion {
+    white-space: nowrap;
+}
+
+.btn-ver {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 9px;
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-ver:hover {
+    opacity: .88;
 }
 
 .sin-registros {
     text-align: center !important;
     padding: 30px !important;
     color: var(--gris-medio) !important;
+}
+
+/* Tablet y celulares */
+@media (max-width: 768px) {
+    .modal {
+        padding: 22px;
+        border-radius: 16px;
+    }
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .header h2 {
+        font-size: 1.2rem;
+    }
+
+    .header p {
+        font-size: .9rem;
+    }
+
+    .table-container {
+        overflow: visible;
+    }
+
+    table,
+    tbody {
+        display: block;
+        width: 100%;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody tr:not(:last-child) {
+        margin-bottom: 16px;
+    }
+
+    tbody tr:has(.sin-registros) {
+        margin-bottom: 0;
+    }
+
+    tbody tr:not(:has(.sin-registros)) {
+        display: block;
+        width: 100%;
+        padding: 8px 14px;
+        border: 1px solid var(--gris-claro);
+        border-radius: 14px;
+        background: var(--blanco);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
+    }
+
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        width: 100%;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gris-claro);
+        text-align: right;
+    }
+
+    tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 85px;
+        font-weight: 700;
+        color: var(--gris-oscuro);
+        text-align: left;
+    }
+
+    tbody td.numero {
+        text-align: right;
+    }
+
+    tbody td.celda-accion {
+        align-items: center;
+        border-bottom: none;
+    }
+
+    .btn-ver {
+        min-height: 40px;
+        padding: 9px 16px;
+    }
+
+    tbody td.sin-registros {
+        display: block;
+        padding: 24px 12px !important;
+        text-align: center !important;
+        border: 1px solid var(--gris-claro);
+        border-radius: 12px;
+    }
+
+    tbody td.sin-registros::before {
+        content: none;
+    }
+}
+
+/* Celulares pequeños */
+@media (max-width: 480px) {
+    .modal {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+
+    .header h2 {
+        font-size: 1.05rem;
+        line-height: 1.45;
+    }
+
+    .header h2 i {
+        margin-right: 5px;
+    }
+
+    .header p {
+        font-size: .84rem;
+    }
+
+    tbody tr:not(:has(.sin-registros)) {
+        padding: 6px 11px;
+    }
+
+    tbody td {
+        gap: 10px;
+        font-size: .85rem;
+    }
+
+    tbody td::before {
+        flex-basis: 75px;
+    }
 }

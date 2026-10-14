@@ -112,7 +112,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
                                         configuracion,
                                         "",
                                         "",
-                                        "CORTE DE INVENTARIO",
+                                        "CORTE DE INVENTARIO COMPRAS G",
                                         $"MES {fecha:MM/yyyy}");
                                 });
 

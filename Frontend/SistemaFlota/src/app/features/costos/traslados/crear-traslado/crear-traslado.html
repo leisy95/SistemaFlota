@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="select-wrapper">
-                            <select [(ngModel)]="materialActual.materialId" (change)="seleccionarMaterial()">
+                            <select [(ngModel)]="materialActual.materialId" (ngModelChange)="seleccionarMaterial()">
                                 <option [ngValue]="null">Material</option>
                                 <option *ngFor="let material of inventariosFiltrados" [ngValue]="material.materialId">
                                     {{ material.material || material.categoria }}

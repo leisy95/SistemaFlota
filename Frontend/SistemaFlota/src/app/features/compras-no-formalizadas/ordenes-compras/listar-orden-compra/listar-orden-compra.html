@@ -1,7 +1,7 @@
 <div class="page-container">
     <section class="header-card">
         <div>
-            <h1>Órdenes de Compra No Formalizadas</h1>
+            <h1>Órdenes de Compras G</h1>
         </div>
         <button class="btn-agregar" (click)="nuevaOrden()">
             <i class="fa-solid fa-plus"></i>
@@ -70,7 +70,7 @@
         </div>
 
         <div class="field">
-            <label>Proveedor No Formalizado</label>
+            <label>Proveedor de Compras G</label>
             <select [(ngModel)]="proveedorFiltro" (change)="pagina = 1; cargar()">
                 <option [ngValue]="undefined">Todos</option>
                 <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.id">
@@ -80,7 +80,7 @@
         </div>
 
         <div class="field">
-            <label>Proveedor No Formalizado</label>
+            <label>Proveedor de Compras G</label>
             <select [(ngModel)]="proveedorFiltro" (change)="pagina = 1; cargar()">
                 <option [ngValue]="undefined">Todos</option>
                 <option *ngFor="let proveedor of proveedores" [ngValue]="proveedor.id">
@@ -96,7 +96,7 @@
     </section>
 
     <section class="table-card">
-        <h2>Listado de Órdenes No Formalizadas ({{ total }})</h2>
+        <h2>Listado de Órdenes de Compras G ({{ total }})</h2>
 
         <div class="tabla">
             <table>

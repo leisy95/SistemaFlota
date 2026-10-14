@@ -82,7 +82,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 
             if (orden == null)
                 throw new Exception(
-                    "La orden de compra no formalizada no existe.");
+                    "La orden de compra G no existe.");
 
             return orden;
         }
@@ -135,7 +135,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                         empresa,
                         "F-GC-027 V2",
                         "",
-                        "PEDIDO DE COMPRA",
+                        "PEDIDO DE COMPRA G",
                         orden.Numero
                     );
                 });

@@ -1,53 +1,85 @@
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 .modal {
-    background: var(--blanco);
-    border-radius: 20px;
-    padding: 30px;
-    border: 1px solid var(--gris-claro);
-    box-shadow: 0 10px 30px var(--gris-medio);
     width: 100%;
     max-width: 1000px;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 30px;
+    background: var(--blanco);
+    border: 1px solid var(--gris-claro);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
 .header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 25px;
+}
 
-    h2 {
-        margin: 0;
-        font-size: 1.375rem;
-        font-weight: 700;
-        color: var(--gris-oscuro);
+.header-info {
+    flex: 1;
+    min-width: 0;
+}
 
-        i {
-            margin-right: 10px;
-            color: var(--verde-oscuro);
-        }
-    }
+.header h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--gris-oscuro);
+    overflow-wrap: anywhere;
+}
 
-    p {
-        margin: 6px 0 0;
-        color: var(--gris-oscuro);
-        font-size: 1rem;
-    }
+.header h2 i {
+    margin-right: 8px;
+    color: var(--verde-oscuro);
+}
+
+.header p {
+    margin: 8px 0 0;
+    color: var(--gris-oscuro);
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .close {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: none;
+    border-radius: 50%;
     background: transparent;
     font-size: 20px;
     color: var(--gris-medio);
     cursor: pointer;
+}
 
-    &:hover {
-        color: var(--rojo);
-    }
+.close:hover {
+    color: var(--rojo);
+    background: var(--gris-claro);
 }
 
 .table-container {
     width: 100%;
+    min-width: 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -56,9 +88,25 @@ table {
     font-size: 14px;
 }
 
+thead th {
+    padding: 14px 12px;
+    text-align: left;
+    white-space: nowrap;
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+}
+
+tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--gris-claro);
+    color: var(--gris-oscuro);
+    overflow-wrap: anywhere;
+}
+
 .numero {
     text-align: right;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .negativo {
@@ -71,8 +119,170 @@ table {
     font-weight: 700;
 }
 
+.sin-registros {
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--gris-medio);
+}
+
 .footer {
     display: flex;
     justify-content: flex-end;
     margin-top: 25px;
+}
+
+.btn-cancelar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 12px 24px;
+    border: 1px solid var(--gris-medio);
+    border-radius: 12px;
+    background: var(--blanco);
+    color: var(--gris-oscuro);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancelar:hover {
+    background: var(--gris-claro);
+}
+
+/* Tablets y celulares */
+@media (max-width: 768px) {
+    .modal {
+        padding: 22px;
+        border-radius: 16px;
+    }
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .header h2 {
+        font-size: 1.2rem;
+    }
+
+    .header p {
+        font-size: .9rem;
+    }
+
+    .table-container {
+        overflow: visible;
+    }
+
+    table,
+    tbody {
+        display: block;
+        width: 100%;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody tr:not(:has(.sin-registros)) {
+        display: block;
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 6px 14px;
+        border: 1px solid var(--gris-claro);
+        border-radius: 14px;
+        background: var(--blanco);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, .05);
+    }
+
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        width: 100%;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gris-claro);
+        text-align: right;
+    }
+
+    tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 42%;
+        font-weight: 700;
+        color: var(--gris-oscuro);
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+
+    tbody td.numero {
+        text-align: right;
+    }
+
+    tbody td.diferencia {
+        border-bottom: none;
+    }
+
+    tbody td.sin-registros {
+        display: block;
+        padding: 24px 12px;
+        text-align: center;
+        border: 1px solid var(--gris-claro);
+        border-radius: 12px;
+    }
+
+    tbody td.sin-registros::before {
+        content: none;
+    }
+
+    .footer {
+        margin-top: 18px;
+    }
+}
+
+/* Celulares pequeños */
+@media (max-width: 480px) {
+    .modal {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+
+    .header {
+        gap: 8px;
+    }
+
+    .header h2 {
+        font-size: 1.05rem;
+        line-height: 1.45;
+    }
+
+    .header h2 i {
+        margin-right: 4px;
+    }
+
+    .header p {
+        font-size: .82rem;
+    }
+
+    .close {
+        width: 32px;
+        height: 32px;
+    }
+
+    tbody tr:not(:has(.sin-registros)) {
+        padding: 5px 10px;
+    }
+
+    tbody td {
+        gap: 10px;
+        font-size: .84rem;
+    }
+
+    tbody td::before {
+        flex-basis: 42%;
+        font-size: .82rem;
+    }
+
+    .btn-cancelar {
+        width: 100%;
+    }
 }

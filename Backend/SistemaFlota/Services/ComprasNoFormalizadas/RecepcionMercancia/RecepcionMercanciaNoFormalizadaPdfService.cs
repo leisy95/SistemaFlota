@@ -46,7 +46,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             if (recepcion == null)
             {
                 throw new Exception(
-                    "La recepción de mercancía no formalizada no existe.");
+                    "La recepción de mercancía de compras G no existe.");
             }
 
             var empresa =
@@ -102,7 +102,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                                 x,
                                 ObtenerLogo(),
                                 empresa,
-                                "RECEPCIÓN DE MERCANCÍA NO FORMALIZADA",
+                                "RECEPCIÓN DE MERCANCÍA DE COMPRAS G",
                                 "F-GC-009 V2",
                                 "30/07/2026",
                                 recepcion.NumeroRecepcion));

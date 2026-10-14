@@ -1,8 +1,11 @@
 <div class="modal">
     <div class="header">
         <div>
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Cortes de Inventario No Formalizados</h2>
-            <p>Consulte los cortes de inventario no formalizados realizados</p>
+            <h2>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Historial de Cortes de Inventario de Compras G
+            </h2>
+            <p>Consulte los cortes de inventario de Compras G realizados</p>
         </div>
     </div>
 
@@ -17,20 +20,37 @@
                     <th>Acción</th>
                 </tr>
             </thead>
+
             <tbody>
                 <tr *ngFor="let corte of cortes">
-                    <td>{{ corte.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                    <td>{{ corte.usuario }}</td>
-                    <td>{{ corte.estado }}</td>
-                    <td class="numero">{{ corte.cantidadDetalles }}</td>
-                    <td>
-                        <button class="btn-ver" (click)="verDetalle(corte.id)">
-                            <i class="fa-solid fa-eye"></i> Ver
+                    <td data-label="Fecha">
+                        {{ corte.fecha | date:'dd/MM/yyyy HH:mm' }}
+                    </td>
+
+                    <td data-label="Usuario">
+                        {{ corte.usuario }}
+                    </td>
+
+                    <td data-label="Estado">
+                        {{ corte.estado }}
+                    </td>
+
+                    <td data-label="Items" class="numero">
+                        {{ corte.cantidadDetalles }}
+                    </td>
+
+                    <td data-label="Acción" class="celda-accion">
+                        <button class="btn-ver" type="button" (click)="verDetalle(corte.id)">
+                            <i class="fa-solid fa-eye"></i>
+                            Ver
                         </button>
                     </td>
                 </tr>
+
                 <tr *ngIf="cortes.length === 0">
-                    <td colspan="5" class="sin-registros">No hay cortes de inventario no formalizados registrados.</td>
+                    <td colspan="5" class="sin-registros">
+                        No hay cortes de inventario no formalizados registrados.
+                    </td>
                 </tr>
             </tbody>
         </table>

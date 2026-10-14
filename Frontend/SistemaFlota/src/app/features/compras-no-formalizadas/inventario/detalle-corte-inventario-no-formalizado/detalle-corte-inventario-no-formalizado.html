@@ -1,10 +1,19 @@
 <div class="modal">
     <div class="header">
-        <div>
-            <h2><i class="fa-solid fa-boxes-stacked"></i> Detalle del Corte de Inventario No Formalizado</h2>
-            <p>Fecha: {{ data.fecha | date:'dd/MM/yyyy HH:mm' }} · Usuario: {{ data.usuario }}</p>
+        <div class="header-info">
+            <h2>
+                <i class="fa-solid fa-boxes-stacked"></i>
+                Detalle del Corte de Inventario de Compras G
+            </h2>
+            <p>
+                Fecha: {{ data.fecha | date:'dd/MM/yyyy HH:mm' }}
+                · Usuario: {{ data.usuario }}
+            </p>
         </div>
-        <button class="close" (click)="cerrar()"><i class="fa-solid fa-xmark"></i></button>
+
+        <button class="close" type="button" aria-label="Cerrar" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
     <div class="table-container">
@@ -19,21 +28,40 @@
                     <th>Diferencia</th>
                 </tr>
             </thead>
+
             <tbody>
                 <tr *ngFor="let item of data.detalles">
-                    <td>{{ item.proveedor }}</td>
-                    <td>{{ item.material }}</td>
-                    <td>{{ item.color }}</td>
-                    <td class="numero">{{ item.stockSistema }}</td>
-                    <td class="numero">{{ item.conteoFisico }}</td>
-                    <td class="numero" [class.negativo]="item.diferencia < 0" [class.positivo]="item.diferencia >= 0">{{
-                        item.diferencia }}</td>
+                    <td data-label="Proveedor">{{ item.proveedor }}</td>
+                    <td data-label="Material">{{ item.material }}</td>
+                    <td data-label="Color">{{ item.color }}</td>
+
+                    <td data-label="Sistema (KG)" class="numero">
+                        {{ item.stockSistema }}
+                    </td>
+
+                    <td data-label="Conteo Físico (KG)" class="numero">
+                        {{ item.conteoFisico }}
+                    </td>
+
+                    <td data-label="Diferencia" class="numero diferencia" [class.negativo]="item.diferencia < 0"
+                        [class.positivo]="item.diferencia >= 0">
+                        {{ item.diferencia }}
+                    </td>
+                </tr>
+
+                <tr *ngIf="!data.detalles || data.detalles.length === 0">
+                    <td colspan="6" class="sin-registros">
+                        No hay detalles registrados para este corte.
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
     <div class="footer">
-        <button class="btn-cancelar" (click)="cerrar()"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+        <button class="btn-cancelar" type="button" (click)="cerrar()">
+            <i class="fa-solid fa-xmark"></i>
+            Cerrar
+        </button>
     </div>
 </div>
