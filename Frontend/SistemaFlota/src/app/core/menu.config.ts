@@ -285,6 +285,15 @@ export const MENU_MODULOS: MenuItem[] = [
     },
 
     // MATERIALES - PROVEEDORES
+
+    {
+        key: 'dashboard-ejecutivo',
+        label: 'Dashboard Ejecutivo',
+        icon: 'fa-solid fa-chart-line',
+        ruta: '/costos/dashboard-ejecutivo',
+        modulo: 'costos'
+    },
+
     {
         key: 'proveedores-materiales',
         label: 'Prov - Materiales',
@@ -375,7 +384,6 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'compras-2'
     },
 
-    // HISTORIAL ODO
     // HISTORIAL ODO
     {
         key: 'historial-odo-pedido-compra',

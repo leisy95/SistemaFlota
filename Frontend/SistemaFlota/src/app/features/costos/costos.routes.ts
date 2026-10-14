@@ -5,9 +5,17 @@ export const COSTOS_ROUTES: Routes = [
     {
         path: '',
         loadComponent: () =>
-            import('./proveedores-materiales/proveedores-materiales')
-                .then(c => c.ProveedoresMateriales),
-        data: { animation: 'proveedores' }
+            import('./dashboard-ejecutivo/dashboard-ejecutivo')
+                .then(c => c.DashboardEjecutivo),
+        data: { animation: 'dashboard-ejecutivo' }
+    },
+
+    {
+        path: 'dashboard-ejecutivo',
+        loadComponent: () =>
+            import('./dashboard-ejecutivo/dashboard-ejecutivo')
+                .then(c => c.DashboardEjecutivo),
+        data: { animation: 'dashboard-ejecutivo' }
     },
 
     {

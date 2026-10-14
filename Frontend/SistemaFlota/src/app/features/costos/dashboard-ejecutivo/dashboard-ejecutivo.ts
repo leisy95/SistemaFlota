@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import {
+  Chart,
+  ChartData,
+  ChartOptions,
+  registerables
+} from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
+
+Chart.register(...registerables);
 
 interface StatCard {
   title: string;
@@ -21,13 +30,14 @@ interface SupplierSummary {
 @Component({
   selector: 'app-dashboard-ejecutivo',
   standalone: true,
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule, BaseChartDirective],
   templateUrl: './dashboard-ejecutivo.html',
   styleUrl: './dashboard-ejecutivo.scss',
 })
 export class DashboardEjecutivo {
+
+  // TARJETAS ESTADÍSTICAS
+
   statsCards: StatCard[] = [
     {
       title: 'STOCK TOTAL',
@@ -62,6 +72,8 @@ export class DashboardEjecutivo {
       iconType: 'proveedores'
     }
   ];
+
+  // RESUMEN DE PROVEEDORES
 
   supplierSummaryList: SupplierSummary[] = [
     {
@@ -108,21 +120,190 @@ export class DashboardEjecutivo {
     }
   ];
 
+  // GRÁFICA 1: STOCK POR PROVEEDOR (KG)
+
+  stockProveedorData: ChartData<'bar'> = {
+    labels: this.supplierSummaryList.map(p => p.proveedor),
+    datasets: [
+      {
+        label: 'Stock (kg)',
+        data: this.supplierSummaryList.map(p => p.kgTotal),
+        backgroundColor: '#0d9488',
+        borderRadius: 6,
+        barThickness: 22
+      }
+    ]
+  };
+
+  stockProveedorOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: context => `${context.parsed.x} kg`
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Kilogramos'
+        }
+      }
+    }
+  };
+
+  // GRÁFICA 2: DISTRIBUCIÓN POR TIPO DE MATERIAL
+  // DATOS ILUSTRATIVOS: sustituir por inventario real
+
+  tipoMaterialData: ChartData<'pie'> = {
+    labels: [
+      'Polietileno',
+      'Polipropileno',
+      'PET',
+      'Otros'
+    ],
+    datasets: [
+      {
+        data: [40, 30, 20, 10],
+        backgroundColor: [
+          '#6366f1',
+          '#14b8a6',
+          '#f59e0b',
+          '#94a3b8'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }
+    ]
+  };
+
+  pastelOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      },
+      tooltip: {
+        callbacks: {
+          label: context => {
+            const values = context.dataset.data as number[];
+            const total = values.reduce(
+              (sum, value) => sum + value,
+              0
+            );
+
+            const value = Number(context.raw);
+            const porcentaje = total > 0
+              ? (value / total) * 100
+              : 0;
+
+            return `${context.label}: ${porcentaje.toFixed(1)}%`;
+          }
+        }
+      }
+    }
+  };
+
+  // GRÁFICA 3: DISTRIBUCIÓN POR DENSIDAD
+  // DATOS ILUSTRATIVOS: sustituir por inventario real
+
+  densidadData: ChartData<'pie'> = {
+    labels: [
+      'Baja',
+      'Media',
+      'Alta'
+    ],
+    datasets: [
+      {
+        data: [35, 45, 20],
+        backgroundColor: [
+          '#f97316',
+          '#0d9488',
+          '#8b5cf6'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }
+    ]
+  };
+
+  //  GRÁFICA 4: VALOR TOTAL POR PROVEEDOR
+
+  valorProveedorData: ChartData<'bar'> = {
+    labels: this.supplierSummaryList.map(p => p.proveedor),
+    datasets: [
+      {
+        label: 'Valor del inventario',
+        data: this.supplierSummaryList.map(p => p.valorTotal),
+        backgroundColor: '#6366f1',
+        borderRadius: 6,
+        barThickness: 22
+      }
+    ]
+  };
+
+  valorProveedorOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: context =>
+            new Intl.NumberFormat('es-CO', {
+              style: 'currency',
+              currency: 'COP',
+              maximumFractionDigits: 0
+            }).format(context.parsed.x ?? 0)
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        ticks: {
+          callback: value =>
+            new Intl.NumberFormat('es-CO', {
+              notation: 'compact',
+              maximumFractionDigits: 1
+            }).format(Number(value))
+        }
+      }
+    }
+  };
+
+  // TOTALES DEL DASHBOARD
+
   get totalKg(): number {
     return this.supplierSummaryList.reduce(
-      (total, item) => total + item.kgTotal, 0
+      (total, item) => total + item.kgTotal,
+      0
     );
   }
 
   get totalBultos(): number {
     return this.supplierSummaryList.reduce(
-      (total, item) => total + item.bultos, 0
+      (total, item) => total + item.bultos,
+      0
     );
   }
 
   get totalValor(): number {
     return this.supplierSummaryList.reduce(
-      (total, item) => total + item.valorTotal, 0
+      (total, item) => total + item.valorTotal,
+      0
     );
   }
 
@@ -131,6 +312,8 @@ export class DashboardEjecutivo {
   }
 
   get costoPromedio(): number {
-    return this.totalKg > 0 ? this.totalValor / this.totalKg : 0;
+    return this.totalKg > 0
+      ? this.totalValor / this.totalKg
+      : 0;
   }
 }
