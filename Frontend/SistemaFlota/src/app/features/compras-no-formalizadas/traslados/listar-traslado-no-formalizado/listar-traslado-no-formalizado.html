@@ -1,8 +1,9 @@
 <div class="container">
     <div class="header">
         <div>
-            <h1>Órdenes de Traslado No Formalizadas</h1>
-            <p>Movimientos de inventario no formalizado a extrusión</p>
+            <h1>Órdenes de Traslado de Compras G</h1>
+            <p>Movimientos de inventario
+            <details></details> compras G a extrusión</p>
         </div>
         <button class="btn-agregar" (click)="nuevaOrden()">
             <i class="fa-solid fa-plus"></i>
@@ -139,7 +140,7 @@
 
     <div class="empty-state" *ngIf="!cargando && ordenes.length === 0">
         <i class="fa-solid fa-right-left"></i>
-        <p>No se han registrado órdenes de traslado no formalizadas</p>
+        <p>No se han registrado órdenes de traslado de compras G</p>
         <button class="btn-nueva" (click)="nuevaOrden()">
             <i class="fa-solid fa-plus"></i>
             Crear primera orden
