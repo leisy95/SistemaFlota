@@ -1,0 +1,234 @@
+```html
+<div class="page-container">
+
+    <!-- HEADER -->
+    <section class="header-card">
+        <div class="header-info">
+            <h1>Dashboard Ejecutivo</h1>
+            <p>Resumen general del inventario y los proveedores</p>
+        </div>
+
+        <div class="header-actions">
+            <span class="status-badge">
+                <span class="status-dot"></span>
+                Inventario general
+            </span>
+        </div>
+    </section>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card" *ngFor="let stat of statsCards">
+            <div class="stat-icon" [ngClass]="stat.iconType">
+                <i class="fa-solid" [ngClass]="stat.iconClass"></i>
+            </div>
+
+            <div class="stat-content">
+                <span>{{ stat.title }}</span>
+                <strong>{{ stat.value }}</strong>
+                <small>{{ stat.subtitle }}</small>
+                <div class="stat-extra">{{ stat.extra }}</div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- RESUMEN VISUAL -->
+    <section class="dashboard-grid">
+
+        <!-- PARTICIPACIÓN POR PROVEEDOR -->
+        <article class="dashboard-card">
+            <div class="section-heading">
+                <div>
+                    <h2>Participación por proveedor</h2>
+                    <p>Distribución del inventario actual</p>
+                </div>
+
+                <i class="fa-solid fa-chart-bar heading-icon"></i>
+            </div>
+
+            <div class="supplier-chart">
+
+                <div class="chart-item" *ngFor="let item of supplierSummaryList">
+
+                    <div class="chart-label">
+                        <span>{{ item.proveedor }}</span>
+                        <strong>{{ item.porcentajeInventario | number:'1.1-1' }}%</strong>
+                    </div>
+
+                    <div class="chart-track">
+                        <div class="chart-bar" [style.width.%]="item.porcentajeInventario">
+                        </div>
+                    </div>
+
+                    <div class="chart-detail">
+                        {{ item.kgTotal | number:'1.0-0' }} kg
+                    </div>
+
+                </div>
+
+            </div>
+        </article>
+
+        <!-- INDICADORES DE INVENTARIO -->
+        <article class="dashboard-card inventory-card">
+            <div class="section-heading">
+                <div>
+                    <h2>Estado del inventario</h2>
+                    <p>Indicadores generales</p>
+                </div>
+
+                <i class="fa-solid fa-boxes-stacked heading-icon"></i>
+            </div>
+
+            <div class="inventory-highlight">
+                <div class="inventory-icon">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                </div>
+
+                <div>
+                    <span>Existencias totales</span>
+                    <strong>{{ totalKg | number:'1.0-0' }} kg</strong>
+                </div>
+            </div>
+
+            <div class="inventory-detail">
+                <div class="detail-row">
+                    <span>
+                        <i class="fa-solid fa-box"></i>
+                        Total de bultos
+                    </span>
+                    <strong>{{ totalBultos }}</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>
+                        <i class="fa-solid fa-truck-field"></i>
+                        Proveedores
+                    </span>
+                    <strong>{{ totalProveedores }}</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        Valor total
+                    </span>
+                    <strong>{{ totalValor | currency:'COP':'$':'1.0-0' }}</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        Costo promedio por kg
+                    </span>
+                    <strong>{{ costoPromedio | currency:'COP':'$':'1.2-2' }}</strong>
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- TABLA DE PROVEEDORES -->
+    <section class="table-card">
+
+        <div class="table-heading">
+            <div>
+                <h2>Resumen por proveedor</h2>
+                <p>Detalle de cantidades y valores registrados</p>
+            </div>
+
+            <span class="supplier-count">
+                {{ totalProveedores }} proveedores
+            </span>
+        </div>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Proveedor</th>
+                        <th class="center">Cantidad (kg)</th>
+                        <th class="center">Bultos</th>
+                        <th class="text-right">Valor inventario</th>
+                        <th>Participación</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of supplierSummaryList">
+
+                        <td data-label="Proveedor">
+                            <div class="supplier-name">
+                                <span class="supplier-dot"></span>
+                                <strong>{{ item.proveedor }}</strong>
+                            </div>
+                        </td>
+
+                        <td data-label="Cantidad (kg)" class="center numero">
+                            {{ item.kgTotal | number:'1.0-0' }}
+                        </td>
+
+                        <td data-label="Bultos" class="center">
+                            {{ item.bultos }}
+                        </td>
+
+                        <td data-label="Valor inventario" class="text-right total">
+                            {{ item.valorTotal | currency:'COP':'$':'1.0-0' }}
+                        </td>
+
+                        <td data-label="Participación">
+                            <div class="percentage-cell">
+                                <div class="percentage-track">
+                                    <div class="percentage-bar" [style.width.%]="item.porcentajeInventario">
+                                    </div>
+                                </div>
+
+                                <span>
+                                    {{ item.porcentajeInventario | number:'1.1-1' }}%
+                                </span>
+                            </div>
+                        </td>
+
+                    </tr>
+                </tbody>
+
+                <tfoot>
+                    <tr class="total-row">
+                        <td data-label="Total">
+                            <strong>TOTAL INVENTARIO</strong>
+                        </td>
+
+                        <td data-label="Cantidad (kg)" class="center numero">
+                            {{ totalKg | number:'1.0-0' }}
+                        </td>
+
+                        <td data-label="Bultos" class="center">
+                            {{ totalBultos }}
+                        </td>
+
+                        <td data-label="Valor inventario" class="text-right total">
+                            {{ totalValor | currency:'COP':'$':'1.0-0' }}
+                        </td>
+
+                        <td data-label="Participación">
+                            <span class="total-percentage">100%</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="dashboard-footer">
+            <span>
+                <i class="fa-solid fa-circle-info"></i>
+                Los datos mostrados corresponden a los valores de ejemplo
+                configurados en el componente.
+            </span>
+        </div>
+
+    </section>
+
+</div>
+```
