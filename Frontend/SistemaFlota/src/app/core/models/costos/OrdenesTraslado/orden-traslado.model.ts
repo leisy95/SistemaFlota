@@ -14,9 +14,11 @@ export interface CrearOrdenTraslado {
     materiales: CrearOrdenTrasladoDetalle[];
 }
 
+
 export interface OrdenTrasladoDetalle {
     id: number;
     materialId: number | null;
+    material: string;
     proveedor: string;
     tipo: string;
     densidad: string;
@@ -24,10 +26,11 @@ export interface OrdenTrasladoDetalle {
     cantidadKg: number;
     bultos: number;
 
-    cantidadVerificadaKg: number;
-    bultosVerificados: number;
+    cantidadVerificadaKg: number | null;
+    bultosVerificados: number | null;
     estadoVerificacion: string;
 }
+
 
 export interface OrdenTraslado {
     id: number;

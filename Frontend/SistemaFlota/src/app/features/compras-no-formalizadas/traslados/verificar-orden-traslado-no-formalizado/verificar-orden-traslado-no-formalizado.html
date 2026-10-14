@@ -38,6 +38,7 @@
                     <thead>
                         <tr>
                             <th>Material ID</th>
+                            <th>Nombre Material</th>
                             <th>Proveedor</th>
                             <th>Material</th>
                             <th>Categoría</th>
@@ -53,6 +54,7 @@
                     <tbody>
                         <tr *ngFor="let material of materiales">
                             <td>{{ material.materialNoFormalizadoId }}</td>
+                            <td>{{ material.material }}</td>
                             <td>{{ material.proveedor }}</td>
                             <td>{{ material.material }}</td>
                             <td>{{ material.tipo }}</td>
