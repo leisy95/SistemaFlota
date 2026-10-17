@@ -20,6 +20,7 @@ export class FormatoFGC008Component implements OnInit {
   vista: 'lista' | 'nuevo' | 'ver' | 'editar' = 'lista';
   registroSeleccionado: any = null;
   editandoId: number | null = null;
+  editandoEsBodega = false;
   registros: any[] = [];
   baseUrl = environment.fotosUrl;
   filtroDesde = '';
@@ -27,6 +28,9 @@ export class FormatoFGC008Component implements OnInit {
   filtroOP = '';
   filtroOPSincronizar = '';
   sincronizando = false;
+  guardando = false;
+  fotoAmpliada: string | null = null;
+  mostrarModalImportar = false;
   form = {
     ordenProduccion: '', cliente: '', referencia: '', etiquetasSI: false, embalajeSI: false,
     defectosSI: false, cantidadOP: 0, cantidadReal: 0,
@@ -37,36 +41,15 @@ export class FormatoFGC008Component implements OnInit {
   importando = false;
   mensajeImportar = '';
 
-  seleccionarArchivoImportar(event: any) {
-    this.archivoImportar = event.target.files[0];
-  }
-
-  importarOrdenes() {
-    if (!this.archivoImportar) { alert('Seleccione un archivo primero'); return; }
-    this.importando = true;
-    this.mensajeImportar = '';
-    this.ordenesService.importar(this.archivoImportar).subscribe({
-      next: (res: any) => {
-        this.mensajeImportar = res.mensaje;
-        this.importando = false;
-        this.archivoImportar = null;
-
-      },
-      error: (err: any) => {
-        this.mensajeImportar = 'Error: ' + (err.error?.mensaje ?? 'no se pudo importar');
-        this.importando = false;
-      }
-    });
-  }
   fotoEvidencia: File | null = null;
   firmaDataUrl: string | null = null;
+  firmaExistente: string | null = null;
   cargoFirma: string = 'Bodega';
   logoUrl: string = '';
   opExistente: any = null;
   clienteDetectado: string | null = null;
   referenciaDetectada: string | null = null;
   despachado: boolean = false;
-
 
   get puedeVer(): boolean { return this.permisosService.puedeVer('calidad-formatos'); }
   get puedeCrear(): boolean { return this.permisosService.puedeCrear('calidad-formatos'); }
@@ -84,10 +67,37 @@ export class FormatoFGC008Component implements OnInit {
 
   ngOnInit(): void { this.cargar(); this.cargarLogo(); }
 
+  // ── Importar órdenes ──
+  seleccionarArchivoImportar(event: any) {
+    this.archivoImportar = event.target.files[0];
+  }
+
+  importarOrdenes() {
+    if (!this.archivoImportar) { alert('Seleccione un archivo primero'); return; }
+    this.importando = true;
+    this.mensajeImportar = '';
+    this.ordenesService.importar(this.archivoImportar).subscribe({
+      next: (res: any) => {
+        this.mensajeImportar = res.mensaje;
+        this.importando = false;
+        this.archivoImportar = null;
+      },
+      error: (err: any) => {
+        this.mensajeImportar = 'Error: ' + (err.error?.mensaje ?? 'no se pudo importar');
+        this.importando = false;
+      }
+    });
+  }
+
+  // ── Carga ──
   cargar() {
     this.service.getRegistros(this.filtroDesde, this.filtroHasta, this.filtroOP).subscribe({
       next: d => this.registros = d,
-      error: e => console.error(e)
+      error: e => {
+        console.error(e);
+        this.registros = [];
+        alert('No se pudo cargar la lista: ' + (e.error?.error || e.error?.mensaje || e.statusText || 'error del servidor'));
+      }
     });
   }
 
@@ -96,6 +106,23 @@ export class FormatoFGC008Component implements OnInit {
     if (config.logo) this.logoUrl = this.baseUrl + '/config/' + config.logo;
   }
 
+  // ── Ayudas para la tabla ──
+  esUnidades(r: any): boolean {
+    return (r.unidadReal || '').toUpperCase() === 'UN';
+  }
+
+  puedeEliminarFila(r: any): boolean {
+    return this.puedeEliminar && r.origen !== 'Bodega';
+  }
+
+  estadoRevision(r: any): 'proceso' | 'cambio' | 'revisada' | 'sin' {
+    if (r.enProceso) return 'proceso';
+    if (r.cambioDespuesDeRevisar) return 'cambio';
+    if (r.revisadoPor && !String(r.revisadoPor).startsWith('Sistema')) return 'revisada';
+    return 'sin';
+  }
+
+  // ── Firma ──
   iniciarCanvas() {
     setTimeout(() => {
       const canvas = document.getElementById('firmaCanvas') as HTMLCanvasElement;
@@ -114,15 +141,17 @@ export class FormatoFGC008Component implements OnInit {
   limpiarFirma() {
     const canvas = document.getElementById('firmaCanvas') as HTMLCanvasElement;
     if (canvas) canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
-    this.firmaDataUrl = null;
+    this.firmaDataUrl = this.firmaExistente;
   }
 
+  // ── Sincronizar ──
   sincronizarConProduccion() {
     if (!this.filtroOPSincronizar) { alert('Ingrese el número de orden'); return; }
     this.sincronizando = true;
     this.service.sincronizar(this.filtroOPSincronizar).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.sincronizando = false;
+        if (res?.resultado?.entradasLeidas === 0 && res?.mensaje) alert(res.mensaje);
         this.filtroOPSincronizar = '';
         this.cargar();
       },
@@ -157,10 +186,28 @@ export class FormatoFGC008Component implements OnInit {
 
   seleccionarFoto(event: any) { this.fotoEvidencia = event.target.files[0]; }
 
+  // ── Nuevo, guardar, editar ──
+  nuevoRegistro() {
+    this.firmaDataUrl = null;
+    this.firmaExistente = null;
+    this.fotoEvidencia = null;
+    this.opExistente = null;
+    this.clienteDetectado = null;
+    this.referenciaDetectada = null;
+    this.despachado = false;
+    this.vista = 'nuevo';
+    this.iniciarCanvas();
+  }
+
   guardar() {
+    if (this.guardando) return;
     if (!this.form.ordenProduccion) { alert('Ingrese la orden de produccion'); return; }
+    this.guardando = true;
     const fd = new FormData();
     fd.append('OrdenProduccion', this.form.ordenProduccion);
+    fd.append('Cliente', this.form.cliente || '');
+    fd.append('Referencia', this.form.referencia || '');
+    if (this.firmaDataUrl) fd.append('FirmaDigital', this.firmaDataUrl);
     fd.append('EtiquetasSI', this.form.etiquetasSI.toString());
     fd.append('EmbalajeSI', this.form.embalajeSI.toString());
     fd.append('DefectosSI', this.form.defectosSI.toString());
@@ -172,12 +219,18 @@ export class FormatoFGC008Component implements OnInit {
     if (this.fotoEvidencia) fd.append('foto', this.fotoEvidencia);
     this.service.crearRegistro(fd).subscribe({
       next: () => {
+        this.guardando = false;
         this.vista = 'lista';
         this.form = { ordenProduccion: '', cliente: '', referencia: '', etiquetasSI: false, embalajeSI: false, defectosSI: false, cantidadOP: 0, cantidadReal: 0, listoBodega: false, despachado: '', accionesTomadas: '' };
         this.fotoEvidencia = null; this.opExistente = null; this.despachado = false;
+        this.firmaDataUrl = null; this.firmaExistente = null;
         this.cargar();
       },
-      error: e => { console.error(e); alert('Error guardando registro'); }
+      error: e => {
+        this.guardando = false;
+        console.error(e);
+        alert(e.error?.mensaje || 'Error guardando registro');
+      }
     });
   }
 
@@ -185,6 +238,10 @@ export class FormatoFGC008Component implements OnInit {
 
   editar(r: any) {
     this.editandoId = r.id;
+    this.editandoEsBodega = r.origen === 'Bodega';
+    this.fotoEvidencia = null;
+    this.firmaExistente = r.firmaDigital ?? null;
+    this.firmaDataUrl = r.firmaDigital ?? null;
     this.form = {
       ordenProduccion: r.ordenProduccion, cliente: r.cliente ?? '', referencia: r.referencia ?? '',
       etiquetasSI: r.etiquetasSI,
@@ -194,10 +251,13 @@ export class FormatoFGC008Component implements OnInit {
       accionesTomadas: r.accionesTomadas ?? ''
     };
     this.vista = 'editar';
+    this.iniciarCanvas();
   }
 
   guardarEdicion() {
+    if (this.guardando) return;
     if (!this.form.ordenProduccion) { alert('Ingrese la orden de produccion'); return; }
+    this.guardando = true;
     const fd = new FormData();
     fd.append('OrdenProduccion', this.form.ordenProduccion);
     fd.append('Cliente', this.form.cliente || '');
@@ -213,8 +273,19 @@ export class FormatoFGC008Component implements OnInit {
     if (this.form.accionesTomadas) fd.append('AccionesTomadas', this.form.accionesTomadas);
     if (this.fotoEvidencia) fd.append('foto', this.fotoEvidencia);
     this.service.editarRegistro(this.editandoId!, fd).subscribe({
-      next: () => { this.vista = 'lista'; this.editandoId = null; this.cargar(); },
-      error: e => { console.error(e); alert('Error editando registro'); }
+      next: () => {
+        this.guardando = false;
+        this.fotoEvidencia = null;
+        this.firmaExistente = null;
+        this.vista = 'lista';
+        this.editandoId = null;
+        this.cargar();
+      },
+      error: e => {
+        this.guardando = false;
+        console.error(e);
+        alert(e.error?.mensaje || 'Error editando registro');
+      }
     });
   }
 
@@ -223,6 +294,7 @@ export class FormatoFGC008Component implements OnInit {
     this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
   }
 
+  // ── PDF ──
   urlToBase64(url: string): Promise<string> {
     return new Promise((resolve) => {
       const img = new Image();
@@ -492,10 +564,8 @@ export class FormatoFGC008Component implements OnInit {
     doc.text('FIN DEL DOCUMENTO', W / 2, y + 4, { align: 'center' });
     doc.save('F-GC-008_' + new Date().toISOString().slice(0, 10) + '.pdf');
   }
-  // ── Lightbox de foto ampliada ──
-  fotoAmpliada: string | null = null;
-  mostrarModalImportar = false;
 
+  // ── Lightbox de foto ampliada ──
   abrirFotoAmpliada(url: string) {
     this.fotoAmpliada = url;
   }
@@ -508,10 +578,31 @@ export class FormatoFGC008Component implements OnInit {
   get totalRegistros(): number { return this.registros.length; }
   get conDefectos(): number { return this.registros.filter(r => r.defectosSI).length; }
   get pendientesDespacho(): number { return this.registros.filter(r => !r.despachado).length; }
+
+  // Se calcula por OP: la programada no se repite por cada fila de día
   get porcentajeCompletado(): number {
-    if (this.registros.length === 0) return 0;
-    const totalOP = this.registros.reduce((s, r) => s + (r.cantidadOP || 0), 0);
-    const totalReal = this.registros.reduce((s, r) => s + (r.cantidadReal || 0), 0);
-    return totalOP === 0 ? 0 : Math.round((totalReal / totalOP) * 100);
+    const porOp = new Map<string, { prog: number; real: number; bodega: boolean }>();
+
+    for (const r of this.registros) {
+      const clave = r.ordenProduccion;
+      const e = porOp.get(clave);
+
+      if (r.origen === 'Bodega') {
+        if (r.porHacer == null) continue; // programada en otra unidad: no se compara
+        if (!e || !e.bodega) {
+          porOp.set(clave, { prog: r.cantidadOP || 0, real: r.acumuladoOP || 0, bodega: true });
+        } else {
+          e.real = Math.max(e.real, r.acumuladoOP || 0);
+        }
+      } else {
+        if (!e) porOp.set(clave, { prog: r.cantidadOP || 0, real: r.cantidadReal || 0, bodega: false });
+        else if (!e.bodega) e.real += r.cantidadReal || 0;
+      }
+    }
+
+    let totalProg = 0;
+    let totalReal = 0;
+    porOp.forEach(v => { totalProg += v.prog; totalReal += v.real; });
+    return totalProg === 0 ? 0 : Math.round((totalReal / totalProg) * 100);
   }
 }

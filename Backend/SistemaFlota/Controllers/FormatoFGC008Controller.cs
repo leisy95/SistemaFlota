@@ -54,6 +54,38 @@ namespace SistemaFlota
                 .OrderByDescending(f => f.Fecha)
                 .ToListAsync();
 
+            // Acumulado: se calcula con TODAS las filas de Bodega de la OP, aunque el filtro oculte algunas
+            var ops = lista
+                .Where(f => f.Origen == "Bodega")
+                .Select(f => f.OrdenProduccion)
+                .Distinct()
+                .ToList();
+
+            if (ops.Count > 0)
+            {
+                var todas = await _context.FormatosFGC008
+                    .Where(f => f.Origen == "Bodega" && ops.Contains(f.OrdenProduccion))
+                    .Select(f => new { f.OrdenProduccion, f.UnidadReal, f.DiaEntrada, f.CantidadReal })
+                    .ToListAsync();
+
+                foreach (var f in lista.Where(x => x.Origen == "Bodega"))
+                {
+                    var acumulado = todas
+                        .Where(x => x.OrdenProduccion == f.OrdenProduccion
+                                 && x.UnidadReal == f.UnidadReal
+                                 && x.DiaEntrada <= f.DiaEntrada)
+                        .Sum(x => x.CantidadReal);
+
+                    f.AcumuladoOP = acumulado;
+
+                    // Solo se calcula lo que falta si la programada está en la misma unidad que lo recibido
+                    var comparable = !string.IsNullOrEmpty(f.UnidadOP)
+                        && string.Equals(f.UnidadOP, f.UnidadReal, StringComparison.OrdinalIgnoreCase);
+
+                    f.PorHacer = comparable ? f.CantidadOP - acumulado : null;
+                }
+            }
+
             return Ok(lista);
         }
 
@@ -63,6 +95,20 @@ namespace SistemaFlota
             [FromForm] FormatoFGC008Dto dto,
             IFormFile? foto)
         {
+            // Protección contra el doble clic: mismo usuario, misma OP, mismo minuto
+            var usuario = GetUsuario();
+            var hace = DateTime.Now.AddMinutes(-1);
+
+            var duplicado = await _context.FormatosFGC008.AnyAsync(f =>
+                f.OrdenProduccion == dto.OrdenProduccion
+                && f.Origen == "Manual"
+                && f.RevisadoPor == usuario
+                && f.FechaRevision != null
+                && f.FechaRevision >= hace);
+
+            if (duplicado)
+                return Conflict(new { mensaje = "Ese registro ya se guardó hace un momento" });
+
             string? nombreFoto = null;
 
             if (foto != null)
@@ -98,7 +144,7 @@ namespace SistemaFlota
                 AccionesTomadas = dto.AccionesTomadas,
                 FotoEvidencia = nombreFoto,
                 FirmaDigital = dto.FirmaDigital,
-                RevisadoPor = GetUsuario(),
+                RevisadoPor = usuario,
                 FechaRevision = DateTime.Now
             };
 
@@ -128,14 +174,21 @@ namespace SistemaFlota
             if (r == null)
                 return NotFound();
 
-            r.OrdenProduccion = dto.OrdenProduccion;
-            r.Cliente = dto.Cliente;
-            r.Referencia = dto.Referencia;
+            var esBodega = r.Origen == "Bodega";
+
+            // En las filas que vienen de Bodega no se tocan los datos ni las cantidades: solo la verificación
+            if (!esBodega)
+            {
+                r.OrdenProduccion = dto.OrdenProduccion;
+                r.Cliente = dto.Cliente;
+                r.Referencia = dto.Referencia;
+                r.CantidadOP = dto.CantidadOP;
+                r.CantidadReal = dto.CantidadReal;
+            }
+
             r.EtiquetasSI = dto.EtiquetasSI;
             r.EmbalajeSI = dto.EmbalajeSI;
             r.DefectosSI = dto.DefectosSI;
-            r.CantidadOP = dto.CantidadOP;
-            r.CantidadReal = dto.CantidadReal;
             r.ListoBodega = dto.ListoBodega;
             r.Despachado = dto.Despachado;
             r.AccionesTomadas = dto.AccionesTomadas;
@@ -159,6 +212,14 @@ namespace SistemaFlota
                 await foto.CopyToAsync(stream);
 
                 r.FotoEvidencia = nombreFoto;
+            }
+
+            // Al guardar la verificación de una fila de Bodega, queda revisada y se apaga el aviso
+            if (esBodega)
+            {
+                r.RevisadoPor = GetUsuario();
+                r.FechaRevision = DateTime.Now;
+                r.CambioDespuesDeRevisar = false;
             }
 
             await _context.SaveChangesAsync();
@@ -188,60 +249,37 @@ namespace SistemaFlota
 
         [HttpPost("sincronizar/{op}")]
         [Permiso("calidad-formatos", "crear")]
-        public async Task<IActionResult> Sincronizar(string op)
+        public async Task<IActionResult> Sincronizar(
+            string op,
+            [FromServices] SincronizacionFgc008Service sincronizacion)
         {
-            var ordenEmpresa = await _empresaOrdenes.BuscarPorNumero(op);
+            var orden = await _empresaOrdenes.BuscarPorNumero(op);
 
-            if (ordenEmpresa == null)
-                return NotFound(new
+            if (orden == null)
+                return NotFound(new { mensaje = "No se encontró esa orden en producción" });
+
+            var resultado = await sincronizacion.SincronizarOpAsync(op);
+
+            if (resultado.EntradasLeidas == 0)
+                return Ok(new
                 {
-                    mensaje = "No se encontró esa orden en producción"
+                    mensaje = "La orden existe, pero Bodega todavía no tiene entradas para ella",
+                    resultado
                 });
-
-            var cantidadReal =
-                await _empresaOrdenes.ObtenerCantidadRealAsync(op);
-
-            var existente = await _context.FormatosFGC008
-                .FirstOrDefaultAsync(f => f.OrdenProduccion == op);
-
-            if (existente != null)
-            {
-                existente.CantidadOP = ordenEmpresa.CantidadOP;
-                existente.CantidadReal = cantidadReal;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(existente);
-            }
-
-            var nuevo = new FormatoFGC008
-            {
-                OrdenProduccion = op,
-                Cliente = ordenEmpresa.Cliente,
-                Referencia = ordenEmpresa.Referencia,
-                CantidadOP = ordenEmpresa.CantidadOP,
-                CantidadReal = cantidadReal,
-                EtiquetasSI = false,
-                EmbalajeSI = false,
-                DefectosSI = false,
-                ListoBodega = false,
-                Despachado = null,
-                RevisadoPor = "Sistema (automático)",
-                FechaRevision = DateTime.Now
-            };
-
-            _context.FormatosFGC008.Add(nuevo);
-            await _context.SaveChangesAsync();
 
             await _auditoria.RegistrarAsync(
                 GetUsuario(),
                 GetRol(),
-                "Crear-Automático",
+                "Sincronizar",
                 "FormatoFGC008",
-                $"Registro generado automáticamente para OP: {op}",
-                nuevo.Id);
+                $"OP {op}: {resultado.FilasCreadas} filas creadas, {resultado.FilasActualizadas} actualizadas");
 
-            return Ok(nuevo);
+            var filas = await _context.FormatosFGC008
+                .Where(f => f.OrdenProduccion == op)
+                .OrderByDescending(f => f.Fecha)
+                .ToListAsync();
+
+            return Ok(new { resultado, filas });
         }
 
         [HttpDelete("{id}")]

@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SistemaFlota
 {
     [Table("FormatoFGC008")]
@@ -9,6 +11,8 @@ namespace SistemaFlota
         public string OrdenProduccion { get; set; } = string.Empty;
         public string? Cliente { get; set; }
         public string? Referencia { get; set; }
+
+        // Verificaciones (las llena una persona)
         public bool EtiquetasSI { get; set; }
         public bool EmbalajeSI { get; set; }
         public bool DefectosSI { get; set; }
@@ -19,8 +23,29 @@ namespace SistemaFlota
         public string? AccionesTomadas { get; set; }
         public string? FotoEvidencia { get; set; }
         public string? RevisadoPor { get; set; }
-
         public string? FirmaDigital { get; set; }
         public DateTime? FechaRevision { get; set; }
+
+        // Origen y unidades
+        [MaxLength(20)] public string Origen { get; set; } = "Manual";   
+        [MaxLength(10)] public string? UnidadOP { get; set; }            
+        [MaxLength(10)] public string? UnidadReal { get; set; }          
+
+        // Datos que llegan de Bodega (sincronización automática)
+        [MaxLength(30)] public string? Seccion { get; set; }
+        [MaxLength(300)] public string? OperariosBodega { get; set; }
+        public DateTime? DiaEntrada { get; set; }
+        public int Bultos { get; set; }
+        [MaxLength(10)] public string? Troquel { get; set; }             // SI | NO | MIXTO
+        [Column(TypeName = "decimal(18,2)")] public decimal UnidadesEntrada { get; set; }
+        [Column(TypeName = "decimal(18,2)")] public decimal KilosEntrada { get; set; }
+        public int? UltimoNumEntrada { get; set; }
+        public bool EnProceso { get; set; }
+        public bool CambioDespuesDeRevisar { get; set; }
+        public DateTime? UltimaSincronizacion { get; set; }
+
+        // Calculados al consultar (no se guardan en la base)
+        [NotMapped] public decimal? AcumuladoOP { get; set; }
+        [NotMapped] public decimal? PorHacer { get; set; }
     }
 }

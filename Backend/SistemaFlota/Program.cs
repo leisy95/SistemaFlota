@@ -178,10 +178,13 @@ builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFo
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
 builder.Services.AddScoped<EmpresaOrdenesService>();
+builder.Services.AddScoped<EntradasBodegaService>();
+builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
 builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConContingencia>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
+builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();
 
 // Historial Odo
 builder.Services.AddScoped<IPedidoCompraService, PedidoCompraService>();

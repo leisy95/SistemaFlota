@@ -741,6 +741,12 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("AccionesTomadas")
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Bultos")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("CambioDespuesDeRevisar")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<decimal>("CantidadOP")
                         .HasColumnType("decimal(65,30)");
 
@@ -756,7 +762,13 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("Despachado")
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("DiaEntrada")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<bool>("EmbalajeSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EnProceso")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("EtiquetasSI")
@@ -774,18 +786,55 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("FotoEvidencia")
                         .HasColumnType("longtext");
 
+                    b.Property<decimal>("KilosEntrada")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("ListoBodega")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("OperariosBodega")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("OrdenProduccion")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Referencia")
                         .HasColumnType("longtext");
 
                     b.Property<string>("RevisadoPor")
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Seccion")
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("Troquel")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("UltimaSincronizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UltimoNumEntrada")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UnidadOP")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("UnidadReal")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<decimal>("UnidadesEntrada")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
