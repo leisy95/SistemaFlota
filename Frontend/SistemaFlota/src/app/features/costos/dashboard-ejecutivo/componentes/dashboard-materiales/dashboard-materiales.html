@@ -1,0 +1,82 @@
+<section class="table-card materiales-costo-card">
+
+    <div class="table-heading">
+        <div>
+            <h2>Materiales con mayor valor de compra</h2>
+            <p>Materiales ordenados por valor registrado en compras</p>
+        </div>
+    </div>
+
+    <div class="tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Proveedor</th>
+                    <th class="center">Cantidad (kg)</th>
+                    <th class="text-right">Costo por kg</th>
+                    <th class="text-right">Valor registrado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let item of materialesPaginados">
+                    <td data-label="Material">
+                        <strong>{{ item.material }}</strong>
+                    </td>
+
+                    <td data-label="Proveedor">
+                        {{ item.proveedor }}
+                    </td>
+
+                    <td data-label="Cantidad (kg)" class="center numero">
+                        {{ item.kg | number:'1.0-2' }}
+                    </td>
+
+                    <td data-label="Costo por kg" class="text-right">
+                        {{ item.costoKg | currency:'COP':'$':'1.0-2' }}
+                    </td>
+
+                    <td data-label="Valor registrado" class="text-right total">
+                        {{ item.valor | currency:'COP':'$':'1.0-0' }}
+                    </td>
+                </tr>
+
+                <tr *ngIf="cargandoMateriales">
+                    <td colspan="5" class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Cargando materiales...
+                    </td>
+                </tr>
+
+                <tr *ngIf="!cargandoMateriales && materialesPaginados.length === 0">
+                    <td colspan="5" class="empty-state">
+                        No hay información de costos por material disponible.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-pagination">
+        <span>
+            Página {{ paginaMateriales }} de {{ totalPaginasMateriales }}
+            · {{ totalMaterialesMayorCosto }} materiales
+        </span>
+
+        <div class="pagination-actions">
+            <button type="button" (click)="cambiarPaginaMateriales(-1)"
+                [disabled]="paginaMateriales <= 1 || cargandoMateriales">
+                <i class="fa-solid fa-chevron-left"></i>
+                Anterior
+            </button>
+
+            <button type="button" (click)="cambiarPaginaMateriales(1)"
+                [disabled]="paginaMateriales >= totalPaginasMateriales || cargandoMateriales">
+                Siguiente
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+</section>

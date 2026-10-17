@@ -11,7 +11,7 @@ export const COSTOS_ROUTES: Routes = [
     },
 
     {
-        path: 'dashboard-ejecutivo',
+        path: 'dashboard-compras',
         loadComponent: () =>
             import('./dashboard-ejecutivo/dashboard-ejecutivo')
                 .then(c => c.DashboardEjecutivo),

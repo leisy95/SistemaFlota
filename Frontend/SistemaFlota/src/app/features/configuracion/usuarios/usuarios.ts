@@ -107,6 +107,7 @@ export class UsuariosComponent implements OnInit {
     { key: 'recepcion-mercancia', label: 'Re - Mercancía', grupo: 'COMPRAS Y MATERIALES' },
     { key: 'inventario', label: 'Inventario', grupo: 'COMPRAS Y MATERIALES' },
     { key: 'traslados', label: 'Traslados', grupo: 'COMPRAS Y MATERIALES' },
+    { key: 'dashboard-compras', label: 'Dashboard Compras', grupo: 'COMPRAS Y MATERIALES' },
 
     // COMPRAS NO FORMALIZADAS
     { key: 'proveedores-no-formalizados', label: 'Proveedores', grupo: 'COMPRAS NO FORMALIZADAS' },

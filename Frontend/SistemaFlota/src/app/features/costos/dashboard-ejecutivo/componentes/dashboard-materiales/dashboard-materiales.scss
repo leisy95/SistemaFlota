@@ -1,0 +1,461 @@
+.table-card {
+    width: 100%;
+    min-width: 0;
+    margin-top: 25px;
+    overflow: hidden;
+}
+
+.materiales-costo-card {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.supplier-count {
+    flex-shrink: 0;
+    padding: 8px 13px;
+    border-radius: 20px;
+    background: #e8f7ef;
+    color: var(--verde-oscuro, #0d9488);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* TABLA PARA COMPUTADORES Y TABLETS */
+
+.tabla {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabla table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.88rem;
+}
+
+.tabla thead th {
+    padding: 15px 12px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--gris-claro, #e5e7eb);
+    color: var(--gris-oscuro, #1f2937);
+    font-size: 0.77rem;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.tabla tbody td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--gris-claro, #e5e7eb);
+    color: var(--gris-oscuro, #1f2937);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.tabla tbody tr:hover {
+    background: #f8fafc;
+}
+
+.supplier-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.supplier-name strong {
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+}
+
+.supplier-dot {
+    width: 9px;
+    height: 9px;
+    min-width: 9px;
+    border-radius: 50%;
+    background: var(--verde-oscuro, #0d9488);
+}
+
+.numero {
+    color: var(--azul-cielo, #0284c7);
+    font-weight: 800;
+}
+
+.total {
+    color: var(--verde-oscuro, #0d9488);
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.percentage-cell {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+}
+
+.percentage-cell>span {
+    color: var(--verde-oscuro, #0d9488);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* TOTAL DEL INVENTARIO */
+
+.tabla tfoot .total-row td {
+    padding: 20px 12px;
+    border-top: 2px solid var(--verde-oscuro, #0d9488);
+    color: var(--gris-oscuro, #1f2937);
+    font-weight: 800;
+}
+
+.tabla tfoot .total-row td:nth-child(4) {
+    padding-right: 24px;
+}
+
+.tabla tfoot .total-row td:nth-child(5) {
+    padding-left: 24px;
+}
+
+.tabla tfoot .total-percentage {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: #e8f7ef;
+    color: var(--verde-oscuro, #0d9488);
+    font-weight: 800;
+}
+
+.empty-state {
+    padding: 25px 15px !important;
+    color: var(--gris-medio, #6b7280) !important;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.dashboard-footer {
+    margin-top: 20px;
+    padding: 16px 20px 0;
+    border-top: 1px solid var(--gris-claro, #e5e7eb);
+}
+
+.dashboard-footer span {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--gris-oscuro, #1f2937);
+    opacity: 0.75;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.dashboard-footer i {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: var(--verde-oscuro, #0d9488);
+}
+
+/* PAGINACIÓN */
+
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px 20px;
+    border-top: 1px solid #e8edf3;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pagination-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 13px;
+    border: 1px solid #dbe3ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.pagination-actions button:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.pagination-actions button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* TABLETS */
+
+@media (max-width: 900px) {
+    .tabla table {
+        min-width: 650px;
+    }
+
+    .table-pagination {
+        padding: 14px 16px;
+    }
+}
+
+/* CELULARES: CADA FILA SE CONVIERTE EN UNA TARJETA */
+
+@media (max-width: 600px) {
+    .table-card {
+        margin-top: 18px;
+        border-radius: 14px;
+    }
+
+    .materiales-costo-card {
+        margin-top: 18px;
+        margin-bottom: 18px;
+    }
+
+    .table-heading {
+        align-items: flex-start;
+        margin-bottom: 18px;
+    }
+
+    .supplier-count {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .tabla {
+        overflow: visible;
+        padding: 0 12px;
+    }
+
+    .tabla table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .tabla thead {
+        display: none;
+    }
+
+    .tabla tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .tabla tbody tr {
+        display: block;
+        width: 100%;
+        margin-bottom: 14px;
+        padding: 8px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgb(15 23 42 / 5%);
+    }
+
+    .tabla tbody tr:hover {
+        background: #fff;
+    }
+
+    .tabla tbody td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        width: 100%;
+        padding: 11px 0;
+        border-bottom: 1px solid #edf0f4;
+        text-align: right;
+        font-size: 0.83rem;
+    }
+
+    .tabla tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .tabla tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 42%;
+        color: #64748b;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+
+    .tabla tbody td>* {
+        min-width: 0;
+        max-width: 58%;
+    }
+
+    .supplier-name {
+        justify-content: flex-end;
+        gap: 7px;
+        min-width: 0;
+        text-align: right;
+    }
+
+    .supplier-name strong {
+        font-size: 0.82rem;
+    }
+
+    .percentage-cell {
+        justify-content: flex-end;
+        flex: 1;
+    }
+
+    .percentage-cell>span {
+        font-size: 0.82rem;
+    }
+
+    .tabla tfoot {
+        display: block;
+        margin: 12px 0;
+        padding: 12px;
+        border: 1px solid #b7e4d0;
+        border-radius: 12px;
+        background: #f0fdf7;
+    }
+
+    .tabla tfoot tr {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tabla tfoot .total-row td {
+        display: block;
+        padding: 4px 0;
+        border: none;
+        font-size: 0.82rem;
+        overflow-wrap: anywhere;
+    }
+
+    .tabla tfoot .total-row td:nth-child(4),
+    .tabla tfoot .total-row td:nth-child(5) {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .tabla tfoot .total-percentage {
+        padding: 4px 7px;
+    }
+
+    .dashboard-footer {
+        padding: 14px 14px 0;
+    }
+
+    .table-pagination {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .table-pagination>span {
+        line-height: 1.5;
+    }
+
+    .pagination-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .pagination-actions button {
+        width: 100%;
+        padding: 10px 8px;
+    }
+}
+
+/* CELULARES MUY PEQUEÑOS */
+
+@media (max-width: 360px) {
+    .tabla {
+        padding: 0 8px;
+    }
+
+    .tabla tbody tr {
+        padding: 6px 10px;
+    }
+
+    .tabla tbody td {
+        gap: 8px;
+        font-size: 0.78rem;
+    }
+
+    .tabla tbody td::before {
+        flex-basis: 40%;
+        font-size: 0.72rem;
+    }
+
+    .table-pagination {
+        padding: 12px 10px;
+    }
+
+    .pagination-actions {
+        gap: 6px;
+    }
+
+    .pagination-actions button {
+        font-size: 11px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pagination-actions button {
+        transition: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .tabla tbody td.empty-state {
+        display: block;
+        width: 100%;
+        padding: 20px 10px !important;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .tabla tbody td.empty-state::before {
+        content: none;
+    }
+}

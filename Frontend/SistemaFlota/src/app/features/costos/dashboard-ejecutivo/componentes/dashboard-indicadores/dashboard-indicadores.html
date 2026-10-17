@@ -1,0 +1,68 @@
+<!-- TARJETAS PRINCIPALES -->
+<section class="stats-container">
+    <div class="stat-card" *ngFor="let stat of statsCards">
+        <div class="stat-icon" [ngClass]="stat.iconType">
+            <i class="fa-solid" [ngClass]="stat.iconClass"></i>
+        </div>
+
+        <div class="stat-content">
+            <span>{{ stat.title }}</span>
+            <strong>{{ stat.value }}</strong>
+            <small>{{ stat.subtitle }}</small>
+            <div class="stat-extra">{{ stat.extra }}</div>
+        </div>
+    </div>
+</section>
+
+<!-- INDICADORES DE COSTOS Y RECEPCIONES -->
+<section class="costos-container">
+    <article class="costo-card">
+        <div class="costo-icon gasto">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+        </div>
+
+        <div>
+            <span>Gasto registrado en órdenes</span>
+            <strong>{{ gastoCompras | currency:'COP':'$':'1.0-0' }}</strong>
+            <small>Valor registrado en compras activas</small>
+        </div>
+    </article>
+
+    <article class="costo-card">
+        <div class="costo-icon recepcion">
+            <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+
+        <div>
+            <span>Recepciones pendientes</span>
+            <strong>{{ recepcionesPendientes }}</strong>
+            <small>De {{ totalRecepciones }} recepciones</small>
+        </div>
+    </article>
+
+    <article class="costo-card">
+        <div class="costo-icon inventario">
+            <i class="fa-solid fa-weight-scale"></i>
+        </div>
+
+        <div>
+            <span>Kilogramos recibidos</span>
+            <strong>{{ kgRecibidos | number:'1.0-2' }} kg</strong>
+            <small>
+                Bultos recibidos: {{ bultosRecibidos | number:'1.0-2' }}
+            </small>
+        </div>
+    </article>
+
+    <article class="costo-card">
+        <div class="costo-icon pendientes">
+            <i class="fa-solid fa-box-open"></i>
+        </div>
+
+        <div>
+            <span>Pendientes de procesar</span>
+            <strong>{{ entregasPendientesInventario }}</strong>
+            <small>Detalles pendientes de inventario</small>
+        </div>
+    </article>
+</section>

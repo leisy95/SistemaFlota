@@ -1,0 +1,116 @@
+<section class="table-card">
+
+    <div class="table-heading">
+        <div>
+            <h2>Resumen por proveedor</h2>
+            <p>Detalle de cantidades y valores registrados</p>
+        </div>
+
+        <span class="supplier-count">
+            {{ totalProveedores }}
+            {{ totalProveedores === 1 ? 'proveedor' : 'proveedores' }}
+        </span>
+    </div>
+
+    <div class="tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>Proveedor</th>
+                    <th class="center">Cantidad (kg)</th>
+                    <th class="center">Bultos</th>
+                    <th class="text-right">Valor inventario</th>
+                    <th>Participación</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let item of proveedoresPaginados">
+                    <td data-label="Proveedor">
+                        <div class="supplier-name">
+                            <span class="supplier-dot"></span>
+                            <strong>{{ item.proveedor }}</strong>
+                        </div>
+                    </td>
+
+                    <td data-label="Cantidad (kg)" class="center numero">
+                        {{ item.kgTotal | number:'1.0-0' }}
+                    </td>
+
+                    <td data-label="Bultos" class="center">
+                        {{ item.bultos | number:'1.0-2' }}
+                    </td>
+
+                    <td data-label="Valor inventario" class="text-right total">
+                        {{ item.valorTotal | currency:'COP':'$':'1.0-0' }}
+                    </td>
+
+                    <td data-label="Participación">
+                        <div class="percentage-cell">
+                            <span>{{ item.porcentajeInventario | number:'1.1-1' }}%</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr *ngIf="proveedoresPaginados.length === 0">
+                    <td colspan="5" class="empty-state">
+                        No hay información de proveedores para mostrar.
+                    </td>
+                </tr>
+            </tbody>
+
+            <tfoot>
+                <tr class="total-row">
+                    <td data-label="Total">
+                        <strong>TOTAL INVENTARIO</strong>
+                    </td>
+
+                    <td data-label="Cantidad (kg)" class="center numero">
+                        {{ totalKg | number:'1.0-0' }}
+                    </td>
+
+                    <td data-label="Bultos" class="center">
+                        {{ totalBultos | number:'1.0-2' }}
+                    </td>
+
+                    <td data-label="Valor inventario" class="text-right total">
+                        {{ totalValor | currency:'COP':'$':'1.0-0' }}
+                    </td>
+
+                    <td data-label="Participación">
+                        <span class="total-percentage">100%</span>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="table-pagination" *ngIf="supplierSummaryList.length > 0">
+        <span>
+            {{ paginaProveedores }} de {{ totalPaginasProveedores }}
+            · {{ supplierSummaryList.length }} proveedores
+        </span>
+
+        <div class="pagination-actions">
+            <button type="button" (click)="cambiarPaginaProveedores(-1)" [disabled]="paginaProveedores === 1">
+                <i class="fa-solid fa-chevron-left"></i>
+                Anterior
+            </button>
+
+            <button type="button" (click)="cambiarPaginaProveedores(1)"
+                [disabled]="paginaProveedores === totalPaginasProveedores">
+                Siguiente
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard-footer">
+        <span>
+            <i class="fa-solid fa-circle-info"></i>
+            Los indicadores se calculan con la información proveniente de compras,
+            inventario y traslados.
+        </span>
+    </div>
+
+</section>

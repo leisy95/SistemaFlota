@@ -1,0 +1,81 @@
+<section class="graficas-grid">
+    <article class="grafica-card">
+        <div class="grafica-header">
+            <div>
+                <h3>Stock por proveedor</h3>
+                <p>Existencias agrupadas en kilogramos</p>
+            </div>
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+
+        <div class="grafica-contenido grafica-barras">
+            <canvas baseChart [type]="'bar'" [data]="stockProveedorData" [options]="stockProveedorOptions">
+            </canvas>
+        </div>
+    </article>
+
+    <article class="grafica-card">
+        <div class="grafica-header">
+            <div>
+                <h3>Distribución por categoría</h3>
+                <p>Cantidad de materiales por categoría</p>
+            </div>
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+
+        <div class="grafica-contenido grafica-pastel">
+            <canvas baseChart [type]="'pie'" [data]="tipoMaterialData" [options]="pastelOptions">
+            </canvas>
+        </div>
+    </article>
+
+    <article class="grafica-card">
+        <div class="grafica-header">
+            <div>
+                <h3>Distribución por densidad</h3>
+                <p>Cantidad de materiales según densidad</p>
+            </div>
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+
+        <div class="grafica-contenido grafica-pastel">
+            <canvas baseChart [type]="'pie'" [data]="densidadData" [options]="pastelOptions">
+            </canvas>
+        </div>
+    </article>
+
+    <article class="grafica-card">
+        <div class="grafica-header">
+            <div>
+                <h3>Valor total por proveedor</h3>
+                <p>Valor monetario del inventario</p>
+            </div>
+            <i class="fa-solid fa-dollar-sign"></i>
+        </div>
+
+        <div class="grafica-contenido grafica-barras">
+            <canvas baseChart [type]="'bar'" [data]="valorProveedorData" [options]="valorProveedorOptions">
+            </canvas>
+        </div>
+    </article>
+</section>
+
+<section class="dashboard-card compras-mensuales-card">
+    <div class="section-heading">
+        <div>
+            <h2>Evolución mensual de compras</h2>
+            <p>Valor de compras por mes</p>
+        </div>
+    </div>
+
+    <div class="compras-mensuales-grafica" *ngIf="hayComprasMensuales; else sinComprasMensuales">
+        <canvas baseChart [type]="'line'" [data]="comprasPorMesData" [options]="comprasPorMesOptions">
+        </canvas>
+    </div>
+
+    <ng-template #sinComprasMensuales>
+        <div class="empty-state">
+            No hay datos mensuales de compras disponibles.
+        </div>
+    </ng-template>
+</section>

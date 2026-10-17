@@ -1,0 +1,76 @@
+<section class="filtros-dashboard">
+    <div class="filtros-header">
+        <div>
+            <h2>Filtros del dashboard</h2>
+            <p>Selecciona los criterios para consultar la información.</p>
+        </div>
+    </div>
+
+    <div class="filtros-grid">
+        <div class="filtro-campo">
+            <label for="fechaDesde">Fecha desde</label>
+            <input id="fechaDesde" type="date" [(ngModel)]="filtros.fechaDesde" />
+        </div>
+
+        <div class="filtro-campo">
+            <label for="fechaHasta">Fecha hasta</label>
+            <input id="fechaHasta" type="date" [(ngModel)]="filtros.fechaHasta" />
+        </div>
+
+        <div class="filtro-campo">
+            <label for="proveedor">Proveedor</label>
+            <input id="proveedor" type="text" list="listaProveedores" placeholder="Todos los proveedores"
+                [(ngModel)]="filtros.proveedor" />
+
+            <datalist id="listaProveedores">
+                <option *ngFor="let proveedor of proveedores" [value]="proveedor"></option>
+            </datalist>
+        </div>
+
+        <div class="filtro-campo">
+            <label for="estado">Estado</label>
+            <select id="estado" [(ngModel)]="filtros.estado">
+                <option value="">Todos los estados</option>
+                <option *ngFor="let estado of estados" [value]="estado">
+                    {{ estado }}
+                </option>
+            </select>
+        </div>
+
+        <div class="filtro-campo">
+            <label for="categoria">Categoría</label>
+            <select id="categoria" [(ngModel)]="filtros.categoria">
+                <option value="">Todas las categorías</option>
+                <option *ngFor="let categoria of categorias" [value]="categoria">
+                    {{ categoria }}
+                </option>
+            </select>
+        </div>
+
+        <div class="filtro-campo">
+            <label for="densidad">Densidad</label>
+            <select id="densidad" [(ngModel)]="filtros.densidad">
+                <option value="">Todas las densidades</option>
+                <option *ngFor="let densidad of densidades" [value]="densidad">
+                    {{ densidad }}
+                </option>
+            </select>
+        </div>
+    </div>
+
+    <p *ngIf="mensaje" class="mensaje-filtros" role="alert">
+        {{ mensaje }}
+    </p>
+
+    <div class="filtros-acciones">
+        <button type="button" class="btn-limpiar-filtros" [disabled]="aplicando" (click)="limpiar.emit()">
+            <i class="fas fa-eraser"></i>
+            Limpiar filtros
+        </button>
+
+        <button type="button" class="btn-aplicar-filtros" [disabled]="aplicando" (click)="aplicar.emit()">
+            <i class="fas fa-filter"></i>
+            Aplicar filtros
+        </button>
+    </div>
+</section>

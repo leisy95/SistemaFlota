@@ -287,10 +287,10 @@ export const MENU_MODULOS: MenuItem[] = [
     // MATERIALES - PROVEEDORES
 
     {
-        key: 'dashboard-ejecutivo',
-        label: 'Dashboard Ejecutivo',
+        key: 'dashboard-compras',
+        label: 'Dashboard Compras',
         icon: 'fa-solid fa-chart-line',
-        ruta: '/costos/dashboard-ejecutivo',
+        ruta: '/costos/dashboard-compras',
         modulo: 'costos'
     },
 
