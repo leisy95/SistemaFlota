@@ -125,4 +125,106 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
         return document.GeneratePdf();
     }
+    
+    // Para generar todas las etiquetas cuando ya esten confirmadas
+    public async Task<byte[]> GenerarTodasAsync(int recepcionId)
+    {
+        var recepcion = await _context.RecepcionesMercancias
+            .AsNoTracking()
+            .Include(x => x.Detalles)
+                .ThenInclude(x => x.OrdenCompraDetalle)
+                    .ThenInclude(x => x.Material)
+            .Include(x => x.OrdenCompra)
+                .ThenInclude(x => x.Proveedor)
+            .FirstOrDefaultAsync(x => x.Id == recepcionId);
+
+        if (recepcion == null)
+            throw new InvalidOperationException(
+                "La recepción solicitada no existe.");
+
+        if (recepcion.OrdenCompra == null)
+            throw new InvalidOperationException(
+                "La recepción no tiene una orden de compra asociada.");
+
+        // Obtener todos los detalles de todas las entregas.
+        var todosLosDetalles = recepcion.Detalles
+            .OrderBy(x => x.NumeroEntrega)
+            .ThenBy(x => x.Id)
+            .ToList();
+
+        if (!todosLosDetalles.Any())
+            throw new InvalidOperationException(
+                "La recepción no tiene detalles para generar etiquetas.");
+
+        // Crear un PDF con todas las etiquetas.
+        var document = Document.Create(document =>
+        {
+            foreach (var detalle in todosLosDetalles)
+            {
+                int bultosActuales = (int)detalle.BultosRecibidos;
+
+                int ordenCompraDetalleId = detalle.OrdenCompraDetalleId;
+
+                // Sumar los bultos de entregas anteriores
+                // del mismo material/detalle de la orden.
+                int bultosAnteriores = todosLosDetalles
+                    .Where(x =>
+                        x.OrdenCompraDetalleId == ordenCompraDetalleId &&
+                        x.NumeroEntrega < detalle.NumeroEntrega)
+                    .Sum(x => (int)x.BultosRecibidos);
+
+                // Total de bultos programados en la orden.
+                int totalBultos = (int)detalle.OrdenCompraDetalle!.Bultos;
+
+                string numeroOrden = recepcion.OrdenCompra.Numero;
+
+                string ultimosTresOrden = numeroOrden.Length >= 3
+                    ? numeroOrden[^3..]
+                    : numeroOrden.PadLeft(3, '0');
+
+                string dia = recepcion.OrdenCompra.FechaOrden.ToString("dd");
+                string año = recepcion.OrdenCompra.FechaOrden.ToString("yy");
+
+                string lote = detalle.LoteProveedor?.Trim() ?? "";
+                string ultimoNumeroLote = "";
+
+                if (!string.IsNullOrWhiteSpace(lote))
+                {
+                    ultimoNumeroLote = lote
+                        .Split('-')
+                        .Last()
+                        .Trim();
+                }
+
+                string codigoFormateado =
+                    $"{ultimosTresOrden} · {dia} · {año} · {ultimoNumeroLote}";
+
+                // Crear una página por cada bulto.
+                for (int i = 1; i <= bultosActuales; i++)
+                {
+                    int numeroBulto = bultosAnteriores + i;
+
+                    document.Page(page =>
+                    {
+                        page.Size(100, 50, Unit.Millimetre);
+                        page.Margin(2, Unit.Millimetre);
+
+                        page.Content().Element(container =>
+                        {
+                            EtiquetaComponent.Dibujar(
+                                container,
+                                recepcion,
+                                detalle,
+                                numeroBulto,
+                                totalBultos,
+                                codigoFormateado);
+                        });
+                    });
+                }
+            }
+        });
+
+        return document.GeneratePdf();
+    }
+
 }

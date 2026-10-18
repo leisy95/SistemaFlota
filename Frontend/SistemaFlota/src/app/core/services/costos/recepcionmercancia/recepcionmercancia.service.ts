@@ -51,6 +51,14 @@ export class RecepcionMercanciaService {
         );
     }
 
+
+    // Reimprimir todas las etiquetas de una recepción confirmada
+    reimprimirTodasLasEtiquetas(id: number): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/${id}/etiquetas/todas`, {
+            responseType: 'blob'
+        });
+    }
+
     // Confirmacion orden despues de recpcion
     confirmarRecepcion(id: number): Observable<any> {
         return this.http.put(

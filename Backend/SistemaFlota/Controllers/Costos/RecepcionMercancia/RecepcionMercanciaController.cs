@@ -124,6 +124,41 @@ namespace SistemaFlota.Controllers.Costos.RecepcionMercancia
                 $"Etiquetas_{id}_Entrega_{numeroEntrega}.pdf");
         }
 
+        // Reimprimir todas las etiquetas de una recepción
+        [HttpGet("{id:int}/etiquetas/todas")]
+        [Permiso("recepcion-mercancia", "ver")]
+        public async Task<IActionResult> ImprimirTodasLasEtiquetas(int id)
+        {
+            try
+            {
+                var recepcion = await _service.ObtenerPorIdAsync(id);
+
+                if (recepcion == null)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "La recepción no existe."
+                    });
+                }
+
+                // Aquí validaremos que la recepción esté confirmada.
+
+                var pdf = await _etiquetasPdfService.GenerarTodasAsync(id);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"Etiquetas_Completas_{id}.pdf");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
+
         // Crear recepcion
         [HttpPost]
         [Permiso("recepcion-mercancia", "crear")]

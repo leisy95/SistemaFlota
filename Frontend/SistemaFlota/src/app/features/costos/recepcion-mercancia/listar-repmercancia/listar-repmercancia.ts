@@ -207,6 +207,24 @@ export class ListarRepmercancia {
     });
   }
 
+  reimprimirTodasLasEtiquetas(orden: OrdenCompra): void {
+    if (!orden.recepcionId) {
+      this.toastr.warning('No se encontró la recepción asociada.', 'Recepción');
+      return;
+    }
+
+    this.recepcionService.reimprimirTodasLasEtiquetas(orden.recepcionId).subscribe({
+      next: pdf => {
+        const url = URL.createObjectURL(pdf);
+        window.open(url, '_blank');
+        this.toastr.success('Todas las etiquetas fueron generadas correctamente.', 'Etiquetas');
+      },
+      error: () => {
+        this.toastr.error('No fue posible reimprimir las etiquetas.', 'Error');
+      }
+    });
+  }
+
   iniciarRecepcion(): void {
     if (!this.ordenSeleccionada) {
       this.toastr.warning('Seleccione una orden.', 'Recepción');

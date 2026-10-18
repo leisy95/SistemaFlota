@@ -71,6 +71,13 @@
             </div>
 
             <div class="orden-acciones">
+
+                <button *ngIf="ordenSeleccionada.estado?.trim()?.toLowerCase() === 'confirmada'" type="button"
+                    class="btn btn-pdf" (click)="reimprimirTodasLasEtiquetas(ordenSeleccionada)">
+                    <i class="fa-solid fa-print"></i>
+                    Reimprimir todas las etiquetas
+                </button>
+
                 <ng-container *ngIf="
                     ordenSeleccionada.estado?.trim()?.toLowerCase() === 'parcial' ||
                     ordenSeleccionada.estado?.trim()?.toLowerCase() === 'recepcionada';
