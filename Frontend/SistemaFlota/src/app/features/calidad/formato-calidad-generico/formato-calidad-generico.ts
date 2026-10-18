@@ -6,6 +6,7 @@ import { FormatosCalidadService } from '../../../core/services/formatos-calidad.
 import { OrdenesProduccionService } from '../../../core/services/ordenes-produccion.service';
 import { PermisosService } from '../../../core/services/permisos.service';
 import jsPDF from 'jspdf';
+import { firstValueFrom } from 'rxjs';
 import autoTable from 'jspdf-autotable';
 import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -69,11 +70,13 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         explicacionNoLiberado: '',
         cargoFirma: '',
         produccionKgHora: '',
-        desperdicioTotalKg: null as number | null
+        desperdicioTotalKg: null as number | null,
+        fechaRealProduccion: ''
     };
 
     // Rondas de verificación por hora: cada ronda tiene su hora, operario, y los valores de cada característica
     rondas: {
+        id?: string;
         hora: string;
         final: boolean;
         operario: string;
@@ -103,6 +106,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     firmaDataUrl: string | null = null;
     opExistente: any = null;
     clienteDetectado: string | null = null;
+    mezclaOrden: any[] = [];
     referenciaDetectada: string | null = null;
     descripcionDetectada: string | null = null;
     cantidadDetectada: number | null = null;
@@ -129,6 +133,15 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         const u = JSON.parse(sessionStorage.getItem('user') || '{}');
         const username = u.username ?? '';
         return ['Extrusion', 'Precorte', 'Impresion', 'Sellado'].includes(username);
+    }
+    get puedeFijarFechaReal(): boolean {
+        return this.permisos.puedeEditar('calidad-formatos') && !this.esCuentaCompartidaMaquina;
+    }
+
+    // Fecha de hoy en hora local (toISOString usaría UTC y de noche daría el día siguiente)
+    get hoyISO(): string {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
     get esCoextrusora(): boolean {
         return (this.form.maquina || '').toLowerCase().includes('coextrusora');
@@ -238,6 +251,14 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     esSupervisor = false;
     fotosSeleccionadasRonda: { [rondaIndex: number]: File[] } = {};
     previewsFotosRonda: { [rondaIndex: number]: string[] } = {};
+    subiendoFotosRonda: number | null = null;
+    generandoPdf = false;
+    parametrosVer: { etiqueta: string; valor: string }[] = [];
+    motivoVer: string | null = null;
+    operariosVer: { nombre: string; fecha: string; motivo: string | null; parametros: { etiqueta: string; valor: string }[] }[] = [];
+    mezclaVer: any[] = [];
+    fotosRondas: { id: number; rondaId: string; archivo: string }[] = [];
+    readonly maxFotosRonda = 5;
 
     agregarRondaHora() {
         if (this.tieneRondaFinal) { alert('Ya se marcó la verificación final, no se pueden agregar más horas'); return; }
@@ -276,30 +297,176 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         ronda.operario = registro.operarioNombre;
         ronda.parametrosOperario = JSON.parse(registro.variablesCriticasJson);
     }
-    seleccionarFotosRonda(event: any, rondaIndex: number) {
-        const archivos = Array.from(event.target.files) as File[];
-        this.fotosSeleccionadasRonda[rondaIndex] = archivos.slice(0, 5);
-        this.previewsFotosRonda[rondaIndex] = this.fotosSeleccionadasRonda[rondaIndex].map(f => URL.createObjectURL(f));
+    // Reduce la foto a máximo 1600 px y calidad 80 %: pesa unos 200–400 KB en vez de varios MB
+    private comprimirImagen(file: File, maxLado = 1600, calidad = 0.8): Promise<File> {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onerror = () => resolve(file);
+            reader.onload = () => {
+                const img = new Image();
+                img.onerror = () => resolve(file);
+                img.onload = () => {
+                    const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
+                    const w = Math.round(img.width * escala);
+                    const h = Math.round(img.height * escala);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) { resolve(file); return; }
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(blob => {
+                        if (!blob) { resolve(file); return; }
+                        const nombre = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+                        resolve(new File([blob], nombre, { type: 'image/jpeg' }));
+                    }, 'image/jpeg', calidad);
+                };
+                img.src = reader.result as string;
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
-    guardarVerificacionRonda(rondaIndex: number) {
-        const fotos = this.fotosSeleccionadasRonda[rondaIndex];
-        if (!fotos || fotos.length === 0) {
+    // Fotos ya guardadas de esa hora
+    fotosGuardadasRonda(i: number): { id?: number; archivo: string }[] {
+        const ronda: any = this.rondas[i];
+        if (!ronda) return [];
+        const delJson = ((ronda.fotos as string[]) ?? []).map(a => ({ archivo: a }));
+        const deTabla = this.fotosRondas.filter(f => f.rondaId === ronda.id).map(f => ({ id: f.id, archivo: f.archivo }));
+        return [...delJson, ...deTabla];
+    }
+
+    // Cuántas fotos más caben en esa hora (guardadas + pendientes no pueden pasar de 5)
+    cupoFotosRonda(i: number): number {
+        const pendientes = this.fotosSeleccionadasRonda[i]?.length ?? 0;
+        return Math.max(0, this.maxFotosRonda - this.fotosGuardadasRonda(i).length - pendientes);
+    }
+
+    totalFotosRonda(i: number): number {
+        return this.fotosGuardadasRonda(i).length + (this.fotosSeleccionadasRonda[i]?.length ?? 0);
+    }
+
+    async seleccionarFotosRonda(event: any, rondaIndex: number) {
+        const archivos: File[] = Array.from(event.target.files || []);
+        event.target.value = '';   // permite elegir la misma foto otra vez
+        if (archivos.length === 0) return;
+
+        const cupo = this.cupoFotosRonda(rondaIndex);
+        if (cupo === 0) {
+            alert('Esta hora ya tiene el máximo de ' + this.maxFotosRonda + ' fotos');
+            return;
+        }
+        if (archivos.length > cupo) {
+            alert('Solo puede agregar ' + cupo + ' foto(s) más en esta hora (máximo ' + this.maxFotosRonda + ')');
+        }
+
+        if (!this.fotosSeleccionadasRonda[rondaIndex]) this.fotosSeleccionadasRonda[rondaIndex] = [];
+        if (!this.previewsFotosRonda[rondaIndex]) this.previewsFotosRonda[rondaIndex] = [];
+
+        for (const f of archivos.slice(0, cupo)) {
+            const comprimida = await this.comprimirImagen(f);
+            this.fotosSeleccionadasRonda[rondaIndex].push(comprimida);
+            this.previewsFotosRonda[rondaIndex].push(URL.createObjectURL(comprimida));
+        }
+    }
+    // Identificador estable de cada hora: así las fotos no cambian de hora si alguien quita una
+    private nuevoRondaId(): string {
+        return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    // Las horas guardadas antes de este cambio no tienen identificador: se les asigna uno.
+    // Queda guardado en el registro la primera vez que se suben fotos (ver guardarVerificacionRonda)
+    private asegurarIdsRondas() {
+        (this.rondas as any[]).forEach(r => { if (!r.id) r.id = this.nuevoRondaId(); });
+    }
+
+    cargarFotosRondas(registroId: number) {
+        this.service.getFotosRondas(registroId).subscribe({
+            next: (d) => this.fotosRondas = d ?? [],
+            error: () => this.fotosRondas = []
+        });
+    }
+
+    // Todas las fotos de una hora: las que venían dentro del registro y las de la tabla
+    fotosDeRonda(ronda: any): string[] {
+        const delJson: string[] = ronda?.fotos ?? [];
+        const deTabla = this.fotosRondas.filter(f => f.rondaId === ronda?.id).map(f => f.archivo);
+        return [...delJson, ...deTabla];
+    }
+
+    eliminarFotoRondaGuardada(f: { id?: number; archivo: string }) {
+        if (!f.id || !this.editandoId) return;
+        if (!confirm('¿Eliminar esta foto?')) return;
+        this.service.eliminarFotoRonda(this.editandoId, f.id).subscribe({
+            next: () => { this.fotosRondas = this.fotosRondas.filter(x => x.id !== f.id); },
+            error: (e) => alert(e?.error?.mensaje || 'No se pudo eliminar la foto')
+        });
+    }
+
+    quitarFotoPendienteRonda(rondaIndex: number, k: number) {
+        const previews = this.previewsFotosRonda[rondaIndex] ?? [];
+        if (previews[k]) URL.revokeObjectURL(previews[k]);
+        previews.splice(k, 1);
+        (this.fotosSeleccionadasRonda[rondaIndex] ?? []).splice(k, 1);
+    }
+
+    // Quita de pendientes las primeras N (las que ya se subieron)
+    private quitarPrimerasPendientes(rondaIndex: number, cantidad: number) {
+        const previews = this.previewsFotosRonda[rondaIndex] ?? [];
+        previews.slice(0, cantidad).forEach(u => URL.revokeObjectURL(u));
+        this.previewsFotosRonda[rondaIndex] = previews.slice(cantidad);
+        this.fotosSeleccionadasRonda[rondaIndex] = (this.fotosSeleccionadasRonda[rondaIndex] ?? []).slice(cantidad);
+    }
+
+    private limpiarFotosRondaPendientes() {
+        Object.values(this.previewsFotosRonda).forEach(lista => lista.forEach(u => URL.revokeObjectURL(u)));
+        this.fotosSeleccionadasRonda = {};
+        this.previewsFotosRonda = {};
+    }
+
+    // Sube las fotos de a una: cada una pesa poco y no se depende del límite de tamaño de Nginx
+    async guardarVerificacionRonda(rondaIndex: number) {
+        const lote = [...(this.fotosSeleccionadasRonda[rondaIndex] ?? [])];
+        if (lote.length === 0) {
             alert('Seleccione al menos una foto antes de guardar');
             return;
         }
         if (!this.editandoId) { alert('Guarde primero el registro'); return; }
+        if (this.subiendoFotosRonda !== null) return;
+        this.subiendoFotosRonda = rondaIndex;
 
-        this.service.subirFotosRonda(this.editandoId, rondaIndex, fotos).subscribe({
-            next: (data: any) => {
-                (this.rondas[rondaIndex] as any).fotos = data.fotos;
-                this.persistirResultadosActuales();
-            },
-            error: (e) => { console.error(e); alert('Error subiendo las fotos'); }
-        });
+        try {
+            // Primero se guarda el registro con el identificador de esta hora; sin eso las fotos quedarían sin hora
+            this.asegurarIdsRondas();
+            if (!(await this.persistirResultadosActuales())) return;
+
+            const rondaId = (this.rondas[rondaIndex] as any).id as string;
+            let subidas = 0;
+
+            for (const f of lote) {
+                try {
+                    const res: any[] = await firstValueFrom(this.service.subirFotosRonda(this.editandoId, rondaId, [f]));
+                    (res ?? []).forEach(x => this.fotosRondas.push({ id: x.id, rondaId: x.rondaId, archivo: x.archivo }));
+                    subidas++;
+                } catch (e: any) {
+                    console.error(e);
+                    alert(e?.error?.mensaje || 'Error subiendo una foto');
+                    break;
+                }
+            }
+
+            if (subidas > 0) {
+                this.quitarPrimerasPendientes(rondaIndex, subidas);
+                if (subidas === lote.length) alert('Fotos guardadas correctamente');
+            }
+        } finally {
+            this.subiendoFotosRonda = null;
+        }
     }
 
-    private persistirResultadosActuales() {
+    private async persistirResultadosActuales(): Promise<boolean> {
+        if (!this.editandoId) return false;
+
         const resultadosData = {
             rondas: this.rondas,
             observaciones: this.observaciones,
@@ -320,11 +487,16 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             resultadosJson: JSON.stringify(resultadosData)
         };
 
-        this.service.editarRegistro(this.editandoId!, dto).subscribe({
-            next: () => alert('Fotos y verificación guardadas correctamente'),
-            error: (e) => { console.error(e); alert('Error guardando la verificación'); }
-        });
+        try {
+            await firstValueFrom(this.service.editarRegistro(this.editandoId, dto));
+            return true;
+        } catch (e) {
+            console.error(e);
+            alert('Error guardando la verificación');
+            return false;
+        }
     }
+
     private crearRondaHora() {
         const ahora = new Date();
         const horaTexto = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -339,11 +511,13 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         }
 
         this.rondas.push({
+            id: this.nuevoRondaId(),
             hora: horaTexto, final: false, operario: this.operarioRondaNueva,
             cierreDeOperario: false, kilosDesperdicio: '', valores, valoresNumericos
         });
         this.operarioRondaNueva = '';
     }
+
     cerrarTurnoOperario(indice: number) {
         const ronda = this.rondas[indice];
         const dialogRef = this.dialog.open(DialogInput, {
@@ -489,6 +663,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     }
     buscarOP() {
         if (!this.form.ordenProduccion || !this.tipoFormato) return;
+        this.cargarMezcla();
         this.service.buscarOP(this.form.ordenProduccion, this.tipoFormato.id).subscribe({
             next: (data: any) => {
                 if (data.estado === 'Liberado') {
@@ -516,6 +691,23 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
                 });
             }
         });
+    }
+    cargarMezcla() {
+        const op = (this.form.ordenProduccion || '').trim();
+        this.mezclaOrden = [];
+        if (!op) return;
+        this.service.getMezclaOrden(op).subscribe({
+            next: (d) => {
+                // Si en el campo ya se escribió otra orden, esta respuesta se descarta
+                if (op === (this.form.ordenProduccion || '').trim()) this.mezclaOrden = d ?? [];
+            },
+            error: () => { this.mezclaOrden = []; }
+        });
+    }
+
+    nombreProceso(codigo: string): string {
+        const mapa: { [k: string]: string } = { PEXTR: 'Extrusión', PDOBL: 'Doblado', PSELL: 'Sellado' };
+        return mapa[(codigo || '').toUpperCase()] ?? codigo;
     }
     sugerenciaAplicada = false;
     valoresOriginalesSugeridos: any = null;
@@ -599,8 +791,10 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.form = {
             ordenProduccion: '', cliente: '', referencia: '', operarios: '',
             hora: horaTexto, maquina: '', puedeLiberarse: null, explicacionNoLiberado: '', cargoFirma: '', produccionKgHora: '',
-            desperdicioTotalKg: null
+            desperdicioTotalKg: null,
+            fechaRealProduccion: ''
         };
+        this.limpiarFotosRondaPendientes();
         this.form.operarios = this.operarioSesion || '';
         this.inicializarResultados();
         this.variablesCriticas = {
@@ -612,8 +806,10 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.firmaDataUrl = null;
         this.opExistente = null;
         this.clienteDetectado = null;
+        this.mezclaOrden = [];
         this.editandoId = null;
         this.vista = 'nuevo';
+        this.fotosRondas = [];
         this.iniciarAutoguardado();
 
         setTimeout(() => this.iniciarCanvas(), 300);
@@ -636,12 +832,15 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         };
     }
     restaurarEstado(estado: any) {
+        this.limpiarFotosRondaPendientes();
         this.form = { ...estado.form };
         this.variablesCriticas = JSON.parse(JSON.stringify(estado.variablesCriticas));
         this.rondas = JSON.parse(JSON.stringify(estado.rondas));
         this.observaciones = { ...estado.observaciones };
         this.tieneRondaFinal = estado.tieneRondaFinal;
         this.editandoId = estado.editandoId;
+        this.asegurarIdsRondas();
+        if (this.editandoId) this.cargarFotosRondas(this.editandoId); else this.fotosRondas = [];
         this.firmaDataUrl = estado.firmaDataUrl;
         this.vista = estado.vista;
         this.opExistente = estado.opExistente;
@@ -649,6 +848,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.valoresOriginalesSugeridos = estado.valoresOriginalesSugeridos ? JSON.parse(JSON.stringify(estado.valoresOriginalesSugeridos)) : null;
         this.motivoCambioParametros = estado.motivoCambioParametros;
         this.registrosOperarioDisponibles = estado.registrosOperarioDisponibles;
+
         setTimeout(() => this.iniciarCanvas(), 300);
     }
     abrirNuevaPestana() {
@@ -659,6 +859,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.nuevo();
         this.pestanasAbiertas.push({ titulo: 'Nueva orden', estado: this.capturarEstadoActual() });
         this.pestanaActivaIndice = this.pestanasAbiertas.length - 1;
+
     }
 
     cambiarPestana(indice: number) {
@@ -707,6 +908,40 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         if (!json) return null;
         try { return JSON.parse(json); } catch { return null; }
     }
+    // Convierte las variables críticas (de cualquier formato) en una lista legible; omite lo vacío
+    parametrosLista(vc: any): { etiqueta: string; valor: string }[] {
+        const lista: { etiqueta: string; valor: string }[] = [];
+        if (!vc) return lista;
+        const poner = (etiqueta: string, valor: any) => {
+            if (valor === null || valor === undefined) return;
+            const t = String(valor).trim();
+            if (t !== '') lista.push({ etiqueta, valor: t });
+        };
+
+        poner('Molde', vc.corona);
+        poner('Medida del molde', vc.molde);
+        for (let z = 1; z <= 6; z++) poner('Zona ' + z + ' (°C)', vc.temperaturas?.['zona' + z]);
+        poner('Motor / Motor 1 (Hz)', vc.velocidades?.maquina);
+        poner('Motor 2 (Hz)', vc.velocidades?.maquina2);
+        poner('Halador (Hz)', vc.velocidades?.halador);
+        poner('Bobinador (Hz)', vc.velocidades?.bobinador);
+        poner('Aire (H)', vc.aire);
+        poner('Amperaje (A)', vc.amperaje);
+        poner('Altura burbuja (cm)', vc.alturaBurbuja);
+        // Antes de corregirlo, "Vela" se guardaba en produccionKgHora
+        const vela = vc.vela || (['Con vela', 'Sin vela'].includes(vc.produccionKgHora) ? vc.produccionKgHora : '');
+        poner('Vela', vela);
+        // Otros formatos
+        poner('Máquina', vc.maquinaImpresion || vc.maquinaSellado || vc.maquinaPrecorte);
+        poner('Metros por minuto', vc.metrosPorMinuto);
+        poner('Velocidad máquina (Hz)', vc.velocidadMaquinaHz);
+        poner('Golpes por minuto', vc.golpesPorMinuto);
+        poner('Bolsas por minuto', vc.bolsasPorMinuto);
+        poner('Temp. superior (°C)', vc.temperaturaSuperior);
+        poner('Temp. inferior (°C)', vc.temperaturaInferior);
+        poner('Temperatura (°C)', vc.temperaturaPrecorte);
+        return lista;
+    }
     limpiarFirma() {
         const canvas = document.getElementById('firmaCanvasGenerico') as HTMLCanvasElement;
         if (canvas) canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
@@ -733,7 +968,8 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
                 ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
                 : null,
-            resultadosJson: JSON.stringify(resultadosData)
+            resultadosJson: JSON.stringify(resultadosData),
+            fechaRealProduccion: this.form.fechaRealProduccion || null
         };
 
         const peticion = this.editandoId
@@ -828,7 +1064,8 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
                     rondas: estado.rondas,
                     observaciones: estado.observaciones,
                     caracteristicas: this.caracteristicas.map(c => ({ id: c.id, descripcion: c.descripcion }))
-                })
+                }),
+                fechaRealProduccion: estado.form.fechaRealProduccion || null
             };
             this.service.crearRegistro(dto).subscribe({
                 next: (data: any) => {
@@ -883,10 +1120,39 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.registroSeleccionado.rondasParsed = datos.rondas || [];
         this.registroSeleccionado.observacionesParsed = datos.observaciones || {};
         this.registroSeleccionado.caracteristicasParsed = datos.caracteristicas || [];
-        if (r.variablesCriticasJson) this.registroSeleccionado.variablesCriticasParsed = JSON.parse(r.variablesCriticasJson);
+
+        const vc = this.parsearJson(r.variablesCriticasJson);
+        this.registroSeleccionado.variablesCriticasParsed = vc;
+        this.parametrosVer = this.parametrosLista(vc);
+        this.motivoVer = vc?.motivoCambio ?? null;
+
+        this.operariosVer = [];
+        this.mezclaVer = [];
+        this.fotosRondas = [];
+
+        this.service.getParametrosOperario(r.id).subscribe({
+            next: (lista: any[]) => {
+                this.operariosVer = (lista ?? []).map(reg => {
+                    const v = this.parsearJson(reg.variablesCriticasJson);
+                    return {
+                        nombre: reg.operarioNombre,
+                        fecha: reg.fechaGuardado,
+                        motivo: reg.motivoCambio ?? v?.motivoCambio ?? null,
+                        parametros: this.parametrosLista(v)
+                    };
+                });
+            },
+            error: () => { this.operariosVer = []; }
+        });
+
+        this.service.getMezclaOrden(r.ordenProduccion).subscribe({
+            next: (d: any[]) => { this.mezclaVer = d ?? []; },
+            error: () => { this.mezclaVer = []; }
+        });
+
+        this.cargarFotosRondas(r.id);
         this.vista = 'ver';
     }
-
     editar(r: any) {
         this.editandoId = r.id;
         this.form = {
@@ -894,12 +1160,15 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             operarios: r.operarios ?? '', hora: r.hora ?? '', maquina: r.maquina ?? '',
             puedeLiberarse: r.puedeLiberarse, explicacionNoLiberado: r.explicacionNoLiberado ?? '',
             cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? '',
-            desperdicioTotalKg: r.desperdicioTotalKg ?? null
+            desperdicioTotalKg: r.desperdicioTotalKg ?? null,
+            fechaRealProduccion: ''
         };
-
+        this.limpiarFotosRondaPendientes();
         this.inicializarResultados();
         const datosGuardados = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{}}');
         this.rondas = datosGuardados.rondas || [];
+        this.asegurarIdsRondas();
+        this.cargarFotosRondas(r.id);
         this.observaciones = datosGuardados.observaciones || {};
         this.tieneRondaFinal = this.rondas.some((rr: any) => rr.final);
 
@@ -911,16 +1180,19 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         }
         this.firmaDataUrl = r.firmaDigital ?? null;
         this.vista = 'editar';
+        this.cargarFotosRondas(r.id);
         this.service.getParametrosOperario(r.id).subscribe({
             next: (data) => this.registrosOperarioDisponibles = data,
             error: (e) => console.error(e)
         });
         this.iniciarAutoguardado();
+        this.cargarMezcla();
         this.verificarSugerenciaAlAbrir();
         setTimeout(() => this.iniciarCanvas(), 300);
     }
 
     abrirLiberar(r: any) {
+        this.limpiarFotosRondaPendientes();
         this.editandoId = r.id;
         this.registroSeleccionado = r;
         this.form.puedeLiberarse = r.puedeLiberarse ?? null;
@@ -930,9 +1202,12 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.form.desperdicioTotalKg = r.desperdicioTotalKg ?? null;
         this.firmaDataUrl = r.firmaDigital ?? null;
 
+
         this.inicializarResultados();
         const datosGuardados = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{}}');
         this.rondas = datosGuardados.rondas || [];
+        this.asegurarIdsRondas();
+        this.cargarFotosRondas(r.id);
         this.observaciones = datosGuardados.observaciones || {};
         this.tieneRondaFinal = this.rondas.some((rr: any) => rr.final);
 
@@ -961,7 +1236,300 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             this.service.eliminarRegistro(id).subscribe({ next: () => this.cargar() });
         });
     }
-    exportarPDF(registroUnico?: any) {
+    private imagenParaPdf(url: string, maxLado = 700, calidad = 0.7): Promise<{ data: string; w: number; h: number } | null> {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
+                const w = Math.max(1, Math.round(img.width * escala));
+                const h = Math.max(1, Math.round(img.height * escala));
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) { resolve(null); return; }
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve({ data: canvas.toDataURL('image/jpeg', calidad), w, h });
+            };
+            img.onerror = () => resolve(null);
+            img.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+        });
+    }
+
+    // PDF completo de un registro: datos, mezcla, parámetros, rondas, fotos de cada hora y liberación
+    private async pdfRegistroCompleto(r: any) {
+        if (this.generandoPdf) return;
+        this.generandoPdf = true;
+        try {
+            const [mezcla, operarios, fotosTabla] = await Promise.all([
+                firstValueFrom(this.service.getMezclaOrden(r.ordenProduccion)).catch(() => [] as any[]),
+                firstValueFrom(this.service.getParametrosOperario(r.id)).catch(() => [] as any[]),
+                firstValueFrom(this.service.getFotosRondas(r.id)).catch(() => [] as any[])
+            ]);
+
+            const datos = this.parsearJson(r.resultadosJson) ?? {};
+            const rondas: any[] = datos.rondas || [];
+            const caracteristicas: any[] = datos.caracteristicas || [];
+            const observaciones: any = datos.observaciones || {};
+            const vc = this.parsearJson(r.variablesCriticasJson);
+
+            // Fotos de cada hora: las que venían dentro del registro y las de la tabla
+            const fotosPorRonda: string[][] = rondas.map((ronda: any) => [
+                ...((ronda.fotos as string[]) ?? []),
+                ...fotosTabla.filter((f: any) => f.rondaId === ronda.id).map((f: any) => f.archivo)
+            ]);
+
+            // Las fotos se descargan antes de armar el documento (de 6 en 6)
+            const archivos = Array.from(new Set(fotosPorRonda.flat()));
+            const imagenes: { [archivo: string]: { data: string; w: number; h: number } | null } = {};
+            for (let i = 0; i < archivos.length; i += 6) {
+                const lote = archivos.slice(i, i + 6);
+                const res = await Promise.all(lote.map(a => this.imagenParaPdf(this.urlFotoRonda(a))));
+                lote.forEach((a, k) => { imagenes[a] = res[k]; });
+            }
+
+            const doc = new jsPDF('p', 'mm', 'letter');
+            const W = 216, M = 10, PIE = 262;
+            const GRIS: [number, number, number] = [225, 225, 225];
+            let y = M;
+
+            const nuevaPagina = () => { doc.addPage(); y = M; };
+            const hayEspacio = (alto: number) => { if (y + alto > PIE) nuevaPagina(); };
+            const titulo = (t: string) => {
+                hayEspacio(16);
+                doc.setDrawColor(0); doc.setLineWidth(0.4); doc.setFillColor(GRIS[0], GRIS[1], GRIS[2]);
+                doc.rect(M, y, W - M * 2, 6, 'FD');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+                doc.text(t, M + 2, y + 4.2);
+                y += 8;
+            };
+            const tabla = (opciones: any) => {
+                autoTable(doc, {
+                    theme: 'grid',
+                    margin: { left: M, right: M, bottom: 18 },
+                    styles: { fontSize: 7, lineColor: [0, 0, 0], lineWidth: 0.3, textColor: [0, 0, 0], cellPadding: 1.5 },
+                    headStyles: { fillColor: GRIS, textColor: [0, 0, 0], fontStyle: 'bold' },
+                    ...opciones,
+                    startY: y
+                });
+                y = (doc as any).lastAutoTable.finalY + 4;
+            };
+            const nota = (texto: string) => {
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+                const lineas: string[] = doc.splitTextToSize(texto, W - M * 2);
+                hayEspacio(lineas.length * 3.2 + 2);
+                lineas.forEach((l, i) => doc.text(l, M, y + 3 + i * 3.2));
+                y += lineas.length * 3.2 + 3;
+            };
+            const filasParametros = (lista: { etiqueta: string; valor: string }[]): string[][] => {
+                const filas: string[][] = [];
+                for (let i = 0; i < lista.length; i += 3) {
+                    const fila: string[] = [];
+                    for (let k = 0; k < 3; k++) {
+                        const it = lista[i + k];
+                        fila.push(it ? it.etiqueta : '', it ? it.valor : '');
+                    }
+                    filas.push(fila);
+                }
+                return filas;
+            };
+            const estiloParametros = {
+                0: { fontStyle: 'bold', fillColor: [245, 245, 245] },
+                2: { fontStyle: 'bold', fillColor: [245, 245, 245] },
+                4: { fontStyle: 'bold', fillColor: [245, 245, 245] }
+            };
+
+            // Encabezado
+            doc.setDrawColor(0); doc.setLineWidth(0.4);
+            doc.rect(M, y, W - M * 2, 20);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+            doc.text('EMPAQUES PLASTICOS S.A.S', W / 2, y + 7, { align: 'center' });
+            doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+            doc.text('NIT:816000992-1', W / 2, y + 12, { align: 'center' });
+            doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+            doc.text('FORMATO: CONTROL Y LIBERACION DE PRODUCTO - ' + (this.tipoFormato?.nombre ?? '').toUpperCase(), W / 2, y + 17, { align: 'center' });
+            doc.rect(W - M - 42, y, 42, 20);
+            doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+            doc.text('Codigo: ' + this.codigoFormato, W - M - 40, y + 6);
+            doc.text('Version: 002', W - M - 40, y + 13);
+            doc.text('Fecha: 15/09/2024', W - M - 40, y + 18);
+            y += 24;
+
+            // Datos generales
+            titulo('DATOS GENERALES');
+            tabla({
+                body: [
+                    ['Orden de producción', r.ordenProduccion || '-', 'Fecha', r.fecha ? new Date(r.fecha).toLocaleString('es-CO') : '-'],
+                    ['Cliente', r.cliente || '-', 'Referencia', r.referencia || '-'],
+                    ['Operario(s)', r.operarios || '-', 'Máquina', r.maquina || '-'],
+                    ['Hora', r.hora || '-', 'Estado', r.estado === 'Liberado' ? 'Liberado' : 'Pendiente de liberación']
+                ],
+                columnStyles: {
+                    0: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 34 },
+                    2: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 26 }
+                }
+            });
+
+            // Mezcla de la orden
+            if (mezcla.length > 0) {
+                titulo('MEZCLA DE LA ORDEN');
+                tabla({
+                    head: [['Proceso', 'Referencia', 'Descripción', 'Cantidad', '%', 'Observación']],
+                    body: mezcla.map((m: any) => [
+                        this.nombreProceso(m.proceso), m.referencia, m.descripcion,
+                        (Number(m.cantidad) || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 }) + ' ' + (m.unidad || ''),
+                        (Number(m.porcentaje) || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 }) + '%',
+                        m.observacion || '-'
+                    ])
+                });
+            }
+
+            // Parámetros: el último guardado y el de cada operario
+            const lista = this.parametrosLista(vc);
+            if (lista.length > 0) {
+                titulo('PARÁMETROS REGISTRADOS (ÚLTIMO GUARDADO)');
+                tabla({ body: filasParametros(lista), columnStyles: estiloParametros });
+                if (vc?.motivoCambio) nota('Motivo del cambio de parámetros: ' + vc.motivoCambio);
+            }
+
+            for (const op of operarios as any[]) {
+                const v = this.parsearJson(op.variablesCriticasJson);
+                const l = this.parametrosLista(v);
+                if (l.length === 0) continue;
+                titulo('PARÁMETROS DE ' + String(op.operarioNombre || '-').toUpperCase() + ' — guardado ' +
+                    (op.fechaGuardado ? new Date(op.fechaGuardado).toLocaleString('es-CO') : '-'));
+                tabla({ body: filasParametros(l), columnStyles: estiloParametros });
+                const motivo = op.motivoCambio || v?.motivoCambio;
+                if (motivo) nota('Motivo del cambio: ' + motivo);
+            }
+
+            // Verificación por hora
+            if (rondas.length > 0 && caracteristicas.length > 0) {
+                titulo('RESULTADOS DE VERIFICACIÓN POR HORA');
+                const encabezados = [
+                    'Característica',
+                    ...rondas.map((ro: any) => {
+                        let t = ro.hora + (ro.final ? ' (F)' : '');
+                        if (ro.operario) t += '\n' + ro.operario;
+                        if (ro.cierreDeOperario) t += '\nDesp. ' + (ro.kilosDesperdicio || 0) + ' kg';
+                        return t;
+                    }),
+                    'Observación'
+                ];
+                const filas = caracteristicas.map((c: any) => {
+                    const fila: string[] = [c.descripcion];
+                    for (const ro of rondas) {
+                        const v = ro.valores?.[c.id];
+                        let t = v === 'cumple' ? 'OK' : v === 'noCumple' ? 'NO' : v === 'na' ? 'N/A' : '-';
+                        const medida = ro.valoresNumericos?.[c.id];
+                        if (medida) t += ' (' + medida + ')';
+                        fila.push(t);
+                    }
+                    fila.push(observaciones[c.id] || '-');
+                    return fila;
+                });
+                tabla({
+                    head: [encabezados],
+                    body: filas,
+                    styles: { fontSize: 6.5, lineColor: [0, 0, 0], lineWidth: 0.3, textColor: [0, 0, 0], cellPadding: 1.2, halign: 'center' },
+                    columnStyles: { 0: { halign: 'left', cellWidth: 36 }, [rondas.length + 1]: { halign: 'left', cellWidth: 28 } },
+                    didParseCell: (d: any) => {
+                        if (d.section === 'body' && d.column.index > 0 && d.column.index <= rondas.length) {
+                            const t = String(d.cell.raw);
+                            if (t.startsWith('NO')) { d.cell.styles.textColor = [180, 28, 28]; d.cell.styles.fontStyle = 'bold'; }
+                            else if (t.startsWith('OK')) d.cell.styles.textColor = [22, 101, 52];
+                        }
+                    }
+                });
+            }
+
+            // Fotos de evidencia de cada hora
+            const conFotos = rondas
+                .map((ro: any, i: number) => ({ ro, fotos: fotosPorRonda[i] }))
+                .filter(x => x.fotos.length > 0);
+
+            if (conFotos.length > 0) {
+                titulo('EVIDENCIA FOTOGRÁFICA');
+                for (const { ro, fotos } of conFotos) {
+                    hayEspacio(46);
+                    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+                    doc.text('Hora ' + ro.hora + (ro.operario ? ' — ' + ro.operario : '') + ' (' + fotos.length + ' foto' + (fotos.length > 1 ? 's' : '') + ')', M, y + 3);
+                    y += 6;
+
+                    let col = 0;
+                    for (const archivo of fotos) {
+                        if (col === 4) { col = 0; y += 38; }
+                        if (y + 38 > PIE) { nuevaPagina(); col = 0; }
+                        const x = M + col * 50;
+                        const img = imagenes[archivo];
+                        doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.2);
+                        doc.rect(x, y, 46, 34);
+                        if (img) {
+                            const esc = Math.min(46 / img.w, 34 / img.h);
+                            const w = img.w * esc, h = img.h * esc;
+                            try { doc.addImage(img.data, 'JPEG', x + (46 - w) / 2, y + (34 - h) / 2, w, h); }
+                            catch (e) { doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.text('No disponible', x + 23, y + 18, { align: 'center' }); }
+                        } else {
+                            doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(0, 0, 0);
+                            doc.text('No disponible', x + 23, y + 18, { align: 'center' });
+                        }
+                        col++;
+                    }
+                    y += 38;
+                }
+            }
+
+            // Liberación
+            titulo('LIBERACIÓN DEL PRODUCTO');
+            tabla({
+                body: [
+                    ['¿Puede ser liberado?', r.puedeLiberarse === true ? 'SI' : r.puedeLiberarse === false ? 'NO' : '-',
+                        'Producción (Kg/h)', r.produccionKgHora || '-'],
+                    ['Desperdicio total (Kg)', r.desperdicioTotalKg != null ? String(r.desperdicioTotalKg) : '-',
+                        'Cargo', r.cargoFirma || '-'],
+                    ['Revisado por', r.revisadoPor || '-',
+                        'Fecha de revisión', r.fechaRevision ? new Date(r.fechaRevision).toLocaleString('es-CO') : '-']
+                ],
+                columnStyles: {
+                    0: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 38 },
+                    2: { fontStyle: 'bold', fillColor: [245, 245, 245], cellWidth: 34 }
+                }
+            });
+            if (r.explicacionNoLiberado) nota('Motivo de no liberación: ' + r.explicacionNoLiberado);
+
+            if (r.firmaDigital) {
+                hayEspacio(26);
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+                doc.text('Firma de quien hace la liberación', M, y + 3);
+                try { doc.addImage(r.firmaDigital, 'PNG', M, y + 5, 48, 14); } catch (e) { }
+                y += 24;
+            }
+
+            nota('Nota: Los métodos de verificación de las características y los criterios de cumplimiento a tener en cuenta, están definidos en el "Procedimiento de Pruebas y Ensayos: ' + (this.tipoFormato?.nombre ?? '') + '" e "Instructivos para Pruebas y Ensayos".');
+
+            hayEspacio(12);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(0, 0, 0);
+            doc.text('FIN DEL DOCUMENTO', W / 2, y + 6, { align: 'center' });
+
+            const paginas = doc.getNumberOfPages();
+            for (let p = 1; p <= paginas; p++) {
+                doc.setPage(p);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(0, 0, 0);
+                doc.text('Página ' + p + ' de ' + paginas, W - M, 272, { align: 'right' });
+            }
+            doc.save(this.codigoFormato + '_OP' + r.ordenProduccion + '_' + new Date().toISOString().slice(0, 10) + '.pdf');
+        } catch (e) {
+            console.error(e);
+            alert('No se pudo generar el PDF');
+        } finally {
+            this.generandoPdf = false;
+        }
+    }
+    async exportarPDF(registroUnico?: any) {
+        if (registroUnico) { await this.pdfRegistroCompleto(registroUnico); return; }
         const listaAExportar = registroUnico ? [registroUnico] : this.registros;
         if (listaAExportar.length === 0) { alert('No hay registros para exportar'); return; }
 

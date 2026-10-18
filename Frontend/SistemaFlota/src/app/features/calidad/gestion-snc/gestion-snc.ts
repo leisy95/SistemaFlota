@@ -336,6 +336,7 @@ export class GestionSncComponent implements OnInit {
 
     ver(r: any) {
         this.registroSeleccionado = r;
+        this.completarClienteReferencia(r);
         this.editandoId = r.id;
         this.cargarEvidencias(r.id);
         this.formTratamiento = {
@@ -355,6 +356,18 @@ export class GestionSncComponent implements OnInit {
 
         if (r.estado === 'Reportado') this.iniciarCanvasTratamiento();
         if (r.estado === 'Tratamiento') this.iniciarCanvasVerificacion();
+    }
+    // Si el reporte no guardó cliente o referencia, se completan desde la orden de producción (solo para mostrar)
+    private completarClienteReferencia(r: any) {
+        if ((r.cliente && r.referencia) || !r.ordenProduccion) return;
+        this.ordenesService.buscar(r.ordenProduccion).subscribe({
+            next: (o: any) => {
+                if (this.registroSeleccionado?.id !== r.id) return;
+                if (!r.cliente && o?.cliente) this.registroSeleccionado.cliente = o.cliente;
+                if (!r.referencia && o?.referencia) this.registroSeleccionado.referencia = o.referencia;
+            },
+            error: () => { }
+        });
     }
 
     guardarTratamiento() {

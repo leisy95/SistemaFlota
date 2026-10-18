@@ -179,6 +179,7 @@ builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
 builder.Services.AddScoped<EmpresaOrdenesService>();
 builder.Services.AddScoped<EntradasBodegaService>();
+builder.Services.AddScoped<MezclaOrdenService>();
 builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
 builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConContingencia>();

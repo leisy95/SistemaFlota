@@ -841,6 +841,34 @@ namespace SistemaFlota.Migrations
                     b.ToTable("FormatoFGC008");
                 });
 
+            modelBuilder.Entity("SistemaFlota.FormatoFGC008Foto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FormatoFGC008Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubidaPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormatoFGC008Id");
+
+                    b.ToTable("FormatoFGC008Foto");
+                });
+
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
                 {
                     b.Property<int>("Id")
@@ -1141,6 +1169,39 @@ namespace SistemaFlota.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Cajones");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoCalidadFoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("RegistroFormatoCalidadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RondaId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("SubidaPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegistroFormatoCalidadId");
+
+                    b.ToTable("FormatoCalidadFoto");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Calidad.RegistroParametrosOperario", b =>
@@ -3758,6 +3819,15 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Conductor");
                 });
 
+            modelBuilder.Entity("SistemaFlota.FormatoFGC008Foto", b =>
+                {
+                    b.HasOne("SistemaFlota.FormatoFGC008", null)
+                        .WithMany("FotosEvidencia")
+                        .HasForeignKey("FormatoFGC008Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
                 {
                     b.HasOne("SistemaFlota.Autorizacion", "Autorizacion")
@@ -3839,6 +3909,17 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("Vehiculo");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoCalidadFoto", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.RegistroFormatoCalidad", "RegistroFormatoCalidad")
+                        .WithMany()
+                        .HasForeignKey("RegistroFormatoCalidadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RegistroFormatoCalidad");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Calidad.RegistroParametrosOperario", b =>
@@ -4384,6 +4465,11 @@ namespace SistemaFlota.Migrations
                     b.Navigation("ExamenesMedicos");
 
                     b.Navigation("Infracciones");
+                });
+
+            modelBuilder.Entity("SistemaFlota.FormatoFGC008", b =>
+                {
+                    b.Navigation("FotosEvidencia");
                 });
 
             modelBuilder.Entity("SistemaFlota.Inspeccion", b =>

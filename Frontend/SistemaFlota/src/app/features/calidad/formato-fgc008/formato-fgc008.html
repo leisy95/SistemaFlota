@@ -35,31 +35,32 @@
           <i class="fa-solid fa-rotate"></i> {{ sincronizando ? 'Sincronizando...' : 'Sincronizar' }}
         </button>
       </div>
-      <button class="btn-filtrar" (click)="cargar()">Filtrar</button>
-      <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+      <button class="btn-filtrar" (click)="cargar(true)">Filtrar</button>
+      <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> {{
+        generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}</button>
       <button class="btn-importar" *ngIf="puedeCrear" (click)="mostrarModalImportar = true">
         <i class="fa-solid fa-file-import"></i> Importar Órdenes
       </button>
     </div>
 
     <!-- RESUMEN -->
-    <div class="stats-grid" *ngIf="registros.length > 0">
+    <div class="stats-grid" *ngIf="resumen.total > 0">
       <div class="stat-card azul">
         <i class="fa-solid fa-clipboard-list"></i>
-        <div><span class="stat-label">Total registros</span><span class="stat-valor">{{ totalRegistros }}</span></div>
+        <div><span class="stat-label">Total registros</span><span class="stat-valor">{{ resumen.total }}</span></div>
       </div>
       <div class="stat-card rojo">
         <i class="fa-solid fa-triangle-exclamation"></i>
-        <div><span class="stat-label">Con defectos</span><span class="stat-valor">{{ conDefectos }}</span></div>
+        <div><span class="stat-label">Con defectos</span><span class="stat-valor">{{ resumen.conDefectos }}</span></div>
       </div>
       <div class="stat-card amarillo">
         <i class="fa-solid fa-truck-ramp-box"></i>
-        <div><span class="stat-label">Pendientes despacho</span><span class="stat-valor">{{ pendientesDespacho }}</span>
-        </div>
+        <div><span class="stat-label">Pendientes despacho</span><span class="stat-valor">{{ resumen.pendientesDespacho
+            }}</span></div>
       </div>
       <div class="stat-card verde">
         <i class="fa-solid fa-chart-line"></i>
-        <div><span class="stat-label">% completado (OP)</span><span class="stat-valor">{{ porcentajeCompletado
+        <div><span class="stat-label">% completado (OP)</span><span class="stat-valor">{{ resumen.porcentajeCompletado
             }}%</span></div>
       </div>
     </div>
@@ -128,19 +129,26 @@
 
             <td data-label="Acumulado y falta">
               <div class="celda" *ngIf="r.origen === 'Bodega'; else progManual">
-                <span>{{ r.acumuladoOP | number:'1.0-2' }} {{ esUnidades(r) ? 'und' : 'kg' }}</span>
-                <span class="etiqueta aviso" *ngIf="r.porHacer != null && r.porHacer > 0">Faltan {{ r.porHacer |
-                  number:'1.0-2' }}</span>
-                <span class="etiqueta ok" *ngIf="r.porHacer != null && r.porHacer <= 0">Completa</span>
-                <small *ngIf="r.porHacer == null && r.unidadOP">Programada en {{ r.unidadOP }}</small>
+                <span>{{ r.acumuladoOP | number:'1.0-2' }} / {{ r.cantidadOP | number:'1.0-0' }}</span>
+                <small>real / programada ({{ esUnidades(r) ? 'und' : 'kg' }})</small>
+                <ng-container *ngIf="r.diferenciaPct != null">
+                  <span class="etiqueta aviso" *ngIf="r.porHacer > 0">Faltan {{ r.porHacer | number:'1.0-2' }} ·
+                    {{ r.diferenciaPct | number:'1.1-1' }} %</span>
+                  <span class="etiqueta ok" *ngIf="r.porHacer <= 0">{{ r.diferenciaPct > 0 ? '+' : '' }}{{
+                    r.diferenciaPct | number:'1.1-1' }} % sobre lo programado</span>
+                </ng-container>
               </div>
               <ng-template #progManual>
                 <div class="celda">
                   <span [class.alerta-cantidad]="r.cantidadReal < r.cantidadOP">
-                    {{ r.cantidadOP }} programada
+                    {{ r.cantidadReal }} / {{ r.cantidadOP }}
                     <i class="fa-solid fa-circle-exclamation" *ngIf="r.cantidadReal < r.cantidadOP"
                       title="Cantidad real menor a la OP"></i>
                   </span>
+                  <small>real / programada</small>
+                  <span class="etiqueta" *ngIf="diferenciaPct(r) !== null" [class.ok]="diferenciaPct(r)! >= 0"
+                    [class.aviso]="diferenciaPct(r)! < 0">{{ diferenciaPct(r)! > 0 ? '+' : '' }}{{
+                    diferenciaPct(r) | number:'1.1-1' }} %</span>
                 </div>
               </ng-template>
             </td>
@@ -155,9 +163,12 @@
             <td data-label="Despacho y foto">
               <div class="celda">
                 <span>{{ r.despachado || 'Sin despachar' }}</span>
-                <img *ngIf="r.fotoEvidencia" [src]="baseUrl + '/formatos/' + r.fotoEvidencia" class="foto-mini"
-                  (click)="abrirFotoAmpliada(baseUrl + '/formatos/' + r.fotoEvidencia)">
-                <small *ngIf="!r.fotoEvidencia">Sin foto</small>
+                <div class="fotos-fila" *ngIf="fotosDe(r).length > 0">
+                  <img *ngFor="let f of fotosDe(r).slice(0, 3)" [src]="baseUrl + '/formatos/' + f" class="foto-mini"
+                    (click)="abrirFotoAmpliada(baseUrl + '/formatos/' + f)">
+                  <small *ngIf="fotosDe(r).length > 3">+{{ fotosDe(r).length - 3 }}</small>
+                </div>
+                <small *ngIf="fotosDe(r).length === 0">Sin foto</small>
               </div>
             </td>
 
@@ -167,7 +178,8 @@
                 <span *ngSwitchCase="'cambio'" class="etiqueta aviso">Cambió después de revisar</span>
                 <span *ngSwitchCase="'revisada'" class="etiqueta ok">Revisada</span>
                 <span *ngSwitchDefault class="etiqueta neutra">Sin revisar</span>
-                <small *ngIf="r.revisadoPor && estadoRevision(r) !== 'sin'">{{ r.revisadoPor }}</small>
+                <small *ngIf="r.revisadoPor && estadoRevision(r) !== 'sin'">{{ r.revisadoPor }}<ng-container
+                    *ngIf="r.revisadoPorNombre"> — {{ r.revisadoPorNombre }}</ng-container></small>
               </div>
             </td>
 
@@ -183,6 +195,22 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="paginacion" *ngIf="totalFiltro > 0">
+      <span class="pag-info">{{ (pagina - 1) * porPagina + 1 }}–{{ (pagina - 1) * porPagina + registros.length }} de
+        {{ totalFiltro }}</span>
+      <div class="pag-botones">
+        <button type="button" (click)="irAPagina(1)" [disabled]="pagina === 1" title="Primera"><i
+            class="fa-solid fa-angles-left"></i></button>
+        <button type="button" (click)="irAPagina(pagina - 1)" [disabled]="pagina === 1" title="Anterior"><i
+            class="fa-solid fa-angle-left"></i></button>
+        <span class="pag-actual">Página {{ pagina }} de {{ totalPaginas }}</span>
+        <button type="button" (click)="irAPagina(pagina + 1)" [disabled]="pagina === totalPaginas" title="Siguiente"><i
+            class="fa-solid fa-angle-right"></i></button>
+        <button type="button" (click)="irAPagina(totalPaginas)" [disabled]="pagina === totalPaginas" title="Última"><i
+            class="fa-solid fa-angles-right"></i></button>
+      </div>
     </div>
 
     <div class="vacio" *ngIf="registros.length === 0">
@@ -291,12 +319,35 @@
       <div class="form-section">
         <h3>Evidencia</h3>
         <div class="fg">
-          <label>Foto de evidencia</label>
-          <label class="foto-btn">
-            <input type="file" accept="image/*" capture="environment" (change)="seleccionarFoto($event)"
-              style="display:none">
-            <span>📷 {{ fotoEvidencia ? fotoEvidencia.name : 'Tomar foto o seleccionar' }}</span>
-          </label>
+          <label>Fotos de evidencia ({{ totalFotos }}/{{ maxFotos }})</label>
+
+          <div class="fotos-grid" *ngIf="totalFotos > 0">
+            <div class="foto-item" *ngFor="let f of fotosActuales">
+              <img [src]="baseUrl + '/formatos/' + f.archivo"
+                (click)="abrirFotoAmpliada(baseUrl + '/formatos/' + f.archivo)">
+              <button type="button" class="foto-quitar" *ngIf="!f.antigua" (click)="eliminarFotoGuardada(f)"
+                title="Eliminar foto"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="foto-item" *ngFor="let p of fotosPendientes; let i = index">
+              <img [src]="p.preview">
+              <span class="foto-nueva">Nueva</span>
+              <button type="button" class="foto-quitar" (click)="quitarPendiente(i)" title="Quitar"><i
+                  class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+
+          <div class="fotos-botones" *ngIf="cupoFotos > 0">
+            <label class="foto-btn">
+              <input type="file" accept="image/*" capture="environment" (change)="seleccionarFotos($event)"
+                style="display:none">
+              <i class="fa-solid fa-camera"></i> Tomar foto
+            </label>
+            <label class="foto-btn">
+              <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event)" style="display:none">
+              <i class="fa-solid fa-images"></i> Elegir de galería
+            </label>
+          </div>
+          <small *ngIf="cupoFotos === 0">Llegó al máximo de {{ maxFotos }} fotos.</small>
         </div>
         <div class="fg" style="margin-top:12px">
           <label>Acciones tomadas (si incumple alguna verificacion)</label>
@@ -379,17 +430,21 @@
           <div class="detalle-item"><span class="det-label">Despachado a</span><span>{{
               registroSeleccionado.despachado || '-' }}</span></div>
           <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{
-              registroSeleccionado.revisadoPor || '-' }}</span></div>
+              registroSeleccionado.revisadoPor || '-' }}<ng-container *ngIf="registroSeleccionado.revisadoPorNombre"> —
+                {{ registroSeleccionado.revisadoPorNombre }}</ng-container></span></div>
         </div>
         <div *ngIf="registroSeleccionado.accionesTomadas"
           style="margin-top:12px;background:#fffbeb;padding:10px;border-radius:8px;border-left:3px solid #f59e0b">
           <strong style="font-size:12px">Acciones tomadas:</strong>
           <p style="font-size:13px;margin:4px 0 0">{{ registroSeleccionado.accionesTomadas }}</p>
         </div>
-        <div *ngIf="registroSeleccionado.fotoEvidencia" style="margin-top:12px">
-          <strong style="font-size:12px">Foto de evidencia:</strong><br>
-          <img [src]="baseUrl + '/formatos/' + registroSeleccionado.fotoEvidencia"
-            style="max-width:300px;border-radius:8px;margin-top:6px;border:1px solid #eee">
+        <div *ngIf="fotosDe(registroSeleccionado).length > 0" style="margin-top:12px">
+          <strong style="font-size:12px">Fotos de evidencia ({{ fotosDe(registroSeleccionado).length }}):</strong>
+          <div class="fotos-grid" style="margin-top:6px">
+            <div class="foto-item" *ngFor="let f of fotosDe(registroSeleccionado)">
+              <img [src]="baseUrl + '/formatos/' + f" (click)="abrirFotoAmpliada(baseUrl + '/formatos/' + f)">
+            </div>
+          </div>
         </div>
       </div>
       <div class="btn-row">
@@ -459,8 +514,37 @@
       <div class="form-section">
         <h3>Evidencia y observaciones</h3>
         <div class="form-grid">
-          <div class="fg full"><label>Nueva foto (opcional)</label><input type="file" accept="image/*"
-              (change)="seleccionarFoto($event)"></div>
+          <div class="fg full">
+            <label>Fotos de evidencia ({{ totalFotos }}/{{ maxFotos }})</label>
+
+            <div class="fotos-grid" *ngIf="totalFotos > 0">
+              <div class="foto-item" *ngFor="let f of fotosActuales">
+                <img [src]="baseUrl + '/formatos/' + f.archivo"
+                  (click)="abrirFotoAmpliada(baseUrl + '/formatos/' + f.archivo)">
+                <button type="button" class="foto-quitar" *ngIf="!f.antigua" (click)="eliminarFotoGuardada(f)"
+                  title="Eliminar foto"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="foto-item" *ngFor="let p of fotosPendientes; let i = index">
+                <img [src]="p.preview">
+                <span class="foto-nueva">Nueva</span>
+                <button type="button" class="foto-quitar" (click)="quitarPendiente(i)" title="Quitar"><i
+                    class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+
+            <div class="fotos-botones" *ngIf="cupoFotos > 0">
+              <label class="foto-btn">
+                <input type="file" accept="image/*" capture="environment" (change)="seleccionarFotos($event)"
+                  style="display:none">
+                <i class="fa-solid fa-camera"></i> Tomar foto
+              </label>
+              <label class="foto-btn">
+                <input type="file" accept="image/*" multiple (change)="seleccionarFotos($event)" style="display:none">
+                <i class="fa-solid fa-images"></i> Elegir de galería
+              </label>
+            </div>
+            <small *ngIf="cupoFotos === 0">Llegó al máximo de {{ maxFotos }} fotos.</small>
+          </div>
           <div class="fg full"><label>Acciones tomadas</label><textarea [(ngModel)]="form.accionesTomadas"
               rows="3"></textarea></div>
         </div>

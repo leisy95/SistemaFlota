@@ -29,13 +29,16 @@ namespace SistemaFlota
             _entradas = entradas;
         }
 
-        // SELLADO y DOBLADO se destacan en unidades; EXTRUSION, IMPRESION y PRECORTE en kilos
-        private static string UnidadPorSeccion(string seccion) =>
-            seccion switch
-            {
-                "SELLADO" or "DOBLADO" => "UN",
-                _ => "K"
-            };
+        // Solo se manejan kilos y unidades: K = kilos; cualquier otra unidad de (ML, UN) = unidades
+        private static string UnidadDeConteo(string? unidadOrden, string seccion)
+        {
+            var u = unidadOrden?.Trim().ToUpperInvariant();
+            if (!string.IsNullOrEmpty(u))
+                return u.StartsWith("K") ? "K" : "UN";
+
+            // Si la orden no trae unidad, se decide por la sección
+            return seccion is "SELLADO" or "DOBLADO" ? "UN" : "K";
+        }
 
         private static string? NormalizarUnidad(string? unidad)
         {
@@ -88,7 +91,7 @@ namespace SistemaFlota
                 var dia = g.Key.Dia;
                 vistos.Add($"{seccion}|{dia:yyyyMMdd}");
 
-                var unidad = UnidadPorSeccion(seccion);
+                var unidad = UnidadDeConteo(orden?.Unidad, seccion);
                 var bultos = g.Sum(e => e.Bultos);
                 var unidades = Math.Round(g.Sum(e => e.SumaUnidades), 2);
                 var kilos = Math.Round(g.Sum(e => e.SumaKilos), 2);

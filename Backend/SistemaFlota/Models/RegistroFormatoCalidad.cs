@@ -27,6 +27,7 @@ namespace SistemaFlota.Models
 
         public string? FirmaDigital { get; set; }
         [MaxLength(100)] public string? CargoFirma { get; set; }
+       
         [MaxLength(50)] public string? ProduccionKgHora { get; set; }
 
         public decimal? DesperdicioTotalKg { get; set; }

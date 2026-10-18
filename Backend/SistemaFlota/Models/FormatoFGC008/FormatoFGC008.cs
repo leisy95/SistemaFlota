@@ -36,16 +36,17 @@ namespace SistemaFlota
         [MaxLength(300)] public string? OperariosBodega { get; set; }
         public DateTime? DiaEntrada { get; set; }
         public int Bultos { get; set; }
-        [MaxLength(10)] public string? Troquel { get; set; }             // SI | NO | MIXTO
+        [MaxLength(10)] public string? Troquel { get; set; }           
         [Column(TypeName = "decimal(18,2)")] public decimal UnidadesEntrada { get; set; }
         [Column(TypeName = "decimal(18,2)")] public decimal KilosEntrada { get; set; }
         public int? UltimoNumEntrada { get; set; }
         public bool EnProceso { get; set; }
         public bool CambioDespuesDeRevisar { get; set; }
         public DateTime? UltimaSincronizacion { get; set; }
-
-        // Calculados al consultar (no se guardan en la base)
+        public List<FormatoFGC008Foto> FotosEvidencia { get; set; } = new();
         [NotMapped] public decimal? AcumuladoOP { get; set; }
         [NotMapped] public decimal? PorHacer { get; set; }
+        [NotMapped] public decimal? DiferenciaPct { get; set; }
+        [NotMapped] public string? RevisadoPorNombre { get; set; }
     }
 }

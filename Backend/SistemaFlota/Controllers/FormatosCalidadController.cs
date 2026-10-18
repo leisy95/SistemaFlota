@@ -98,8 +98,36 @@ namespace SistemaFlota
                 Estado = "PendienteLiberacion"
             };
 
+            // Fecha real de producción (órdenes físicas que se ingresan después)
+            DateTime? fechaManual = null;
+            if (dto.FechaRealProduccion.HasValue)
+            {
+                var cuentasMaquina = new[] { "Extrusion", "Precorte", "Impresion", "Sellado" };
+                var esCuentaMaquina = cuentasMaquina.Contains(GetUsuario(), StringComparer.OrdinalIgnoreCase);
+
+                int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var usuarioId);
+                var puedeEditar = GetRol() == "Admin"
+                    || await _context.UsuarioPermisos.AnyAsync(p =>
+                        p.UsuarioId == usuarioId && p.Modulo == "calidad-formatos" && p.PuedeEditar);
+
+                if (esCuentaMaquina || !puedeEditar)
+                    return StatusCode(403, new { mensaje = "No tiene permiso para fijar la fecha real de producción" });
+
+                var fechaReal = dto.FechaRealProduccion.Value.Date;
+                if (fechaReal > DateTime.Now.Date)
+                    return BadRequest(new { mensaje = "La fecha real de producción no puede ser futura" });
+
+                registro.Fecha = fechaReal;
+                fechaManual = fechaReal;
+            }
+
             _context.RegistrosFormatoCalidad.Add(registro);
             await _context.SaveChangesAsync();
+
+            if (fechaManual.HasValue)
+                await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Fecha-Manual", "FormatosCalidad",
+                    $"OP {registro.OrdenProduccion}: fecha real de producción {fechaManual:dd/MM/yyyy}, registrada el {DateTime.Now:dd/MM/yyyy HH:mm}",
+                    registro.Id);
 
             await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Crear", "FormatosCalidad",
                 $"Registro OP: {dto.OrdenProduccion} - Tipo: {dto.TipoFormatoId}", registro.Id);
@@ -182,6 +210,22 @@ namespace SistemaFlota
             return Ok(registro);
         }
 
+        // GET api/FormatosCalidad/mezcla/{op} — mezcla de la orden (solo lectura, viene de Kasoft)
+        [HttpGet("mezcla/{op}")]
+        public async Task<IActionResult> GetMezcla(string op, [FromServices] MezclaOrdenService mezcla)
+        {
+            try
+            {
+                return Ok(await mezcla.ObtenerAsync(op));
+            }
+            catch (Exception ex)
+            {
+                // Si Kasoft no responde, el formato sigue funcionando sin la mezcla
+                Console.WriteLine($"Error consultando la mezcla de la OP {op}: {ex.Message}");
+                return Ok(new List<MezclaOrdenItem>());
+            }
+        }
+
         // DELETE api/FormatosCalidad/registros/{id}
         [HttpDelete("registros/{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -192,6 +236,7 @@ namespace SistemaFlota
             await _context.SaveChangesAsync();
             return Ok();
         }
+
         // GET api/FormatosCalidad/desperdicio-orden?op=22310&tipoFormatoId=1
         [HttpGet("desperdicio-orden")]
         public async Task<IActionResult> DesperdicioPorOrden([FromQuery] string op, [FromQuery] int tipoFormatoId)
@@ -245,7 +290,7 @@ namespace SistemaFlota
                 return BadRequest(new { mensaje = "Debe indicar un texto para buscar" });
 
             var tipoExtrusion = await _context.TiposFormatoCalidad
-    .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
+                .FirstOrDefaultAsync(t => t.Codigo == "F-GC-004");
             if (tipoExtrusion == null) return NotFound(new { mensaje = "Tipo Extrusión no configurado" });
 
             var referenciasPorDescripcion = await _empresaOrdenes.BuscarReferenciasPorDescripcion(texto);
@@ -267,7 +312,7 @@ namespace SistemaFlota
 
             if (!registros.Any())
                 return Ok(new { mensaje = "No hay registros históricos para esta búsqueda", resultados = new List<object>() });
-           
+
             var fijado = registros.FirstOrDefault(r => r.EsMejorFijado);
 
             var calculados = registros.Select(r =>
@@ -291,8 +336,6 @@ namespace SistemaFlota
                         }
                     }
                 }
-
-
                 catch { }
 
                 return new
@@ -397,27 +440,136 @@ namespace SistemaFlota
             return Ok(lista);
         }
 
-        // POST api/FormatosCalidad/registros/{id}/rondas/{indiceRonda}/fotos
-        [HttpPost("registros/{id}/rondas/{indiceRonda}/fotos")]
-        public async Task<IActionResult> SubirFotosRonda(int id, int indiceRonda, List<IFormFile> fotos)
+        private const int MaxFotosRonda = 5;
+        private const long MaxBytesFotoRonda = 8 * 1024 * 1024;
+        private static readonly string[] ExtensionesFotoRonda = { ".jpg", ".jpeg", ".png", ".webp" };
+
+        // Cuántas fotos ya tiene una hora: las de la tabla más las que venían guardadas en el JSON (registros anteriores)
+        private async Task<int> ContarFotosRondaAsync(RegistroFormatoCalidad registro, string rondaId)
         {
+            var enTabla = await _context.FormatosCalidadFotos
+                .CountAsync(f => f.RegistroFormatoCalidadId == registro.Id && f.RondaId == rondaId);
+
+            var enJson = 0;
+            try
+            {
+                var raiz = System.Text.Json.Nodes.JsonNode.Parse(registro.ResultadosJson ?? "{}");
+                if (raiz?["rondas"] is System.Text.Json.Nodes.JsonArray rondas)
+                {
+                    foreach (var ronda in rondas)
+                    {
+                        // Si la hora todavía no tiene identificador, se compara por su posición (formato "pos-N")
+                        var id = ronda?["id"]?.GetValue<string>();
+                        if (id == rondaId && ronda?["fotos"] is System.Text.Json.Nodes.JsonArray fotosJson)
+                            enJson = fotosJson.Count;
+                    }
+                }
+            }
+            catch { }
+
+            return enTabla + enJson;
+        }
+
+        // POST api/FormatosCalidad/registros/{id}/rondas/{rondaId}/fotos
+        [HttpPost("registros/{id}/rondas/{rondaId}/fotos")]
+        public async Task<IActionResult> SubirFotosRonda(int id, string rondaId, [FromForm] List<IFormFile> fotos)
+        {
+            if (string.IsNullOrWhiteSpace(rondaId) || rondaId.Length > 50)
+                return BadRequest(new { mensaje = "Identificador de hora no válido" });
+
             if (fotos == null || fotos.Count == 0)
                 return BadRequest(new { mensaje = "No se recibieron fotos" });
+
+            var registro = await _context.RegistrosFormatoCalidad.FindAsync(id);
+            if (registro == null) return NotFound();
+
+            var existentes = await ContarFotosRondaAsync(registro, rondaId);
+            if (existentes + fotos.Count > MaxFotosRonda)
+                return BadRequest(new { mensaje = $"Cada hora admite máximo {MaxFotosRonda} fotos (ya tiene {existentes})" });
+
+            // Se valida todo antes de guardar nada, para no dejar la subida a medias
+            foreach (var f in fotos)
+            {
+                var ext = Path.GetExtension(f.FileName).ToLowerInvariant();
+                if (!ExtensionesFotoRonda.Contains(ext) || !f.ContentType.StartsWith("image/"))
+                    return BadRequest(new { mensaje = $"El archivo '{f.FileName}' no es una imagen válida (JPG, PNG o WEBP)" });
+
+                if (f.Length == 0 || f.Length > MaxBytesFotoRonda)
+                    return BadRequest(new { mensaje = $"El archivo '{f.FileName}' es demasiado grande (máximo 8 MB)" });
+            }
 
             var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/formatos-calidad");
             if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
 
-            var nombresGuardados = new List<string>();
+            var usuario = GetUsuario();
+            var nuevas = new List<FormatoCalidadFoto>();
 
-            foreach (var foto in fotos.Take(5))
+            foreach (var foto in fotos)
             {
-                var nombre = Guid.NewGuid().ToString() + Path.GetExtension(foto.FileName);
-                using var stream = new FileStream(Path.Combine(carpeta, nombre), FileMode.Create);
-                await foto.CopyToAsync(stream);
-                nombresGuardados.Add(nombre);
+                var nombre = Guid.NewGuid() + Path.GetExtension(foto.FileName).ToLowerInvariant();
+                using (var stream = new FileStream(Path.Combine(carpeta, nombre), FileMode.Create))
+                    await foto.CopyToAsync(stream);
+
+                var entidad = new FormatoCalidadFoto
+                {
+                    RegistroFormatoCalidadId = id,
+                    RondaId = rondaId,
+                    Archivo = nombre,
+                    SubidaPor = usuario
+                };
+                _context.FormatosCalidadFotos.Add(entidad);
+                nuevas.Add(entidad);
             }
 
-            return Ok(new { fotos = nombresGuardados });
+            await _context.SaveChangesAsync();
+
+            return Ok(nuevas.Select(f => new { f.Id, f.RondaId, f.Archivo, f.FechaCreacion, f.SubidaPor }));
+        }
+
+        // GET api/FormatosCalidad/registros/{id}/fotos — todas las fotos de las horas de un registro
+        [HttpGet("registros/{id}/fotos")]
+        public async Task<IActionResult> GetFotosRondas(int id)
+        {
+            var fotos = await _context.FormatosCalidadFotos
+                .Where(f => f.RegistroFormatoCalidadId == id)
+                .OrderBy(f => f.Id)
+                .Select(f => new { f.Id, f.RondaId, f.Archivo, f.FechaCreacion, f.SubidaPor })
+                .ToListAsync();
+
+            return Ok(fotos);
+        }
+
+        // DELETE api/FormatosCalidad/registros/{id}/fotos/{fotoId}
+        [HttpDelete("registros/{id}/fotos/{fotoId}")]
+        public async Task<IActionResult> EliminarFotoRonda(int id, int fotoId)
+        {
+            // Solo quien puede editar este módulo puede borrar fotos ya guardadas
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var usuarioId);
+            var puedeEditar = GetRol() == "Admin"
+                || await _context.UsuarioPermisos.AnyAsync(p =>
+                    p.UsuarioId == usuarioId && p.Modulo == "calidad-formatos" && p.PuedeEditar);
+
+            if (!puedeEditar)
+                return StatusCode(403, new { mensaje = "No tiene permiso para eliminar fotos" });
+
+            var foto = await _context.FormatosCalidadFotos
+                .FirstOrDefaultAsync(f => f.Id == fotoId && f.RegistroFormatoCalidadId == id);
+            if (foto == null) return NotFound();
+
+            _context.FormatosCalidadFotos.Remove(foto);
+            await _context.SaveChangesAsync();
+
+            // El archivo se borra después de la base; si falla, queda suelto pero no se ve en pantalla
+            var ruta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/formatos-calidad", Path.GetFileName(foto.Archivo));
+            if (System.IO.File.Exists(ruta))
+            {
+                try { System.IO.File.Delete(ruta); } catch { }
+            }
+
+            await _auditoria.RegistrarAsync(GetUsuario(), GetRol(), "Eliminar-Foto", "FormatosCalidad",
+                $"Foto eliminada del registro {id}", id);
+
+            return Ok();
         }
 
         [HttpPut("{id}/fijar-mejor")]
@@ -451,12 +603,5 @@ namespace SistemaFlota
 
             return Ok(registro);
         }
-
     }
-
 }
-
-
-
-
-

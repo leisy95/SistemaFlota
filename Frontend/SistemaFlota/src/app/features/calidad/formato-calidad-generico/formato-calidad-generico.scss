@@ -9,7 +9,7 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
-    gap: 12px;
+  gap: 12px;
 
   h1 {
     font-size: 1.6rem;
@@ -144,6 +144,7 @@ table {
 
 // Anchos de columna SOLO para escritorio (no deben aplicar en la vista de tarjetas móvil)
 @media (min-width: 901px) {
+
   th:nth-child(1),
   td:nth-child(1) {
     width: 14%;
@@ -1436,7 +1437,8 @@ tbody {
       border: none !important;
     }
 
-    th, td {
+    th,
+    td {
       display: table-cell !important;
       width: 130px !important;
       min-width: 130px !important;
@@ -1469,4 +1471,119 @@ tbody {
     font-size: 10px;
     padding: 2px 6px;
   }
+}
+
+.mezcla-lista {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mezcla-fila {
+  display: grid;
+  grid-template-columns: 90px 110px 1fr 120px 70px 1fr;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gris-oscuro);
+  padding: 4px 0;
+  border-bottom: 1px solid #dbeafe;
+
+  &.encabezado {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+  }
+}
+
+@media (max-width: 900px) {
+  .mezcla-fila {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mezcla-fila.encabezado {
+    display: none;
+  }
+}
+
+.ayuda-fecha {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.preview-fotos-ronda .foto-preview-item {
+  position: relative;
+}
+
+.fotos-ronda-supervisor .miniatura-foto-grande {
+  width: 64px;
+  height: 64px;
+}
+
+.fotos-botones-ronda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.btn-quitar-foto {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-nueva {
+  background: rgba(37, 99, 235, 0.9);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.contador-fotos {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.param-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.param-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--gris-claro);
+  padding: 8px 12px;
+  border-radius: 8px;
+
+  strong {
+    font-size: 14px;
+    color: var(--gris-oscuro);
+  }
+}
+
+.valor-num {
+  display: block;
+  font-size: 10px;
+  color: #6b7280;
 }

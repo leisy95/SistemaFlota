@@ -60,6 +60,7 @@ namespace SistemaFlota
         public DbSet<CyreleFoto> CyreleFotos { get; set; }
         public DbSet<InventarioRuta> InventarioRutas { get; set; }
         public DbSet<FormatoFGC008> FormatosFGC008 { get; set; }
+        public DbSet<FormatoFGC008Foto> FormatoFGC008Fotos { get; set; }
         public DbSet<NumeroEmergencia> NumerosEmergencia { get; set; }
         public DbSet<CosteFlete> CostosFletes { get; set; }
         public DbSet<VinculacionFlotaChat> VinculacionesFlotaChat { get; set; }
@@ -69,6 +70,7 @@ namespace SistemaFlota
         public DbSet<CaracteristicaFormato> CaracteristicasFormato { get; set; }
         public DbSet<RegistroFormatoCalidad> RegistrosFormatoCalidad { get; set; }
         public DbSet<RegistroParametrosOperario> RegistrosParametrosOperario { get; set; }
+        public DbSet<FormatoCalidadFoto> FormatosCalidadFotos { get; set; }
         public DbSet<OpcionFormulario> OpcionesFormulario { get; set; }
         public DbSet<ConversacionFlotaChat> ConversacionesFlotaChat { get; set; }
 

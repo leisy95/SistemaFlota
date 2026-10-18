@@ -70,11 +70,22 @@ export class FormatosCalidadService {
     return this.http.get<any[]>(`${this.api}/registros/${registroId}/parametros-operario`, { headers: this.headers });
   }
 
-  subirFotosRonda(registroId: number, indiceRonda: number, fotos: File[]) {
+  subirFotosRonda(registroId: number, rondaId: string, fotos: File[]) {
     const fd = new FormData();
-    fotos.forEach(f => fd.append('fotos', f));
-    return this.http.post<any>(`${this.api}/registros/${registroId}/rondas/${indiceRonda}/fotos`, fd, { headers: this.headers });
+    fotos.forEach(f => fd.append('fotos', f, f.name));
+    return this.http.post<any>(`${this.api}/registros/${registroId}/rondas/${encodeURIComponent(rondaId)}/fotos`, fd, { headers: this.headers });
   }
 
-  constructor(private http: HttpClient) {}
+  getFotosRondas(registroId: number) {
+    return this.http.get<any[]>(`${this.api}/registros/${registroId}/fotos`, { headers: this.headers });
+  }
+
+  eliminarFotoRonda(registroId: number, fotoId: number) {
+    return this.http.delete<any>(`${this.api}/registros/${registroId}/fotos/${fotoId}`, { headers: this.headers });
+  }
+  getMezclaOrden(op: string) {
+    return this.http.get<any[]>(`${this.api}/mezcla/${encodeURIComponent(op)}`, { headers: this.headers });
+  }
+
+  constructor(private http: HttpClient) { }
 }

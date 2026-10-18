@@ -178,6 +178,11 @@
               <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
             </select>
           </div>
+          <div class="fg fg-cajon" *ngIf="vista === 'nuevo' && puedeFijarFechaReal">
+            <label>Fecha real de producción (opcional)</label>
+            <input type="date" [(ngModel)]="form.fechaRealProduccion" [max]="hoyISO">
+            <small class="ayuda-fecha">Solo para órdenes físicas que se ingresan después. Vacío = fecha de hoy.</small>
+          </div>
         </div>
         <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
           <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
@@ -189,8 +194,29 @@
                 }}</strong></div>
           </div>
         </div>
-      </div>
 
+        <div class="op-info-box cliente-box" *ngIf="mezclaOrden.length > 0">
+          <span><i class="fa-solid fa-flask"></i> Mezcla de la orden</span>
+          <div class="mezcla-lista">
+            <div class="mezcla-fila encabezado">
+              <div>Proceso</div>
+              <div>Referencia</div>
+              <div>Descripción</div>
+              <div>Cantidad</div>
+              <div>%</div>
+              <div>Observación</div>
+            </div>
+            <div class="mezcla-fila" *ngFor="let m of mezclaOrden">
+              <div>{{ nombreProceso(m.proceso) }}</div>
+              <div>{{ m.referencia }}</div>
+              <div>{{ m.descripcion }}</div>
+              <div>{{ m.cantidad | number:'1.0-2' }} {{ m.unidad }}</div>
+              <div>{{ m.porcentaje | number:'1.0-2' }}%</div>
+              <div>{{ m.observacion || '-' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- VARIABLES CRÍTICAS: Extrusión -->
       <div class="form-section" *ngIf="codigoFormato === 'F-GC-004'">
@@ -465,23 +491,47 @@
                 <td class="col-descripcion">Evidencia fotográfica</td>
                 <td *ngFor="let ronda of rondas; let i = index" class="col-valor">
                   <div class="fotos-ronda-supervisor">
-                    <input type="file" accept="image/*" multiple (change)="seleccionarFotosRonda($event, i)" [id]="'fotos-input-' + i" style="display: none;">
-                    <label [for]="'fotos-input-' + i" class="btn-elegir-fotos">
-                      <i class="fa-solid fa-camera"></i> Elegir fotos
-                    </label>
-
-                    <div class="preview-fotos-ronda" *ngIf="(previewsFotosRonda[i]?.length ?? 0) > 0">
-                      <div class="foto-preview-item" *ngFor="let preview of previewsFotosRonda[i]">
-                        <img [src]="preview" class="miniatura-foto-grande">
-                        <a [href]="preview" target="_blank" class="btn-ver-foto">
+                    <div class="preview-fotos-ronda" *ngIf="fotosGuardadasRonda(i).length > 0">
+                      <div class="foto-preview-item" *ngFor="let foto of fotosGuardadasRonda(i)">
+                        <img [src]="urlFotoRonda(foto.archivo)" class="miniatura-foto-grande">
+                        <a [href]="urlFotoRonda(foto.archivo)" target="_blank" class="btn-ver-foto">
                           <i class="fa-solid fa-eye"></i> Ver
                         </a>
+                        <button type="button" class="btn-quitar-foto" *ngIf="foto.id"
+                          (click)="eliminarFotoRondaGuardada(foto)" title="Eliminar foto">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="preview-fotos-ronda" *ngIf="(previewsFotosRonda[i]?.length ?? 0) > 0">
+                      <div class="foto-preview-item" *ngFor="let p of previewsFotosRonda[i]; let k = index">
+                        <img [src]="p" class="miniatura-foto-grande">
+                        <span class="foto-nueva">Nueva</span>
+                        <button type="button" class="btn-quitar-foto" (click)="quitarFotoPendienteRonda(i, k)"
+                          title="Quitar">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
                       </div>
                     </div>
 
-                    <button type="button" (click)="guardarVerificacionRonda(i)" title="Guardar fotos de esta hora"
-                      class="btn-guardar-fotos">
-                      <i class="fa-solid fa-check"></i> Guardar
+                    <div class="fotos-botones-ronda" *ngIf="cupoFotosRonda(i) > 0">
+                      <label class="btn-elegir-fotos">
+                        <input type="file" accept="image/*" capture="environment"
+                          (change)="seleccionarFotosRonda($event, i)" style="display: none;">
+                        <i class="fa-solid fa-camera"></i> Tomar foto
+                      </label>
+                      <label class="btn-elegir-fotos">
+                        <input type="file" accept="image/*" multiple (change)="seleccionarFotosRonda($event, i)"
+                          style="display: none;">
+                        <i class="fa-solid fa-images"></i> Galería
+                      </label>
+                    </div>
+
+                    <small class="contador-fotos">{{ totalFotosRonda(i) }}/{{ maxFotosRonda }}</small>
+
+                    <button type="button" class="btn-guardar-fotos" *ngIf="(previewsFotosRonda[i]?.length ?? 0) > 0"
+                      [disabled]="subiendoFotosRonda !== null" (click)="guardarVerificacionRonda(i)">
+                      <i class="fa-solid fa-check"></i> {{ subiendoFotosRonda === i ? 'Subiendo...' : 'Guardar fotos' }}
                     </button>
                   </div>
                 </td>
@@ -555,6 +605,7 @@
   <!-- VISTA VER -->
   <ng-container *ngIf="vista === 'ver' && registroSeleccionado">
     <div class="form-card">
+
       <div class="form-section">
         <div class="ver-header">
           <h3>Detalle — {{ registroSeleccionado.ordenProduccion }}</h3>
@@ -569,7 +620,11 @@
               '-' }}</span></div>
           <div class="detalle-item"><span class="det-label">Máquina</span><span>{{ registroSeleccionado.maquina || '-'
               }}</span></div>
-          <div class="detalle-item destacado"><span class="det-label">Total Desperdicio</span><span>{{
+          <div class="detalle-item"><span class="det-label">Hora</span><span>{{ registroSeleccionado.hora || '-'
+              }}</span></div>
+          <div class="detalle-item"><span class="det-label">Estado</span><span>{{ registroSeleccionado.estado ===
+              'Liberado' ? 'Liberado' : 'Pendiente de liberación' }}</span></div>
+          <div class="detalle-item destacado"><span class="det-label">Total desperdicio por turnos</span><span>{{
               totalKilosDesperdicioVer }} kg</span></div>
           <div class="detalle-item"><span class="det-label">¿Liberado?</span>
             <span [class.ok]="registroSeleccionado.puedeLiberarse === true"
@@ -579,57 +634,61 @@
             </span>
           </div>
           <div class="detalle-item"><span class="det-label">Revisado por</span><span>{{ registroSeleccionado.revisadoPor
-              }}</span></div>
+              || '-' }}</span></div>
         </div>
+      </div>
 
-        <div *ngIf="registroSeleccionado.variablesCriticasParsed?.motivoCambio" class="op-info-box">
-          <span><i class="fa-solid fa-triangle-exclamation"></i> Motivo de cambio de parámetros:</span>
-          <strong>{{ registroSeleccionado.variablesCriticasParsed.motivoCambio }}</strong>
-        </div>
-
-        <h4 style="margin-top: 16px;">Parámetros registrados (último guardado)</h4>
-        <div class="detalle-grid" *ngIf="registroSeleccionado.variablesCriticasParsed">
-          <div class="detalle-item"><span class="det-label">Corona</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.corona || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Molde</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.molde || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 1</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona1 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 2</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona2 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 3</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona3 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 4</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona4 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 5</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona5 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Zona 6</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.temperaturas?.zona6 || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Vel. Máquina</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.velocidades?.maquina || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Halador</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.velocidades?.halador || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Bobinador</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.velocidades?.bobinador || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Aire</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.aire || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Amperaje</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.amperaje || '-' }}</span></div>
-          <div class="detalle-item"><span class="det-label">Altura Burbuja</span><span>{{
-              registroSeleccionado.variablesCriticasParsed.alturaBurbuja || '-' }}</span></div>
-        </div>
-
-        <h4 style="margin-top: 16px;" *ngIf="registrosOperarioDisponibles.length > 0">Registros por operario</h4>
-        <div class="vc-grid" *ngIf="registrosOperarioDisponibles.length > 0">
-          <div class="vc-card" *ngFor="let reg of registrosOperarioDisponibles">
-            <p class="vc-card-titulo"><i class="fa-solid fa-user"></i> {{ reg.operarioNombre }} — {{ reg.fechaGuardado |
-              date:'dd/MM HH:mm' }}</p>
-            <div class="detalle-grid" *ngIf="parsearJson(reg.variablesCriticasJson) as vcOp">
-              <div class="detalle-item"><span class="det-label">Corona</span><span>{{ vcOp.corona || '-' }}</span></div>
-              <div class="detalle-item"><span class="det-label">Molde</span><span>{{ vcOp.molde || '-' }}</span></div>
-            </div>
+      <div class="form-section" *ngIf="mezclaVer.length > 0">
+        <h3><i class="fa-solid fa-flask"></i> Mezcla de la orden</h3>
+        <div class="mezcla-lista">
+          <div class="mezcla-fila encabezado">
+            <div>Proceso</div>
+            <div>Referencia</div>
+            <div>Descripción</div>
+            <div>Cantidad</div>
+            <div>%</div>
+            <div>Observación</div>
+          </div>
+          <div class="mezcla-fila" *ngFor="let m of mezclaVer">
+            <div>{{ nombreProceso(m.proceso) }}</div>
+            <div>{{ m.referencia }}</div>
+            <div>{{ m.descripcion }}</div>
+            <div>{{ m.cantidad | number:'1.0-2' }} {{ m.unidad }}</div>
+            <div>{{ m.porcentaje | number:'1.0-2' }}%</div>
+            <div>{{ m.observacion || '-' }}</div>
           </div>
         </div>
+      </div>
+
+      <div class="form-section" *ngIf="parametrosVer.length > 0 || operariosVer.length > 0">
+        <h3><i class="fa-solid fa-gauge"></i> Parámetros</h3>
+
+        <ng-container *ngIf="parametrosVer.length > 0">
+          <h4>Último guardado</h4>
+          <div class="param-grid">
+            <div class="param-item" *ngFor="let p of parametrosVer">
+              <span class="det-label">{{ p.etiqueta }}</span><strong>{{ p.valor }}</strong>
+            </div>
+          </div>
+          <div class="op-info-box" *ngIf="motivoVer">
+            <span><i class="fa-solid fa-triangle-exclamation"></i> Motivo de cambio de parámetros:</span>
+            <strong>{{ motivoVer }}</strong>
+          </div>
+        </ng-container>
+
+        <ng-container *ngFor="let op of operariosVer">
+          <h4>{{ op.nombre }} — guardado {{ op.fecha | date:'dd/MM/yyyy HH:mm' }}</h4>
+          <div class="param-grid" *ngIf="op.parametros.length > 0">
+            <div class="param-item" *ngFor="let p of op.parametros">
+              <span class="det-label">{{ p.etiqueta }}</span><strong>{{ p.valor }}</strong>
+            </div>
+          </div>
+          <small *ngIf="op.parametros.length === 0">Sin parámetros guardados.</small>
+          <div class="op-info-box" *ngIf="op.motivo">
+            <span><i class="fa-solid fa-triangle-exclamation"></i> Motivo del cambio:</span>
+            <strong>{{ op.motivo }}</strong>
+          </div>
+        </ng-container>
       </div>
 
       <div class="form-section">
@@ -657,21 +716,23 @@
                   <span *ngIf="ronda.valores[c.id] === 'noCumple'" class="valor-no">✗</span>
                   <span *ngIf="ronda.valores[c.id] === 'na'" class="valor-na">N/A</span>
                   <span *ngIf="!ronda.valores[c.id]">-</span>
+                  <span class="valor-num" *ngIf="ronda.valoresNumericos && ronda.valoresNumericos[c.id]">({{
+                    ronda.valoresNumericos[c.id] }})</span>
                 </td>
                 <td class="col-obs">{{ registroSeleccionado.observacionesParsed[c.id] || '-' }}</td>
               </tr>
               <tr>
                 <td class="col-descripcion">Evidencia fotográfica</td>
                 <td *ngFor="let ronda of registroSeleccionado.rondasParsed" class="col-valor">
-                  <div class="galeria-fotos-ronda" *ngIf="ronda.fotos?.length > 0">
-                    <div class="foto-preview-item" *ngFor="let foto of ronda.fotos">
+                  <div class="galeria-fotos-ronda" *ngIf="fotosDeRonda(ronda).length > 0">
+                    <div class="foto-preview-item" *ngFor="let foto of fotosDeRonda(ronda)">
                       <img [src]="urlFotoRonda(foto)" class="miniatura-foto-grande">
                       <a [href]="urlFotoRonda(foto)" target="_blank" class="btn-ver-foto">
                         <i class="fa-solid fa-eye"></i> Ver
                       </a>
                     </div>
                   </div>
-                  <span *ngIf="!ronda.fotos?.length" style="color: #999; font-size: 11px;">Sin fotos</span>
+                  <span *ngIf="fotosDeRonda(ronda).length === 0" style="color: #999; font-size: 11px;">Sin fotos</span>
                 </td>
                 <td class="col-obs"></td>
               </tr>
@@ -684,7 +745,7 @@
       </div>
 
       <div class="form-section" *ngIf="registroSeleccionado.estado === 'Liberado'">
-        <h3>Datos de Liberación</h3>
+        <h3>Datos de liberación</h3>
         <div class="detalle-grid">
           <div class="detalle-item"><span class="det-label">Producción (Kg/h)</span><span>{{
               registroSeleccionado.produccionKgHora || '-' }}</span></div>
@@ -711,9 +772,9 @@
           Volver
         </button>
 
-        <button class="btn-pdf" (click)="exportarPDF(registroSeleccionado)">
+        <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF(registroSeleccionado)">
           <i class="fa-solid fa-file-pdf"></i>
-          Exportar PDF
+          {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
         </button>
 
         <button class="btn-guardar"
@@ -721,7 +782,6 @@
           Guardar
         </button>
       </div>
-
       <!-- MODAL: Material fuera de especificación -->
       <div class="modal-overlay" *ngIf="mostrarModalNoCumple" (click)="cerrarModalNoCumple(false)">
         <div class="modal-alerta" (click)="$event.stopPropagation()">

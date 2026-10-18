@@ -32,12 +32,9 @@ namespace SistemaFlota
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        [HttpGet]
-        [Permiso("calidad-formatos", "ver")]
-        public async Task<IActionResult> Get(
-            [FromQuery] DateTime? desde,
-            [FromQuery] DateTime? hasta,
-            [FromQuery] string? op)
+        // ── Ayudas ──────────────────────────────────────────────────────────
+
+        private IQueryable<FormatoFGC008> Filtrar(DateTime? desde, DateTime? hasta, string? op)
         {
             var query = _context.FormatosFGC008.AsQueryable();
 
@@ -50,11 +47,12 @@ namespace SistemaFlota
             if (!string.IsNullOrWhiteSpace(op))
                 query = query.Where(f => f.OrdenProduccion.Contains(op));
 
-            var lista = await query
-                .OrderByDescending(f => f.Fecha)
-                .ToListAsync();
+            return query;
+        }
 
-            // Acumulado: se calcula con TODAS las filas de Bodega de la OP, aunque el filtro oculte algunas
+        // Calcula acumulado, por hacer, diferencia y nombre del revisor para las filas que se van a mostrar
+        private async Task EnriquecerAsync(List<FormatoFGC008> lista)
+        {
             var ops = lista
                 .Where(f => f.Origen == "Bodega")
                 .Select(f => f.OrdenProduccion)
@@ -63,6 +61,7 @@ namespace SistemaFlota
 
             if (ops.Count > 0)
             {
+                // El acumulado usa TODAS las filas de Bodega de la OP, aunque el filtro o la página oculten algunas
                 var todas = await _context.FormatosFGC008
                     .Where(f => f.Origen == "Bodega" && ops.Contains(f.OrdenProduccion))
                     .Select(f => new { f.OrdenProduccion, f.UnidadReal, f.DiaEntrada, f.CantidadReal })
@@ -78,16 +77,158 @@ namespace SistemaFlota
 
                     f.AcumuladoOP = acumulado;
 
-                    // Solo se calcula lo que falta si la programada está en la misma unidad que lo recibido
-                    var comparable = !string.IsNullOrEmpty(f.UnidadOP)
-                        && string.Equals(f.UnidadOP, f.UnidadReal, StringComparison.OrdinalIgnoreCase);
-
-                    f.PorHacer = comparable ? f.CantidadOP - acumulado : null;
+                    if (f.CantidadOP > 0)
+                    {
+                        f.PorHacer = f.CantidadOP - acumulado;
+                        f.DiferenciaPct = Math.Round((acumulado - f.CantidadOP) / f.CantidadOP * 100, 1);
+                    }
                 }
             }
 
+            // Nombre de quien revisó, tomado del usuario
+            var revisores = lista
+                .Where(f => !string.IsNullOrEmpty(f.RevisadoPor))
+                .Select(f => f.RevisadoPor!)
+                .Distinct()
+                .ToList();
+
+            if (revisores.Count > 0)
+            {
+                var datos = await _context.Usuarios
+                    .Where(u => revisores.Contains(u.Username))
+                    .Select(u => new { u.Username, u.Nombres, u.Apellidos })
+                    .ToListAsync();
+
+                var nombres = datos
+                    .GroupBy(d => d.Username, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => ((g.First().Nombres ?? "") + " " + (g.First().Apellidos ?? "")).Trim(),
+                        StringComparer.OrdinalIgnoreCase);
+
+                foreach (var f in lista)
+                {
+                    if (f.RevisadoPor != null
+                        && nombres.TryGetValue(f.RevisadoPor, out var nombre)
+                        && !string.IsNullOrWhiteSpace(nombre))
+                        f.RevisadoPorNombre = nombre;
+                }
+            }
+        }
+
+        // ── Consultas ───────────────────────────────────────────────────────
+
+        // Sin paginar: lo usa el PDF, que necesita todas las filas
+        [HttpGet]
+        [Permiso("calidad-formatos", "ver")]
+        public async Task<IActionResult> Get(
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta,
+            [FromQuery] string? op)
+        {
+            var lista = await Filtrar(desde, hasta, op)
+            .Include(f => f.FotosEvidencia)
+            .OrderByDescending(f => f.Fecha)
+            .ToListAsync();
+
+            await EnriquecerAsync(lista);
             return Ok(lista);
         }
+
+        // Paginado: lo usa la lista en pantalla
+        [HttpGet("paginado")]
+        [Permiso("calidad-formatos", "ver")]
+        public async Task<IActionResult> GetPaginado(
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta,
+            [FromQuery] string? op,
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 25)
+        {
+            pagina = Math.Max(1, pagina);
+            porPagina = Math.Clamp(porPagina, 5, 100);
+
+            var query = Filtrar(desde, hasta, op);
+            var total = await query.CountAsync();
+
+            var items = await query
+    .Include(f => f.FotosEvidencia)
+    .OrderByDescending(f => f.Fecha)
+    .ThenByDescending(f => f.Id)
+    .Skip((pagina - 1) * porPagina)
+    .Take(porPagina)
+    .ToListAsync();
+
+            await EnriquecerAsync(items);
+
+            return Ok(new
+            {
+                items,
+                total,
+                pagina,
+                porPagina,
+                totalPaginas = (int)Math.Ceiling(total / (double)porPagina)
+            });
+        }
+
+        // Tarjetas de resumen: se calculan sobre todo el filtro, no solo sobre la página
+        [HttpGet("resumen")]
+        [Permiso("calidad-formatos", "ver")]
+        public async Task<IActionResult> GetResumen(
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta,
+            [FromQuery] string? op)
+        {
+            var query = Filtrar(desde, hasta, op);
+
+            var total = await query.CountAsync();
+            var conDefectos = await query.CountAsync(f => f.DefectosSI);
+            var pendientesDespacho = await query.CountAsync(f => f.Despachado == null || f.Despachado == "");
+
+            var opsQuery = query.Select(f => f.OrdenProduccion);
+            var todas = await _context.FormatosFGC008
+                .Where(f => opsQuery.Contains(f.OrdenProduccion))
+                .Select(f => new { f.OrdenProduccion, f.Origen, f.CantidadOP, f.CantidadReal })
+                .ToListAsync();
+
+            // Por OP: lo programado una sola vez y lo recibido sin pasarse de lo programado
+            decimal programada = 0, real = 0;
+            foreach (var g in todas.GroupBy(x => x.OrdenProduccion))
+            {
+                var bodega = g.Where(x => x.Origen == "Bodega").ToList();
+                var fuente = bodega.Count > 0 ? bodega : g.ToList();
+                var prog = fuente.Max(x => x.CantidadOP);
+                var rea = fuente.Sum(x => x.CantidadReal);
+                programada += prog;
+                real += Math.Min(rea, prog);
+            }
+
+            var porcentaje = programada == 0 ? 0 : (int)Math.Round(real / programada * 100);
+
+            return Ok(new { total, conDefectos, pendientesDespacho, porcentajeCompletado = porcentaje });
+        }
+
+        [HttpGet("op/{op}")]
+        [Permiso("calidad-formatos", "ver")]
+        public async Task<IActionResult> GetPorOP(string op)
+        {
+            var registros = await _context.FormatosFGC008
+                .Where(f => f.OrdenProduccion == op)
+                .OrderByDescending(f => f.Fecha)
+                .ToListAsync();
+
+            if (!registros.Any())
+                return NotFound();
+
+            return Ok(new
+            {
+                cantidadOP = registros.First().CantidadOP,
+                totalEntradas = registros.Count,
+                totalReal = registros.Sum(f => f.CantidadReal)
+            });
+        }
+
+        // ── Escritura ───────────────────────────────────────────────────────
 
         [HttpPost]
         [Permiso("calidad-formatos", "crear")]
@@ -226,25 +367,105 @@ namespace SistemaFlota
 
             return Ok(r);
         }
+        // ── Fotos de evidencia (hasta 5 por registro, contando la foto antigua de FotoEvidencia) ──
 
-        [HttpGet("op/{op}")]
-        [Permiso("calidad-formatos", "ver")]
-        public async Task<IActionResult> GetPorOP(string op)
+        private const int MaxFotos = 5;
+        private const long MaxBytesPorFoto = 8 * 1024 * 1024;
+        private static readonly string[] ExtensionesFoto = { ".jpg", ".jpeg", ".png", ".webp" };
+
+        [HttpPost("{id}/fotos")]
+        [Permiso("calidad-formatos", "crear")]
+        public async Task<IActionResult> SubirFotos(int id, [FromForm] List<IFormFile> fotos)
         {
-            var registros = await _context.FormatosFGC008
-                .Where(f => f.OrdenProduccion == op)
-                .OrderByDescending(f => f.Fecha)
-                .ToListAsync();
+            if (fotos == null || fotos.Count == 0)
+                return BadRequest(new { mensaje = "No se recibieron fotos" });
 
-            if (!registros.Any())
+            var registro = await _context.FormatosFGC008
+                .Include(f => f.FotosEvidencia)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (registro == null)
                 return NotFound();
 
-            return Ok(new
+            var existentes = registro.FotosEvidencia.Count
+                + (string.IsNullOrEmpty(registro.FotoEvidencia) ? 0 : 1);
+            var disponibles = MaxFotos - existentes;
+
+            if (disponibles <= 0)
+                return BadRequest(new { mensaje = $"Este registro ya tiene el máximo de {MaxFotos} fotos" });
+
+            if (fotos.Count > disponibles)
+                return BadRequest(new { mensaje = $"Solo puede agregar {disponibles} foto(s) más (máximo {MaxFotos} por registro)" });
+
+            // Se valida todo antes de guardar nada, para no dejar la subida a medias
+            foreach (var f in fotos)
             {
-                cantidadOP = registros.First().CantidadOP,
-                totalEntradas = registros.Count,
-                totalReal = registros.Sum(f => f.CantidadReal)
-            });
+                var ext = Path.GetExtension(f.FileName).ToLowerInvariant();
+                if (!ExtensionesFoto.Contains(ext) || !f.ContentType.StartsWith("image/"))
+                    return BadRequest(new { mensaje = $"El archivo '{f.FileName}' no es una imagen válida (JPG, PNG o WEBP)" });
+
+                if (f.Length == 0 || f.Length > MaxBytesPorFoto)
+                    return BadRequest(new { mensaje = $"El archivo '{f.FileName}' es demasiado grande (máximo 8 MB)" });
+            }
+
+            var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/formatos");
+            if (!Directory.Exists(carpeta))
+                Directory.CreateDirectory(carpeta);
+
+            var usuario = GetUsuario();
+
+            foreach (var f in fotos)
+            {
+                var nombre = Guid.NewGuid() + Path.GetExtension(f.FileName).ToLowerInvariant();
+
+                using (var stream = new FileStream(Path.Combine(carpeta, nombre), FileMode.Create))
+                    await f.CopyToAsync(stream);
+
+                registro.FotosEvidencia.Add(new FormatoFGC008Foto
+                {
+                    Archivo = nombre,
+                    SubidaPor = usuario
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _auditoria.RegistrarAsync(
+                usuario,
+                GetRol(),
+                "Subir-Fotos",
+                "FormatoFGC008",
+                $"{fotos.Count} foto(s) en OP {registro.OrdenProduccion}",
+                registro.Id);
+
+            return Ok(registro.FotosEvidencia);
+        }
+
+        [HttpDelete("{id}/fotos/{fotoId}")]
+        [Permiso("calidad-formatos", "crear")]
+        public async Task<IActionResult> EliminarFoto(int id, int fotoId)
+        {
+            var foto = await _context.FormatoFGC008Fotos
+                .FirstOrDefaultAsync(x => x.Id == fotoId && x.FormatoFGC008Id == id);
+
+            if (foto == null)
+                return NotFound();
+
+            _context.FormatoFGC008Fotos.Remove(foto);
+            await _context.SaveChangesAsync();
+
+            // El archivo se borra después de la base; si falla, queda suelto pero no se ve en pantalla
+            var ruta = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot/formatos",
+                Path.GetFileName(foto.Archivo));
+
+            if (System.IO.File.Exists(ruta))
+            {
+                try { System.IO.File.Delete(ruta); } catch { }
+            }
+
+            return Ok();
         }
 
         [HttpPost("sincronizar/{op}")]
@@ -275,9 +496,10 @@ namespace SistemaFlota
                 $"OP {op}: {resultado.FilasCreadas} filas creadas, {resultado.FilasActualizadas} actualizadas");
 
             var filas = await _context.FormatosFGC008
-                .Where(f => f.OrdenProduccion == op)
-                .OrderByDescending(f => f.Fecha)
-                .ToListAsync();
+    .Include(f => f.FotosEvidencia)
+    .Where(f => f.OrdenProduccion == op)
+    .OrderByDescending(f => f.Fecha)
+    .ToListAsync();
 
             return Ok(new { resultado, filas });
         }
