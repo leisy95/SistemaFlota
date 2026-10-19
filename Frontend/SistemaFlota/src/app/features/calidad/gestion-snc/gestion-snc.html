@@ -124,6 +124,13 @@
             <label>Cliente</label>
             <input type="text" [(ngModel)]="form.cliente" readonly>
           </div>
+          <div class="fg fg-cajon" *ngIf="puedeFijarFechaReal">
+            <label>Fecha real del reporte (opcional)</label>
+            <input type="date" [(ngModel)]="form.fechaRealReporte" [max]="hoyISO">
+            <small style="display:block; margin-top:4px; font-size:11px; color:#6b7280;">
+              Solo para reportes físicos que se ingresan después. Vacío = fecha de hoy.
+            </small>
+          </div>
         </div>
 
         <div class="form-grid" style="margin-top: 14px;">

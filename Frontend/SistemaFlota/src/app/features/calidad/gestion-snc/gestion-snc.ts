@@ -51,7 +51,8 @@ export class GestionSncComponent implements OnInit {
         causaRaiz: '',
         nombreReporta: '',
         unidadCantidadReportada: 'Unidades',
-        cantidadReportadaKg: null as number | null
+        cantidadReportadaKg: null as number | null,
+        fechaRealReporte: ''
     };
     evidenciaImagen: File | null = null;
     evidenciaPdf: File | null = null;
@@ -183,6 +184,19 @@ export class GestionSncComponent implements OnInit {
             error: () => { /* no encontrada, se llena manual */ }
         });
     }
+    // La fecha real solo la puede fijar quien tiene permiso de editar este módulo; las cuentas de máquina no
+    get puedeFijarFechaReal(): boolean {
+        const u = JSON.parse(sessionStorage.getItem('user') || '{}');
+        const cuentasMaquina = ['extrusion', 'precorte', 'impresion', 'sellado'];
+        if (cuentasMaquina.includes(String(u.username || '').toLowerCase())) return false;
+        return this.permisosService.puedeEditar('gestion-snc');
+    }
+
+    // Fecha de hoy en hora local (toISOString usaría UTC y de noche daría el día siguiente)
+    get hoyISO(): string {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
 
     seleccionarImagen(event: any) { this.evidenciaImagen = event.target.files[0]; }
     seleccionarPdf(event: any) { this.evidenciaPdf = event.target.files[0]; }
@@ -285,7 +299,7 @@ export class GestionSncComponent implements OnInit {
             ordenProduccion: '', referencia: '', cantidadKg: null, cliente: '',
             linea: '', material: '', proceso: '', descripcionSalida: '',
             tipoDefecto: '', impacto: '', causaRaiz: '', nombreReporta: '',
-            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades'
+            cantidadReportadaKg: null, unidadCantidadReportada: '', fechaRealReporte: 'Unidades'
         };
         this.evidenciaPdf = null;
         this.firmaReportaUrl = null;
@@ -321,6 +335,7 @@ export class GestionSncComponent implements OnInit {
         fd.append('UnidadCantidadReportada', this.form.unidadCantidadReportada || '');
         fd.append('FirmaReporta', this.firmaReportaUrl || '');
         fd.append('NombreReporta', this.form.nombreReporta || '');
+        if (this.form.fechaRealReporte) fd.append('FechaRealReporte', this.form.fechaRealReporte);
         if (this.evidenciaPdf) fd.append('evidenciaPdf', this.evidenciaPdf);
 
         this.service.crear(fd).subscribe({
@@ -330,7 +345,7 @@ export class GestionSncComponent implements OnInit {
                 }
                 this.vista = 'lista'; this.cargar();
             },
-            error: (e) => { console.error(e); alert('Error guardando el reporte'); }
+            error: (e) => { console.error(e); alert(e.error?.mensaje || 'Error guardando el reporte'); }
         });
     }
 

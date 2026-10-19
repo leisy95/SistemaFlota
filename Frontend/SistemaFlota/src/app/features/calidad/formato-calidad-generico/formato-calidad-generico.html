@@ -204,7 +204,7 @@
               <div>Descripción</div>
               <div>Cantidad</div>
               <div>%</div>
-              <div>Observación</div>
+
             </div>
             <div class="mezcla-fila" *ngFor="let m of mezclaOrden">
               <div>{{ nombreProceso(m.proceso) }}</div>
@@ -212,7 +212,7 @@
               <div>{{ m.descripcion }}</div>
               <div>{{ m.cantidad | number:'1.0-2' }} {{ m.unidad }}</div>
               <div>{{ m.porcentaje | number:'1.0-2' }}%</div>
-              <div>{{ m.observacion || '-' }}</div>
+
             </div>
           </div>
         </div>
@@ -647,7 +647,7 @@
             <div>Descripción</div>
             <div>Cantidad</div>
             <div>%</div>
-            <div>Observación</div>
+
           </div>
           <div class="mezcla-fila" *ngFor="let m of mezclaVer">
             <div>{{ nombreProceso(m.proceso) }}</div>
@@ -655,7 +655,6 @@
             <div>{{ m.descripcion }}</div>
             <div>{{ m.cantidad | number:'1.0-2' }} {{ m.unidad }}</div>
             <div>{{ m.porcentaje | number:'1.0-2' }}%</div>
-            <div>{{ m.observacion || '-' }}</div>
           </div>
         </div>
       </div>

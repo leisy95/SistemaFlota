@@ -19,7 +19,7 @@ namespace SistemaFlota.Services.Calidad
         public Task<SalidaNoConforme?> ObtenerAsync(int id)
             => _repository.ObtenerPorIdAsync(id);
 
-        public async Task<SalidaNoConforme> CrearAsync(CrearSalidaNoConformeDto dto, string usuario, IFormFile? evidenciaPdf)
+        public async Task<SalidaNoConforme> CrearAsync(CrearSalidaNoConformeDto dto, string usuario, IFormFile? evidenciaPdf, bool puedeFijarFecha = false)
         {
             string? nombrePdf = await GuardarArchivo(evidenciaPdf, "wwwroot/snc");
 
@@ -38,12 +38,27 @@ namespace SistemaFlota.Services.Calidad
                 Impacto = dto.Impacto,
                 CausaRaiz = dto.CausaRaiz,
                 CantidadReportadaKg = dto.CantidadReportadaKg,
+                UnidadCantidadReportada = dto.UnidadCantidadReportada,
                 FirmaReporta = dto.FirmaReporta,
                 UsuarioReporta = usuario,
                 EvidenciaPdf = nombrePdf,
                 NombreReporta = dto.NombreReporta,
                 Estado = "Reportado"
             };
+
+            // Fecha real del reporte (reportes físicos que se ingresan después)
+            if (dto.FechaRealReporte.HasValue && puedeFijarFecha)
+                entidad.FechaReporte = dto.FechaRealReporte.Value.Date;
+            {
+                if (!puedeFijarFecha)
+                    throw new UnauthorizedAccessException("No tiene permiso para fijar la fecha real del reporte");
+
+                var fechaReal = dto.FechaRealReporte.Value.Date;
+                if (fechaReal > DateTime.Now.Date)
+                    throw new InvalidOperationException("La fecha real del reporte no puede ser futura");
+
+                entidad.FechaReporte = fechaReal;
+            }
 
             await _repository.AgregarAsync(entidad);
             await _repository.GuardarCambiosAsync();

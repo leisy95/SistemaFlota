@@ -1377,12 +1377,11 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             if (mezcla.length > 0) {
                 titulo('MEZCLA DE LA ORDEN');
                 tabla({
-                    head: [['Proceso', 'Referencia', 'Descripción', 'Cantidad', '%', 'Observación']],
+                    head: [['Proceso', 'Referencia', 'Descripción', 'Cantidad', '%']],
                     body: mezcla.map((m: any) => [
                         this.nombreProceso(m.proceso), m.referencia, m.descripcion,
                         (Number(m.cantidad) || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 }) + ' ' + (m.unidad || ''),
-                        (Number(m.porcentaje) || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 }) + '%',
-                        m.observacion || '-'
+                        (Number(m.porcentaje) || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 }) + '%'
                     ])
                 });
             }

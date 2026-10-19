@@ -18,6 +18,7 @@
         public string? UnidadCantidadReportada { get; set; }
         public string? FirmaReporta { get; set; }
         public string? NombreReporta { get; set; }
+        public DateTime? FechaRealReporte { get; set; }
     }
 
     public class TratamientoSncDto
