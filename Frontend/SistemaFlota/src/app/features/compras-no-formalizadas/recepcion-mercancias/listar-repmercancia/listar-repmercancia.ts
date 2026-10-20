@@ -8,11 +8,10 @@ import { OrdenCompraNoFormalizadaService } from '../../../../core/services/compr
 import { ProveedorNoFormalizadoService } from '../../../../core/services/compras-no-formalizadas/proveedores/proveedor-no-formalizado.service';
 import { RecepcionMercanciaNoFormalizadaService } from '../../../../core/services/compras-no-formalizadas/recepcion-mercancias/recepcion-mercancianoformalizada.service';
 
-import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
-
 import { DetalleRepmercancia } from '../detalle-repmercancia/detalle-repmercancia';
 import { IniciarRepmercancia } from '../iniciar-repmercancia/iniciar-repmercancia';
 import { AccionesRecepcionDialogNoFormalizada } from '../acciones-recepcion-dialog-no-formalizada/acciones-recepcion-dialog-no-formalizada';
+import { OrdenCompraNoFormalizadaResponse } from '../../../../core/models/compras-no-formalizadas/ordenes-compras/ordencompra-no-formalizada-response.model';
 
 @Component({
   selector: 'app-listar-repmercancia',

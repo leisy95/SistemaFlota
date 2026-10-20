@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.OrdenesTraslado;
@@ -7,6 +8,7 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrdenTrasladoController : ControllerBase
     {
         private readonly IOrdenTrasladoService _service;
@@ -15,7 +17,6 @@ namespace SistemaFlota.Controllers.Costos.OrdenesTraslado
         {
             _service = service;
         }
-
 
         // crear Orden de traslado
         [HttpPost]

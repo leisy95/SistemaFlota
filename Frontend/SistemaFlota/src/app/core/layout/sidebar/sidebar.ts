@@ -79,22 +79,25 @@ export class Sidebar implements OnInit {
       });
   }
 
+
   private obtenerMenuPorModulo(modulo: string) {
     if (this.rol === 'Admin') {
-      return MENU_MODULOS.filter(x => x.modulo === modulo);
+      return MENU_MODULOS.filter(item => item.modulo === modulo);
     }
 
     return MENU_MODULOS
-      .filter(x => x.modulo === modulo)
+      .filter(item => item.modulo === modulo)
       .filter(menu =>
         this.permisos.some(p =>
-          p.modulo === menu.key &&
-          p.puedeVer
+          p.modulo === (menu.permiso ?? menu.key) &&
+          p.puedeVer === true
         )
       );
   }
 
+
   filtrarMenu(): void {
+
     const url = this.router.url;
 
     if (url.startsWith('/flota')) {

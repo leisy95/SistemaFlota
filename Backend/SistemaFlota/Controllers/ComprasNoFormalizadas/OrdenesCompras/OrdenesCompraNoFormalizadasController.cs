@@ -22,9 +22,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             _pdfService = pdfService;
         }
 
-        // ============================================================
         // LISTAR ÓRDENES DE COMPRA
-        // ============================================================
 
         [HttpGet]
         [Permiso("ordenes-compras-no-formalizadas", "ver")]
@@ -54,9 +52,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(resultado);
         }
 
-        // ============================================================
         // FILTROS
-        // ============================================================
 
         [HttpGet("filtros")]
         [Permiso("ordenes-compras-no-formalizadas", "ver")]
@@ -70,9 +66,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(filtros);
         }
 
-        // ============================================================
         // ÓRDENES PARA RECEPCIÓN DE MERCANCÍA
-        // ============================================================
 
         [HttpGet("para-recepcion")]
         [Permiso("recepcion-compras-no-formalizadas", "ver")]
@@ -102,9 +96,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(resultado);
         }
 
-        // ============================================================
         // CREAR
-        // ============================================================
 
         [HttpPost]
         [Permiso("ordenes-compras-no-formalizadas", "crear")]
@@ -123,9 +115,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(orden);
         }
 
-        // ============================================================
-        // GENERAR PDF
-        // ============================================================
+        //GENERAR PDF
 
         [HttpGet("{id:int}/pdf")]
         [Permiso("ordenes-compras-no-formalizadas", "ver")]
@@ -139,9 +129,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
                 $"OrdenCompraNoFormalizada-{id}.pdf");
         }
 
-        // ============================================================
         // OBTENER POR ID
-        // ============================================================
 
         [HttpGet("{id:int}")]
         [Permiso("ordenes-compras-no-formalizadas", "ver")]
@@ -160,9 +148,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok(orden);
         }
 
-        // ============================================================
         // ACTUALIZAR
-        // ============================================================
 
         [HttpPut("{id:int}")]
         [Permiso("ordenes-compras-no-formalizadas", "editar")]
@@ -183,9 +169,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
             return Ok();
         }
 
-        // ============================================================
         // ENVIAR POR CORREO
-        // ============================================================
 
         [HttpPost("{id:int}/enviar-correo")]
         [Permiso("ordenes-compras-no-formalizadas", "enviar-correo")]
@@ -211,10 +195,6 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesCompras
                 });
             }
         }
-
-        // ============================================================
-        // ANULAR
-        // ============================================================
 
         [HttpPut("{id:int}/anular")]
         [Permiso("ordenes-compras-no-formalizadas", "editar")]

@@ -1,14 +1,13 @@
+
 import { Routes } from '@angular/router';
 
 export const COMPRAS_ROUTES: Routes = [
-
     {
         path: '2',
         children: [
-
             {
                 path: '',
-                redirectTo: 'ordenes-compras',
+                redirectTo: 'recepcion-mercancias',
                 pathMatch: 'full'
             },
 

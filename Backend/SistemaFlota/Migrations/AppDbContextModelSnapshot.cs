@@ -3546,6 +3546,10 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("Apellidos")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Cargo")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("Email")
                         .HasColumnType("longtext");
 

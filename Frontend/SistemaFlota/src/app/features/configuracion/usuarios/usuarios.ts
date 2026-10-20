@@ -32,6 +32,7 @@ export class UsuariosComponent implements OnInit {
     nombres: string;
     apellidos: string;
     telefono: string;
+    cargo: string;
     rol: string;
     email: string;
     activo: boolean;
@@ -42,6 +43,7 @@ export class UsuariosComponent implements OnInit {
       nombres: '',
       apellidos: '',
       telefono: '',
+      cargo: '',
       rol: 'Auxiliar',
       email: '',
       activo: true,
@@ -371,6 +373,7 @@ export class UsuariosComponent implements OnInit {
       nombres: '',
       apellidos: '',
       telefono: '',
+      cargo: '',
       rol: 'Auxiliar',
       email: '',
       activo: true,
@@ -448,6 +451,7 @@ export class UsuariosComponent implements OnInit {
       nombres: usuario.nombres ?? '',
       apellidos: usuario.apellidos ?? '',
       telefono: usuario.telefono ?? '',
+      cargo: usuario.cargo ?? '',
       rol: usuario.rol,
       email: usuario.email ?? '',
       activo: usuario.activo,

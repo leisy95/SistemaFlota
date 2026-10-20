@@ -12,6 +12,8 @@ namespace SistemaFlota
         public string? Apellidos { get; set; }
         public string? Telefono { get; set; }
         public string Rol { get; set; } = "Admin";
+        [MaxLength(100)]
+        public string? Cargo { get; set; }
         public bool Activo { get; set; } = true;
         public string? Email { get; set; }
         public string? TokenRecuperacion { get; set; }

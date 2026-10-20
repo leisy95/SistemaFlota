@@ -63,30 +63,32 @@ export class OrdenCompraNoFormalizadaService {
 
     // Para mostrar las órdenes de compra en recepción de mercancía
     obtenerParaRecepcion(
-        search = '',
-        estado = '',
-        proveedorNoFormalizadoId?: number,
-        page = 1,
-        pageSize = 10
-    ) {
+        search: string,
+        estado: string,
+        proveedorNoFormalizadoId: number | undefined,
+        page: number,
+        pageSize: number
+    ): Observable<any> {
         let params = new HttpParams()
             .set('page', page)
-            .set('pageSize', pageSize)
-            .set('_t', Date.now().toString());
+            .set('pageSize', pageSize);
 
-        if (search)
+        if (search) {
             params = params.set('search', search);
+        }
 
-        if (estado)
+        if (estado) {
             params = params.set('estado', estado);
+        }
 
-        if (proveedorNoFormalizadoId)
+        if (proveedorNoFormalizadoId != null) {
             params = params.set(
                 'proveedorNoFormalizadoId',
                 proveedorNoFormalizadoId
             );
+        }
 
-        return this.http.get<OrdenCompraNoFormalizadaPaginada>(
+        return this.http.get<any>(
             `${this.api}/para-recepcion`,
             { params }
         );

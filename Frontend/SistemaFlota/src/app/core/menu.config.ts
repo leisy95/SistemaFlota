@@ -4,6 +4,7 @@ export interface MenuItem {
     icon: string;
     ruta: string;
     modulo?: string;
+    permiso?: string;
 }
 
 export const MENU_MODULOS: MenuItem[] = [
@@ -336,52 +337,54 @@ export const MENU_MODULOS: MenuItem[] = [
 
     // COMPRAS - MÓDULO 2
 
+
     {
-        key: 'compras-2-proveedores',
+        key: 'proveedores',
         label: 'Proveedores',
         icon: 'fa-solid fa-user-tie',
         ruta: '/compras/2/proveedores',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'proveedores-compras-no-formalizadas'
     },
-
     {
-        key: 'compras-2-materiales',
+        key: 'materiales',
         label: 'Materiales',
         icon: 'fa-solid fa-boxes-stacked',
         ruta: '/compras/2/materiales',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'materiales-compras-no-formalizadas'
     },
-
     {
-        key: 'compras-2-ordenes',
+        key: 'ordenes-compras',
         label: 'Ord - Compras',
         icon: 'fa-solid fa-file-invoice-dollar',
         ruta: '/compras/2/ordenes-compras',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'ordenes-compras-no-formalizadas'
     },
-
     {
-        key: 'compras-2-recepcion',
+        key: 'recepcion-mercancias',
         label: 'Rep - Mercancias',
         icon: 'fa-solid fa-truck-ramp-box',
         ruta: '/compras/2/recepcion-mercancias',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'recepcion-compras-no-formalizadas'
     },
-
     {
-        key: 'compras-2-inventario',
+        key: 'inventario',
         label: 'Inventario',
         icon: 'fa-solid fa-warehouse',
         ruta: '/compras/2/inventario',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'inventario-compras-no-formalizadas'
     },
-
     {
-        key: 'compras-2-traslados',
+        key: 'traslados',
         label: 'Traslados',
         icon: 'fa-solid fa-right-left',
         ruta: '/compras/2/traslados',
-        modulo: 'compras-2'
+        modulo: 'compras-2',
+        permiso: 'traslado-compras-no-formalizadas'
     },
 
     // HISTORIAL ODO

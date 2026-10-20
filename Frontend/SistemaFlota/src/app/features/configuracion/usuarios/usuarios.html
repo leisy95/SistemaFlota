@@ -40,6 +40,7 @@
           <th>Nombre</th>
           <th>Teléfono</th>
           <th>Correo</th>
+          <th>Cargo</th>
           <th>Rol</th>
           <th>Permisos</th>
           <th>Estado</th>
@@ -51,6 +52,7 @@
           <td data-label="Usuario"><strong>{{ u.username }}</strong></td>
           <td data-label="Nombre">{{ u.nombres || '-' }} {{ u.apellidos || '' }}</td>
           <td data-label="Teléfono">{{ u.telefono || '-' }}</td>
+          <td data-label="Cargo">{{ u.cargo || '-' }}</td>
           <td data-label="Correo">{{ u.email || '-' }}</td>
           <td data-label="Rol"><span [class]="getBadgeRol(u.rol)">{{ u.rol }}</span></td>
           <td data-label="Permisos">
@@ -129,6 +131,14 @@
         <div class="form-group">
           <label><i class="fa-solid fa-phone"></i> Teléfono</label>
           <input type="tel" [(ngModel)]="nuevoUsuario.telefono" placeholder="Número de teléfono">
+        </div>
+
+        <div class="form-group">
+          <label>
+            <i class="fa-solid fa-briefcase"></i> Cargo
+          </label>
+          <input type="text" [(ngModel)]="nuevoUsuario.cargo" name="cargo" maxlength="100"
+            placeholder="Ej. Auxiliar administrativo">
         </div>
 
         <div class="form-group">

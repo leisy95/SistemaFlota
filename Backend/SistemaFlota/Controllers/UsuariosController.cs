@@ -64,6 +64,7 @@ namespace SistemaFlota
                     u.Nombres,
                     u.Apellidos,
                     u.Telefono,
+                    u.Cargo,
                     u.Rol,
                     u.Email,
                     u.Activo,
@@ -124,6 +125,7 @@ namespace SistemaFlota
                     u.Nombres,
                     u.Apellidos,
                     u.Telefono,
+                    u.Cargo,
                     u.Rol,
                     u.Email,
                     u.Activo,
@@ -171,6 +173,7 @@ namespace SistemaFlota
                 Nombres = dto.Nombres,
                 Apellidos = dto.Apellidos,
                 Telefono = dto.Telefono,
+                Cargo = dto.Cargo,
                 Rol = dto.Rol,
                 Email = dto.Email,
                 Activo = true
@@ -244,6 +247,7 @@ namespace SistemaFlota
             usuario.Nombres = dto.Nombres;
             usuario.Apellidos = dto.Apellidos;
             usuario.Telefono = dto.Telefono;
+            usuario.Cargo = dto.Cargo;
             usuario.Rol = dto.Rol;
             usuario.Email = dto.Email;
             usuario.Activo = dto.Activo;
@@ -297,6 +301,7 @@ namespace SistemaFlota
                 usuario.Nombres,
                 usuario.Apellidos,
                 usuario.Telefono,
+                usuario.Cargo,
                 usuario.Rol,
                 usuario.Email,
                 usuario.Activo,

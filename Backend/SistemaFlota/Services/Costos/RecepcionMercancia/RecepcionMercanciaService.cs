@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
+using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
@@ -135,6 +136,10 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 .Where(x => x.CantidadPendiente > 0 || x.BultosPendientes > 0)
                 .ToList();
 
+            // Consultar el usuario autenticado para obtener su cargo.
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Id == _currentUser.IdUsuario);
+
             return new RecepcionFormularioDto
             {
                 OrdenCompraId = orden.Id,
@@ -142,7 +147,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 Proveedor = orden.Proveedor?.Nombre ?? string.Empty,
                 FechaOrden = orden.FechaOrden,
                 Recibe = _currentUser.Nombre ?? string.Empty,
-                Cargo = _currentUser.Rol ?? string.Empty,
+                Cargo = usuario?.Cargo ?? string.Empty,
                 Items = items
             };
         }
@@ -151,19 +156,23 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
         {
             var usuarioId = _currentUser.IdUsuario;
             var nombreUsuario = _currentUser.Nombre;
-            var rolUsuario = _currentUser.Rol;
 
             if (usuarioId == null)
+            {
                 throw new UnauthorizedAccessException(
                     "No se pudo identificar al usuario autenticado.");
+            }
+
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Id == usuarioId.Value);
+
+            var cargoUsuario = usuario?.Cargo ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(nombreUsuario))
+            {
                 throw new UnauthorizedAccessException(
                     "El usuario autenticado no tiene un nombre configurado.");
-
-            if (string.IsNullOrWhiteSpace(rolUsuario))
-                throw new UnauthorizedAccessException(
-                    "El usuario autenticado no tiene un rol configurado.");
+            }
 
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Detalles)
@@ -204,7 +213,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     TipoDocumento = dto.TipoDocumento,
                     EmbalajeAdecuado = dto.EmbalajeAdecuado,
                     Recibe = nombreUsuario,
-                    Cargo = rolUsuario,
+                    Cargo = cargoUsuario,
                     Observaciones = dto.Observaciones,
                     FechaRecepcion = DateTime.Now,
                     NumeroUltimaEntrega = 0
@@ -220,7 +229,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 recepcion.TipoDocumento = dto.TipoDocumento;
                 recepcion.EmbalajeAdecuado = dto.EmbalajeAdecuado;
                 recepcion.Recibe = nombreUsuario;
-                recepcion.Cargo = rolUsuario;
+                recepcion.Cargo = cargoUsuario;
                 recepcion.Observaciones = dto.Observaciones;
             }
 
