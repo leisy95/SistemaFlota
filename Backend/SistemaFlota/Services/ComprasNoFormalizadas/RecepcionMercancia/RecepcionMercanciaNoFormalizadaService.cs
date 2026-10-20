@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.RecepcionMercancias;
+using SistemaFlota.Migrations;
 using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
@@ -329,6 +330,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     x.BultosPendientes > 0)
                 .ToList();
 
+            // Obtener el usuario autenticado y su cargo.
+            var usuarioId = _currentUser.IdUsuario;
+
+            var usuario = usuarioId != null
+                ? await _context.Usuarios
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == usuarioId.Value)
+                : null;
+
             return new RecepcionFormularioNoFormalizadaDto
             {
                 OrdenCompraNoFormalizadaId =
@@ -347,8 +357,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 Recibe =
                     _currentUser.Usuario,
 
-                Cargo =
-                    _currentUser.Rol,
+                Cargo = usuario?.Cargo ?? string.Empty,
 
                 Items =
                     items
