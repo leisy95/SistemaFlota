@@ -35,31 +35,60 @@
       <button class="btn-excel" (click)="exportarExcel()">
         <i class="fa-solid fa-file-excel"></i>
         Excel</button>
+      <button class="btn-agregar" (click)="exportarPdf()">
+        <i class="fa-solid fa-file-pdf"></i>
+        PDF
+      </button>
       <button class="btn-agregar" *ngIf="puedeCrear" (click)="nuevo()">
         <i class="fa-solid fa-plus"></i>
         Nuevo Registro</button>
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-grid">
-    <div class="stat-card azul">
-      <span class="stat-numero">{{ resumen.total }}</span>
-      <span class="stat-label">Total registros</span>
+  <!-- CARDS RESUMEN -->
+  <section class="stats-container">
+
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <i class="fa-solid fa-file-invoice"></i>
+      </div>
+      <div class="stat-content">
+        <span>Total registros</span>
+        <strong>{{ resumen.total }}</strong>
+      </div>
     </div>
-    <div class="stat-card verde">
-      <span class="stat-numero">{{ resumen.entregadas }}</span>
-      <span class="stat-label">Facturas entregadas</span>
+
+    <div class="stat-card">
+      <div class="stat-icon entregada">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="stat-content">
+        <span>Facturas entregadas</span>
+        <strong>{{ resumen.entregadas }}</strong>
+      </div>
     </div>
-    <div class="stat-card rojo">
-      <span class="stat-numero">{{ resumen.pendientesEntrega }}</span>
-      <span class="stat-label">Pendientes entrega</span>
+
+    <div class="stat-card">
+      <div class="stat-icon pendiente">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <span>Pendientes entrega</span>
+        <strong>{{ resumen.pendientesEntrega }}</strong>
+      </div>
     </div>
-    <div class="stat-card morado">
-      <span class="stat-numero">${{ resumen.totalFlete | number:'1.0-0' }}</span>
-      <span class="stat-label">Total flete</span>
+
+    <div class="stat-card">
+      <div class="stat-icon valor">
+        <i class="fa-solid fa-money-bill-wave"></i>
+      </div>
+      <div class="stat-content">
+        <span>Total flete</span>
+        <strong>${{ resumen.totalFlete | number:'1.0-0' }}</strong>
+      </div>
     </div>
-  </div>
+
+  </section>
 
   <!-- FILTROS -->
   <div class="filtros-panel">

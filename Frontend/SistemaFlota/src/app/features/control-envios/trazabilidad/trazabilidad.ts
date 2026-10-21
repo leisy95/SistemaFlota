@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
-import { TrazabilidadService } from '../../../core/services/trazabilidad.service';
+import { TrazabilidadService } from '../../../core/services/controlenvios/trazabilidad.service';
 import { PermisosService } from '../../../core/services/permisos.service';
 
 @Component({
@@ -99,16 +99,20 @@ export class TrazabilidadComponent implements OnInit {
     this.cargarAutorizaciones();
   }
 
-  // ── Carga con paginación y filtros desde el backend ───────────────────────
+  // Carga con paginación y filtros desde el backend
+
   cargarRegistros() {
     this.cargando = true;
+
     this.trazabilidadService.obtenerTodos({
       pagina: this.paginaActual,
       porPagina: this.porPagina,
       buscar: this.filtroBusqueda || undefined,
       estado: this.filtroEstado || undefined,
       entregada: this.filtroEntregada || undefined,
-      tipo: this.filtroTipo || undefined
+      tipo: this.filtroTipo || undefined,
+      fechaDesde: this.filtroFechaDesde || undefined,
+      fechaHasta: this.filtroFechaHasta || undefined
     }).subscribe({
       next: (res: any) => {
         this.registros = res.data;
@@ -118,19 +122,27 @@ export class TrazabilidadComponent implements OnInit {
         this.cargando = false;
         this.cargarResumen();
       },
-      error: (err) => { console.error(err); this.cargando = false; }
+      error: (err) => {
+        console.error('Error cargando trazabilidad:', err);
+        this.cargando = false;
+      }
     });
   }
+
 
   cargarResumen() {
     this.trazabilidadService.obtenerResumen({
       buscar: this.filtroBusqueda || undefined,
       estado: this.filtroEstado || undefined,
       entregada: this.filtroEntregada || undefined,
-      tipo: this.filtroTipo || undefined
+      tipo: this.filtroTipo || undefined,
+      fechaDesde: this.filtroFechaDesde || undefined,
+      fechaHasta: this.filtroFechaHasta || undefined
     }).subscribe({
-      next: (res: any) => { this.resumen = res; },
-      error: (err) => console.error(err)
+      next: (res: any) => {
+        this.resumen = res;
+      },
+      error: (err) => console.error('Error cargando resumen:', err)
     });
   }
 
@@ -143,7 +155,7 @@ export class TrazabilidadComponent implements OnInit {
     });
   }
 
-  // ── Filtros — reinicia a página 1 y recarga ───────────────────────────────
+  // Filtros — reinicia a página 1 y recarga
   aplicarFiltros() {
     this.paginaActual = 1;
     this.cargarRegistros();
@@ -159,7 +171,7 @@ export class TrazabilidadComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // ── Paginación ────────────────────────────────────────────────────────────
+  // Paginación
   paginaSiguiente() {
     if (this.paginaActual < this.totalPaginas) {
       this.paginaActual++;
@@ -386,5 +398,38 @@ export class TrazabilidadComponent implements OnInit {
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Trazabilidad');
     XLSX.writeFile(libro, `trazabilidad_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }
+
+  exportarPdf(): void {
+    const filtros = {
+      buscar: this.filtroBusqueda || undefined,
+      estado: this.filtroEstado || undefined,
+      entregada: this.filtroEntregada || undefined,
+      tipo: this.filtroTipo || undefined,
+      fechaDesde: this.filtroFechaDesde || undefined,
+      fechaHasta: this.filtroFechaHasta || undefined
+    };
+
+    this.trazabilidadService.exportarPdf(filtros).subscribe({
+      next: (pdf: Blob) => {
+        const url = window.URL.createObjectURL(pdf);
+        const enlace = document.createElement('a');
+
+        enlace.href = url;
+        enlace.download = `Reporte_Trazabilidad_${new Date()
+          .toISOString()
+          .slice(0, 10)}.pdf`;
+
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error al exportar el PDF:', error);
+        alert('No fue posible generar el reporte PDF.');
+      }
+    });
   }
 }

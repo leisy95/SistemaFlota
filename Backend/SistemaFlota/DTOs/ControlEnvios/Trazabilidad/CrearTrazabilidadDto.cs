@@ -1,4 +1,4 @@
-﻿namespace SistemaFlota.DTOs.Trazabilidad
+﻿namespace SistemaFlota.DTOs.ControlEnvios.Trazabilidad
 {
     public class CrearTrazabilidadDto
     {

@@ -21,6 +21,8 @@ using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.ControlEnvios.Trazabilidad;
+using SistemaFlota.Services.ControlEnvios.Trazabilidad.TrazabilidadPdf;
 using SistemaFlota.Services.Costos.DashboardEjecutivo;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
@@ -121,6 +123,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IInspeccionService, InspeccionService>();
 builder.Services.AddScoped<IInspeccionPdfService, InspeccionPdfService>();
 builder.Services.AddScoped<IInspeccionPdfGeneralService, InspeccionPdfGeneralService>();
+
+// Control de envios
+builder.Services.AddScoped<ITrazabilidadService, TrazabilidadService>();
+builder.Services.AddScoped<ITrazabilidadPdfService, TrazabilidadPdfService>();
+
 builder.Services.AddScoped<IDashboardEjecutivoService,DashboardEjecutivoService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IMaterialesService, MaterialService>();
