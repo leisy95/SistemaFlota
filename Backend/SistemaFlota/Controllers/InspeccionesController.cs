@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿
 using Microsoft.AspNetCore.Authorization;
-using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.DTOs.Flota.Inspecciones;
+using SistemaFlota.Services.Flota.Inspecciones;
+using SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral;
 using System.Security.Claims;
-using SistemaFlota.DTOs;
 
 namespace SistemaFlota
 {
@@ -12,37 +13,27 @@ namespace SistemaFlota
     [Authorize]
     public class InspeccionesController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly AuditoriaService _auditoria;
-        private readonly IMensajeriaService _mensajeria;
+        private readonly IInspeccionService _inspeccionService;
+        private readonly IInspeccionPdfService _inspeccionPdfService;
+        private readonly IInspeccionPdfGeneralService _pdfGeneralService;
 
         public InspeccionesController(
-            AppDbContext context,
-            AuditoriaService auditoria,
-            IMensajeriaService twilio)
+            IInspeccionService inspeccionService,
+            IInspeccionPdfService inspeccionPdfService,
+            IInspeccionPdfGeneralService pdfGeneralService)
         {
-            _context = context;
-            _auditoria = auditoria;
-            _mensajeria = twilio;
+            _inspeccionService = inspeccionService;
+            _inspeccionPdfService = inspeccionPdfService;
+            _pdfGeneralService = pdfGeneralService;
         }
 
         private string GetUsuario() =>
             User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
+
         private string GetRol() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Desconocido";
 
-        // -- Calcula estado general por porcentaje -----------------------------
-        private static (string estado, string emoji, double porcentaje) EvaluarInspeccion(
-            int totalItems, int noConformes)
-        {
-            if (totalItems == 0) return ("APTO", "?", 0);
-            double pct = (double)noConformes / totalItems * 100;
-            if (pct == 0)
-                return ("APTO", "?", pct);
-            if (pct <= 20)
-                return ("APTO CON OBSERVACIONES", "??", pct);
-            return ("NO APTO", "?", pct);
-        }
+        // GET: api/Inspecciones
 
         [HttpGet]
         public async Task<IActionResult> Get(
@@ -50,266 +41,107 @@ namespace SistemaFlota
             [FromQuery] int porPagina = 20,
             [FromQuery] string? buscar = null,
             [FromQuery] int? conductorId = null,
-            [FromQuery] int? vehiculoId = null)
+            [FromQuery] int? vehiculoId = null,
+            [FromQuery] DateTime? fechaDesde = null,
+            [FromQuery] DateTime? fechaHasta = null)
         {
-            var query = _context.Inspecciones
-                .Include(i => i.Vehiculo)
-                .Include(i => i.Conductor)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(buscar))
+            if (fechaDesde.HasValue &&
+                fechaHasta.HasValue &&
+                fechaDesde.Value.Date > fechaHasta.Value.Date)
             {
-                var q = buscar.ToLower();
-                query = query.Where(i =>
-                    i.Conductor!.Nombre.ToLower().Contains(q) ||
-                    i.Vehiculo!.Placa.ToLower().Contains(q));
+                return BadRequest(
+                    "La fecha inicial no puede ser posterior a la fecha final.");
             }
 
-            if (conductorId.HasValue)
-                query = query.Where(i => i.ConductorId == conductorId.Value);
-
-            if (vehiculoId.HasValue)
-                query = query.Where(i => i.VehiculoId == vehiculoId.Value);
-
-            var total = await query.CountAsync();
-
-            var lista = await query
-                .OrderByDescending(i => i.Fecha)
-                .Skip((pagina - 1) * porPagina)
-                .Take(porPagina)
-                .ToListAsync();
-
-            return Ok(new
-            {
-                data = lista,
-                total,
+            var resultado = await _inspeccionService.ObtenerInspeccionesAsync(
                 pagina,
                 porPagina,
-                totalPaginas = (int)Math.Ceiling((double)total / porPagina)
-            });
+                buscar,
+                conductorId,
+                vehiculoId,
+                fechaDesde,
+                fechaHasta);
+
+            return Ok(resultado);
         }
 
+        // GET: api/Inspecciones/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetalle(int id)
         {
-            var inspeccion = await _context.Inspecciones
-                .Include(i => i.Conductor)
-                .Include(i => i.Vehiculo)
-                .FirstOrDefaultAsync(i => i.Id == id);
-            if (inspeccion == null) return NotFound();
+            var resultado = await _inspeccionService.ObtenerDetalleAsync(id);
 
-            var detalles = await _context.InspeccionDetalles
-                .Include(d => d.ChecklistItem)
-                .Where(d => d.InspeccionId == id)
-                .Select(d => new
-                {
-                    d.Id,
-                    d.ChecklistItemId,
-                    NombreItem = d.ChecklistItem != null
-                        ? d.ChecklistItem.Descripcion
-                        : (d.DescripcionItem ?? d.ChecklistItemId.ToString()),
-                    d.Estado,
-                    d.Observacion,
-                    d.FotoEvidencia
-                })
-                .ToListAsync();
+            if (resultado == null)
+                return NotFound();
 
-            var noConformes = detalles.Count(d => d.Estado == "No conforme");
-            var totalItems = detalles.Count;
-            var (estado, emoji, pct) = EvaluarInspeccion(totalItems, noConformes);
-
-            return Ok(new
-            {
-                inspeccion.Id,
-                inspeccion.Fecha,
-                inspeccion.Kilometraje,
-                inspeccion.FotoOdometro,
-                inspeccion.FirmaCondutor,
-                EstadoGeneral = estado,
-                EmojiEstado = emoji,
-                PorcentajeNoConf = Math.Round(pct, 1),
-                TotalItems = totalItems,
-                TotalNoConformes = noConformes,
-                Conductor = new { inspeccion.Conductor!.Id, inspeccion.Conductor.Nombre },
-                Vehiculo = new { inspeccion.Vehiculo!.Id, inspeccion.Vehiculo.Placa },
-                Detalles = detalles
-            });
+            return Ok(resultado);
         }
 
+        // Pdf para inpecciones
+
+        [HttpGet("{id}/pdf")]
+        public async Task<IActionResult> ExportarPdf(int id)
+        {
+            Console.WriteLine($"Endpoint PDF ejecutado. ID: {id}");
+
+            var pdf = await _inspeccionPdfService.GenerarPdfAsync(id);
+
+            Console.WriteLine($"Servicio PDF ejecutado. ID: {id}");
+
+            return File(
+                pdf,
+                "application/pdf",
+                $"Inspeccion-{id}.pdf"
+            );
+        }
+
+
+        // Inspecciones pdf-general
+        [HttpGet("pdf-general")]
+        public async Task<IActionResult> ExportarPdfGeneral(
+            [FromQuery] DateTime? fechaDesde = null,
+            [FromQuery] DateTime? fechaHasta = null,
+            [FromQuery] string? buscar = null)
+        {
+            if (fechaDesde.HasValue &&
+                fechaHasta.HasValue &&
+                fechaDesde.Value.Date > fechaHasta.Value.Date)
+            {
+                return BadRequest(
+                    "La fecha inicial no puede ser posterior a la fecha final.");
+            }
+
+            var pdf = await _pdfGeneralService.GenerarPdfGeneralAsync(
+                buscar,
+                fechaDesde,
+                fechaHasta);
+
+            return File(
+                pdf,
+                "application/pdf",
+                "historial-inspecciones.pdf");
+        }
+
+        // POST: api/Inspecciones
         [HttpPost]
         public async Task<IActionResult> Post(
-            [FromForm] int VehiculoId,
-            [FromForm] int ConductorId,
-            [FromForm] int Kilometraje,
-            [FromForm] string Checklist,
-            IFormFile? FotoOdometro,
-            IFormFile? FirmaCondutor,
-            [FromForm] List<IFormFile> Evidencias,
-            [FromForm] List<int> EvidenciaIndices)
+            [FromForm] CrearInspeccionDto dto)
         {
             try
             {
-                var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/inspecciones");
-                if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
+                var resultado = await _inspeccionService.CrearAsync(
+                    dto,
+                    GetUsuario(),
+                    GetRol());
 
-                string? nombreOdometro = null;
-                if (FotoOdometro != null)
-                {
-                    nombreOdometro = Guid.NewGuid().ToString() + Path.GetExtension(FotoOdometro.FileName);
-                    using var s1 = new FileStream(Path.Combine(carpeta, nombreOdometro), FileMode.Create);
-                    await FotoOdometro.CopyToAsync(s1);
-                }
-
-                string? nombreFirma = null;
-                if (FirmaCondutor != null)
-                {
-                    nombreFirma = Guid.NewGuid().ToString() + Path.GetExtension(FirmaCondutor.FileName);
-                    using var s2 = new FileStream(Path.Combine(carpeta, nombreFirma), FileMode.Create);
-                    await FirmaCondutor.CopyToAsync(s2);
-                }
-
-                var inspeccion = new Inspeccion
-                {
-                    Fecha = DateTime.Now,
-                    VehiculoId = VehiculoId,
-                    ConductorId = ConductorId,
-                    Kilometraje = Kilometraje,
-                    FotoOdometro = nombreOdometro,
-                    FirmaCondutor = nombreFirma
-                };
-
-                _context.Inspecciones.Add(inspeccion);
-                await _context.SaveChangesAsync();
-
-                var opciones = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var items = JsonSerializer.Deserialize<List<ChecklistGuardar>>(Checklist, opciones);
-                var itemsNoConformes = new List<string>();
-
-                if (items != null)
-                {
-                    foreach (var item in items.Select((v, i) => new { v, i }))
-                    {
-                        string? nombreEvidencia = null;
-                        var idx = EvidenciaIndices.FindIndex(x => x == item.i);
-                        if (idx >= 0 && idx < Evidencias.Count)
-                        {
-                            var archivo = Evidencias[idx];
-                            nombreEvidencia = Guid.NewGuid().ToString() + Path.GetExtension(archivo.FileName);
-                            using var s3 = new FileStream(Path.Combine(carpeta, nombreEvidencia), FileMode.Create);
-                            await archivo.CopyToAsync(s3);
-                        }
-
-                        _context.InspeccionDetalles.Add(new InspeccionDetalle
-                        {
-                            InspeccionId = inspeccion.Id,
-                            ChecklistItemId = (item.v.id.HasValue && item.v.id > 0) ? item.v.id : null,
-                            DescripcionItem = item.v.descripcion,
-                            Estado = item.v.estado ?? string.Empty,
-                            Observacion = item.v.observacion,
-                            FotoEvidencia = nombreEvidencia
-                        });
-
-                        if (item.v.estado == "No conforme")
-                            itemsNoConformes.Add(
-                                !string.IsNullOrWhiteSpace(item.v.observacion)
-                                    ? item.v.observacion
-                                    : item.v.descripcion ?? $"Ítem #{item.v.id}"
-                            );
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-                var conductor = await _context.Conductores.FindAsync(ConductorId);
-                var vehiculo = await _context.Vehiculos.FindAsync(VehiculoId);
-
-                // -- Evaluar resultado por porcentaje --------------------------
-                var totalItems = items?.Count ?? 0;
-                var noConformes = itemsNoConformes.Count;
-                var (estadoGen, emojiGen, pctGen) = EvaluarInspeccion(totalItems, noConformes);
-                var pctTexto = $"{Math.Round(pctGen, 1)}%";
-
-                await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(), rol: GetRol(),
-                    accion: "Crear", modulo: "Inspecciones",
-                    detalle: $"Inspección creada — Conductor: {conductor?.Nombre ?? "-"}, " +
-                             $"Vehículo: {vehiculo?.Placa ?? "-"}, Km: {Kilometraje}, " +
-                             $"Estado: {estadoGen} ({pctTexto} no conformes)",
-                    registroId: inspeccion.Id
-                );
-
-                // -- Mensaje WhatsApp ------------------------------------------
-                var hora = DateTime.Now.ToString("hh:mm tt");
-                var fecha = DateTime.Now.ToString("dd/MM/yyyy");
-
-                var mensajeGrupo =
-                    $"🔍 *INSPECCIÓN VEHICULAR*\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
-                    $"{emojiGen} Estado: *{estadoGen}*\n" +
-                    $"⚠️ No conformes: {noConformes}/{totalItems} ({pctTexto})\n" +
-                    $"━━━━━━━━━━━━━━━━━━\n" +
-                    $"👤 Conductor: {conductor?.Nombre ?? "-"}\n" +
-                    $"🚗 Vehículo: {vehiculo?.Placa ?? "-"}\n" +
-                    $"📏 Km: {Kilometraje}\n" +
-                    $"🕐 Hora: {hora} — {fecha}";
-
-                if (itemsNoConformes.Any())
-                    mensajeGrupo +=
-                        $"\n━━━━━━━━━━━━━━━━━━\n" +
-                    $"❌ Ítems no conformes:\n" +
-                    $"• {string.Join("\n• ", itemsNoConformes)}";
-
-                var numerosGrupo = await _context.ContactosNotificacion
-                    .Where(c => c.Activo && c.RecibeInspecciones)
-                    .Select(c => c.NumeroWhatsApp)
-                    .ToListAsync();
-
-                try
-                {
-                    await _mensajeria.EnviarAMultiplesAsync(numerosGrupo, mensajeGrupo, "Inspecciones");
-                    inspeccion.WhatsAppEnviado = true;
-                }
-                catch
-                {
-                    inspeccion.WhatsAppEnviado = false;
-                }
-                await _context.SaveChangesAsync();
-
-                // -- Mensaje al conductor si hay no conformes ------------------
-                if (itemsNoConformes.Any() && !string.IsNullOrWhiteSpace(conductor?.Telefono))
-                {
-                    var mensajeConductor =
-                        $"{emojiGen} *INSPECCIÓN: {estadoGen}*\n" +
-                        $"Hola {conductor.Nombre.Split(' ')[0]},\n" +
-                        $"Tu inspección del vehículo {vehiculo?.Placa ?? "-"} tiene " +
-                        $"{noConformes} ítem(s) no conforme(s) ({pctTexto}):\n" +
-                        $"• {string.Join("\n• ", itemsNoConformes)}\n" +
-                        $"Por favor repórtalo al área de mantenimiento.";
-                    await _mensajeria.EnviarMensajeAsync(conductor.Telefono, mensajeConductor, "Conductores");
-                }
-
-                return Ok(new
-                {
-                    inspeccion.Id,
-                    EstadoGeneral = estadoGen,
-                    EmojiEstado = emojiGen,
-                    PorcentajeNoConf = Math.Round(pctGen, 1),
-                    TotalItems = totalItems,
-                    TotalNoConformes = noConformes
-                });
+                return Ok(resultado);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                await _auditoria.RegistrarAsync(
-                    usuario: GetUsuario(), rol: GetRol(),
-                    accion: "Crear", modulo: "Inspecciones",
-                    detalle: $"Error: {ex.Message}", resultado: "Fallido"
-                );
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "Ocurrió un error al crear la inspección.");
             }
         }
     }
 }
-
-
-
-

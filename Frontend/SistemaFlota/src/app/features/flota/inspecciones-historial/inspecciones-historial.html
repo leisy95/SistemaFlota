@@ -6,6 +6,12 @@
       <i class="fa-solid fa-file-excel"></i>
       Exportar Excel
     </button>
+
+    <button class="btn-agregar" (click)="exportarPdfGeneral()"
+      [disabled]="exportandoPdf || historialFiltrado.length === 0">
+      <i class="fa-solid fa-file-pdf"></i>
+      {{ exportandoPdf ? 'Generando PDF...' : 'PDF general' }}
+    </button>
   </div>
 
   <div class="sin-permiso" *ngIf="!puedeVer">
@@ -15,28 +21,43 @@
   <ng-container *ngIf="puedeVer">
 
     <!-- FILTROS -->
+
     <div class="filtros-panel">
 
+      <!-- Buscar conductor o vehículo -->
       <div class="input-icon">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input class="input-busqueda" type="text" [(ngModel)]="filtroBusqueda" (input)="aplicarFiltros()"
           placeholder="Buscar conductor o vehículo...">
       </div>
 
-      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde" (change)="aplicarFiltros()">
+      <!-- Fecha inicial -->
+      <div class="filtro-fecha">
+        <label for="fechaDesde">Desde</label>
+        <input id="fechaDesde" type="date" class="input-fecha" [(ngModel)]="filtroFechaDesde"
+          (change)="aplicarFiltros()" [max]="filtroFechaHasta || null">
+      </div>
 
-      <input type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta" (change)="aplicarFiltros()">
+      <!-- Fecha final -->
+      <div class="filtro-fecha">
+        <label for="fechaHasta">Hasta</label>
+        <input id="fechaHasta" type="date" class="input-fecha" [(ngModel)]="filtroFechaHasta"
+          (change)="aplicarFiltros()" [min]="filtroFechaDesde || null">
+      </div>
 
-      <button class="btn-refresh" (click)="obtenerHistorial()">
+      <!-- Actualizar -->
+      <button type="button" class="btn-refresh" title="Actualizar historial" (click)="obtenerHistorial()">
         <i class="fa-solid fa-rotate-right"></i>
       </button>
 
-      <button class="btn-limpiar" (click)="limpiarFiltros()">
+      <!-- Limpiar filtros -->
+      <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
         <i class="fa-solid fa-filter-circle-xmark"></i>
         Limpiar
       </button>
 
     </div>
+
 
     <p class="resultado-filtro" *ngIf="historialFiltrado.length !== historial.length">
       Mostrando {{ historialFiltrado.length }} de {{ historial.length }} registros
@@ -79,7 +100,7 @@
                   <i class="fa-solid fa-eye"></i>
                   Ver
                 </button>
-                <button class="btn-pdf" (click)="descargarPDF(item)">
+                <button class="btn-agregar" (click)="descargarPDF(item)">
                   <i class="fa-solid fa-file-pdf"></i>
                   PDF
                 </button>

@@ -30,6 +30,8 @@ using SistemaFlota.Services.Costos.OrdenesTraslado;
 using SistemaFlota.Services.Costos.Proveedores;
 using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
+using SistemaFlota.Services.Flota.Inspecciones;
+using SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral;
 using SistemaFlota.Services.HistorialVersionOdo;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.Notificaciones;
@@ -114,6 +116,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // Servicios
+
+// Flota - Inspecciones
+builder.Services.AddScoped<IInspeccionService, InspeccionService>();
+builder.Services.AddScoped<IInspeccionPdfService, InspeccionPdfService>();
+builder.Services.AddScoped<IInspeccionPdfGeneralService, InspeccionPdfGeneralService>();
 builder.Services.AddScoped<IDashboardEjecutivoService,DashboardEjecutivoService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IMaterialesService, MaterialService>();
