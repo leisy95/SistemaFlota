@@ -52,8 +52,8 @@
           <td data-label="Usuario"><strong>{{ u.username }}</strong></td>
           <td data-label="Nombre">{{ u.nombres || '-' }} {{ u.apellidos || '' }}</td>
           <td data-label="Teléfono">{{ u.telefono || '-' }}</td>
-          <td data-label="Cargo">{{ u.cargo || '-' }}</td>
           <td data-label="Correo">{{ u.email || '-' }}</td>
+          <td data-label="Cargo">{{ u.cargo || '-' }}</td>
           <td data-label="Rol"><span [class]="getBadgeRol(u.rol)">{{ u.rol }}</span></td>
           <td data-label="Permisos">
             <span *ngIf="u.permisos?.length" class="permisos-count"><i class="fa-solid fa-lock"></i> {{
