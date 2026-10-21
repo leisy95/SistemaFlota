@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Pdf.Components;
 using SistemaFlota.Services.Pdf.Styles;
 
@@ -13,13 +14,16 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly ICurrentUserService _currentUser;
 
         public InspeccionPdfGeneralService(
             AppDbContext context,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            ICurrentUserService currentUser)
         {
             _context = context;
             _environment = environment;
+            _currentUser = currentUser;
         }
 
         public async Task<byte[]> GenerarPdfGeneralAsync(
@@ -88,16 +92,48 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
                     "No existe la configuración de la empresa.");
             }
 
-            // 6. Recursos corporativos
+            // 6. Consultar los datos del usuario autenticado
+            var idUsuario = _currentUser.IdUsuario;
+
+            var usuario = idUsuario.HasValue
+                ? await _context.Usuarios
+                    .AsNoTracking()
+                    .Where(u => u.Id == idUsuario.Value)
+                    .Select(u => new
+                    {
+                        NombreCompleto = (
+                            (u.Nombres ?? "") + " " +
+                            (u.Apellidos ?? "")
+                        ).Trim(),
+                        u.Cargo
+                    })
+                    .FirstOrDefaultAsync()
+                : null;
+
+            var nombreUsuario =
+                !string.IsNullOrWhiteSpace(usuario?.NombreCompleto)
+                    ? usuario.NombreCompleto
+                    : _currentUser.Usuario ?? "No disponible";
+
+            var cargoUsuario =
+                !string.IsNullOrWhiteSpace(usuario?.Cargo)
+                    ? usuario.Cargo
+                    : "No especificado";
+
+            // 7. Recursos corporativos
             var rutaLogo = Path.Combine(
                 _environment.ContentRootPath,
-                "wwwroot", "config", "logo.png");
+                "wwwroot",
+                "config",
+                "logo.png");
 
             var rutaMarcaAgua = Path.Combine(
                 _environment.ContentRootPath,
-                "wwwroot", "config", "iguana3.png");
+                "wwwroot",
+                "config",
+                "iguana3.png");
 
-            // 7. Generar documento
+            // 8. Generar documento PDF
             var pdf = Document.Create(document =>
             {
                 document.Page(page =>
@@ -136,50 +172,83 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
                                         $"{inspecciones.Count} registros");
                                 });
 
-                            // Resumen
-                            content.Item()
-                                .Border(1)
-                                .BorderColor(PdfColors.GrisClaro)
-                                .Background(PdfColors.Fondo)
-                                .Padding(10)
-                                .Column(col =>
-                                {
-                                    col.Item()
-                                        .Text("RESUMEN DEL REPORTE")
-                                        .Style(PdfStyles.Subtitulo);
+                            // 9. Resumen y datos del usuario
+                            content.Item().Row(row =>
+                            {
+                                // Columna izquierda: resumen
+                                row.RelativeItem(1.4f)
+                                    .Border(1)
+                                    .BorderColor(PdfColors.GrisClaro)
+                                    .Background(PdfColors.Fondo)
+                                    .Padding(10)
+                                    .Column(col =>
+                                    {
+                                        col.Spacing(5);
 
-                                    col.Item()
-                                        .Text(
-                                            $"Total de inspecciones: " +
-                                            $"{inspecciones.Count}")
-                                        .Style(PdfStyles.Label);
+                                        col.Item()
+                                            .Text("RESUMEN DEL REPORTE")
+                                            .Style(PdfStyles.Subtitulo);
 
-                                    col.Item()
-                                        .Text(
-                                            $"Fecha de generación: " +
-                                            $"{DateTime.Now:dd/MM/yyyy HH:mm}")
-                                        .Style(PdfStyles.Label);
+                                        col.Item()
+                                            .Text(
+                                                $"Total de inspecciones: {inspecciones.Count}")
+                                            .Style(PdfStyles.Label);
 
-                                    col.Item()
-                                        .Text(
-                                            $"Búsqueda: " +
-                                            $"{(string.IsNullOrWhiteSpace(buscar) ? "Todas" : buscar.Trim())}")
-                                        .Style(PdfStyles.Label);
+                                        col.Item()
+                                            .Text(
+                                                $"Fecha de generación: {DateTime.Now:dd/MM/yyyy HH:mm}")
+                                            .Style(PdfStyles.Label);
 
-                                    col.Item()
-                                        .Text(
-                                            $"Desde: " +
-                                            $"{(fechaDesde.HasValue ? fechaDesde.Value.ToString("dd/MM/yyyy") : "Sin límite")}")
-                                        .Style(PdfStyles.Label);
+                                        col.Item()
+                                            .Text(
+                                                $"Búsqueda: {(string.IsNullOrWhiteSpace(buscar) ? "Todas" : buscar.Trim())}")
+                                            .Style(PdfStyles.Label);
 
-                                    col.Item()
-                                        .Text(
-                                            $"Hasta: " +
-                                            $"{(fechaHasta.HasValue ? fechaHasta.Value.ToString("dd/MM/yyyy") : "Sin límite")}")
-                                        .Style(PdfStyles.Label);
-                                });
+                                        col.Item()
+                                            .Text(
+                                                $"Desde: {(fechaDesde.HasValue ? fechaDesde.Value.ToString("dd/MM/yyyy") : "Sin límite")}")
+                                            .Style(PdfStyles.Label);
 
-                            // Tabla general
+                                        col.Item()
+                                            .Text(
+                                                $"Hasta: {(fechaHasta.HasValue ? fechaHasta.Value.ToString("dd/MM/yyyy") : "Sin límite")}")
+                                            .Style(PdfStyles.Label);
+                                    });
+
+                                // Columna derecha: usuario
+                                row.RelativeItem(1f)
+                                    .Border(1)
+                                    .BorderColor(PdfColors.GrisClaro)
+                                    .Background(PdfColors.Fondo)
+                                    .Padding(10)
+                                    .Column(col =>
+                                    {
+                                        col.Spacing(8);
+
+                                        col.Item()
+                                            .Text("DATOS DEL USUARIO")
+                                            .Style(PdfStyles.Subtitulo);
+
+                                        col.Item()
+                                            .Text("Nombre completo")
+                                            .Style(PdfStyles.Label);
+
+                                        col.Item()
+                                            .Text(nombreUsuario)
+                                            .FontSize(9)
+                                            .Bold();
+
+                                        col.Item()
+                                            .Text("Cargo")
+                                            .Style(PdfStyles.Label);
+
+                                        col.Item()
+                                            .Text(cargoUsuario)
+                                            .FontSize(9);
+                                    });
+                            });
+
+                            // 10. Tabla general de inspecciones
                             content.Item().Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
@@ -212,7 +281,8 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
 
                                     CeldaCuerpo(
                                         table,
-                                        item.Fecha.ToString("dd/MM/yyyy HH:mm"));
+                                        item.Fecha.ToString(
+                                            "dd/MM/yyyy HH:mm"));
 
                                     CeldaCuerpo(
                                         table,
@@ -244,6 +314,7 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
             return pdf.GeneratePdf();
         }
 
+        // Cabecera de la tabla
         private static void CeldaCabecera(
             TableCellDescriptor table,
             string texto)
@@ -257,6 +328,7 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
                 .FontColor(PdfColors.Blanco);
         }
 
+        // Cuerpo de la tabla
         private static void CeldaCuerpo(
             TableDescriptor table,
             string texto)
@@ -269,6 +341,7 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
                 .FontSize(7);
         }
 
+        // Estado del envío por WhatsApp
         private static void CeldaWhatsApp(
             TableDescriptor table,
             bool? enviado)
