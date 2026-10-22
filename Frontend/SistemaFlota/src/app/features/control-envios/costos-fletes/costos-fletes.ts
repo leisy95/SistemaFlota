@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { environment } from '../../../../environments/environment';
+import { CostosFleteService } from '../../../core/services/controlenvios/costos-fletes';
 
 @Component({
   selector: 'app-costos-fletes',
@@ -38,95 +39,6 @@ export class CostosFleteComponent implements OnInit {
 
   mostrarModalVarios = false;
   itemsVarios: { concepto: string; valor: number | null }[] = [];
-
-  exportarReporteCompleto() {
-    if (this.registros.length === 0) { alert('No hay registros para exportar'); return; }
-
-    const doc = new jsPDF('l', 'mm', 'letter');
-    const VERDE: [number, number, number] = [26, 127, 90];
-    const W = 279; const M = 10;
-
-    doc.setFillColor(...VERDE); doc.rect(M, M, W - M * 2, 16, 'F');
-    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-    doc.text('REPORTE CONSOLIDADO DE COSTOS DE FLETE', W / 2, M + 10, { align: 'center' });
-
-    doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-    let y = M + 24;
-
-    const filtrosTexto: string[] = [];
-    if (this.filtroDesde) filtrosTexto.push(`Desde: ${this.filtroDesde}`);
-    if (this.filtroHasta) filtrosTexto.push(`Hasta: ${this.filtroHasta}`);
-    if (this.filtroConductor) filtrosTexto.push(`Conductor: ${this.filtroConductor}`);
-    if (this.filtroCiudad) filtrosTexto.push(`Ciudad: ${this.filtroCiudad}`);
-    if (this.filtroPlaca) filtrosTexto.push(`Placa: ${this.filtroPlaca}`);
-    if (this.filtroEstado) filtrosTexto.push(`Estado: ${this.filtroEstado}`);
-
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-    doc.text('Filtros aplicados: ', M, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(filtrosTexto.length ? filtrosTexto.join('  |  ') : 'Ninguno (todos los registros)', M + 32, y);
-    doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, W - M, y, { align: 'right' });
-    y += 8;
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Total registros', 'Total gastos', 'Pendientes', 'Verificados', 'Promedio $/kg']],
-      body: [[
-        this.registros.length.toString(),
-        '$' + this.totalGastosFiltrados.toLocaleString('es-CO'),
-        this.pendientes.toString(),
-        this.verificados.toString(),
-        '$' + this.promedioPorKilo.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      ]],
-      headStyles: { fillColor: VERDE, halign: 'center' },
-      bodyStyles: { halign: 'center', fontStyle: 'bold', fontSize: 11 },
-      margin: { left: M, right: M }
-    });
-    y = (doc as any).lastAutoTable.finalY + 8;
-
-    const filas = this.registros.map(r => {
-      const aut = r.autorizacion;
-      const kilos = aut?.pesoKilos || 0;
-      const porKilo = kilos > 0 ? r.total / kilos : 0;
-      return [
-        '#' + r.autorizacionId,
-        aut?.conductor?.nombre ?? '-',
-        aut?.vehiculo?.placa ?? '-',
-        aut?.destinoCompleto ?? '-',
-        new Date(r.fechaRegistro).toLocaleDateString('es-CO'),
-        kilos.toLocaleString('es-CO') + ' kg',
-        '$' + (r.peajes || 0).toLocaleString('es-CO'),
-        '$' + (r.combustible || 0).toLocaleString('es-CO'),
-        '$' + (r.parqueos || 0).toLocaleString('es-CO'),
-        '$' + (r.descarguesMcia || 0).toLocaleString('es-CO'),
-        '$' + (r.cargueMateriales || 0).toLocaleString('es-CO'),
-        '$' + (r.alimentacion || 0).toLocaleString('es-CO'),
-        '$' + (r.hospedaje || 0).toLocaleString('es-CO'),
-        '$' + (r.varios || 0).toLocaleString('es-CO'),
-        '$' + (r.total || 0).toLocaleString('es-CO'),
-        '$' + porKilo.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        r.estado
-      ];
-    });
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Aut.', 'Conductor', 'Placa', 'Destino', 'Fecha', 'Kilos', 'Peajes', 'Combust.', 'Parqueos', 'Descargue', 'Cargue', 'Aliment.', 'Hospedaje', 'Varios', 'Total', '$/kg', 'Estado']],
-      body: filas,
-      headStyles: { fillColor: VERDE, fontSize: 7 },
-      bodyStyles: { fontSize: 7 },
-      margin: { left: M, right: M },
-      didParseCell: (data) => {
-        if (data.column.index === 16 && data.cell.section === 'body') {
-          const estado = data.cell.raw as string;
-          if (estado === 'Verificado') { data.cell.styles.textColor = [22, 101, 52]; data.cell.styles.fontStyle = 'bold'; }
-          else { data.cell.styles.textColor = [146, 64, 14]; }
-        }
-      }
-    });
-
-    doc.save('Reporte_CostosFlete_' + new Date().toISOString().slice(0, 10) + '.pdf');
-  }
 
   autorizacionSeleccionada: any = null;
   firmaDataUrl: string | null = null;
@@ -173,24 +85,71 @@ export class CostosFleteComponent implements OnInit {
     return new HttpHeaders({ Authorization: 'Bearer ' + sessionStorage.getItem('token') });
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private costosFleteService: CostosFleteService
+  ) { }
 
   ngOnInit(): void {
     this.cargar();
     this.cargarAutorizaciones();
   }
 
-  cargar() {
-    let url = `${environment.apiUrl}/CostosFletes?`;
-    if (this.filtroDesde) url += `desde=${this.filtroDesde}&`;
-    if (this.filtroHasta) url += `hasta=${this.filtroHasta}&`;
-    if (this.filtroConductor) url += `conductor=${this.filtroConductor}&`;
-    if (this.filtroEstado) url += `estado=${this.filtroEstado}&`;
-    if (this.filtroCiudad) url += `ciudad=${this.filtroCiudad}&`;
-    if (this.filtroPlaca) url += `placa=${this.filtroPlaca}&`;
-    this.http.get<any[]>(url, { headers: this.headers }).subscribe({
-      next: (d: any) => this.registros = Array.isArray(d) ? d : [],
-      error: e => console.error(e)
+  cargar(): void {
+    if (
+      this.filtroDesde &&
+      this.filtroHasta &&
+      this.filtroDesde > this.filtroHasta
+    ) {
+      alert('La fecha inicial no puede ser posterior a la fecha final.');
+      return;
+    }
+
+    this.costosFleteService.getRegistros({
+      desde: this.filtroDesde,
+      hasta: this.filtroHasta,
+      conductor: this.filtroConductor,
+      placa: this.filtroPlaca,
+      ciudad: this.filtroCiudad,
+      estado: this.filtroEstado
+    }).subscribe({
+      next: data => {
+        this.registros = Array.isArray(data) ? data : [];
+      },
+      error: error => {
+        console.error('Error cargando costos de fletes:', error);
+      }
+    });
+  }
+
+  // Exportar pdf
+  exportarReporteCompleto(): void {
+    const filtros = {
+      desde: this.filtroDesde,
+      hasta: this.filtroHasta,
+      conductor: this.filtroConductor,
+      placa: this.filtroPlaca,
+      ciudad: this.filtroCiudad,
+      estado: this.filtroEstado
+    };
+
+    this.costosFleteService.generarPdf(filtros).subscribe({
+      next: (pdf: Blob) => {
+        const url = window.URL.createObjectURL(pdf);
+        const enlace = document.createElement('a');
+
+        enlace.href = url;
+        enlace.download = `Reporte_Costos_Fletes_${new Date()
+          .toISOString()
+          .slice(0, 10)}.pdf`;
+
+        enlace.click();
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      },
+      error: (error) => {
+        console.error('Error al generar el PDF:', error);
+        alert('No fue posible generar el reporte PDF.');
+      }
     });
   }
 

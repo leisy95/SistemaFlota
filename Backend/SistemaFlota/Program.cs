@@ -21,6 +21,9 @@ using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Services.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia;
 using SistemaFlota.Services.Consecutivos;
+using SistemaFlota.Services.ControlEnvios.CostosFlete;
+using SistemaFlota.Services.ControlEnvios.CostosFlete.CostosFletePdf;
+using SistemaFlota.Services.ControlEnvios.CostosFletesPdf;
 using SistemaFlota.Services.ControlEnvios.Trazabilidad;
 using SistemaFlota.Services.ControlEnvios.Trazabilidad.TrazabilidadPdf;
 using SistemaFlota.Services.Costos.DashboardEjecutivo;
@@ -127,6 +130,8 @@ builder.Services.AddScoped<IInspeccionPdfGeneralService, InspeccionPdfGeneralSer
 // Control de envios
 builder.Services.AddScoped<ITrazabilidadService, TrazabilidadService>();
 builder.Services.AddScoped<ITrazabilidadPdfService, TrazabilidadPdfService>();
+builder.Services.AddScoped<ICostosFletesService, CostosFletesService>();
+builder.Services.AddScoped<ICostosFletesPdfService, CostosFletesPdfService>();
 
 builder.Services.AddScoped<IDashboardEjecutivoService,DashboardEjecutivoService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();

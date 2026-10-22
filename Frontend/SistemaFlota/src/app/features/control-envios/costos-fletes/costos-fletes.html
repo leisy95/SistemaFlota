@@ -1,12 +1,24 @@
 <div class="contenedor">
   <div class="header">
-    <div>
-      <h1><i class="fa-solid fa-money-bill-trend-up"></i> Costos de Flete</h1>
+    <div class="header-info">
+      <h1>
+        <i class="fa-solid fa-money-bill-trend-up"></i>
+        Costos de Flete
+      </h1>
       <p class="subtitulo">Relación de gastos por viaje</p>
     </div>
-    <button class="btn-agregar" *ngIf="vista === 'lista'" (click)="nuevo()">
-      <i class="fa-solid fa-plus"></i> Nuevo registro
-    </button>
+
+    <div class="header-acciones">
+      <button class="btn-agregar" [disabled]="registros.length === 0" (click)="exportarReporteCompleto()">
+        <i class="fa-solid fa-file-pdf"></i>
+        Exportar reporte
+      </button>
+
+      <button class="btn-agregar" *ngIf="vista === 'lista'" (click)="nuevo()">
+        <i class="fa-solid fa-plus"></i>
+        Nuevo registro
+      </button>
+    </div>
   </div>
 
   <!-- LISTA -->
@@ -43,8 +55,15 @@
     </div>
 
     <div class="filtros">
-      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
-      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
+      <div class="fg">
+        <label>Desde</label>
+        <input type="date" [(ngModel)]="filtroDesde" (ngModelChange)="cargar()">
+      </div>
+
+      <div class="fg">
+        <label>Hasta</label>
+        <input type="date" [(ngModel)]="filtroHasta" (ngModelChange)="cargar()">
+      </div>
       <div class="fg"><label>Conductor</label><input type="text" [(ngModel)]="filtroConductor" placeholder="Nombre">
       </div>
       <div class="fg"><label>Placa</label><input type="text" [(ngModel)]="filtroPlaca" placeholder="ABC123"></div>
@@ -58,9 +77,7 @@
         </select>
       </div>
       <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
-      <button class="btn-reporte" [disabled]="registros.length === 0" (click)="exportarReporteCompleto()">
-        <i class="fa-solid fa-file-pdf"></i> Exportar reporte
-      </button>
+
     </div>
 
     <div class="tabla-container" *ngIf="registros.length > 0">

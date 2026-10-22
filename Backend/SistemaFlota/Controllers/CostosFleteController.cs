@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaFlota.DTOs;
-using SistemaFlota.DTOs.CostosFletes;
+using SistemaFlota.DTOs.ControlEnvios.CostosFletes;
+using SistemaFlota.Services.ControlEnvios.CostosFlete;
+using SistemaFlota.Services.ControlEnvios.CostosFlete.CostosFletePdf;
+using SistemaFlota.Services.ControlEnvios.CostosFletesPdf;
 using System.Security.Claims;
 
 namespace SistemaFlota
@@ -12,18 +14,24 @@ namespace SistemaFlota
     [Authorize]
     public class CostosFletesController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly AuditoriaService _auditoria;
+        private readonly ICostosFletesService _service;
+        private readonly ICostosFletesPdfService _pdfService;
 
-        public CostosFletesController(AppDbContext context, AuditoriaService auditoria)
+        public CostosFletesController(
+            ICostosFletesService service,
+            ICostosFletesPdfService pdfService)
         {
-            _context = context;
-            _auditoria = auditoria;
+            _service = service;
+            _pdfService = pdfService;
         }
 
-        private string GetUsuario() => User.FindFirstValue(ClaimTypes.Name) ?? "";
-        private string GetRol() => User.FindFirstValue(ClaimTypes.Role) ?? "";
+        private string GetUsuario() =>
+            User.FindFirstValue(ClaimTypes.Name) ?? "";
 
+        private string GetRol() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "";
+
+        // GET: api/CostosFletes
         [HttpGet]
         public async Task<IActionResult> Get(
             [FromQuery] string? desde = null,
@@ -32,134 +40,99 @@ namespace SistemaFlota
             [FromQuery] string? estado = null,
             [FromQuery] string? ciudad = null,
             [FromQuery] string? placa = null)
-
         {
-            var query = _context.CostosFletes
-                .Include(c => c.Autorizacion)
-                    .ThenInclude(a => a!.Conductor)
-                .Include(c => c.Autorizacion)
-                    .ThenInclude(a => a!.Vehiculo)
-                .Include(c => c.Trazabilidad)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(desde))
-                query = query.Where(c => c.FechaRegistro >= DateTime.Parse(desde));
-
-            if (!string.IsNullOrEmpty(hasta))
-                query = query.Where(c => c.FechaRegistro <= DateTime.Parse(hasta).AddDays(1));
-
-            if (!string.IsNullOrEmpty(conductor))
-                query = query.Where(c =>
-                    (c.Autorizacion != null && c.Autorizacion.Conductor != null && c.Autorizacion.Conductor.Nombre.Contains(conductor)) ||
-                    (c.Trazabilidad != null && c.Trazabilidad.Conductor.Contains(conductor)));
-
-            if (!string.IsNullOrEmpty(placa))
-                query = query.Where(c =>
-                    (c.Autorizacion != null && c.Autorizacion.Vehiculo != null && c.Autorizacion.Vehiculo.Placa.Contains(placa)) ||
-                    (c.Trazabilidad != null && c.Trazabilidad.Vehiculo != null && c.Trazabilidad.Vehiculo.Contains(placa)));
-
-            if (!string.IsNullOrEmpty(estado))
-                query = query.Where(c => c.Estado == estado);
-
-            if (!string.IsNullOrEmpty(ciudad))
-                query = query.Where(c =>
-                    (c.Autorizacion != null && c.Autorizacion.DestinoCompleto.Contains(ciudad)));
-
-            var lista = await query
-                .OrderByDescending(c => c.FechaRegistro)
-                .ThenByDescending(c => c.Id)
-                .ToListAsync();
+            var lista = await _service.ObtenerAsync(
+                desde,
+                hasta,
+                conductor,
+                estado,
+                ciudad,
+                placa);
 
             return Ok(lista);
         }
 
+        // GET: api/CostosFletes/pdf
+        [HttpGet("pdf")]
+        public async Task<IActionResult> GenerarPdf(
+            [FromQuery] string? desde = null,
+            [FromQuery] string? hasta = null,
+            [FromQuery] string? conductor = null,
+            [FromQuery] string? estado = null,
+            [FromQuery] string? ciudad = null,
+            [FromQuery] string? placa = null)
+        {
+            var pdf = await _pdfService.GenerarPdfAsync(
+                desde,
+                hasta,
+                conductor,
+                estado,
+                ciudad,
+                placa);
+
+            var nombreArchivo =
+                $"Reporte_Costos_Fletes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+
+            return File(
+                pdf,
+                "application/pdf",
+                nombreArchivo);
+        }
+
+        // POST: api/CostosFletes
         [HttpPost]
-        public async Task<IActionResult> Crear([FromBody] CostoFleteDto dto)
+        public async Task<IActionResult> Crear(
+            [FromBody] CostoFleteDto dto)
         {
-            var registro = new CosteFlete
-            {
-                AutorizacionId = dto.AutorizacionId,
-                FechaRegistro = DateTime.Now,
-                Peajes = dto.Peajes,
-                Combustible = dto.Combustible,
-                Parqueos = dto.Parqueos,
-                DescarguesMcia = dto.DescarguesMcia,
-                CargueMateriales = dto.CargueMateriales,
-                Alimentacion = dto.Alimentacion,
-                Hospedaje = dto.Hospedaje,
-                Varios = dto.Varios,
-                Total = dto.Total,
-                Observaciones = dto.Observaciones,
-                VariosDetalle = dto.VariosDetalle,
-                Estado = "Pendiente"
-            };
-
-            _context.CostosFletes.Add(registro);
-            await _context.SaveChangesAsync();
-
-            await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Crear", modulo: "CostosFletes",
-                detalle: $"Costo flete creado para autorización #{dto.AutorizacionId}",
-                registroId: registro.Id
-            );
+            var registro = await _service.CrearAsync(
+                dto,
+                GetUsuario(),
+                GetRol());
 
             return Ok(registro);
         }
 
+        // PUT: api/CostosFletes/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Editar(int id, [FromBody] CostoFleteDto dto)
+        public async Task<IActionResult> Editar(
+            int id,
+            [FromBody] CostoFleteDto dto)
         {
-            var registro = await _context.CostosFletes.FindAsync(id);
-            if (registro == null) return NotFound();
+            var registro = await _service.EditarAsync(id, dto);
 
-            registro.Peajes = dto.Peajes;
-            registro.Combustible = dto.Combustible;
-            registro.Parqueos = dto.Parqueos;
-            registro.DescarguesMcia = dto.DescarguesMcia;
-            registro.CargueMateriales = dto.CargueMateriales;
-            registro.Alimentacion = dto.Alimentacion;
-            registro.Hospedaje = dto.Hospedaje;
-            registro.Varios = dto.Varios;
-            registro.Total = dto.Total;
-            registro.VariosDetalle = dto.VariosDetalle;
-            registro.Observaciones = dto.Observaciones;
+            if (registro == null)
+                return NotFound();
 
-            await _context.SaveChangesAsync();
             return Ok(registro);
         }
 
+        // PUT: api/CostosFletes/{id}/verificar
         [HttpPut("{id}/verificar")]
-        public async Task<IActionResult> Verificar(int id, [FromBody] VerificarDto dto)
+        public async Task<IActionResult> Verificar(
+            int id,
+            [FromBody] VerificarDto dto)
         {
-            var registro = await _context.CostosFletes.FindAsync(id);
-            if (registro == null) return NotFound();
+            var registro = await _service.VerificarAsync(
+                id,
+                dto,
+                GetUsuario(),
+                GetRol());
 
-            registro.Estado = "Verificado";
-            registro.VerificadoPor = dto.VerificadoPor;
-            registro.FirmaVerificacion = dto.FirmaVerificacion;
-            registro.FechaVerificacion = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-
-            await _auditoria.RegistrarAsync(
-                usuario: GetUsuario(), rol: GetRol(),
-                accion: "Verificar", modulo: "CostosFletes",
-                detalle: $"Flete #{id} verificado por {dto.VerificadoPor}",
-                registroId: id
-            );
+            if (registro == null)
+                return NotFound();
 
             return Ok(registro);
         }
 
+        // DELETE: api/CostosFletes/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var registro = await _context.CostosFletes.FindAsync(id);
-            if (registro == null) return NotFound();
+            var eliminado = await _service.EliminarAsync(id);
 
-            _context.CostosFletes.Remove(registro);
-            await _context.SaveChangesAsync();
+            if (!eliminado)
+                return NotFound();
+
             return Ok();
         }
     }

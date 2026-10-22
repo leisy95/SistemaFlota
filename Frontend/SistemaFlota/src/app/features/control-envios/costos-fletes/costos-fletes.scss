@@ -21,7 +21,6 @@
 }
 
 /* CABECERA */
-
 .header {
   display: flex;
   align-items: center;
@@ -33,6 +32,11 @@
   border: 1px solid var(--gris-claro);
   border-radius: 18px;
   box-shadow: var(--sombra);
+}
+
+.header-info {
+  flex: 1;
+  min-width: 220px;
 }
 
 .header h1 {
@@ -49,6 +53,75 @@
 
 .header h1 i {
   color: var(--verde-oscuro);
+  flex-shrink: 0;
+}
+
+.subtitulo {
+  margin: 7px 0 0;
+  color: var(--gris-texto, #64748b);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.header-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .header {
+    padding: 22px;
+    gap: 16px;
+  }
+
+  .header h1 {
+    font-size: 1.45rem;
+  }
+
+  .header-acciones {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Móvil */
+@media (max-width: 480px) {
+  .header {
+    padding: 18px;
+    border-radius: 14px;
+    gap: 18px;
+  }
+
+  .header-info {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .header h1 {
+    font-size: 1.3rem;
+    gap: 8px;
+  }
+
+  .subtitulo {
+    font-size: 0.88rem;
+  }
+
+  .header-acciones {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .header-acciones button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
 }
 
 .subtitulo {
@@ -77,7 +150,6 @@
   font-weight: 750;
 }
 
-.btn-agregar:hover,
 .btn-filtrar:hover,
 .btn-guardar:hover,
 .btn-guardar-llegada:hover {
@@ -393,7 +465,6 @@
 
 .btn-ver,
 .btn-editar,
-.btn-pdf,
 .btn-verificar {
   display: inline-flex;
   align-items: center;
@@ -427,17 +498,6 @@
 .btn-editar:hover {
   color: var(--blanco);
   background: var(--verde-oscuro);
-}
-
-.btn-pdf {
-  color: #c62828;
-  background: #fef2f2;
-  border-color: #fecaca;
-}
-
-.btn-pdf:hover {
-  color: var(--blanco);
-  background: #c62828;
 }
 
 .btn-verificar {
@@ -1168,7 +1228,6 @@
 
   .btn-ver,
   .btn-editar,
-  .btn-pdf,
   .btn-verificar {
     flex-basis: 39px;
     width: 39px;
