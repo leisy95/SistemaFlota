@@ -19,28 +19,62 @@
   </div>
 
   <!-- STATS -->
+
   <div class="stats-grid">
+
     <div class="stat-card rojo">
-      <span class="stat-numero">{{ sos }}</span>
-      <span class="stat-label"><i class="fas fa-circle-exclamation"></i> SOS</span>
+      <div class="stat-icon">
+        <i class="fas fa-circle-exclamation"></i>
+      </div>
+      <div class="stat-content">
+        <span>SOS</span>
+        <strong>{{ sos }}</strong>
+      </div>
     </div>
+
     <div class="stat-card amarillo">
-      <span class="stat-numero">{{ pendientes }}</span>
-      <span class="stat-label"> <i class="fas fa-hourglass-half"></i> Pendientes</span>
+      <div class="stat-icon">
+        <i class="fas fa-hourglass-half"></i>
+      </div>
+      <div class="stat-content">
+        <span>Pendientes</span>
+        <strong>{{ pendientes }}</strong>
+      </div>
     </div>
+
     <div class="stat-card azul">
-      <span class="stat-numero">{{ enProceso }}</span>
-      <span class="stat-label"><i class="fas fa-arrows-rotate"></i> En Proceso En Proceso</span>
+      <div class="stat-icon">
+        <i class="fas fa-arrows-rotate"></i>
+      </div>
+      <div class="stat-content">
+        <span>En proceso</span>
+        <strong>{{ enProceso }}</strong>
+      </div>
     </div>
+
     <div class="stat-card naranja">
-      <span class="stat-numero">{{ despachados }}</span>
-      <span class="stat-label"><i class="fas fa-truck"></i> Despachados</span>
+      <div class="stat-icon">
+        <i class="fas fa-truck"></i>
+      </div>
+      <div class="stat-content">
+        <span>Despachados</span>
+        <strong>{{ despachados }}</strong>
+      </div>
     </div>
+
     <div class="stat-card verde">
-      <span class="stat-numero">{{ entregados }}</span>
-      <span class="stat-label"><i class="fas fa-circle-check"></i> Entregados</span>
+      <div class="stat-icon">
+        <i class="fas fa-circle-check"></i>
+      </div>
+      <div class="stat-content">
+        <span>Entregados</span>
+        <strong>{{ entregados }}</strong>
+      </div>
     </div>
+
   </div>
+
+  <br>
 
   <!-- ALERTA SOS -->
   <div class="alerta-sos" *ngIf="sos > 0">
