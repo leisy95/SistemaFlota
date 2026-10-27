@@ -34,13 +34,26 @@
   </div>
   <!-- VISTA LISTA -->
   <ng-container *ngIf="vista === 'lista'">
+
     <div class="filtros">
-      <div class="fg"><label>Desde</label><input type="date" [(ngModel)]="filtroDesde"></div>
-      <div class="fg"><label>Hasta</label><input type="date" [(ngModel)]="filtroHasta"></div>
-      <div class="fg"><label>Orden de producción</label><input type="text" [(ngModel)]="filtroOP"
-          placeholder="Ej: 22310"></div>
-      <button class="btn-filtrar" (click)="cargar()"><i class="fa-solid fa-filter"></i> Filtrar</button>
-      <button class="btn-pdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+      <div class="fg">
+        <label>Desde</label>
+        <input type="date" [(ngModel)]="filtroDesde" (ngModelChange)="aplicarFiltros()">
+      </div>
+
+      <div class="fg">
+        <label>Hasta</label>
+        <input type="date" [(ngModel)]="filtroHasta" (ngModelChange)="aplicarFiltros()">
+      </div>
+
+      <div class="fg">
+        <label>Orden de producción</label>
+        <input type="text" [(ngModel)]="filtroOP" (ngModelChange)="aplicarFiltros()" placeholder="Ej: 22310">
+      </div>
+
+      <button class="btn-pdf" (click)="exportarPDF()">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+      </button>
     </div>
 
     <div class="acordeon-desperdicio">
@@ -85,7 +98,7 @@
         <tbody>
           <tr *ngFor="let r of registros">
             <td data-label="Orden"><span class="op-badge">{{ r.ordenProduccion }}</span></td>
-            <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy' }}</td>
             <td data-label="Cliente">{{ r.cliente || '-' }}</td>
             <td data-label="Estado">
               <span class="estado" [class.pendiente]="r.estado === 'PendienteLiberacion'"
@@ -395,7 +408,7 @@
         </div>
       </div>
 
-
+      <!-- Registro pruebas y ensayo -->
       <div class="form-section" *ngIf="esSupervisor">
         <h3><i class="fa-solid fa-clipboard-check"></i> Registro Pruebas y Ensayo</h3>
         <p class="nota-verificacion">Registre una verificación completa cada hora. Utilice el botón "Agregar hora"

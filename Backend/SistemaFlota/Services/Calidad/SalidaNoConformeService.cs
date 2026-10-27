@@ -47,18 +47,23 @@ namespace SistemaFlota.Services.Calidad
             };
 
             // Fecha real del reporte (reportes físicos que se ingresan después)
-            if (dto.FechaRealReporte.HasValue && puedeFijarFecha)
-                entidad.FechaReporte = dto.FechaRealReporte.Value.Date;
+
+            // Fecha real del reporte (reportes físicos que se ingresan después)
+            if (dto.FechaRealReporte.HasValue)
             {
                 if (!puedeFijarFecha)
-                    throw new UnauthorizedAccessException("No tiene permiso para fijar la fecha real del reporte");
+                    throw new UnauthorizedAccessException(
+                        "No tiene permiso para fijar la fecha real del reporte");
 
                 var fechaReal = dto.FechaRealReporte.Value.Date;
+
                 if (fechaReal > DateTime.Now.Date)
-                    throw new InvalidOperationException("La fecha real del reporte no puede ser futura");
+                    throw new InvalidOperationException(
+                        "La fecha real del reporte no puede ser futura");
 
                 entidad.FechaReporte = fechaReal;
             }
+
 
             await _repository.AgregarAsync(entidad);
             await _repository.GuardarCambiosAsync();

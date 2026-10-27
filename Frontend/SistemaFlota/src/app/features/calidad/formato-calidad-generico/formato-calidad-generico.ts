@@ -661,37 +661,70 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             .filter((r: any) => r.cierreDeOperario)
             .reduce((sum: number, r: any) => sum + (parseFloat(r.kilosDesperdicio) || 0), 0);
     }
+
     buscarOP() {
         if (!this.form.ordenProduccion || !this.tipoFormato) return;
+
         this.cargarMezcla();
-        this.service.buscarOP(this.form.ordenProduccion, this.tipoFormato.id).subscribe({
+
+        this.service.buscarOP(
+            this.form.ordenProduccion,
+            this.tipoFormato.id
+        ).subscribe({
             next: (data: any) => {
+                // No existe un registro de calidad guardado para esta OP.
+                if (!data) {
+                    this.opExistente = null;
+                    this.buscarDatosOrden();
+                    return;
+                }
+
+                // Si ya fue liberada, no permitir continuar.
                 if (data.estado === 'Liberado') {
-                    alert('Esta orden ya fue liberada/cerrada. No se puede continuar trabajando en ella.');
+                    alert(
+                        'Esta orden ya fue liberada/cerrada. No se puede continuar trabajando en ella.'
+                    );
                     this.opExistente = null;
                     return;
                 }
+
+                // Existe un registro de calidad.
                 this.opExistente = true;
                 this.editar(data);
-                if (this.operarioSesion) this.form.operarios = this.operarioSesion;
+
+                if (this.operarioSesion) {
+                    this.form.operarios = this.operarioSesion;
+                }
             },
             error: () => {
+                // Si no se encuentra el registro, buscar los datos de la OP.
                 this.opExistente = null;
-                this.ordenesService.buscar(this.form.ordenProduccion).subscribe({
-                    next: (data: any) => {
-                        this.form.cliente = data.cliente;
-                        this.form.referencia = data.referencia;
-                        this.clienteDetectado = data.cliente;
-                        this.referenciaDetectada = data.referencia;
-                        this.descripcionDetectada = data.descripcion;
-                        this.cantidadDetectada = data.cantidadOP;
-                        this.unidadDetectada = data.unidad;
-                    },
-                    error: () => { this.clienteDetectado = null; this.referenciaDetectada = null; this.descripcionDetectada = null; this.cantidadDetectada = null; this.unidadDetectada = null; }
-                });
+                this.buscarDatosOrden();
             }
         });
     }
+
+    private buscarDatosOrden() {
+        this.ordenesService.buscar(this.form.ordenProduccion).subscribe({
+            next: (data: any) => {
+                this.form.cliente = data.cliente;
+                this.form.referencia = data.referencia;
+                this.clienteDetectado = data.cliente;
+                this.referenciaDetectada = data.referencia;
+                this.descripcionDetectada = data.descripcion;
+                this.cantidadDetectada = data.cantidadOP;
+                this.unidadDetectada = data.unidad;
+            },
+            error: () => {
+                this.clienteDetectado = null;
+                this.referenciaDetectada = null;
+                this.descripcionDetectada = null;
+                this.cantidadDetectada = null;
+                this.unidadDetectada = null;
+            }
+        });
+    }
+
     cargarMezcla() {
         const op = (this.form.ordenProduccion || '').trim();
         this.mezclaOrden = [];
@@ -948,6 +981,10 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.firmaDataUrl = null;
     }
 
+    aplicarFiltros(): void {
+        this.cargar();
+    }
+
     guardar() {
         if (!this.form.ordenProduccion.trim()) { alert('Ingrese la orden de produccion'); return; }
 
@@ -966,10 +1003,21 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             hora: this.form.hora,
             maquina: this.form.maquina,
             variablesCriticasJson: this.tipoFormato.tieneVariablesCriticas
-                ? JSON.stringify({ ...this.variablesCriticas, motivoCambio: this.motivoCambioParametros })
+                ? JSON.stringify({
+                    ...this.variablesCriticas,
+                    motivoCambio: this.motivoCambioParametros
+                })
                 : null,
-            resultadosJson: JSON.stringify(resultadosData),
+            resultadosJson: JSON.stringify({
+                rondas: this.rondas,
+                observaciones: this.observaciones,
+                caracteristicas: this.caracteristicas.map(c => ({
+                    id: c.id,
+                    descripcion: c.descripcion
+                }))
+            }),
             fechaRealProduccion: this.form.fechaRealProduccion || null
+
         };
 
         const peticion = this.editandoId
@@ -1153,41 +1201,89 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         this.cargarFotosRondas(r.id);
         this.vista = 'ver';
     }
+
+
     editar(r: any) {
         this.editandoId = r.id;
+
         this.form = {
-            ordenProduccion: r.ordenProduccion, cliente: r.cliente ?? '', referencia: r.referencia ?? '',
-            operarios: r.operarios ?? '', hora: r.hora ?? '', maquina: r.maquina ?? '',
-            puedeLiberarse: r.puedeLiberarse, explicacionNoLiberado: r.explicacionNoLiberado ?? '',
-            cargoFirma: r.cargoFirma ?? '', produccionKgHora: r.produccionKgHora ?? '',
+            ordenProduccion: r.ordenProduccion,
+            cliente: r.cliente ?? '',
+            referencia: r.referencia ?? '',
+            operarios: r.operarios ?? '',
+            hora: r.hora ?? '',
+            maquina: r.maquina ?? '',
+            puedeLiberarse: r.puedeLiberarse,
+            explicacionNoLiberado: r.explicacionNoLiberado ?? '',
+            cargoFirma: r.cargoFirma ?? '',
+            produccionKgHora: r.produccionKgHora ?? '',
             desperdicioTotalKg: r.desperdicioTotalKg ?? null,
             fechaRealProduccion: ''
         };
+
         this.limpiarFotosRondaPendientes();
         this.inicializarResultados();
-        const datosGuardados = JSON.parse(r.resultadosJson || '{"rondas":[],"observaciones":{}}');
+
+        const datosGuardados = JSON.parse(
+            r.resultadosJson || '{"rondas":[],"observaciones":{}}'
+        );
+
         this.rondas = datosGuardados.rondas || [];
         this.asegurarIdsRondas();
         this.cargarFotosRondas(r.id);
         this.observaciones = datosGuardados.observaciones || {};
         this.tieneRondaFinal = this.rondas.some((rr: any) => rr.final);
 
+        // Cargar las variables críticas del registro principal.
         if (r.variablesCriticasJson) {
             const vcParsed = JSON.parse(r.variablesCriticasJson);
+
             this.motivoCambioParametros = vcParsed.motivoCambio ?? null;
             delete vcParsed.motivoCambio;
-            this.variablesCriticas = vcParsed;
+
+            this.variablesCriticas = {
+                ...this.variablesCriticas,
+                ...vcParsed
+            };
         }
+
         this.firmaDataUrl = r.firmaDigital ?? null;
         this.vista = 'editar';
-        this.cargarFotosRondas(r.id);
+
         this.service.getParametrosOperario(r.id).subscribe({
-            next: (data) => this.registrosOperarioDisponibles = data,
+            next: (data) => {
+                this.registrosOperarioDisponibles = data || [];
+
+                // Recuperar las variables guardadas del operario.
+                const registroOperario = this.registrosOperarioDisponibles.find(
+                    (item: any) => item.variablesCriticasJson
+                );
+
+                if (registroOperario) {
+                    try {
+                        const vcOperario = JSON.parse(
+                            registroOperario.variablesCriticasJson
+                        );
+
+                        this.variablesCriticas = {
+                            ...this.variablesCriticas,
+                            ...vcOperario
+                        };
+                    } catch (error) {
+                        console.error(
+                            'Error leyendo las variables críticas del operario:',
+                            error
+                        );
+                    }
+                }
+            },
             error: (e) => console.error(e)
         });
+
         this.iniciarAutoguardado();
         this.cargarMezcla();
         this.verificarSugerenciaAlAbrir();
+
         setTimeout(() => this.iniciarCanvas(), 300);
     }
 

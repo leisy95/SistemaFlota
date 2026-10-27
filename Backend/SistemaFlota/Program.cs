@@ -11,6 +11,8 @@ using SistemaFlota.Models;
 using SistemaFlota.Repositories.Calidad;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Calidad;
+using SistemaFlota.Services.Calidad.FormatoFGC008;
+using SistemaFlota.Services.Calidad.Formatos;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
@@ -39,6 +41,8 @@ using SistemaFlota.Services.Flota.Inspecciones;
 using SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral;
 using SistemaFlota.Services.HistorialVersionOdo;
 using SistemaFlota.Services.ImpresionEtiquetas;
+using SistemaFlota.Services.InformacionKasoft;
+using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
@@ -96,14 +100,13 @@ builder.Services
         };
     });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($">>> Ambiente: {builder.Environment.EnvironmentName}");
-Console.WriteLine($">>> Tiene conexion: {!string.IsNullOrEmpty(connectionString)}");
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection");
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email"));
 
-// -- MySQL con versión fija — evita AutoDetect en Railway ----------------------
+// MySQL con versión fija — evita AutoDetect en Railway
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         connectionString,
@@ -132,6 +135,17 @@ builder.Services.AddScoped<ITrazabilidadService, TrazabilidadService>();
 builder.Services.AddScoped<ITrazabilidadPdfService, TrazabilidadPdfService>();
 builder.Services.AddScoped<ICostosFletesService, CostosFletesService>();
 builder.Services.AddScoped<ICostosFletesPdfService, CostosFletesPdfService>();
+
+// Para Kasoft
+builder.Services.AddScoped<IInformacionKasoftService, InformacionKasoftService>();
+
+// Para calidad con info de kasoft
+builder.Services.AddScoped<IInformacionKasoftService, InformacionKasoftService>();
+builder.Services.AddScoped<IOrdenProduccionService, OrdenProduccionService>();
+builder.Services.AddScoped<ImportacionExcelOrdenesProduccionService>();
+builder.Services.AddScoped<IProveedorOrdenesProduccion, OrdenesProduccionConContingencia>();
+builder.Services.AddScoped< IFormatoFGC008Service, FormatoFGC008Service>();
+builder.Services.AddScoped<FormatosCalidadService>();
 
 builder.Services.AddScoped<IDashboardEjecutivoService,DashboardEjecutivoService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
@@ -196,12 +210,10 @@ builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFo
 
 builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
 
-builder.Services.AddScoped<EmpresaOrdenesService>();
 builder.Services.AddScoped<EntradasBodegaService>();
 builder.Services.AddScoped<MezclaOrdenService>();
 builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
-builder.Services.AddScoped<IProveedorOrdenesProduccion, ProveedorOrdenesConContingencia>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();

@@ -299,7 +299,7 @@ export class GestionSncComponent implements OnInit {
             ordenProduccion: '', referencia: '', cantidadKg: null, cliente: '',
             linea: '', material: '', proceso: '', descripcionSalida: '',
             tipoDefecto: '', impacto: '', causaRaiz: '', nombreReporta: '',
-            cantidadReportadaKg: null, unidadCantidadReportada: '', fechaRealReporte: 'Unidades'
+            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades', fechaRealReporte: ''
         };
         this.evidenciaPdf = null;
         this.firmaReportaUrl = null;
@@ -337,6 +337,13 @@ export class GestionSncComponent implements OnInit {
         fd.append('NombreReporta', this.form.nombreReporta || '');
         if (this.form.fechaRealReporte) fd.append('FechaRealReporte', this.form.fechaRealReporte);
         if (this.evidenciaPdf) fd.append('evidenciaPdf', this.evidenciaPdf);
+
+        console.log('Fecha real del reporte:', this.form.fechaRealReporte);
+        console.log('FormData enviado:');
+
+        fd.forEach((valor, clave) => {
+            console.log(clave, valor);
+        });
 
         this.service.crear(fd).subscribe({
             next: (r) => {

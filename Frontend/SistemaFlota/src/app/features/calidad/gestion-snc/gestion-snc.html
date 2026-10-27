@@ -70,7 +70,7 @@
         <tbody>
           <tr *ngFor="let r of registros">
             <td data-label="Orden"><span class="op-badge">{{ r.ordenProduccion }}</span></td>
-            <td data-label="Fecha">{{ r.fechaReporte | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td data-label="Fecha">{{ r.fechaReporte | date:'dd/MM/yyyy' }}</td>
             <td data-label="Referencia">{{ r.referencia || '-' }}</td>
             <td data-label="Material">{{ r.material || '-' }}</td>
             <td data-label="Tipo Defecto" class="celda-tooltip">
