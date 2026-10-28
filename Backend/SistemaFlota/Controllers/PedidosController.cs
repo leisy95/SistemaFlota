@@ -125,18 +125,27 @@ namespace SistemaFlota
             );
 
             // -- Notificar SIEMPRE, sin importar prioridad --
+
+            try
             {
                 var ahora = FechaHelper.Ahora();
                 var hora = ahora.ToString("hh:mm tt");
                 var fecha = ahora.ToString("dd/MM/yyyy");
-                var emoji = dto.Prioridad == "SOS" ? "🔴" : dto.Prioridad == "Urgente" ? "🟡" : "🟢";
 
-                // -- Construir lista de referencias --
+                var emoji = dto.Prioridad == "SOS" ? "🔴"
+                    : dto.Prioridad == "Urgente" ? "🟡" : "🟢";
+
                 var refsTexto = string.Join("\n", dto.Referencias.Select(r =>
                 {
                     var cant = "";
-                    if (r.CantidadKg.HasValue) cant += $"{r.CantidadKg} kg";
-                    if (r.CantidadUnidades.HasValue) cant += (cant.Length > 0 ? " / " : "") + $"{r.CantidadUnidades} uds";
+
+                    if (r.CantidadKg.HasValue)
+                        cant += $"{r.CantidadKg} kg";
+
+                    if (r.CantidadUnidades.HasValue)
+                        cant += (cant.Length > 0 ? " / " : "")
+                            + $"{r.CantidadUnidades} uds";
+
                     return $"  • {r.Referencia} — {cant}";
                 }));
 
@@ -147,27 +156,48 @@ namespace SistemaFlota
                     $"🏪 Cliente: {dto.Cliente}\n" +
                     $"📍 Destino: {dto.Destino}\n" +
                     $"📦 Referencias:\n{refsTexto}\n" +
-                    (dto.Observaciones != null ? $"📋 Obs: {dto.Observaciones}\n" : "") +
+                    (dto.Observaciones != null
+                        ? $"📋 Obs: {dto.Observaciones}\n" : "") +
                     $"🕐 Hora: {hora} — {fecha}\n" +
-                    $"━━━━━━━━━━━━━━━━━━" +
-                    (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente" ? "\n⚠️ Requiere atención inmediata" : "");
+                    "━━━━━━━━━━━━━━━━━━" +
+                    (dto.Prioridad == "SOS" || dto.Prioridad == "Urgente"
+                        ? "\n⚠️ Requiere atención inmediata" : "");
 
                 var numerosBodega = await _context.ContactosNotificacion
                     .Where(c => c.Activo && c.RecibePedidos)
                     .Select(c => c.NumeroWhatsApp)
                     .ToListAsync();
 
-                Console.WriteLine($"📦 Contactos bodega: {numerosBodega.Count}");
+                Console.WriteLine(
+                    $"[Pedidos] Pedido #{pedido.Id}. " +
+                    $"Prioridad: {dto.Prioridad}. " +
+                    $"Destinatarios encontrados: {numerosBodega.Count}");
+
                 if (numerosBodega.Any())
-                    await _mensajeria.EnviarAMultiplesAsync(numerosBodega, mensaje, "Pedidos");
+                {
+                    await _mensajeria.EnviarAMultiplesAsync(
+                        numerosBodega, mensaje, "Pedidos");
+
+                    Console.WriteLine(
+                        $"[Pedidos] Solicitud de envío completada para pedido #{pedido.Id}.");
+                }
+                else
+                {
+                    Console.WriteLine(
+                        "[Pedidos] No hay contactos activos configurados para recibir pedidos.");
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"[Pedidos] Error enviando WhatsApp para pedido #{pedido.Id}: {ex}");
+            }
+
 
             return Ok(pedido);
         }
 
-        // =====================================
         // PUT — EDITAR PEDIDO
-        // =====================================
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] CrearPedidoDto dto)
         {
@@ -204,9 +234,7 @@ namespace SistemaFlota
             return Ok(pedido);
         }
 
-        // =====================================
         // PUT — CAMBIAR ESTADO
-        // =====================================
         [HttpPut("{id}/estado")]
         public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoPedidoDto dto)
         {
@@ -232,9 +260,7 @@ namespace SistemaFlota
             return Ok(pedido);
         }
 
-        // =====================================
         // DELETE
-        // =====================================
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)

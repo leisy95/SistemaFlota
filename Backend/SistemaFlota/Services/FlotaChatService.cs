@@ -16,6 +16,7 @@ namespace SistemaFlota
         {
             _http = new HttpClient();
             _apiKey = config["FlotaChat:ApiKey"] ?? throw new InvalidOperationException("Falta configurar FlotaChat:ApiKey");
+
             _apiUrl = config["FlotaChat:ApiUrl"] ?? "https://apichat.gecobagsci.com";
             _logger = logger;
             _scopeFactory = scopeFactory;
