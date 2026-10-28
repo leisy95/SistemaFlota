@@ -18,7 +18,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         /// Listar materiales no formalizados
         [HttpGet]
-        [Permiso("proveedores-materiales", "ver")]
+        [Permiso("materiales-no-formalizados", "ver")]
         public async Task<ActionResult<MaterialNoFormalizadoPaginadoDto>> Obtener(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -43,7 +43,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Obtener material por Id
         [HttpGet("{id:int}")]
-        [Permiso("proveedores-materiales", "ver")]
+        [Permiso("materiales-no-formalizados", "ver")]
         public async Task<ActionResult<MaterialNoFormalizadoDto>> ObtenerPorId(int id)
         {
             var material = await _materialesService.ObtenerPorIdAsync(id);
@@ -56,7 +56,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Obtener Colores
         [HttpGet("colores")]
-        [Permiso("proveedores-materiales", "ver")]
+        [Permiso("materiales-no-formalizados", "ver")]
         public async Task<IActionResult> ObtenerColores()
         {
             var colores = await _materialesService.ObtenerColoresAsync();
@@ -66,7 +66,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Obtener Categorías
         [HttpGet("categorias")]
-        [Permiso("proveedores-materiales", "ver")]
+        [Permiso("materiales-no-formalizados", "ver")]
         public async Task<IActionResult> ObtenerCategorias()
         {
             var categorias = await _materialesService.ObtenerCategoriasAsync();
@@ -76,7 +76,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Filtros
         [HttpGet("filtros")]
-        [Permiso("proveedores-materiales", "ver")]
+        [Permiso("materiales-no-formalizados", "ver")]
         public async Task<ActionResult<FiltrosMaterialNoFormalizadoDto>> ObtenerFiltros()
         {
             var filtros = await _materialesService.ObtenerFiltrosAsync();
@@ -86,7 +86,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Crear material
         [HttpPost]
-        [Permiso("proveedores-materiales", "crear")]
+        [Permiso("materiales-no-formalizados", "crear")]
         public async Task<ActionResult<MaterialNoFormalizadoDto>> Crear(
             [FromForm] CrearMaterialNoFormalizadoDto dto)
         {
@@ -103,7 +103,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.Matreiales
 
         // Actualizar material
         [HttpPut("{id:int}")]
-        [Permiso("proveedores-materiales", "editar")]
+        [Permiso("materiales-no-formalizados", "editar")]
         public async Task<IActionResult> Actualizar(
             int id,
             [FromForm] ActualizarMaterialNoFormalizadoDto dto)

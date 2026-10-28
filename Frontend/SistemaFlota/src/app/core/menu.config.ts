@@ -344,7 +344,7 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-user-tie',
         ruta: '/compras/2/proveedores',
         modulo: 'compras-2',
-        permiso: 'proveedores-compras-no-formalizadas'
+        permiso: 'proveedores-no-formalizados'
     },
     {
         key: 'materiales',
@@ -352,7 +352,7 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-boxes-stacked',
         ruta: '/compras/2/materiales',
         modulo: 'compras-2',
-        permiso: 'materiales-compras-no-formalizadas'
+        permiso: 'materiales-no-formalizados'
     },
     {
         key: 'ordenes-compras',
