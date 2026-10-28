@@ -1,16 +1,31 @@
 
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Movimiento {
+import {
+  HistorialMovimientosService,
+  FiltrosHistorialMovimientos
+} from '../../../core/services/costos/historialMovimiento/historial-movimientos.service';
+
+import {
+  MovimientoHistorialResumen
+} from '../../../core/models/costos/historialMovimiento/movimiento-historial-resumen.model';
+
+import {
+  MovimientoHistorial
+} from '../../../core/models/costos/historialMovimiento/movimiento-historial.model';
+
+interface MovimientoVista {
   id: number;
   fecha: Date;
   tipo: string;
+  accion: string;
   descripcion: string;
   usuario: string;
   referencia: string;
   detalles: string;
+  resultado: string;
 }
 
 @Component({
@@ -20,155 +35,197 @@ interface Movimiento {
   templateUrl: './historial-movimientos.html',
   styleUrl: './historial-movimientos.scss',
 })
-export class HistorialMovimientos {
+export class HistorialMovimientos implements OnInit {
+
+  private readonly historialService = inject(HistorialMovimientosService);
 
   buscar = '';
   tipoSeleccionado = '';
   usuarioSeleccionado = '';
 
-  movimientos: Movimiento[] = [
-    {
-      id: 1,
-      fecha: new Date(2026, 9, 28, 8, 15),
-      tipo: 'Orden de compra',
-      descripcion: 'Creación de orden de compra',
-      usuario: 'admin',
-      referencia: 'OC-2026-001',
-      detalles: 'Se creó la orden de compra para el proveedor principal.'
-    },
-    {
-      id: 2,
-      fecha: new Date(2026, 9, 28, 8, 42),
-      tipo: 'Recepción',
-      descripcion: 'Recepción de materia prima',
-      usuario: 'bodega',
-      referencia: 'REC-2026-015',
-      detalles: 'Se registró la entrada de material al inventario.'
-    },
-    {
-      id: 3,
-      fecha: new Date(2026, 9, 28, 9, 10),
-      tipo: 'Costeo',
-      descripcion: 'Actualización de costo promedio',
-      usuario: 'contabilidad',
-      referencia: 'CST-2026-008',
-      detalles: 'Se actualizó el costo promedio del material recibido.'
-    },
-    {
-      id: 4,
-      fecha: new Date(2026, 9, 27, 14, 20),
-      tipo: 'Orden de compra',
-      descripcion: 'Actualización de orden de compra',
-      usuario: 'admin',
-      referencia: 'OC-2026-002',
-      detalles: 'Se modificaron las cantidades de la orden de compra.'
-    },
-    {
-      id: 5,
-      fecha: new Date(2026, 9, 27, 15, 5),
-      tipo: 'Recepción',
-      descripcion: 'Registro de recepción de materiales',
-      usuario: 'bodega',
-      referencia: 'REC-2026-014',
-      detalles: 'Se confirmó la recepción de los materiales solicitados.'
-    },
-    {
-      id: 6,
-      fecha: new Date(2026, 9, 26, 10, 30),
-      tipo: 'Costeo',
-      descripcion: 'Registro de costeo de inventario',
-      usuario: 'contabilidad',
-      referencia: 'CST-2026-007',
-      detalles: 'Se registró el costeo correspondiente al inventario.'
-    },
-    {
-      id: 7,
-      fecha: new Date(2026, 9, 25, 11, 45),
-      tipo: 'Orden de compra',
-      descripcion: 'Creación de orden de compra',
-      usuario: 'compras',
-      referencia: 'OC-2026-003',
-      detalles: 'Se generó una nueva orden de compra.'
-    },
-    {
-      id: 8,
-      fecha: new Date(2026, 9, 24, 16, 0),
-      tipo: 'Recepción',
-      descripcion: 'Entrada de materiales al almacén',
-      usuario: 'bodega',
-      referencia: 'REC-2026-013',
-      detalles: 'Se registró el ingreso de materiales al almacén.'
-    }
-  ];
+  movimientos: MovimientoVista[] = [];
 
-  get tipos(): string[] {
-    return [...new Set(this.movimientos.map(m => m.tipo))];
+  tipos: string[] = [];
+  usuarios: string[] = [];
+
+  resumen: MovimientoHistorialResumen = {
+    totalMovimientos: 0,
+    totalCreaciones: 0,
+    totalActualizaciones: 0,
+    totalEliminaciones: 0
+  };
+
+  cargando = false;
+  error = '';
+
+  // Paginación desde el backend.
+  pagina = 1;
+  porPagina = 10;
+  totalRegistros = 0;
+  totalPaginas = 0;
+
+  ngOnInit(): void {
+    this.cargarOpciones();
+    this.cargarDatos();
   }
 
-  get usuarios(): string[] {
-    return [...new Set(this.movimientos.map(m => m.usuario))].sort();
+  /**
+   * Carga todos los módulos y usuarios registrados,
+   * independientemente de la paginación del historial.
+   */
+  private cargarOpciones(): void {
+    this.historialService.obtenerOpciones().subscribe({
+      next: opciones => {
+        this.tipos = opciones.modulos ?? [];
+        this.usuarios = opciones.usuarios ?? [];
+      },
+      error: err => {
+        console.error('Error al cargar las opciones de filtros:', err);
+      }
+    });
+  }
+
+  /**
+   * Envía los filtros al backend.
+   * El filtrado se realiza antes de la paginación.
+   */
+  private obtenerFiltros(): FiltrosHistorialMovimientos {
+    return {
+      buscar: this.buscar.trim() || undefined,
+      modulo: this.tipoSeleccionado || undefined,
+      usuario: this.usuarioSeleccionado || undefined,
+      pagina: this.pagina,
+      porPagina: this.porPagina
+    };
+  }
+
+  cargarDatos(): void {
+    this.cargando = true;
+    this.error = '';
+
+    const filtros = this.obtenerFiltros();
+
+    this.historialService.obtener(filtros).subscribe({
+      next: respuesta => {
+        this.movimientos = respuesta.movimientos.map(
+          movimiento => this.mapearMovimiento(movimiento)
+        );
+
+        this.totalRegistros = respuesta.totalRegistros;
+        this.totalPaginas = respuesta.totalPaginas;
+        this.pagina = respuesta.pagina;
+        this.cargando = false;
+      },
+      error: err => {
+        console.error('Error al cargar el historial:', err);
+        this.error = 'No fue posible cargar el historial de movimientos.';
+        this.cargando = false;
+      }
+    });
+
+    // Actualiza el resumen con los mismos filtros.
+    this.historialService.obtenerResumen(filtros).subscribe({
+      next: respuesta => {
+        this.resumen = respuesta;
+      },
+      error: err => {
+        console.error('Error al cargar el resumen:', err);
+      }
+    });
+  }
+
+  /**
+   * Aplica los filtros desde la primera página.
+   */
+  aplicarFiltros(): void {
+    this.pagina = 1;
+    this.cargarDatos();
+  }
+
+  private mapearMovimiento(
+    movimiento: MovimientoHistorial
+  ): MovimientoVista {
+    return {
+      id: movimiento.id,
+      fecha: new Date(movimiento.fecha),
+      tipo: movimiento.modulo,
+      accion: movimiento.accion,
+      descripcion: movimiento.descripcion,
+      usuario: movimiento.usuario,
+      referencia: movimiento.registroId != null
+        ? `ID-${movimiento.registroId}`
+        : `AUD-${movimiento.id}`,
+      detalles: movimiento.detalle || movimiento.descripcion,
+      resultado: movimiento.resultado
+    };
   }
 
   get totalMovimientos(): number {
-    return this.movimientos.length;
+    return this.resumen.totalMovimientos;
   }
 
-  get totalOrdenesCompra(): number {
-    return this.movimientos.filter(
-      m => m.tipo === 'Orden de compra'
-    ).length;
+  get totalCreaciones(): number {
+    return this.resumen.totalCreaciones;
   }
 
-  get totalRecepciones(): number {
-    return this.movimientos.filter(
-      m => m.tipo === 'Recepción'
-    ).length;
+  get totalActualizaciones(): number {
+    return this.resumen.totalActualizaciones;
   }
 
-  get totalCosteos(): number {
-    return this.movimientos.filter(
-      m => m.tipo === 'Costeo'
-    ).length;
+  get totalEliminaciones(): number {
+    return this.resumen.totalEliminaciones;
   }
 
-  get movimientosFiltrados(): Movimiento[] {
-    const texto = this.buscar.trim().toLowerCase();
+  /**
+   * El backend ya devuelve los resultados filtrados.
+   */
+  get movimientosFiltrados(): MovimientoVista[] {
+    return this.movimientos;
+  }
 
-    return this.movimientos
-      .filter(m => {
-        const coincideTexto =
-          !texto ||
-          m.descripcion.toLowerCase().includes(texto) ||
-          m.tipo.toLowerCase().includes(texto) ||
-          m.usuario.toLowerCase().includes(texto) ||
-          m.referencia.toLowerCase().includes(texto) ||
-          m.detalles.toLowerCase().includes(texto);
+  cambiarPagina(nuevaPagina: number): void {
+    if (
+      nuevaPagina < 1 ||
+      nuevaPagina > this.totalPaginas ||
+      nuevaPagina === this.pagina ||
+      this.cargando
+    ) {
+      return;
+    }
 
-        const coincideTipo =
-          !this.tipoSeleccionado ||
-          m.tipo === this.tipoSeleccionado;
+    this.pagina = nuevaPagina;
+    this.cargarDatos();
+  }
 
-        const coincideUsuario =
-          !this.usuarioSeleccionado ||
-          m.usuario === this.usuarioSeleccionado;
+  cambiarPorPagina(valor: number | string): void {
+    const cantidad = Number(valor);
 
-        return coincideTexto && coincideTipo && coincideUsuario;
-      })
-      .sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+    if (![10, 25, 50, 100].includes(cantidad)) {
+      return;
+    }
+
+    this.porPagina = cantidad;
+    this.pagina = 1;
+    this.cargarDatos();
   }
 
   limpiarFiltros(): void {
     this.buscar = '';
     this.tipoSeleccionado = '';
     this.usuarioSeleccionado = '';
+
+    this.aplicarFiltros();
   }
 
-  verDetalles(movimiento: Movimiento): void {
+  verDetalles(movimiento: MovimientoVista): void {
     window.alert(
       `Movimiento: ${movimiento.referencia}\n\n` +
-      `Tipo: ${movimiento.tipo}\n` +
-      `Usuario: ${movimiento.usuario}\n\n` +
-      movimiento.detalles
+      `Módulo: ${movimiento.tipo}\n` +
+      `Acción: ${movimiento.accion}\n` +
+      `Usuario: ${movimiento.usuario}\n` +
+      `Fecha: ${movimiento.fecha.toLocaleString()}\n` +
+      `Resultado: ${movimiento.resultado}\n\n` +
+      `Detalle: ${movimiento.detalles}`
     );
   }
 }

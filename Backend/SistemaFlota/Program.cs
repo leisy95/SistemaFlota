@@ -29,6 +29,7 @@ using SistemaFlota.Services.ControlEnvios.CostosFletesPdf;
 using SistemaFlota.Services.ControlEnvios.Trazabilidad;
 using SistemaFlota.Services.ControlEnvios.Trazabilidad.TrazabilidadPdf;
 using SistemaFlota.Services.Costos.DashboardEjecutivo;
+using SistemaFlota.Services.Costos.HistorialMovimientos;
 using SistemaFlota.Services.Costos.Inventario;
 using SistemaFlota.Services.Costos.Inventario.CortesInventario;
 using SistemaFlota.Services.Costos.Materiales;
@@ -162,6 +163,8 @@ builder.Services.AddScoped<IAjusteInventarioService, AjusteInventarioService>();
 builder.Services.AddScoped<ICorteInventarioService, CorteInventarioService>();
 builder.Services.AddScoped<ICorteInventarioPdfService, CorteInventarioPdfService>();
 builder.Services.AddScoped<IOrdenTrasladoService, OrdenTrasladoService>();
+// Historia movimientos costos
+builder.Services.AddScoped<IHistorialMovimientosService, HistorialMovimientosService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<EmailTemplateService>();

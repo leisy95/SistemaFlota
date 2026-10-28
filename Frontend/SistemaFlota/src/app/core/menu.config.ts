@@ -335,6 +335,14 @@ export const MENU_MODULOS: MenuItem[] = [
         modulo: 'costos'
     },
 
+    {
+        key: 'historial-movimientos',
+        label: 'Historial Movimientos',
+        icon: 'fa-solid fa-clock-rotate-left',
+        ruta: '/costos/historial-movimientos',
+        modulo: 'costos'
+    },
+
     // COMPRAS - MÓDULO 2
 
 

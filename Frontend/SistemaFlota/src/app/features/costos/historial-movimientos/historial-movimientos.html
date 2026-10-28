@@ -1,46 +1,60 @@
 <div class="container">
 
     <!-- Encabezado -->
-    <header class="page-header">
-        <div>
-            <h1>Historial de Movimientos</h1>
-            <p>Registro completo de todas las operaciones del sistema</p>
-        </div>
-    </header>
-
-    <!-- Tarjetas de resumen -->
-    <section class="cards-resumen">
-
-        <article class="card-resumen azul">
-            <div class="resumen-contenido">
-                <span>Total Movimientos</span>
-                <h2>{{ totalMovimientos }}</h2>
+    <section class="header-card">
+        <header class="page-header">
+            <div>
+                <h1>Historial de Movimientos</h1>
+                <p>Registro completo de todas las operaciones del sistema</p>
             </div>
-            <i class="fa-regular fa-file-lines icono-resumen"></i>
+        </header>
+    </section>
+
+    <!-- Tarjetas principales -->
+    <section class="stats-container">
+
+        <article class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="stat-content">
+                <span>Total movimientos</span>
+                <strong>{{ totalMovimientos }}</strong>
+                <small>Operaciones registradas en el sistema</small>
+            </div>
         </article>
 
-        <article class="card-resumen verde">
-            <div class="resumen-contenido">
-                <span>Órdenes de Compra</span>
-                <h2>{{ totalOrdenesCompra }}</h2>
+        <article class="stat-card">
+            <div class="stat-icon valor">
+                <i class="fa-solid fa-cart-shopping"></i>
             </div>
-            <i class="fa-regular fa-file-lines icono-resumen"></i>
+            <div class="stat-content">
+                <span>Órdenes de compra</span>
+                <strong>{{ totalCreaciones }}</strong>
+                <small>Movimientos asociados a compras</small>
+            </div>
         </article>
 
-        <article class="card-resumen morado">
-            <div class="resumen-contenido">
+        <article class="stat-card">
+            <div class="stat-icon proveedores">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+            </div>
+            <div class="stat-content">
                 <span>Recepciones</span>
-                <h2>{{ totalRecepciones }}</h2>
+                <strong>{{ totalActualizaciones }}</strong>
+                <small>Movimientos de recepción de materiales</small>
             </div>
-            <i class="fa-regular fa-file-lines icono-resumen"></i>
         </article>
 
-        <article class="card-resumen naranja">
-            <div class="resumen-contenido">
-                <span>Costeos</span>
-                <h2>{{ totalCosteos }}</h2>
+        <article class="stat-card">
+            <div class="stat-icon pendiente">
+                <i class="fa-solid fa-calculator"></i>
             </div>
-            <i class="fa-regular fa-file-lines icono-resumen"></i>
+            <div class="stat-content">
+                <span>Costeos</span>
+                <strong>{{ totalEliminaciones }}</strong>
+                <small>Movimientos relacionados con costeo</small>
+            </div>
         </article>
 
     </section>
@@ -54,9 +68,14 @@
                 Buscar
             </label>
 
-            <input id="buscar" type="text" [(ngModel)]="buscar"
-                placeholder="Buscar por descripción, tipo o usuario..." />
+            <input id="buscar" type="text" [(ngModel)]="buscar" (keyup.enter)="aplicarFiltros()"
+                placeholder="Buscar por descripción, tipo o usuario..." [disabled]="cargando" />
         </div>
+
+        <button type="button" class="btn-limpiar" (click)="aplicarFiltros()" [disabled]="cargando" title="Buscar"
+            aria-label="Buscar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
 
         <div class="form-group">
             <label for="tipo">
@@ -64,8 +83,10 @@
                 Filtrar por Tipo
             </label>
 
-            <select id="tipo" [(ngModel)]="tipoSeleccionado">
+            <select id="tipo" [(ngModel)]="tipoSeleccionado" (ngModelChange)="aplicarFiltros()" [disabled]="cargando">
+
                 <option value="">Todos</option>
+
                 <option *ngFor="let tipo of tipos" [value]="tipo">
                     {{ tipo }}
                 </option>
@@ -78,20 +99,30 @@
                 Filtrar por Usuario
             </label>
 
-            <select id="usuario" [(ngModel)]="usuarioSeleccionado">
+            <select id="usuario" [(ngModel)]="usuarioSeleccionado" (ngModelChange)="aplicarFiltros()"
+                [disabled]="cargando">
+
                 <option value="">Todos</option>
+
                 <option *ngFor="let usuario of usuarios" [value]="usuario">
                     {{ usuario }}
                 </option>
             </select>
         </div>
 
-        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar filtros"
-            aria-label="Limpiar filtros">
+        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()" [disabled]="cargando"
+            title="Limpiar filtros" aria-label="Limpiar filtros">
             <i class="fa-solid fa-filter-circle-xmark"></i>
         </button>
 
     </section>
+
+    <!-- Mensaje de error -->
+    <div class="mensaje-error" *ngIf="error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ error }}
+        <button type="button" (click)="cargarDatos()">Reintentar</button>
+    </div>
 
     <!-- Tabla -->
     <section class="table-card">
@@ -110,70 +141,117 @@
                 </thead>
 
                 <tbody>
-                    <tr *ngFor="let movimiento of movimientosFiltrados">
-                        <td class="fecha">
-                            {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
-                        </td>
 
-                        <td>
-                            <span class="tipo-badge" [ngClass]="{
-                  'tipo-compra': movimiento.tipo === 'Orden de compra',
-                  'tipo-recepcion': movimiento.tipo === 'Recepción',
-                  'tipo-costeo': movimiento.tipo === 'Costeo'
-                }">
-                                {{ movimiento.tipo }}
-                            </span>
-                        </td>
-
-                        <td class="descripcion">
-                            {{ movimiento.descripcion }}
-                        </td>
-
-                        <td>
-                            <div class="usuario">
-                                <span class="usuario-avatar">
-                                    {{ movimiento.usuario.charAt(0).toUpperCase() }}
-                                </span>
-                                {{ movimiento.usuario }}
-                            </div>
-                        </td>
-
-                        <td>
-                            <span class="referencia">{{ movimiento.referencia }}</span>
-                        </td>
-
-                        <td class="text-center">
-                            <button type="button" class="btn-detalles" title="Ver detalles"
-                                aria-label="Ver detalles del movimiento" (click)="verDetalles(movimiento)">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr *ngIf="movimientosFiltrados.length === 0">
+                    <!-- Cargando -->
+                    <tr *ngIf="cargando">
                         <td colspan="6" class="sin-resultados">
-                            <i class="fa-regular fa-folder-open"></i>
-                            <p>No hay movimientos registrados</p>
-                            <span>Intenta cambiar los filtros de búsqueda.</span>
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Cargando movimientos...</p>
                         </td>
                     </tr>
+
+                    <!-- Resultados -->
+                    <ng-container *ngIf="!cargando">
+
+                        <tr *ngFor="let movimiento of movimientosFiltrados">
+                            <td class="fecha">
+                                {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
+                            </td>
+
+                            <td>
+                                <span class="tipo-badge" [ngClass]="{
+                    'tipo-compra': movimiento.tipo === 'Orden de compra',
+                    'tipo-recepcion': movimiento.tipo === 'Recepción',
+                    'tipo-costeo': movimiento.tipo === 'Costeo'
+                  }">
+                                    {{ movimiento.tipo }}
+                                </span>
+                            </td>
+
+                            <td class="descripcion">
+                                {{ movimiento.descripcion }}
+                            </td>
+
+                            <td>
+                                <div class="usuario">
+                                    <span class="usuario-avatar">
+                                        {{ movimiento.usuario.charAt(0).toUpperCase() }}
+                                    </span>
+                                    {{ movimiento.usuario }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="referencia">
+                                    {{ movimiento.referencia }}
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                <button type="button" class="btn-detalles" title="Ver detalles"
+                                    aria-label="Ver detalles del movimiento" (click)="verDetalles(movimiento)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Sin resultados -->
+                        <tr *ngIf="movimientosFiltrados.length === 0">
+                            <td colspan="6" class="sin-resultados">
+                                <i class="fa-regular fa-folder-open"></i>
+                                <p>No hay movimientos registrados</p>
+                                <span>Intenta cambiar los filtros de búsqueda.</span>
+                            </td>
+                        </tr>
+
+                    </ng-container>
                 </tbody>
             </table>
         </div>
 
+        <!-- Paginación -->
         <footer class="tabla-footer">
+
             <span>
                 Mostrando
                 <strong>{{ movimientosFiltrados.length }}</strong>
                 de
-                <strong>{{ totalMovimientos }}</strong>
-                movimientos
+                <strong>{{ totalRegistros }}</strong>
+                movimientos encontrados
             </span>
 
+            <div class="paginacion-controles">
+
+                <label for="porPagina">Por página:</label>
+
+                <select id="porPagina" [ngModel]="porPagina" (ngModelChange)="cambiarPorPagina($event)"
+                    [disabled]="cargando">
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="25">25</option>
+                    <option [ngValue]="50">50</option>
+                    <option [ngValue]="100">100</option>
+                </select>
+
+                <button type="button" (click)="cambiarPagina(pagina - 1)" [disabled]="pagina <= 1 || cargando">
+                    Anterior
+                </button>
+
+                <span>
+                    Página {{ pagina }} de {{ totalPaginas || 1 }}
+                </span>
+
+                <button type="button" (click)="cambiarPagina(pagina + 1)"
+                    [disabled]="pagina >= totalPaginas || cargando">
+                    Siguiente
+                </button>
+
+            </div>
+
             <button type="button" class="btn-limpiar-footer" (click)="limpiarFiltros()"
-                *ngIf="buscar || tipoSeleccionado || usuarioSeleccionado">
+                *ngIf="buscar || tipoSeleccionado || usuarioSeleccionado" [disabled]="cargando">
                 Limpiar filtros
             </button>
+
         </footer>
 
     </section>
