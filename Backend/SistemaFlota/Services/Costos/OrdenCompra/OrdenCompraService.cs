@@ -3,6 +3,7 @@ using SistemaFlota.DTOs.Costos.OrdenCompra;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
+using SistemaFlota.Services.Auditorias;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Email;
@@ -17,6 +18,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         private readonly IEmailService _emailService;
         private readonly IOrdenCompraPdfService _ordenCompraPdfService;
         private readonly EmailTemplateService _emailTemplateService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public OrdenCompraService(
             AppDbContext context,
@@ -24,8 +26,8 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             ICurrentUserService currentUser,
             IEmailService emailService,
             IOrdenCompraPdfService ordenCompraPdfService,
-            EmailTemplateService emailTemplateService
-            )
+            EmailTemplateService emailTemplateService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _consecutivoService = consecutivoService;
@@ -33,6 +35,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             _emailService = emailService;
             _ordenCompraPdfService = ordenCompraPdfService;
             _emailTemplateService = emailTemplateService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         private async Task ValidarProveedorAsync(int proveedorId)
@@ -413,6 +416,16 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
                     await _context.SaveChangesAsync();
 
+                    var detalleAuditoria =
+                        $"Orden de compra {orden.Numero} creada exitosamente.";
+
+                    _context.Auditorias.Add(
+                        CrearAuditoria(
+                            "Crear",
+                            orden.Id,
+                            detalleAuditoria));
+
+                    await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
 
@@ -617,10 +630,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             var estadosNoAnulables = new[]
             {
-        "Recepcionada",
-        "Parcial",
-        "Confirmada"
-    };
+                    "Recepcionada",
+                    "Parcial",
+                    "Confirmada"
+                };
 
             if (estadosNoAnulables.Contains(orden.Estado))
             {
@@ -651,6 +664,30 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        private SistemaFlota.Auditoria CrearAuditoria(
+            string accion,
+            int registroId,
+            string detalle)
+        {
+            var ip = _httpContextAccessor.HttpContext?
+                .Connection.RemoteIpAddress?.ToString() ?? "Desconocida";
+
+            return new SistemaFlota.Auditoria
+            {
+                Usuario = _currentUser.Usuario
+                    ?? _currentUser.Nombre
+                    ?? "Desconocido",
+                Rol = _currentUser.Rol ?? "Desconocido",
+                Accion = accion,
+                Modulo = "OrdenCompra",
+                Detalle = detalle,
+                RegistroId = registroId,
+                Fecha = DateTime.Now,
+                IpAddress = ip,
+                Resultado = "Exitoso"
+            };
         }
     }
 }

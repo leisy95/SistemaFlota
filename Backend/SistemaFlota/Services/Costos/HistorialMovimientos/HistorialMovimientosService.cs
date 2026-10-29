@@ -21,6 +21,17 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
             string? usuario,
             string? buscar)
         {
+
+            var modulosPermitidos = new[]
+               {
+                    "Orden de Compra",
+                    "Inventario",
+                    "Traslados",
+                    "Materiales",
+                    "Proveedores",
+                    "Recepcion"
+                };
+
             var query = _context.Auditorias.AsNoTracking();
 
             if (desde.HasValue)
@@ -74,6 +85,7 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
             };
         }
 
+
         public async Task<MovimientoHistorialPaginadoDto> ObtenerAsync(
             DateTime? desde,
             DateTime? hasta,
@@ -85,14 +97,11 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
             int porPagina)
         {
             pagina = Math.Max(1, pagina);
-
-            // Máximo 10 registros por página.
             porPagina = Math.Clamp(porPagina, 1, 10);
 
             var query = AplicarFiltros(
                 desde, hasta, modulo, accion, usuario, buscar);
 
-            // El total se calcula antes de paginar.
             var total = await query.CountAsync();
 
             var movimientos = await query
@@ -125,6 +134,7 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
                     total / (double)porPagina)
             };
         }
+
 
         public async Task<MovimientoHistorialResumenDto> ObtenerResumenAsync(
             DateTime? desde,

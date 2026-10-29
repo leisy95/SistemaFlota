@@ -10,12 +10,16 @@ namespace SistemaFlota.Services.Costos.Inventario
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
+        private readonly AuditoriaService _auditoria;
 
-        public InventarioService(AppDbContext context,
-            ICurrentUserService currentUser)
+        public InventarioService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
+            AuditoriaService auditoria)
         {
             _context = context;
             _currentUser = currentUser;
+            _auditoria = auditoria;
         }
 
         public async Task ProcesarRecepcionAsync(int recepcionId)

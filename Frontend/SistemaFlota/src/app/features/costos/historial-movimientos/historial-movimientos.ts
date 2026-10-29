@@ -218,6 +218,27 @@ export class HistorialMovimientos implements OnInit {
   }
 
   verDetalles(movimiento: MovimientoVista): void {
+    let detalleFormateado = movimiento.detalles;
+
+    try {
+      const detalle = JSON.parse(movimiento.detalles);
+
+      if (detalle.cambios && Array.isArray(detalle.cambios)) {
+        detalleFormateado = detalle.cambios
+          .map((cambio: { campo: string; anterior: unknown; nuevo: unknown }) => {
+            const anterior = cambio.anterior ?? '—';
+            const nuevo = cambio.nuevo ?? '—';
+
+            return `${cambio.campo}\n  Anterior: ${anterior}\n  Nuevo: ${nuevo}`;
+          })
+          .join('\n\n');
+      } else {
+        detalleFormateado = JSON.stringify(detalle, null, 2);
+      }
+    } catch {
+      // Si el detalle no es JSON, se muestra como texto normal.
+    }
+
     window.alert(
       `Movimiento: ${movimiento.referencia}\n\n` +
       `Módulo: ${movimiento.tipo}\n` +
@@ -225,7 +246,7 @@ export class HistorialMovimientos implements OnInit {
       `Usuario: ${movimiento.usuario}\n` +
       `Fecha: ${movimiento.fecha.toLocaleString()}\n` +
       `Resultado: ${movimiento.resultado}\n\n` +
-      `Detalle: ${movimiento.detalles}`
+      `DETALLE DE LOS CAMBIOS\n\n${detalleFormateado}`
     );
   }
 }
