@@ -191,11 +191,11 @@
               <option *ngFor="let o of opcionesMaquina" [ngValue]="o.valor">{{ o.valor }}</option>
             </select>
           </div>
-          <div class="fg fg-cajon" *ngIf="vista === 'nuevo' && puedeFijarFechaReal">
+          <!-- <div class="fg fg-cajon" *ngIf="vista === 'nuevo' && puedeFijarFechaReal">
             <label>Fecha real de producción (opcional)</label>
             <input type="date" [(ngModel)]="form.fechaRealProduccion" [max]="hoyISO">
             <small class="ayuda-fecha">Solo para órdenes físicas que se ingresan después. Vacío = fecha de hoy.</small>
-          </div>
+          </div> -->
         </div>
         <div *ngIf="clienteDetectado" class="op-info-box cliente-box">
           <span><i class="fa-solid fa-circle-check"></i> Datos detectados del catálogo</span>
@@ -638,7 +638,7 @@
           <div class="detalle-item"><span class="det-label">Estado</span><span>{{ registroSeleccionado.estado ===
               'Liberado' ? 'Liberado' : 'Pendiente de liberación' }}</span></div>
           <div class="detalle-item destacado"><span class="det-label">Total desperdicio por turnos</span><span>{{
-              totalKilosDesperdicioVer }} kg</span></div>
+              registroSeleccionado.desperdicioTotalKg }} kg</span></div>
           <div class="detalle-item"><span class="det-label">¿Liberado?</span>
             <span [class.ok]="registroSeleccionado.puedeLiberarse === true"
               [class.no]="registroSeleccionado.puedeLiberarse === false">

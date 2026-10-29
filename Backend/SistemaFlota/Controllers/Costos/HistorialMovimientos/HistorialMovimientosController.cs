@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Costos.HistorialMovimientos;
 using SistemaFlota.Services.Costos.HistorialMovimientos;
 
@@ -19,6 +20,7 @@ namespace SistemaFlota.Controllers.Costos.HistorialMovimientos
         }
 
         [HttpGet]
+        [Permiso("historial-movimientos", "ver")]
         [ProducesResponseType(
             typeof(MovimientoHistorialPaginadoDto),
             StatusCodes.Status200OK)]
@@ -49,6 +51,7 @@ namespace SistemaFlota.Controllers.Costos.HistorialMovimientos
         }
 
         [HttpGet("resumen")]
+        [Permiso("historial-movimientos", "ver")]
         [ProducesResponseType(
             typeof(MovimientoHistorialResumenDto),
             StatusCodes.Status200OK)]
@@ -77,6 +80,7 @@ namespace SistemaFlota.Controllers.Costos.HistorialMovimientos
         }
 
         [HttpGet("{id:int}")]
+        [Permiso("historial-movimientos", "ver")]
         [ProducesResponseType(
             typeof(MovimientoHistorialDto),
             StatusCodes.Status200OK)]
@@ -93,6 +97,7 @@ namespace SistemaFlota.Controllers.Costos.HistorialMovimientos
         }
 
         [HttpGet("opciones")]
+        [Permiso("historial-movimientos", "ver")]
         public async Task<ActionResult<MovimientoHistorialOpcionesDto>> ObtenerOpciones()
         {
             var opciones = await _service.ObtenerOpcionesAsync();

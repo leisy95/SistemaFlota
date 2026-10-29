@@ -110,6 +110,7 @@ export class UsuariosComponent implements OnInit {
     { key: 'inventario', label: 'Inventario', grupo: 'COMPRAS Y MATERIALES' },
     { key: 'traslados', label: 'Traslados', grupo: 'COMPRAS Y MATERIALES' },
     { key: 'dashboard-compras', label: 'Dashboard Compras', grupo: 'COMPRAS Y MATERIALES' },
+    { key: 'historial-movimientos', label: 'Historial de movimientos', grupo: 'COMPRAS Y MATERIALES' },
 
     // COMPRAS NO FORMALIZADAS
     { key: 'proveedores-no-formalizados', label: 'Proveedores', grupo: 'COMPRAS NO FORMALIZADAS' },
