@@ -2,6 +2,8 @@
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Models.Prov_Materiales.Materiales;
+using SistemaFlota.Models.Proveedores;
 using SistemaFlota.Services.ImpresionEtiquetas.Componentes;
 
 namespace SistemaFlota.Services.Pdf.EtiquetasQR.Components;
@@ -49,6 +51,13 @@ public static class EtiquetaComponent
                             recepcion.OrdenCompra.FechaOrden
                                 .ToString("dd/MM/yyyy");
 
+                        string material =
+                          detalle.OrdenCompraDetalle?.Material?.DescripcionCompra
+                            ?? "No especificado";
+
+                        string proveedor =
+                            recepcion.OrdenCompra?.Proveedor?.Nombre ?? "No especificado";
+
                         string lote =
                             detalle.LoteProveedor?.Trim() ?? "";
 
@@ -56,6 +65,8 @@ public static class EtiquetaComponent
                         string contenidoQr =
                             $"Orden: {numeroOrden}\n" +
                             $"Fecha: {fechaOrden}\n" +
+                            $"Proveedor: {proveedor}\n" +
+                            $"Material: {material}\n" +
                             $"Lote: {lote}\n" +
                             $"Trazabilidad: {codigoFormateado}\n" +
                             $"Bulto: {numeroBulto}/{totalBultos}";
