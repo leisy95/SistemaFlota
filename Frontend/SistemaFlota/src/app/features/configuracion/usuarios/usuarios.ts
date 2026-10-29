@@ -262,7 +262,8 @@ export class UsuariosComponent implements OnInit {
       puedeEditar: false,
       puedeEliminar: false,
       puedeEnviarCorreo: false,
-      puedeVerDatosNumericos: false
+      puedeVerDatosNumericos: false,
+      esInicio: false
     };
   }
 
@@ -287,7 +288,8 @@ export class UsuariosComponent implements OnInit {
         puedeEditar: false,
         puedeEliminar: false,
         puedeEnviarCorreo: false,
-        puedeVerDatosNumericos: false
+        puedeVerDatosNumericos: false,
+        esInicio: false
       });
     }
   }
@@ -344,7 +346,8 @@ export class UsuariosComponent implements OnInit {
         puedeEditar: true,
         puedeEliminar: true,
         puedeEnviarCorreo: true,
-        puedeVerDatosNumericos: true
+        puedeVerDatosNumericos: true,
+        esInicio: false
       }));
   }
 
@@ -357,7 +360,8 @@ export class UsuariosComponent implements OnInit {
         puedeEditar: false,
         puedeEliminar: false,
         puedeEnviarCorreo: false,
-        puedeVerDatosNumericos: false
+        puedeVerDatosNumericos: false,
+        esInicio: false
       }));
   }
 
@@ -442,7 +446,8 @@ export class UsuariosComponent implements OnInit {
           puedeEnviarCorreo:
             p.puedeEnviarCorreo ?? false,
           puedeVerDatosNumericos:
-            p.puedeVerDatosNumericos ?? false
+            p.puedeVerDatosNumericos ?? false,
+          esInicio: p.esInicio ?? false
         })
       );
 

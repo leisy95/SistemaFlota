@@ -6,4 +6,5 @@ interface PermisoGranular {
     puedeEliminar: boolean;
     puedeEnviarCorreo: boolean;
     puedeVerDatosNumericos: boolean;
+    esInicio: boolean;
 }

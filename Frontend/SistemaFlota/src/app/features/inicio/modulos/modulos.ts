@@ -142,13 +142,43 @@ export class Modulos {
         );
         break;
 
-      case '/calidad':
+      case '/calidad': {
         nombreModulo = 'Calidad';
-        permitido = this.permisos.some(p =>
-          p.puedeVer &&
-          MENU_MODULOS.some(m => m.modulo === 'calidad' && m.key === p.modulo)
+
+        const modulosCalidad = MENU_MODULOS.filter(
+          m => m.modulo === 'calidad'
         );
+
+        const permisosCalidad = this.permisos.filter(
+          p => p.puedeVer &&
+            modulosCalidad.some(m => m.key === p.modulo)
+        );
+
+        permitido = permisosCalidad.length > 0;
+
+        if (permitido) {
+          // Primero busca el módulo marcado como inicio.
+          const permisoInicio = permisosCalidad.find(
+            p => p.esInicio
+          );
+
+          // Si no hay inicio configurado, conserva un destino de respaldo.
+          const permisoDestino = permisoInicio ?? permisosCalidad[0];
+
+          const menuDestino = modulosCalidad.find(
+            m => m.key === permisoDestino.modulo
+          );
+
+          if (menuDestino) {
+            this.router.navigate([menuDestino.ruta]);
+            return;
+          }
+
+          permitido = false;
+        }
+
         break;
+      }
 
       case '/control-envios':
         nombreModulo = 'Control de Envíos';

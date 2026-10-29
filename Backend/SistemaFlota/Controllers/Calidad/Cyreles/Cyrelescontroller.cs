@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SistemaFlota.Models;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs;
+using SistemaFlota.Models;
 using System.Security.Claims;
 
-namespace SistemaFlota.Controllers
+namespace SistemaFlota.Controllers.Calidad.Cyreles
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -29,6 +30,7 @@ namespace SistemaFlota.Controllers
 
         // GET api/cyreles/cajones
         [HttpGet("cajones")]
+        [Permiso("calidad-cyreles", "ver")]
         public async Task<IActionResult> GetCajones()
         {
             var cajones = await _context.Cajones
@@ -46,6 +48,7 @@ namespace SistemaFlota.Controllers
 
         // POST api/cyreles/cajones 
         [HttpPost("cajones")]
+        [Permiso("calidad-cyreles", "crear")]
         public async Task<IActionResult> CrearCajon([FromBody] CajonDto dto)
         {
             var existe = await _context.Cajones.AnyAsync(c => c.Numero == dto.Numero);
@@ -59,6 +62,7 @@ namespace SistemaFlota.Controllers
 
         // PUT api/cyreles/cajones/{id} 
         [HttpPut("cajones/{id}")]
+        [Permiso("calidad-cyreles", "editar")]
         public async Task<IActionResult> EditarCajon(int id, [FromBody] CajonDto dto)
         {
             var cajon = await _context.Cajones.FindAsync(id);
@@ -71,6 +75,7 @@ namespace SistemaFlota.Controllers
 
         // DELETE api/cyreles/cajones/{id} 
         [HttpDelete("cajones/{id}")]
+        [Permiso("calidad-cyreles", "eliminar")]
         public async Task<IActionResult> EliminarCajon(int id)
         {
             var cajon = await _context.Cajones
@@ -90,6 +95,7 @@ namespace SistemaFlota.Controllers
 
         // GET api/cyreles/registros 
         [HttpGet("registros")]
+        [Permiso("calidad-cyreles", "ver")]
         public async Task<IActionResult> GetRegistros(
             [FromQuery] int? cajonId,
             [FromQuery] string? nombre,
@@ -126,6 +132,7 @@ namespace SistemaFlota.Controllers
 
         // GET api/cyreles/registros/{id} 
         [HttpGet("registros/{id}")]
+        [Permiso("calidad-cyreles", "ver")]
         public async Task<IActionResult> GetRegistro(int id)
         {
             var r = await _context.CyreleRegistros
@@ -149,6 +156,7 @@ namespace SistemaFlota.Controllers
 
         // POST api/cyreles/registros 
         [HttpPost("registros")]
+        [Permiso("calidad-cyreles", "crear")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CrearRegistro([FromForm] RegistroDto dto)
         {
@@ -189,6 +197,7 @@ namespace SistemaFlota.Controllers
 
         // PUT api/cyreles/registros/{id} 
         [HttpPut("registros/{id}")]
+        [Permiso("calidad-cyreles", "editar")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> EditarRegistro(int id, [FromForm] RegistroDto dto)
         {
@@ -233,6 +242,7 @@ namespace SistemaFlota.Controllers
 
         // DELETE api/cyreles/registros/{id}/fotos/{fotoId}
         [HttpDelete("registros/{id}/fotos/{fotoId}")]
+        [Permiso("calidad-cyreles", "eliminar")]
         public async Task<IActionResult> EliminarFotoDeRegistro(int id, int fotoId)
         {
             var foto = await _context.CyreleFotos
