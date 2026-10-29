@@ -2,18 +2,21 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
 {
-    public class InventarioNoFormalizadoService : IInventarioNoFormalizadoService
+    public class InventarioNoFormalizadoService : BaseService, IInventarioNoFormalizadoService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
 
         public InventarioNoFormalizadoService(
-            AppDbContext context,
-            ICurrentUserService currentUser)
+             AppDbContext context,
+             ICurrentUserService currentUser,
+             SistemaFlota.AuditoriaService auditoria)
+             : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -106,6 +109,24 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
             }
 
             await _context.SaveChangesAsync();
+
+            var totalKgProcesados = detallesPendientes
+                .Sum(d => d.CantidadRecibida);
+
+            var totalBultosProcesados = detallesPendientes
+                .Sum(d => d.BultosRecibidos);
+
+            var cantidadDetalles = detallesPendientes.Count;
+
+            await AuditarAsync(
+                "ProcesarRecepcion",
+                "InventarioNoFormalizado",
+                $"Se procesó la recepción no formalizada {recepcionId}. " +
+                $"Se ingresaron {totalKgProcesados:N2} kg y " +
+                $"{totalBultosProcesados:N2} bultos al inventario, " +
+                $"distribuidos en {cantidadDetalles} " +
+                $"{(cantidadDetalles == 1 ? "detalle" : "detalles")}.",
+                recepcionId);
         }
 
         private async Task<RecepcionMercanciaNoFormalizada> ObtenerRecepcionAsync(
@@ -498,7 +519,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
 
             workbook.SaveAs(stream);
 
-            return stream.ToArray();
+            var archivo = stream.ToArray();
+
+            await AuditarAsync(
+                "ExportarExcel",
+                "InventarioNoFormalizado",
+                $"Se exportó el reporte de inventario no formalizado a Excel. " +
+                $"Registros exportados: {inventario.Count}. " +
+                $"Datos numéricos incluidos: {(puedeVerDatosNumericos ? "Sí" : "No")}. " +
+                $"Categoría: {categoria ?? "Todas"}. " +
+                $"Color: {color ?? "Todos"}.",
+                null);
+
+            return archivo;
         }
     }
 }

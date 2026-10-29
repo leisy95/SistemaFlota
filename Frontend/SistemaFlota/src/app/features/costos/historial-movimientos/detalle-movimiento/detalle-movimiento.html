@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>
+    <i class="fa-solid fa-clock-rotate-left"></i>
+    Detalles del movimiento
+</h2>
+
+<mat-dialog-content>
+    <div class="detalle-grid">
+
+        <div class="detalle-item">
+            <span>Fecha y hora</span>
+            <strong>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Módulo</span>
+            <strong>{{ movimiento.tipo || movimiento.modulo || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Acción</span>
+            <strong>{{ movimiento.accion || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Usuario</span>
+            <strong>{{ movimiento.usuario || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Rol</span>
+            <strong>{{ movimiento.rol || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Referencia</span>
+            <strong>{{ movimiento.referencia || movimiento.registroId || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Dirección IP</span>
+            <strong>{{ movimiento.ipAddress || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item">
+            <span>Resultado</span>
+            <strong>{{ movimiento.resultado || 'No disponible' }}</strong>
+        </div>
+
+        <div class="detalle-item detalle-completo">
+            <span>Descripción</span>
+            <p>{{ movimiento.descripcion || movimiento.detalles || 'Sin descripción disponible' }}</p>
+        </div>
+
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>
+        Cerrar
+    </button>
+</mat-dialog-actions>

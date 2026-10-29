@@ -2,6 +2,8 @@
 using SistemaFlota.DTOs.ComprasNoFormalizadas.RecepcionMercancias;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.ComprasNoFormalizadas.RecepcionMercancias;
+using SistemaFlota.Models.Costos.OrdenesCompras;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.Consecutivos;
@@ -10,7 +12,7 @@ using SistemaFlota.Services.Notificaciones;
 namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 {
     public class RecepcionMercanciaNoFormalizadaService
-        : IRecepcionMercanciaNoFormalizadaService
+        : BaseService, IRecepcionMercanciaNoFormalizadaService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -23,7 +25,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             ICurrentUserService currentUser,
             IConsecutivoService consecutivoService,
             INotificacionRecepcionService notificacion,
-            IInventarioNoFormalizadoService inventarioService)
+            IInventarioNoFormalizadoService inventarioService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -688,12 +692,30 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     ? "Recepcionada"
                     : "Parcial";
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            await _notificacion
-                .EnviarRecepcionMercanciaNoFormalizadaAsync(
-                    recepcion.Id,
-                    dto.Usuarios);
+                var totalKgRecepcion = recepcion.Detalles
+                    .Sum(x => x.CantidadRecibida);
+
+                var totalBultosRecepcion = recepcion.Detalles
+                    .Sum(x => x.BultosRecibidos);
+
+                await AuditarAsync(
+                    "Crear",
+                    "RecepcionMercanciaNoFormalizada",
+                    $"Se registró la recepción {recepcion.NumeroRecepcion} " +
+                    $"para la orden de compra {orden.Numero}. " +
+                    $"Proveedor: {orden.ProveedorNoFormalizado?.Nombre ?? "No especificado"}. " +
+                    $"Entrega número: {numeroEntrega}. " +
+                    $"Total recibido en la recepción: {totalKgRecepcion:N2} KG. " +
+                    $"Bultos recibidos: {totalBultosRecepcion:N2}. " +
+                    $"Estado de la orden: {orden.Estado}.",
+                    recepcion.Id);
+
+                await _notificacion
+                    .EnviarRecepcionMercanciaNoFormalizadaAsync(
+                        recepcion.Id,
+                        dto.Usuarios);
 
             return new RecepcionMercanciaNoFormalizadaDto
             {
@@ -815,6 +837,28 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
             }
 
             await _context.SaveChangesAsync();
+
+            var totalKgProcesados = detallesPendientes
+                 .Sum(d => d.CantidadRecibida);
+
+            var totalBultosProcesados = detallesPendientes
+                .Sum(d => d.BultosRecibidos);
+
+            var cantidadDetalles = detallesPendientes.Count;
+
+            await AuditarAsync(
+                "Confirmar",
+                "RecepcionMercanciaNoFormalizada",
+                $"Se confirmó el ingreso al inventario de la recepción " +
+                $"{recepcion.NumeroRecepcion}. " +
+                $"Orden de compra: {recepcion.OrdenCompraNoFormalizada.Numero}. " +
+                $"Se ingresaron {totalKgProcesados:N2} kg y " +
+                $"{totalBultosProcesados:N2} bultos al inventario, " +
+                $"distribuidos en {cantidadDetalles} " +
+                $"{(cantidadDetalles == 1 ? "detalle" : "detalles")}. " +
+                $"Estado final de la orden: " +
+                $"{recepcion.OrdenCompraNoFormalizada.Estado}.",
+                recepcion.Id);
         }
 
         //ACTUALIZAR
@@ -867,9 +911,21 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Actualizar",
+                "RecepcionMercanciaNoFormalizada",
+                $"Se actualizaron los datos de la recepción " +
+                $"{recepcion.NumeroRecepcion}. " +
+                $"Conductor: {recepcion.Conductor ?? "No especificado"}. " +
+                $"Transportadora: {recepcion.Transportadora ?? "No especificada"}. " +
+                $"Embalaje adecuado: " +
+                $"{(recepcion.EmbalajeAdecuado ? "Sí" : "No")}.",
+                recepcion.Id);
+
             return true;
         }
 
+        // ELIMINAR
         // ELIMINAR
         public async Task<bool> EliminarAsync(int id)
         {
@@ -894,10 +950,22 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     "No se puede eliminar una recepción cuyos materiales ya ingresaron al inventario.");
             }
 
+            var numeroRecepcion = recepcion.NumeroRecepcion;
+            var ordenCompraId = recepcion.OrdenCompraNoFormalizadaId;
+            var cantidadDetalles = recepcion.Detalles.Count;
+
             _context.RecepcionesMercanciasNoFormalizadas
                 .Remove(recepcion);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Eliminar",
+                "RecepcionMercanciaNoFormalizada",
+                $"Se eliminó la recepción {numeroRecepcion}. " +
+                $"Orden de compra ID: {ordenCompraId}. " +
+                $"Cantidad de detalles eliminados: {cantidadDetalles}.",
+                null);
 
             return true;
         }

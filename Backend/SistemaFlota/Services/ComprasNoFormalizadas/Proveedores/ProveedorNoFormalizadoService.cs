@@ -1,14 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Models.ComprasNoFormalizadas.Proveedores;
+using SistemaFlota.Services.Auditorias.Base;
+using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
 {
-    public class ProveedorNoFormalizadoService : IProveedorNoFormalizadoService
+    public class ProveedorNoFormalizadoService : BaseService, IProveedorNoFormalizadoService
     {
         private readonly AppDbContext _context;
 
-        public ProveedorNoFormalizadoService(AppDbContext context)
+        public ProveedorNoFormalizadoService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
         }
@@ -157,6 +163,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "ProveedoresNoFormalizados",
+                $"Se creó el proveedor no formalizado {proveedor.Nombre}. " +
+                $"Documento: {proveedor.Documento ?? "No especificado"}. " +
+                $"Contacto: {proveedor.Contacto ?? "No especificado"}. " +
+                $"Teléfono: {proveedor.Telefono ?? "No especificado"}. " +
+                $"Correo: {proveedor.CorreoElectronico ?? "No especificado"}. " +
+                $"Ciudad: {proveedor.Ciudad ?? "No especificada"}. " +
+                $"Departamento: {proveedor.Departamento ?? "No especificado"}. " +
+                $"Activo: {(proveedor.Activo ? "Sí" : "No")}.",
+                proveedor.IdProveedorNoFormalizado);
+
             return new ProveedorNoFormalizadoDto
             {
                 IdProveedorNoFormalizado = proveedor.IdProveedorNoFormalizado,
@@ -222,6 +241,19 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Actualizar",
+                "ProveedoresNoFormalizados",
+                $"Se actualizó el proveedor no formalizado {proveedor.Nombre}. " +
+                $"Documento: {proveedor.Documento ?? "No especificado"}. " +
+                $"Contacto: {proveedor.Contacto ?? "No especificado"}. " +
+                $"Teléfono: {proveedor.Telefono ?? "No especificado"}. " +
+                $"Correo: {proveedor.CorreoElectronico ?? "No especificado"}. " +
+                $"Ciudad: {proveedor.Ciudad ?? "No especificada"}. " +
+                $"Departamento: {proveedor.Departamento ?? "No especificado"}. " +
+                $"Activo: {(proveedor.Activo ? "Sí" : "No")}.",
+                proveedor.IdProveedorNoFormalizado);
+
             return true;
         }
 
@@ -239,6 +271,14 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Proveedores
             proveedor.FechaActualizacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+               "Desactivar",
+               "ProveedoresNoFormalizados",
+               $"Se desactivó el proveedor no formalizado {proveedor.Nombre}. " +
+               $"Documento: {proveedor.Documento ?? "No especificado"}. " +
+               $"ID del proveedor: {proveedor.IdProveedorNoFormalizado}.",
+               proveedor.IdProveedorNoFormalizado);
 
             return true;
         }

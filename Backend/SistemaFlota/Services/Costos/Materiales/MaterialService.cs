@@ -4,16 +4,24 @@ using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
+using SistemaFlota.Services.Auditorias.Base;
+using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.Costos.Materiales
 {
-    public class MaterialService : IMaterialesService
+    public class MaterialService : BaseService, IMaterialesService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public MaterialService(AppDbContext context)
+        public MaterialService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         // Listar Materiales
@@ -239,6 +247,14 @@ namespace SistemaFlota.Services.Costos.Materiales
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "Materiales",
+                $"Se creó el material {material.NombreMaterial} " +
+                $"con código {material.Codigo} para el proveedor {proveedor.Nombre}.",
+                material.IdMaterial
+            );
+
             return new MaterialDto
             {
                 IdMaterial = material.IdMaterial,
@@ -387,6 +403,14 @@ namespace SistemaFlota.Services.Costos.Materiales
             material.FechaActualizacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Actualizar",
+                "Materiales",
+                $"Se actualizó el material {material.NombreMaterial} " +
+                $"con código {material.Codigo}.",
+                material.IdMaterial
+            );
 
             return true;
         }

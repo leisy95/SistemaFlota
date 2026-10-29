@@ -2,6 +2,7 @@
 using SistemaFlota.DTOs.Costos.RecepcionMercancia;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
@@ -9,7 +10,7 @@ using SistemaFlota.Services.Notificaciones;
 
 namespace SistemaFlota.Services.Costos.RecepcionMercancia
 {
-    public class RecepcionMercanciaService : IRecepcionMercanciaService
+    public class RecepcionMercanciaService : BaseService, IRecepcionMercanciaService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -19,10 +20,12 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
         public RecepcionMercanciaService(
             AppDbContext context,
-             ICurrentUserService currentUser,
-             IConsecutivoService consecutivoService,
-             INotificacionRecepcionService notificacion,
-             IInventarioService inventarioService)
+            ICurrentUserService currentUser,
+            IConsecutivoService consecutivoService,
+            INotificacionRecepcionService notificacion,
+            IInventarioService inventarioService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -384,6 +387,17 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "RecepcionMercancia",
+                $"Se registró la recepción {recepcion.NumeroRecepcion} " +
+                $"para la orden de compra {orden.Numero}. " +
+                $"Proveedor: {orden.Proveedor?.Nombre ?? "No especificado"}. " +
+                $"Entrega número: {numeroEntrega}. " +
+                $"Cantidad de detalles recibidos: {recepcion.Detalles.Count}. " +
+                $"Estado de la orden: {orden.Estado}.",
+                recepcion.Id);
+
             await _notificacion.EnviarRecepcionMercanciaAsync(
                 recepcion.Id,
                 dto.Usuarios
@@ -471,6 +485,25 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             }
 
             await _context.SaveChangesAsync();
+
+            var totalKgProcesados = detallesPendientes
+                .Sum(d => d.CantidadRecibida);
+
+            var totalBultosProcesados = detallesPendientes
+                .Sum(d => d.BultosRecibidos);
+
+            await AuditarAsync(
+                "Confirmar",
+                "RecepcionMercancia",
+                $"Se confirmó el ingreso al inventario de la recepción " +
+                $"{recepcion.NumeroRecepcion}, correspondiente a la orden " +
+                $"{recepcion.OrdenCompra.Numero}. " +
+                $"Se ingresaron {totalKgProcesados:N2} kg distribuidos en " +
+                $"{detallesPendientes.Count} " +
+                $"{(detallesPendientes.Count == 1 ? "detalle" : "detalles")}, " +
+                $"correspondientes a {totalBultosProcesados:N2} bultos. " +
+                $"Estado final de la orden: {recepcion.OrdenCompra.Estado}.",
+                recepcion.Id);
         }
 
         public async Task<bool> ActualizarAsync(int id, ActualizarRecepcionMercanciaDto dto)

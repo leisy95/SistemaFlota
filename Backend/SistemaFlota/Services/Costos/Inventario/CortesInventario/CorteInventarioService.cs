@@ -2,18 +2,21 @@
 using SistemaFlota.DTOs.Costos.Inventario.CortesInventario;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.Inventario.CortesInventario;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
 {
-    public class CorteInventarioService : ICorteInventarioService
+    public class CorteInventarioService : BaseService, ICorteInventarioService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
 
         public CorteInventarioService(
             AppDbContext context,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -126,6 +129,14 @@ namespace SistemaFlota.Services.Costos.Inventario.CortesInventario
 
             _context.CortesInventario.Add(corte);
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "CorteInventario",
+                $"Se creó el corte de inventario {corte.Id} con " +
+                $"{corte.Detalles.Count} detalles. Estado: {corte.Estado}.",
+                corte.Id
+            );
         }
 
         public async Task<List<HistorialCorteInventarioDto>> ObtenerHistorialAsync()

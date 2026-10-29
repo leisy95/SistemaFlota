@@ -1,0 +1,145 @@
+:host {
+    display: block;
+    color: var(--azul-oscuro);
+}
+
+/* Encabezado del diálogo */
+h2[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 22px 24px;
+    color: var(--blanco);
+    background: linear-gradient(135deg,
+            var(--verde-oscuro),
+            var(--verde-principal));
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.3;
+
+    i {
+        font-size: 22px;
+    }
+}
+
+/* Contenido */
+mat-dialog-content {
+    padding: 24px !important;
+    margin: 0;
+    background: var(--blanco);
+    max-height: 65vh;
+}
+
+/* Distribución de los detalles */
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 2px;
+}
+
+/* Tarjetas de información */
+.detalle-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--gris-claro);
+    border-radius: 12px;
+    background: var(--fondo);
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+
+    &:hover {
+        border-color: var(--verde-principal);
+        background: var(--verde-suave);
+    }
+
+    >span {
+        color: var(--gris-oscuro);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+
+    >strong {
+        color: var(--azul-oscuro);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Descripción completa */
+.detalle-completo {
+    grid-column: 1 / -1;
+
+    p {
+        margin: 0;
+        color: var(--gris-oscuro);
+        font-size: 14px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+}
+
+/* Acciones inferiores */
+mat-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0;
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--gris-claro);
+    background: var(--fondo);
+
+    button {
+        min-width: 100px;
+        padding: 9px 20px;
+        border: 1px solid var(--verde-oscuro);
+        border-radius: 8px;
+        color: var(--blanco);
+        background: var(--verde-oscuro);
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background: var(--verde-oscuro-hover);
+        }
+    }
+}
+
+/* Adaptación a móviles */
+@media (max-width: 480px) {
+    h2[mat-dialog-title] {
+        padding: 18px;
+        font-size: 18px;
+    }
+
+    mat-dialog-content {
+        padding: 16px !important;
+    }
+
+    .detalle-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .detalle-completo {
+        grid-column: auto;
+    }
+
+    .detalle-item {
+        padding: 13px;
+    }
+
+    mat-dialog-actions {
+        padding: 12px 16px 16px;
+    }
+}

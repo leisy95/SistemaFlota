@@ -3,13 +3,16 @@ using SistemaFlota.DTOs.Costos.OrdenCompra;
 using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
+using SistemaFlota.Services.Auditorias;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Email;
 
 namespace SistemaFlota.Services.Costos.OrdenCompra
 {
-    public class OrdenCompraService : IOrdenCompraService
+    public class OrdenCompraService
+            : BaseService, IOrdenCompraService
     {
         private readonly AppDbContext _context;
         private readonly IConsecutivoService _consecutivoService;
@@ -17,6 +20,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
         private readonly IEmailService _emailService;
         private readonly IOrdenCompraPdfService _ordenCompraPdfService;
         private readonly EmailTemplateService _emailTemplateService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public OrdenCompraService(
             AppDbContext context,
@@ -24,8 +28,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             ICurrentUserService currentUser,
             IEmailService emailService,
             IOrdenCompraPdfService ordenCompraPdfService,
-            EmailTemplateService emailTemplateService
-            )
+            EmailTemplateService emailTemplateService,
+            IHttpContextAccessor httpContextAccessor,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _consecutivoService = consecutivoService;
@@ -33,6 +39,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             _emailService = emailService;
             _ordenCompraPdfService = ordenCompraPdfService;
             _emailTemplateService = emailTemplateService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         private async Task ValidarProveedorAsync(int proveedorId)
@@ -137,7 +144,6 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 totalPagar
             );
         }
-
         public async Task<OrdenCompraPaginadoDto> ObtenerAsync(
              string? search,
              string? estado,
@@ -344,7 +350,6 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             var strategy = _context.Database.CreateExecutionStrategy();
 
-
             return await strategy.ExecuteAsync(async () =>
             {
 
@@ -413,6 +418,16 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
                     await _context.SaveChangesAsync();
 
+                    var detalleAuditoria =
+                        $"Orden de compra {orden.Numero} creada exitosamente.";
+
+                    await AuditarAsync(
+                        "Crear",
+                        "OrdenCompra",
+                        detalleAuditoria,
+                        orden.Id);
+
+                    await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
 
@@ -493,6 +508,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             orden.TotalBultos = totalBultos;
 
             orden.UsuarioActualizacionId = idUsuario.Value;
+            orden.FechaActualizacion = DateTime.Now;
 
             orden.Subtotal = subtotal;
             orden.TipoImpuesto = dto.TipoImpuesto;
@@ -520,6 +536,12 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Actualizar",
+                "OrdenCompra",
+                $"Se actualizó la orden de compra {orden.Numero}.",
+                orden.Id);
+
             return true;
         }
 
@@ -540,6 +562,14 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 throw new Exception(
                     "El proveedor no tiene un correo configurado.");
 
+            var idUsuario = _currentUser.IdUsuario;
+
+            if (idUsuario == null)
+            {
+                throw new UnauthorizedAccessException(
+                    "No se pudo identificar el usuario que realiza el envío.");
+            }
+
             // Generar PDF
             byte[] pdf = await _ordenCompraPdfService.GenerarPdfAsync(id);
 
@@ -548,6 +578,9 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 orden.Numero,
                 orden.Proveedor.Nombre,
                 orden.FechaOrden);
+                orden.CorreoEnviado = true;
+                orden.FechaEnvioCorreo = DateTime.Now;
+                orden.UsuarioEnvioCorreoId = idUsuario.Value;
 
             // Enviar correo con PDF adjunto
             await _emailService.EnviarAsync(
@@ -556,6 +589,12 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 html,
                 pdf,
                 $"OrdenCompra-{orden.Numero}.pdf");
+
+            await AuditarAsync(
+                "EnviarCorreo",
+                "OrdenCompra",
+                $"Se envió por correo la orden de compra {orden.Numero} al proveedor {orden.Proveedor.Nombre}.",
+                orden.Id);
 
             return true;
         }
@@ -617,10 +656,10 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             var estadosNoAnulables = new[]
             {
-        "Recepcionada",
-        "Parcial",
-        "Confirmada"
-    };
+                    "Recepcionada",
+                    "Parcial",
+                    "Confirmada"
+                };
 
             if (estadosNoAnulables.Contains(orden.Estado))
             {
@@ -650,7 +689,37 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Anular",
+                "OrdenCompra",
+                $"Se anuló la orden de compra {orden.Numero}.",
+                orden.Id);
+
             return true;
+        }
+
+        private SistemaFlota.Auditoria CrearAuditoria(
+            string accion,
+            int registroId,
+            string detalle)
+        {
+            var ip = _httpContextAccessor.HttpContext?
+                .Connection.RemoteIpAddress?.ToString() ?? "Desconocida";
+
+            return new SistemaFlota.Auditoria
+            {
+                Usuario = _currentUser.Usuario
+                    ?? _currentUser.Nombre
+                    ?? "Desconocido",
+                Rol = _currentUser.Rol ?? "Desconocido",
+                Accion = accion,
+                Modulo = "OrdenCompra",
+                Detalle = detalle,
+                RegistroId = registroId,
+                Fecha = DateTime.Now,
+                IpAddress = ip,
+                Resultado = "Exitoso"
+            };
         }
     }
 }
