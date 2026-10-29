@@ -1,4 +1,5 @@
-﻿using SistemaFlota.DTOs.Costos.Materiales;
+﻿using Microsoft.AspNetCore.Http;
+using SistemaFlota.DTOs.Costos.Materiales;
 using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
@@ -22,6 +23,8 @@ namespace SistemaFlota.Services.Costos.Materiales
         Task<MaterialDto> CrearAsync(CrearMaterialDto dto);
 
         Task<bool> ActualizarAsync(int id, ActualizarMaterialDto dto);
+
+        Task<bool> SubirPdfAsync(int id, IFormFile archivo);
 
         Task<bool> EliminarAsync(int id);
 

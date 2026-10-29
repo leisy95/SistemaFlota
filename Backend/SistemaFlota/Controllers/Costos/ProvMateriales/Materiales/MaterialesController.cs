@@ -115,5 +115,34 @@ namespace SistemaFlota.Controllers.Costos.ProvMateriales.Materiales
 
             return NoContent();
         }
+
+        // pdf
+        // Subir o reemplazar PDF de ficha técnica
+        [HttpPut("{id:int}/pdf")]
+        [Permiso("proveedores-materiales", "editar")]
+        public async Task<IActionResult> SubirPdf(
+            int id,
+            [FromForm] IFormFile archivo)
+        {
+            if (archivo == null || archivo.Length == 0)
+                return BadRequest(new { error = "Debe seleccionar un archivo PDF." });
+
+            try
+            {
+                var actualizado = await _materialesService.SubirPdfAsync(id, archivo);
+
+                if (!actualizado)
+                    return NotFound(new { error = "Material no encontrado." });
+
+                return Ok(new
+                {
+                    mensaje = "PDF actualizado correctamente."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

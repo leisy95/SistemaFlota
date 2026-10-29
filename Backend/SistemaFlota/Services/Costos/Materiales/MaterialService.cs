@@ -466,6 +466,67 @@ namespace SistemaFlota.Services.Costos.Materiales
                 .ToListAsync();
         }
 
+        // Subir pdf
+        public async Task<bool> SubirPdfAsync(int id, IFormFile archivo)
+        {
+            var material = await _context.Materiales
+                .FirstOrDefaultAsync(m => m.IdMaterial == id);
+
+            if (material == null)
+                return false;
+
+            if (archivo == null || archivo.Length == 0)
+                throw new InvalidOperationException(
+                    "Debe seleccionar un archivo PDF."
+                );
+
+            if (Path.GetExtension(archivo.FileName).ToLower() != ".pdf")
+                throw new InvalidOperationException(
+                    "Solo se permiten archivos PDF."
+                );
+
+            // Carpeta de almacenamiento
+            var carpeta = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "Costos",
+                "Materiales",
+                "FichaTecnica"
+            );
+
+            if (!Directory.Exists(carpeta))
+                Directory.CreateDirectory(carpeta);
+
+            // Generar nombre único
+            var nombreArchivo = $"{Guid.NewGuid()}.pdf";
+
+            var rutaCompleta = Path.Combine(carpeta, nombreArchivo);
+
+            // Guardar nuevo PDF
+            using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+            {
+                await archivo.CopyToAsync(stream);
+            }
+
+            // Actualizar únicamente la ruta del PDF
+            material.DocumentoPdf =
+                $"Costos/Materiales/FichaTecnica/{nombreArchivo}";
+
+            material.FechaActualizacion = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            // Auditoría
+            await AuditarAsync(
+                "Actualizar",
+                "Materiales",
+                $"Se actualizó el PDF de la ficha técnica del material {material.NombreMaterial}.",
+                material.IdMaterial
+            );
+
+            return true;
+        }
+
         public Task<bool> EliminarAsync(int id)
         {
             throw new NotImplementedException();

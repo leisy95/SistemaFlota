@@ -35,6 +35,7 @@ export class CrearMateriales implements OnInit {
 
   archivoPdf: File | null = null;
   nombreArchivo = '';
+  materialInicial: Material | null = null;
 
   material: Material = {
     idProveedor: 0,
@@ -58,6 +59,7 @@ export class CrearMateriales implements OnInit {
 
     if (this.data) {
       this.material = { ...this.data };
+      this.materialInicial = { ...this.data };
     }
 
     this.obtenerProveedores();
@@ -117,6 +119,168 @@ export class CrearMateriales implements OnInit {
 
   guardar(): void {
 
+    // EDITAR MATERIAL EXISTENTE
+    if (this.data) {
+
+      const id = this.material.idMaterial!;
+
+      const hayCambios = this.hayCambiosDatos();
+
+      // CASO 1: Solamente subir PDF
+      if (!hayCambios && this.archivoPdf) {
+
+        this.materialService.subirPdf(id, this.archivoPdf)
+          .subscribe({
+
+            next: () => {
+              this.toastr.success(
+                'PDF actualizado correctamente.',
+                'Éxito'
+              );
+
+              this.dialogRef.close(true);
+            },
+
+            error: (error) => {
+              this.toastr.error(
+                error.error?.error || 'No fue posible subir el PDF.',
+                'Error'
+              );
+            }
+          });
+
+        return;
+      }
+
+      // CASO 2: Actualizar datos y PDF
+      if (hayCambios && this.archivoPdf) {
+
+        const formData = this.crearFormData();
+
+        this.materialService.actualizar(id, formData)
+          .subscribe({
+
+            next: () => {
+
+              this.materialService.subirPdf(id, this.archivoPdf!)
+                .subscribe({
+
+                  next: () => {
+                    this.toastr.success(
+                      'Material y PDF actualizados correctamente.',
+                      'Éxito'
+                    );
+
+                    this.dialogRef.close(true);
+                  },
+
+                  error: (error) => {
+                    this.toastr.error(
+                      error.error?.error ||
+                      'Los datos se actualizaron, pero falló la carga del PDF.',
+                      'Error'
+                    );
+                  }
+                });
+
+            },
+
+            error: (error) => {
+              this.toastr.error(
+                error.error?.error || 'No fue posible actualizar el material.',
+                'Error'
+              );
+            }
+          });
+
+        return;
+      }
+
+      // CASO 3: Solamente actualizar datos
+      if (hayCambios) {
+
+        const formData = this.crearFormData();
+
+        this.materialService.actualizar(id, formData)
+          .subscribe({
+
+            next: () => {
+              this.toastr.success(
+                'Material actualizado correctamente.',
+                'Éxito'
+              );
+
+              this.dialogRef.close(true);
+            },
+
+            error: (error) => {
+              this.toastr.error(
+                error.error?.error || 'No fue posible actualizar el material.',
+                'Error'
+              );
+            }
+          });
+
+        return;
+      }
+
+      // CASO 4: Sin cambios
+      this.toastr.info('No hay cambios para guardar.');
+      return;
+    }
+
+    // CREAR MATERIAL NUEVO
+    const formData = this.crearFormData();
+
+    if (this.archivoPdf) {
+      formData.append('archivoPdf', this.archivoPdf);
+    }
+
+    this.materialService.crear(formData).subscribe({
+
+      next: (material) => {
+        this.toastr.success(
+          'Material creado correctamente.',
+          'Éxito'
+        );
+
+        this.dialogRef.close(material);
+      },
+
+      error: (error) => {
+        this.toastr.error(
+          error.error?.error || 'No fue posible crear el material.',
+          'Error'
+        );
+      }
+    });
+  }
+
+  private hayCambiosDatos(): boolean {
+
+    if (!this.materialInicial) return true;
+
+    const campos = [
+      'idProveedor',
+      'codigo',
+      'nombreMaterial',
+      'descripcionCompra',
+      'densidad',
+      'categoria',
+      'color',
+      'tipoProduccion',
+      'unidad',
+      'precioBaseKg',
+      'activo'
+    ] as const;
+
+    return campos.some(campo =>
+      this.material[campo] !== this.materialInicial![campo]
+    );
+  }
+
+  private crearFormData(): FormData {
+
     const formData = new FormData();
 
     formData.append('idProveedor', this.material.idProveedor.toString());
@@ -131,51 +295,7 @@ export class CrearMateriales implements OnInit {
     formData.append('precioBaseKg', this.material.precioBaseKg.toString());
     formData.append('activo', this.material.activo.toString());
 
-    if (this.archivoPdf) {
-      formData.append('archivoPdf', this.archivoPdf);
-    }
-
-    if (this.data) {
-
-      this.materialService.actualizar(
-        this.material.idMaterial!,
-        formData
-      ).subscribe({
-        next: () => {
-          this.toastr.success(
-            'Material actualizado correctamente.',
-            'Éxito'
-          );
-          this.dialogRef.close(true);
-        },
-
-        error: () => {
-          this.toastr.error(
-            'No fue posible actualizar el material.',
-            'Error'
-          );
-        }
-      });
-      return;
-    }
-
-    this.materialService.crear(formData).subscribe({
-      next: (material) => {
-        this.toastr.success(
-          'Material creado correctamente.',
-          'Éxito'
-        );
-        this.dialogRef.close(material);
-      },
-
-      error: () => {
-        this.toastr.error(
-          'No fue posible crear el material.',
-          'Error'
-        );
-      }
-    });
-
+    return formData;
   }
 
   seleccionarArchivo(event: Event): void {

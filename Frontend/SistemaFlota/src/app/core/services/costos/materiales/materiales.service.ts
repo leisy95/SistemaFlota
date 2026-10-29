@@ -74,6 +74,18 @@ export class MaterialService {
         );
     }
 
+    subirPdf(id: number, archivo: File) {
+
+        const formData = new FormData();
+
+        formData.append('archivo', archivo);
+
+        return this.http.put(
+            `${this.apiUrl}/${id}/pdf`,
+            formData
+        );
+    }
+
     eliminar(id: number): Observable<void> {
 
         return this.http.delete<void>(
