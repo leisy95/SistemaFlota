@@ -587,12 +587,6 @@
     }
 }
 
-// Para la seccion detalles
-
-/* =========================================
-   RESPONSIVE - ESTA PANTALLA
-   Solo títulos, header, filtros y detalles
-   ========================================= */
 
 @media (max-width: 1024px) {
 
@@ -646,21 +640,11 @@
     }
 }
 
-
-/* =========================================
-   TABLET
-   ========================================= */
-
 @media (max-width: 768px) {
 
     .contenedor {
         padding: 15px;
     }
-
-
-    /* ==============================
-       HEADER
-       ============================== */
 
     .header {
         flex-direction: column;
@@ -687,11 +671,6 @@
         width: 100%;
         min-height: 44px;
     }
-
-
-    /* ==============================
-       FILTROS
-       ============================== */
 
     .card {
         padding: 18px;
@@ -721,11 +700,6 @@
         height: 46px;
         font-size: 15px;
     }
-
-
-    /* ==============================
-       DETALLES DEL MATERIAL
-       ============================== */
 
     .contenedor.panel-abierto .layout-contenido {
         display: block !important;
@@ -778,20 +752,12 @@
 }
 
 
-/* =========================================
-   MÓVIL PEQUEÑO
-   ========================================= */
-
 @media (max-width: 480px) {
 
     .contenedor {
         padding: 10px;
     }
 
-
-    /* ==============================
-       HEADER
-       ============================== */
 
     .header {
         padding: 16px;
@@ -815,11 +781,6 @@
         padding: 10px 14px;
     }
 
-
-    /* ==============================
-       FILTROS
-       ============================== */
-
     .card {
         padding: 15px;
         border-radius: 13px;
@@ -834,11 +795,6 @@
         height: 44px;
         font-size: 14px;
     }
-
-
-    /* ==============================
-       DETALLES PROFESIONALES
-       ============================== */
 
     .drawer-header {
         min-height: 64px;

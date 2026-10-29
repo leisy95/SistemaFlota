@@ -68,71 +68,73 @@
 
         <!-- TABLA PRINCIPAL -->
         <div class="tabla">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Proveedor</th>
-                        <th>Material</th>
-                        <th>Precio</th>
-                        <th>Unidad</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Proveedor</th>
+                            <th>Material</th>
+                            <th>Precio</th>
+                            <th>Unidad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    <tr *ngFor="let item of materiales" (click)="seleccionarMaterial(item)"
-                        [class.fila-activa]="materialSeleccionado?.idMaterial === item.idMaterial">
+                    <tbody>
+                        <tr *ngFor="let item of materiales" (click)="seleccionarMaterial(item)"
+                            [class.fila-activa]="materialSeleccionado?.idMaterial === item.idMaterial">
 
-                        <td data-label="Codigo" class="col-codigo">{{ item.codigo }}</td>
+                            <td data-label="Codigo" class="col-codigo">{{ item.codigo }}</td>
 
-                        <td data-label="Proveedor" class="col-material">
-                            {{ item.proveedor }}
-                        </td>
+                            <td data-label="Proveedor" class="col-material">
+                                {{ item.proveedor }}
+                            </td>
 
-                        <td data-label="Material" class="col-material">
-                            {{ item.nombreMaterial }}
-                        </td>
+                            <td data-label="Material" class="col-material">
+                                {{ item.nombreMaterial }}
+                            </td>
 
-                        <td data-label="Precio" class="col-precio">
-                            {{ item.precioBaseKg | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                        </td>
-                        <td data-label="Unidad" class="col-unidad">{{ item.unidad }}</td>
+                            <td data-label="Precio" class="col-precio">
+                                {{ item.precioBaseKg | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                            </td>
+                            <td data-label="Unidad" class="col-unidad">{{ item.unidad }}</td>
 
 
-                        <td data-label="Estado" class="col-estado">
-                            <span *ngIf="item.activo" class="activo">Activo</span>
-                            <span *ngIf="!item.activo" class="inactivo">Inactivo</span>
-                        </td>
+                            <td data-label="Estado" class="col-estado">
+                                <span *ngIf="item.activo" class="activo">Activo</span>
+                                <span *ngIf="!item.activo" class="inactivo">Inactivo</span>
+                            </td>
 
-                        <td data-label="Acciones" class="acciones-menu menu-container"
-                            (click)="$event.stopPropagation()">
-                            <button class="btn-menu" (click)="toggleMenu(item.idMaterial!)">
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
-                            </button>
-
-                            <div class="menu" *ngIf="menuAbierto === item.idMaterial">
-                                <button class="btn-editar" (click)="cerrarMenu(); editar(item, $event)">
-                                    <i class="fa-regular fa-pen-to-square"></i>
-                                    <span>Editar</span>
+                            <td data-label="Acciones" class="acciones-menu menu-container"
+                                (click)="$event.stopPropagation()">
+                                <button class="btn-menu" (click)="toggleMenu(item.idMaterial!)">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
 
-                                <button class="btn-eliminar" (click)="cerrarMenu(); eliminar(item, $event)">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                    <span>Eliminar</span>
-                                </button>
+                                <div class="menu" *ngIf="menuAbierto === item.idMaterial">
+                                    <button class="btn-editar" (click)="cerrarMenu(); editar(item, $event)">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </button>
 
-                                <a *ngIf="item.documentoPdf" [href]="obtenerUrlPdf(item.documentoPdf)" target="_blank"
-                                    (click)="cerrarMenu()">
-                                    <i class="fa-solid fa-file-pdf"></i>
-                                    <span>Ver Ficha técnica</span>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                    <button class="btn-eliminar" (click)="cerrarMenu(); eliminar(item, $event)">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                        <span>Eliminar</span>
+                                    </button>
+
+                                    <a *ngIf="item.documentoPdf" [href]="obtenerUrlPdf(item.documentoPdf)"
+                                        target="_blank" (click)="cerrarMenu()">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                        <span>Ver Ficha técnica</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- PAGINACIÓN -->
             <div class="paginacion">
