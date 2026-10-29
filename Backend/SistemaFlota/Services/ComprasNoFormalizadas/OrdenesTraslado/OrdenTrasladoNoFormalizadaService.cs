@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesTraslado;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.Consecutivos;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
 {
-    public class OrdenTrasladoNoFormalizadaService : IOrdenTrasladoNoFormalizadaService
+    public class OrdenTrasladoNoFormalizadaService : BaseService, IOrdenTrasladoNoFormalizadaService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -16,7 +17,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
         public OrdenTrasladoNoFormalizadaService(
             AppDbContext context,
             ICurrentUserService currentUser,
-            IConsecutivoService consecutivoService)
+            IConsecutivoService consecutivoService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -95,6 +98,16 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
 
             _context.OrdenesTrasladoNoFormalizadas.Add(orden);
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "OrdenTrasladoNoFormalizada",
+                $"Se creó la orden de traslado no formalizada {orden.NumeroOrden}. " +
+                $"Destino: {orden.Destino}. " +
+                $"Total: {orden.TotalKg:N2} KG y {orden.TotalBultos:N2} bultos. " +
+                $"Cantidad de detalles: {orden.Detalles.Count}. " +
+                $"Estado: {orden.Estado}.",
+                orden.Id);
 
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception(
@@ -343,6 +356,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Verificar",
+                "OrdenTrasladoNoFormalizada",
+                $"Se verificó la orden de traslado no formalizada {orden.NumeroOrden}. " +
+                $"Nuevo estado: {orden.Estado}. " +
+                $"Usuario verificador ID: {_currentUser.IdUsuario.Value}. " +
+                $"Detalles verificados: {dto.Materiales.Count}.",
+                orden.Id);
+
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception(
                     "No fue posible obtener la orden verificada.");
@@ -429,6 +451,20 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception(
                     "No fue posible obtener la orden confirmada.");
+
+            var totalKgDescontados = orden.Detalles
+                .Sum(x => x.CantidadVerificadaKg ?? 0m);
+
+            await AuditarAsync(
+                "Confirmar",
+                "OrdenTrasladoNoFormalizada",
+                $"Se confirmó la orden de traslado no formalizada {orden.NumeroOrden}. " +
+                $"Destino: {orden.Destino}. " +
+                $"Inventario descontado: {totalKgDescontados:N2} KG. " +
+                $"Total de bultos: {orden.Detalles.Sum(x => x.BultosVerificados ?? 0m):N2}. " +
+                $"Nuevo estado: {orden.Estado}. " +
+                $"Usuario confirmador ID: {_currentUser.IdUsuario.Value}.",
+                orden.Id);
         }
 
         private static OrdenTrasladoNoFormalizadaDto MapearOrden(

@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.Inventario;
 using SistemaFlota.Models.Costos.Inventario;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 
 namespace SistemaFlota.Services.Costos.Inventario
 {
-    public class AjusteInventarioService : IAjusteInventarioService
+    public class AjusteInventarioService : BaseService, IAjusteInventarioService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -17,7 +18,9 @@ namespace SistemaFlota.Services.Costos.Inventario
         public AjusteInventarioService(
             AppDbContext context,
             ICurrentUserService currentUser,
-            IConsecutivoService consecutivoService)
+            IConsecutivoService consecutivoService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -81,6 +84,16 @@ namespace SistemaFlota.Services.Costos.Inventario
             _context.AjustesInventario.Add(ajuste);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+               "Crear",
+               "AjusteInventario",
+               $"Se creó el ajuste {ajuste.NumeroAjuste} de tipo " +
+               $"{ajuste.Tipo} para el inventario {inventario.Id}. " +
+               $"Stock anterior: {stockAnterior}; stock nuevo: {stockNuevo}. " +
+               $"Motivo: {ajuste.Motivo}.",
+               ajuste.Id
+           );
 
             return new AjusteInventarioDto
             {

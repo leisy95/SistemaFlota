@@ -148,6 +148,9 @@ builder.Services.AddScoped<IProveedorOrdenesProduccion, OrdenesProduccionConCont
 builder.Services.AddScoped< IFormatoFGC008Service, FormatoFGC008Service>();
 builder.Services.AddScoped<FormatosCalidadService>();
 
+// Para auditoria global
+builder.Services.AddScoped<AuditoriaService>();
+
 builder.Services.AddScoped<IDashboardEjecutivoService,DashboardEjecutivoService>();
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<IMaterialesService, MaterialService>();

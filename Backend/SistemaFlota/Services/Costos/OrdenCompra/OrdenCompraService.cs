@@ -4,13 +4,15 @@ using SistemaFlota.Migrations;
 using SistemaFlota.Models.Costos.OrdenesCompras;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Services.Auditorias;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Email;
 
 namespace SistemaFlota.Services.Costos.OrdenCompra
 {
-    public class OrdenCompraService : IOrdenCompraService
+    public class OrdenCompraService
+            : BaseService, IOrdenCompraService
     {
         private readonly AppDbContext _context;
         private readonly IConsecutivoService _consecutivoService;
@@ -27,7 +29,9 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             IEmailService emailService,
             IOrdenCompraPdfService ordenCompraPdfService,
             EmailTemplateService emailTemplateService,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _consecutivoService = consecutivoService;
@@ -140,7 +144,6 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 totalPagar
             );
         }
-
         public async Task<OrdenCompraPaginadoDto> ObtenerAsync(
              string? search,
              string? estado,
@@ -347,7 +350,6 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             var strategy = _context.Database.CreateExecutionStrategy();
 
-
             return await strategy.ExecuteAsync(async () =>
             {
 
@@ -419,11 +421,11 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                     var detalleAuditoria =
                         $"Orden de compra {orden.Numero} creada exitosamente.";
 
-                    _context.Auditorias.Add(
-                        CrearAuditoria(
-                            "Crear",
-                            orden.Id,
-                            detalleAuditoria));
+                    await AuditarAsync(
+                        "Crear",
+                        "OrdenCompra",
+                        detalleAuditoria,
+                        orden.Id);
 
                     await _context.SaveChangesAsync();
 
@@ -506,6 +508,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             orden.TotalBultos = totalBultos;
 
             orden.UsuarioActualizacionId = idUsuario.Value;
+            orden.FechaActualizacion = DateTime.Now;
 
             orden.Subtotal = subtotal;
             orden.TipoImpuesto = dto.TipoImpuesto;
@@ -533,6 +536,12 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Actualizar",
+                "OrdenCompra",
+                $"Se actualizó la orden de compra {orden.Numero}.",
+                orden.Id);
+
             return true;
         }
 
@@ -553,6 +562,14 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 throw new Exception(
                     "El proveedor no tiene un correo configurado.");
 
+            var idUsuario = _currentUser.IdUsuario;
+
+            if (idUsuario == null)
+            {
+                throw new UnauthorizedAccessException(
+                    "No se pudo identificar el usuario que realiza el envío.");
+            }
+
             // Generar PDF
             byte[] pdf = await _ordenCompraPdfService.GenerarPdfAsync(id);
 
@@ -561,6 +578,9 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 orden.Numero,
                 orden.Proveedor.Nombre,
                 orden.FechaOrden);
+                orden.CorreoEnviado = true;
+                orden.FechaEnvioCorreo = DateTime.Now;
+                orden.UsuarioEnvioCorreoId = idUsuario.Value;
 
             // Enviar correo con PDF adjunto
             await _emailService.EnviarAsync(
@@ -569,6 +589,12 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
                 html,
                 pdf,
                 $"OrdenCompra-{orden.Numero}.pdf");
+
+            await AuditarAsync(
+                "EnviarCorreo",
+                "OrdenCompra",
+                $"Se envió por correo la orden de compra {orden.Numero} al proveedor {orden.Proveedor.Nombre}.",
+                orden.Id);
 
             return true;
         }
@@ -662,6 +688,12 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
             orden.FechaActualizacion = DateTime.Now;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Anular",
+                "OrdenCompra",
+                $"Se anuló la orden de compra {orden.Numero}.",
+                orden.Id);
 
             return true;
         }

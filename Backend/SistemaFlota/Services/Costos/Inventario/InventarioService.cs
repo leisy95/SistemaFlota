@@ -2,25 +2,26 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.Inventario;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.Costos.Inventario
 {
-    public class InventarioService : IInventarioService
+    public class InventarioService : BaseService, IInventarioService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
-        private readonly AuditoriaService _auditoria;
 
         public InventarioService(
             AppDbContext context,
             ICurrentUserService currentUser,
-            AuditoriaService auditoria)
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
-            _auditoria = auditoria;
         }
+
 
         public async Task ProcesarRecepcionAsync(int recepcionId)
         {
@@ -44,6 +45,25 @@ namespace SistemaFlota.Services.Costos.Inventario
             }
 
             await _context.SaveChangesAsync();
+
+            var totalKgProcesados = detallesPendientes
+                .Sum(d => d.CantidadRecibida);
+
+            var totalBultosProcesados = detallesPendientes
+                .Sum(d => d.BultosRecibidos);
+
+            var cantidadDetalles = detallesPendientes.Count;
+
+            await AuditarAsync(
+                "ProcesarRecepcion",
+                "Inventario",
+                $"Se procesó la recepción {recepcion.NumeroRecepcion}. " +
+                $"Se ingresaron {totalKgProcesados:N2} kg y " +
+                $"{totalBultosProcesados:N2} bultos al inventario, " +
+                $"distribuidos en {cantidadDetalles} " +
+                $"{(cantidadDetalles == 1 ? "detalle" : "detalles")}.",
+                recepcionId
+            );
         }
 
         private async Task<Models.Costos.RecepcionMercancias.RecepcionMercancia> ObtenerRecepcionAsync(int recepcionId)
@@ -411,7 +431,15 @@ namespace SistemaFlota.Services.Costos.Inventario
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
 
-            return stream.ToArray();
+            var archivo = stream.ToArray();
+
+            await AuditarAsync(
+                "ExportarExcel",
+                "Inventario",
+                "Se exportó el reporte de inventario a Excel."
+            );
+
+            return archivo;
         }
     }
 }

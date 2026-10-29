@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Inventario;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios
 {
     public class AjusteInventarioNoFormalizadoService
-       : IAjusteInventarioNoFormalizadoService
+       : BaseService, IAjusteInventarioNoFormalizadoService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -16,7 +17,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventar
         public AjusteInventarioNoFormalizadoService(
             AppDbContext context,
             ICurrentUserService currentUser,
-            IConsecutivoService consecutivoService)
+            IConsecutivoService consecutivoService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -81,6 +84,18 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventar
             _context.AjustesInventarioNoFormalizados.Add(ajuste);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "AjusteInventarioNoFormalizado",
+                $"Se creó el ajuste {ajuste.NumeroAjuste} de tipo " +
+                $"{ajuste.Tipo} para el material " +
+                $"{inventario.Material!.NombreMaterial}, color {inventario.Color}. " +
+                $"Cantidad: {ajuste.Cantidad}. " +
+                $"Stock anterior: {stockAnterior}; stock nuevo: {stockNuevo}. " +
+                $"Costo promedio: {ajuste.CostoPromedio:N2}. " +
+                $"Motivo: {ajuste.Motivo}.",
+                ajuste.Id);
 
             return new AjusteInventarioNoFormalizadoDto
             {

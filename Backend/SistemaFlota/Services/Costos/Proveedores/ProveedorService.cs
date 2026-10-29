@@ -1,16 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Prov_Materiales.Proveedores;
 using SistemaFlota.Models.Proveedores;
+using SistemaFlota.Services.Auditorias.Base;
+using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.Costos.Proveedores
 {
-    public class ProveedorService : IProveedorService
+    public class ProveedorService : BaseService, IProveedorService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public ProveedorService(AppDbContext context)
+        public ProveedorService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         // Listar Proveedores
@@ -154,6 +162,13 @@ namespace SistemaFlota.Services.Costos.Proveedores
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "Proveedores",
+                $"Se creó el proveedor {proveedor.Nombre} " +
+                $"con NIT {proveedor.Nit}.",
+                proveedor.IdProveedor);
+
             return new ProveedorDto
             {
                 IdProveedor = proveedor.IdProveedor,
@@ -215,6 +230,13 @@ namespace SistemaFlota.Services.Costos.Proveedores
 
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Actualizar",
+                "Proveedores",
+                $"Se actualizó el proveedor {proveedor.Nombre} " +
+                $"con NIT {proveedor.Nit}.",
+                proveedor.IdProveedor);
 
             return true;
         }

@@ -15,6 +15,8 @@ import {
 import {
   MovimientoHistorial
 } from '../../../core/models/costos/historialMovimiento/movimiento-historial.model';
+import { MatDialog } from '@angular/material/dialog';
+import { DetalleMovimiento } from './detalle-movimiento/detalle-movimiento';
 
 interface MovimientoVista {
   id: number;
@@ -23,6 +25,8 @@ interface MovimientoVista {
   accion: string;
   descripcion: string;
   usuario: string;
+  rol: string;
+  ipAddress: string;
   referencia: string;
   detalles: string;
   resultado: string;
@@ -38,6 +42,7 @@ interface MovimientoVista {
 export class HistorialMovimientos implements OnInit {
 
   private readonly historialService = inject(HistorialMovimientosService);
+  private readonly dialog = inject(MatDialog);
 
   buscar = '';
   tipoSeleccionado = '';
@@ -134,9 +139,6 @@ export class HistorialMovimientos implements OnInit {
     });
   }
 
-  /**
-   * Aplica los filtros desde la primera página.
-   */
   aplicarFiltros(): void {
     this.pagina = 1;
     this.cargarDatos();
@@ -148,15 +150,17 @@ export class HistorialMovimientos implements OnInit {
     return {
       id: movimiento.id,
       fecha: new Date(movimiento.fecha),
-      tipo: movimiento.modulo,
-      accion: movimiento.accion,
-      descripcion: movimiento.descripcion,
-      usuario: movimiento.usuario,
+      tipo: movimiento.modulo ?? '',
+      accion: movimiento.accion ?? '',
+      descripcion: movimiento.detalle ?? '',
+      usuario: movimiento.usuario ?? '',
+      rol: movimiento.rol ?? '',
+      ipAddress: movimiento.ipAddress ?? '',
       referencia: movimiento.registroId != null
         ? `ID-${movimiento.registroId}`
         : `AUD-${movimiento.id}`,
-      detalles: movimiento.detalle || movimiento.descripcion,
-      resultado: movimiento.resultado
+      detalles: movimiento.detalle ?? '',
+      resultado: movimiento.resultado ?? ''
     };
   }
 
@@ -218,35 +222,12 @@ export class HistorialMovimientos implements OnInit {
   }
 
   verDetalles(movimiento: MovimientoVista): void {
-    let detalleFormateado = movimiento.detalles;
-
-    try {
-      const detalle = JSON.parse(movimiento.detalles);
-
-      if (detalle.cambios && Array.isArray(detalle.cambios)) {
-        detalleFormateado = detalle.cambios
-          .map((cambio: { campo: string; anterior: unknown; nuevo: unknown }) => {
-            const anterior = cambio.anterior ?? '—';
-            const nuevo = cambio.nuevo ?? '—';
-
-            return `${cambio.campo}\n  Anterior: ${anterior}\n  Nuevo: ${nuevo}`;
-          })
-          .join('\n\n');
-      } else {
-        detalleFormateado = JSON.stringify(detalle, null, 2);
-      }
-    } catch {
-      // Si el detalle no es JSON, se muestra como texto normal.
-    }
-
-    window.alert(
-      `Movimiento: ${movimiento.referencia}\n\n` +
-      `Módulo: ${movimiento.tipo}\n` +
-      `Acción: ${movimiento.accion}\n` +
-      `Usuario: ${movimiento.usuario}\n` +
-      `Fecha: ${movimiento.fecha.toLocaleString()}\n` +
-      `Resultado: ${movimiento.resultado}\n\n` +
-      `DETALLE DE LOS CAMBIOS\n\n${detalleFormateado}`
-    );
+    this.dialog.open(DetalleMovimiento, {
+      width: '650px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      data: movimiento
+    });
   }
 }

@@ -23,16 +23,18 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
         {
 
             var modulosPermitidos = new[]
-               {
-                    "Orden de Compra",
-                    "Inventario",
-                    "Traslados",
-                    "Materiales",
-                    "Proveedores",
-                    "Recepcion"
-                };
+            {
+                "OrdenCompra",
+                "Inventario",
+                "OrdenTraslado",
+                "Materiales",
+                "Proveedores",
+                "RecepcionMercancia"
+            };
 
-            var query = _context.Auditorias.AsNoTracking();
+            var query = _context.Auditorias
+                .AsNoTracking()
+                .Where(x => modulosPermitidos.Contains(x.Modulo));
 
             if (desde.HasValue)
                 query = query.Where(x => x.Fecha >= desde.Value.Date);
@@ -166,12 +168,21 @@ namespace SistemaFlota.Services.Costos.HistorialMovimientos
 
         // Obtiene las opciones de todos los registros,
         // sin depender de la página actual.
-        public async Task<MovimientoHistorialOpcionesDto>
-            ObtenerOpcionesAsync()
+        public async Task<MovimientoHistorialOpcionesDto> ObtenerOpcionesAsync()
         {
+            var modulosPermitidos = new[]
+            {
+                "OrdenCompra",
+                "Inventario",
+                "OrdenTraslado",
+                "Materiales",
+                "Proveedores",
+                "RecepcionMercancia"
+            };
+
             var modulos = await _context.Auditorias
                 .AsNoTracking()
-                .Where(x => x.Modulo != null && x.Modulo != "")
+                .Where(x => modulosPermitidos.Contains(x.Modulo))
                 .Select(x => x.Modulo)
                 .Distinct()
                 .OrderBy(x => x)

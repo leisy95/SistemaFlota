@@ -4,14 +4,20 @@ using SistemaFlota.DTOs.ComprasNoFormalizadas.Proveedores;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.ComprasNoFormalizadas.Materiales;
+using SistemaFlota.Services.Auditorias.Base;
+using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.Materiales
 {
-    public class MaterialNoFormalizadoService : IMaterialNoFormalizadoService
+    public class MaterialNoFormalizadoService : BaseService, IMaterialNoFormalizadoService
     {
         private readonly AppDbContext _context;
 
-        public MaterialNoFormalizadoService(AppDbContext context)
+        public MaterialNoFormalizadoService(
+            AppDbContext context,
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
         }
@@ -224,6 +230,17 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Materiales
             _context.MaterialesNoFormalizados.Add(material);
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "MaterialesNoFormalizados",
+                $"Se creó el material no formalizado {material.NombreMaterial} " +
+                $"con código {material.Codigo}. " +
+                $"Proveedor: {proveedor.Nombre}. " +
+                $"Categoría: {material.Categoria}. " +
+                $"Color: {material.Color ?? "No especificado"}. " +
+                $"Activo: {(material.Activo ? "Sí" : "No")}.",
+                material.IdMaterialNoFormalizado);
+
             return new MaterialNoFormalizadoDto
             {
                 IdMaterialNoFormalizado = material.IdMaterialNoFormalizado,
@@ -358,6 +375,23 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Materiales
             material.FechaActualizacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            var proveedorNombre = await _context.ProveedoresNoFormalizados
+                .Where(p => p.IdProveedorNoFormalizado == material.IdProveedorNoFormalizado)
+                .Select(p => p.Nombre)
+                .FirstOrDefaultAsync();
+
+            await AuditarAsync(
+                "Actualizar",
+                "MaterialesNoFormalizados",
+                $"Se actualizó el material no formalizado {material.NombreMaterial} " +
+                $"con código {material.Codigo}. " +
+                $"Proveedor: {proveedorNombre ?? "No especificado"}. " +
+                $"Categoría: {material.Categoria}. " +
+                $"Color: {material.Color ?? "No especificado"}. " +
+                $"Activo: {(material.Activo ? "Sí" : "No")}.",
+                material.IdMaterialNoFormalizado);
+
             return true;
         }
 

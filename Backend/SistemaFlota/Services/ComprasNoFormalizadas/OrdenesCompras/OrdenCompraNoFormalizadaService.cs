@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.OrdenesCompras;
 using SistemaFlota.Models.ComprasNoFormalizadas.OrdenesCompras;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.OrdenCompra;
@@ -9,7 +10,7 @@ using SistemaFlota.Services.Email;
 namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 {
     public class OrdenCompraNoFormalizadaService
-        : IOrdenCompraNoFormalizadaService
+        : BaseService, IOrdenCompraNoFormalizadaService
     {
         private readonly AppDbContext _context;
         private readonly IConsecutivoService _consecutivoService;
@@ -24,7 +25,9 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
             ICurrentUserService currentUser,
             IEmailService emailService,
             IOrdenCompraPdfService ordenCompraPdfService,
-            EmailTemplateService emailTemplateService)
+            EmailTemplateService emailTemplateService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _consecutivoService = consecutivoService;
@@ -634,6 +637,17 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 
                         await transaction.CommitAsync();
 
+                        await AuditarAsync(
+                            "Crear",
+                            "OrdenCompraNoFormalizada",
+                            $"Se creó la orden de compra no formalizada {orden.Numero}. " +
+                            $"Proveedor ID: {orden.ProveedorNoFormalizadoId}. " +
+                            $"Total: {orden.TotalPagar:N2}. " +
+                            $"Cantidad de materiales: {orden.TotalItems}. " +
+                            $"Total KG: {orden.TotalKg:N2}. " +
+                            $"Estado: {orden.Estado}.",
+                            orden.Id);
+
                         return new OrdenCompraNoFormalizadaDto
                         {
                             Id = orden.Id,
@@ -826,6 +840,17 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Actualizar",
+                "OrdenCompraNoFormalizada",
+                $"Se actualizó la orden de compra no formalizada {orden.Numero}. " +
+                $"Proveedor ID: {orden.ProveedorNoFormalizadoId}. " +
+                $"Total: {orden.TotalPagar:N2}. " +
+                $"Cantidad de materiales: {orden.TotalItems}. " +
+                $"Total KG: {orden.TotalKg:N2}. " +
+                $"Estado: {orden.Estado}.",
+                orden.Id);
+
             return true;
         }
 
@@ -875,6 +900,16 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                 html,
                 pdf,
                 $"OrdenCompra-{orden.Numero}.pdf");
+
+            await AuditarAsync(
+                "EnviarPorCorreo",
+                "OrdenCompraNoFormalizada",
+                $"Se envió por correo la orden de compra no formalizada " +
+                $"{orden.Numero} al proveedor " +
+                $"{orden.ProveedorNoFormalizado.Nombre}. " +
+                $"Correo destinatario: " +
+                $"{orden.ProveedorNoFormalizado.CorreoElectronico}.",
+                orden.Id);
 
             return true;
         }
@@ -1052,6 +1087,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
                 DateTime.Now;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Anular",
+                "OrdenCompraNoFormalizada",
+                $"Se anuló la orden de compra no formalizada {orden.Numero}. " +
+                $"Estado anterior: pendiente de anulación. " +
+                $"Estado nuevo: {orden.Estado}. " +
+                $"Activo: {(orden.Activo ? "Sí" : "No")}.",
+                orden.Id);
 
             return true;
         }

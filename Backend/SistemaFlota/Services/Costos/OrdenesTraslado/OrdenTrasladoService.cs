@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.OrdenesTraslado;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Consecutivos;
 using SistemaFlota.Services.Costos.Inventario;
 
 namespace SistemaFlota.Services.Costos.OrdenesTraslado
 {
-    public class OrdenTrasladoService : IOrdenTrasladoService
+    public class OrdenTrasladoService : BaseService, IOrdenTrasladoService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -18,7 +19,9 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
             AppDbContext context,
             ICurrentUserService currentUser,
             IConsecutivoService consecutivoService,
-            IInventarioService inventarioService)
+            IInventarioService inventarioService,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -101,6 +104,15 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
 
             _context.OrdenesTraslado.Add(orden);
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "OrdenTraslado",
+                $"Se creó la orden de traslado {orden.NumeroOrden} " +
+                $"con destino {orden.Destino}. " +
+                $"Total: {orden.TotalKg:N2} KG y {orden.TotalBultos} bultos. " +
+                $"Estado: {orden.Estado}.",
+                orden.Id);
 
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception("No fue posible obtener la orden de traslado creada.");
@@ -328,6 +340,14 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Verificar",
+                "OrdenTraslado",
+                $"Se verificó la orden de traslado {orden.NumeroOrden}. " +
+                $"Nuevo estado: {orden.Estado}. " +
+                $"Usuario verificador ID: {_currentUser.IdUsuario.Value}.",
+                orden.Id);
+
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception("No fue posible obtener la orden verificada.");
         }
@@ -405,6 +425,16 @@ namespace SistemaFlota.Services.Costos.OrdenesTraslado
             orden.UsuarioConfirmacionId = _currentUser.IdUsuario.Value;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Confirmar",
+                "OrdenTraslado",
+                $"Se confirmó la orden de traslado {orden.NumeroOrden}. " +
+                $"Se descontó inventario por un total de " +
+                $"{orden.Detalles.Sum(x => x.CantidadVerificadaKg ?? 0m):N2} KG. " +
+                $"Nuevo estado: {orden.Estado}. " +
+                $"Usuario confirmador ID: {_currentUser.IdUsuario.Value}.",
+                orden.Id);
 
             return await ObtenerPorIdAsync(orden.Id)
                 ?? throw new Exception("No fue posible obtener la orden confirmada.");

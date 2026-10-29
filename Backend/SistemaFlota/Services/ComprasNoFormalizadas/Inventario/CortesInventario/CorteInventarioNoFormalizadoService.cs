@@ -2,19 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.Inventario.CortesInventario;
 using SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario;
+using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventario
 {
     public class CorteInventarioNoFormalizadoService
-        : ICorteInventarioNoFormalizadoService
+        : BaseService, ICorteInventarioNoFormalizadoService
     {
         private readonly AppDbContext _context;
         private readonly ICurrentUserService _currentUser;
 
         public CorteInventarioNoFormalizadoService(
             AppDbContext context,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            SistemaFlota.AuditoriaService auditoria)
+            : base(auditoria, currentUser)
         {
             _context = context;
             _currentUser = currentUser;
@@ -102,6 +105,15 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
             _context.CortesInventarioNoFormalizados.Add(corte);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "CorteInventarioNoFormalizado",
+                $"Se creó el corte de inventario no formalizado {corte.Id} " +
+                $"con {corte.Detalles.Count} detalles. " +
+                $"Estado: {corte.Estado}. " +
+                $"Usuario ID: {corte.UsuarioId}.",
+                corte.Id);
         }
 
         // OBTENER HISTORIAL DE CORTES
