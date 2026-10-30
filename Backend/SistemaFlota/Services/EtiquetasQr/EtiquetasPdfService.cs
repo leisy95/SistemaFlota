@@ -72,11 +72,10 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                     : numeroOrden.PadLeft(3, '0');
 
                 // Día de la fecha
-                string dia = recepcion.OrdenCompra.FechaOrden
+                string dia = recepcion.FechaRecepcion
                     .ToString("MM");
 
-                // Últimos 2 dígitos del año
-                string año = recepcion.OrdenCompra.FechaOrden
+                string año = recepcion.FechaRecepcion
                     .ToString("yy");
 
                 // Lote completo
@@ -92,7 +91,6 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                         .Last()
                         .Trim();
                 }
-
 
                 string codigoFormateado =
                     $"{ultimosTresOrden} · {dia} · {año} · {ultimoNumeroLote}";
