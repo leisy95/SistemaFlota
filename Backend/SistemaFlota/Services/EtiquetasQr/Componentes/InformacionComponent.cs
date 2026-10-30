@@ -1,5 +1,4 @@
-﻿
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
@@ -16,26 +15,29 @@ public static class InformacionComponent
         int totalBultos)
     {
         container
-            .AlignMiddle()
+            .AlignMiddle() // Volvemos a centrar verticalmente para equilibrar espacios
+            .PaddingVertical(4) // Pequeño respiro arriba y abajo para que no pegue con los bordes del cuadro
             .Column(info =>
             {
-                info.Spacing(1);
+                info.Spacing(2);
 
                 // Proveedor
                 info.Item()
                     .Text(recepcion.OrdenCompra!.Proveedor!.Nombre)
                     .Bold()
-                    .FontSize(12)
+                    .FontSize(11)
                     .ClampLines(2);
 
                 info.Item()
+                    .PaddingTop(1)
+                    .PaddingBottom(2)
                     .LineHorizontal(0.5f);
 
                 // Material
                 info.Item()
                     .Text($"Material: {detalle.OrdenCompraDetalle!.Material.NombreMaterial}")
                     .Bold()
-                    .FontSize(10)
+                    .FontSize(9.5f)
                     .ClampLines(2);
 
                 // Color

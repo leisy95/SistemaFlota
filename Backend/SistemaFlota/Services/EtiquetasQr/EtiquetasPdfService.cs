@@ -73,7 +73,7 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
                 // Día de la fecha
                 string dia = recepcion.OrdenCompra.FechaOrden
-                    .ToString("dd");
+                    .ToString("MM");
 
                 // Últimos 2 dígitos del año
                 string año = recepcion.OrdenCompra.FechaOrden
