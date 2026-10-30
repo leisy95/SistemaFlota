@@ -1,4 +1,5 @@
-﻿using QuestPDF.Fluent;
+﻿
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
@@ -24,7 +25,8 @@ public static class InformacionComponent
                 info.Item()
                     .Text(recepcion.OrdenCompra!.Proveedor!.Nombre)
                     .Bold()
-                    .FontSize(14);
+                    .FontSize(12)
+                    .ClampLines(2);
 
                 info.Item()
                     .LineHorizontal(0.5f);
@@ -33,23 +35,25 @@ public static class InformacionComponent
                 info.Item()
                     .Text($"Material: {detalle.OrdenCompraDetalle!.Material.NombreMaterial}")
                     .Bold()
-                    .FontSize(12);
+                    .FontSize(10)
+                    .ClampLines(2);
 
                 // Color
                 info.Item()
                     .Text($"Color: {detalle.OrdenCompraDetalle.Material.Color}")
-                    .FontSize(10);
+                    .FontSize(8)
+                    .ClampLines(1);
 
                 // Fecha
                 info.Item()
                     .Text($"Fecha: {recepcion.FechaRecepcion:dd/MM/yyyy}")
-                    .FontSize(10);
+                    .FontSize(8);
 
                 // Bulto
                 info.Item()
                     .Text($"Bulto: {numeroBulto}/{totalBultos}")
                     .Bold()
-                    .FontSize(10);
+                    .FontSize(8);
 
                 // Peso
                 var pesoPorBulto = totalBultos > 0
@@ -59,7 +63,7 @@ public static class InformacionComponent
                 info.Item()
                     .Text($"Peso: {pesoPorBulto:0.##} Kg")
                     .Bold()
-                    .FontSize(10);
+                    .FontSize(8);
             });
     }
 }

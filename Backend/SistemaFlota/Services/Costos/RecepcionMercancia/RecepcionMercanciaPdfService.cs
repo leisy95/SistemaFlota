@@ -210,7 +210,10 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                 row.RelativeItem().Column(c =>
                 {
                     c.Item().Text("Proveedor").Style(PdfStyles.Label);
-                    c.Item().Text(recepcion.OrdenCompra?.Proveedor?.Nombre ?? "-").Style(PdfStyles.Valor);
+                    c.Item()
+                        .Text(recepcion.OrdenCompra?.Proveedor?.Nombre ?? "-")
+                        .Style(PdfStyles.Valor)
+                        .FontSize(7);
                 });
             });
 
