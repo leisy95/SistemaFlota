@@ -794,10 +794,10 @@
           {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
         </button>
 
-        <!-- <button class="btn-pdf" [disabled]="generandoPdf" (click)="generarPdfIndividual(registroSeleccionado)">
+        <button class="btn-pdf" [disabled]="generandoPdf" (click)="generarPdfIndividual(registroSeleccionado)">
           <i class="fa-solid fa-file-pdf"></i>
           {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
-        </button> -->
+        </button>
 
         <button class="btn-guardar"
           *ngIf="permisos.puedeCrear('calidad-formatos') && registroSeleccionado.estado === 'PendienteLiberacion'">

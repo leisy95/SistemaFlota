@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.DTOs;
 using SistemaFlota.Services.Calidad.Formatos;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
+using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
 
 namespace SistemaFlota.Controllers.Calidad.Formatos
@@ -16,13 +17,16 @@ namespace SistemaFlota.Controllers.Calidad.Formatos
     {
         private readonly FormatosCalidadService _service;
         private readonly IFormatoCalidadPdfService _pdfService;
+        private readonly IFormatoCalidadPdfIndividualService _pdfIndividualService;
 
         public FormatosCalidadController(
             FormatosCalidadService service,
-            IFormatoCalidadPdfService pdfService)
+            IFormatoCalidadPdfService pdfService,
+            IFormatoCalidadPdfIndividualService pdfIndividualService)
         {
             _service = service;
             _pdfService = pdfService;
+            _pdfIndividualService = pdfIndividualService;
         }
 
         // GET api/FormatosCalidad/tipos
@@ -111,6 +115,32 @@ namespace SistemaFlota.Controllers.Calidad.Formatos
                     {
                         mensaje = "Error al generar el PDF general."
                     });
+            }
+        }
+
+        // Pdf Individual por registro
+        [HttpGet("registros/{id}/pdf")]
+        public async Task<IActionResult> GenerarPdfIndividual(int id)
+        {
+            try
+            {
+                var pdf = await _pdfIndividualService.GenerarPdfRegistroAsync(id);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"FormatoCalidad_{id}.pdf"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR PDF INDIVIDUAL: {ex}");
+
+                return StatusCode(500, new
+                {
+                    mensaje = "Error al generar el PDF individual.",
+                    detalle = ex.Message
+                });
             }
         }
 

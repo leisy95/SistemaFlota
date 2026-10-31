@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-
 using SistemaFlota.Models;
 using SistemaFlota.Models.Calidad;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
@@ -14,7 +13,7 @@ using SistemaFlota.Services.Pdf.Styles;
 using System.Globalization;
 using System.Text.Json;
 
-namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos
+namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfGenral
 {
     public class FormatoCalidadPdfService : IFormatoCalidadPdfService
     {
