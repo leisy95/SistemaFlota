@@ -586,6 +586,7 @@ public class FGC008Documento
             .Padding(2)
             .AlignMiddle()
             .Text(valor ?? "-")
+            .FontFamily("DejaVu Sans")
             .FontSize(6)
             .FontColor(color ?? Negro);
 

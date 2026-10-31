@@ -245,17 +245,45 @@ if (!builder.Environment.IsDevelopment())
 }
 
 QuestPDF.Settings.License = LicenseType.Community;
+
+var fontPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "Resources",
+    "Fonts",
+    "DejaVuSans.ttf"
+);
+
 try
 {
-    var fontPath = Path.Combine(builder.Environment.ContentRootPath, "Resources", "Fonts", "DejaVuSans.ttf");
-    if (File.Exists(fontPath))
+    Console.WriteLine("======================================");
+    Console.WriteLine("INICIANDO REGISTRO DE FUENTE PDF");
+    Console.WriteLine($"Ruta: {fontPath}");
+    Console.WriteLine($"Directorio actual: {Directory.GetCurrentDirectory()}");
+    Console.WriteLine($"¿Existe el archivo?: {File.Exists(fontPath)}");
+
+    if (!File.Exists(fontPath))
     {
-        using var stream = File.OpenRead(fontPath);
-        FontManager.RegisterFont(stream);
+        Console.WriteLine("ERROR: No se encontró DejaVuSans.ttf");
     }
+    else
+    {
+        var info = new FileInfo(fontPath);
+
+        Console.WriteLine($"Tamaño: {info.Length} bytes");
+
+        using var stream = File.OpenRead(fontPath);
+
+        FontManager.RegisterFont(stream);
+
+        Console.WriteLine("ÉXITO: DejaVu Sans registrada correctamente.");
+    }
+
+    Console.WriteLine("======================================");
 }
-catch
+catch (Exception ex)
 {
+    Console.WriteLine("ERROR AL REGISTRAR LA FUENTE:");
+    Console.WriteLine(ex.ToString());
 }
 var app = builder.Build();
 
