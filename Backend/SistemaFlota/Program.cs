@@ -15,6 +15,8 @@ using SistemaFlota.Services.Calidad;
 using SistemaFlota.Services.Calidad.FormatoFGC008;
 using SistemaFlota.Services.Calidad.FormatoFGC008.FormatosFGC008Pdf;
 using SistemaFlota.Services.Calidad.Formatos;
+using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
+using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
@@ -150,6 +152,7 @@ builder.Services.AddScoped<IProveedorOrdenesProduccion, OrdenesProduccionConCont
 builder.Services.AddScoped< IFormatoFGC008Service, FormatoFGC008Service>();
 builder.Services.AddScoped<FormatosCalidadService>();
 builder.Services.AddScoped<IFGC008PdfService, FGC008PdfService>();
+builder.Services.AddScoped<IFormatoCalidadPdfService, FormatoCalidadPdfService>();
 
 // Para auditoria global
 builder.Services.AddScoped<AuditoriaService>();
@@ -259,8 +262,6 @@ if (File.Exists(fontPath))
     using var stream = File.OpenRead(fontPath);
     FontManager.RegisterFont(stream);
 }
-
-var app = builder.Build();
 
 var app = builder.Build();
 

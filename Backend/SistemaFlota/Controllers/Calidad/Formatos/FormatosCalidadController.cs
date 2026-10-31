@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.DTOs;
 using SistemaFlota.Services.Calidad.Formatos;
+using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
+using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
 
 namespace SistemaFlota.Controllers.Calidad.Formatos
 {
@@ -13,10 +15,14 @@ namespace SistemaFlota.Controllers.Calidad.Formatos
     public class FormatosCalidadController : ControllerBase
     {
         private readonly FormatosCalidadService _service;
+        private readonly IFormatoCalidadPdfService _pdfService;
 
-        public FormatosCalidadController(FormatosCalidadService service)
+        public FormatosCalidadController(
+            FormatosCalidadService service,
+            IFormatoCalidadPdfService pdfService)
         {
             _service = service;
+            _pdfService = pdfService;
         }
 
         // GET api/FormatosCalidad/tipos
@@ -40,7 +46,6 @@ namespace SistemaFlota.Controllers.Calidad.Formatos
         }
 
         // GET api/FormatosCalidad/registros
-        // GET api/FormatosCalidad/registros
         [HttpGet("registros")]
         public async Task<IActionResult> GetRegistros(
             [FromQuery] string codigo,
@@ -60,6 +65,53 @@ namespace SistemaFlota.Controllers.Calidad.Formatos
             }
 
             return Ok(resultado.Registros);
+        }
+
+        // pdf general
+        [HttpGet("pdf")]
+        public async Task<IActionResult> GenerarPdfGeneral(
+            [FromQuery] string codigo,
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta,
+            [FromQuery] string? op)
+        {
+            if (string.IsNullOrWhiteSpace(codigo))
+            {
+                return BadRequest(new
+                {
+                    mensaje = "Debe indicar el código del formato."
+                });
+            }
+
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    codigo,
+                    desde,
+                    hasta,
+                    op);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"FormatoCalidad_{codigo}.pdf");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje = "Error al generar el PDF general."
+                    });
+            }
         }
 
         // POST api/FormatosCalidad/registros

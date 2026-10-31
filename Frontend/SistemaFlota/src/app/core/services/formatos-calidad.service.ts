@@ -10,6 +10,34 @@ export class FormatosCalidadService {
     return new HttpHeaders({ Authorization: 'Bearer ' + sessionStorage.getItem('token') });
   }
 
+  // Generar PDF general de los registros filtrados
+  generarPdfGeneral(
+    codigo: string,
+    desde?: string,
+    hasta?: string,
+    op?: string
+  ) {
+    let params = new HttpParams().set('codigo', codigo);
+
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+    if (op) params = params.set('op', op);
+
+    return this.http.get(`${this.api}/pdf`, {
+      headers: this.headers,
+      params,
+      responseType: 'blob'
+    });
+  }
+
+  // Generar PDF completo de un registro individual
+  generarPdfRegistro(id: number) {
+    return this.http.get(`${this.api}/registros/${id}/pdf`, {
+      headers: this.headers,
+      responseType: 'blob'
+    });
+  }
+
   getTipos() {
     return this.http.get<any[]>(`${this.api}/tipos`, { headers: this.headers });
   }

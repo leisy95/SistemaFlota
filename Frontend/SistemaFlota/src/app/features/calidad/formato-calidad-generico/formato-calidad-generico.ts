@@ -1355,6 +1355,42 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         });
     }
 
+    generarPdfGeneral() {
+        this.service.generarPdfGeneral(
+            this.codigoFormato,
+            this.filtroDesde || undefined,
+            this.filtroHasta || undefined,
+            this.filtroOP || undefined
+        ).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            },
+            error: (error) => {
+                console.error('Error al generar PDF:', error);
+            }
+        });
+    }
+
+    generarPdfIndividual(registro: any) {
+        if (!registro?.id) return;
+
+        this.generandoPdf = true;
+
+        this.service.generarPdfRegistro(registro.id).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                window.URL.revokeObjectURL(url);
+                this.generandoPdf = false;
+            },
+            error: (error) => {
+                console.error('Error al generar PDF individual:', error);
+                this.generandoPdf = false;
+            }
+        });
+    }
+
     // PDF completo de un registro: datos, mezcla, parámetros, rondas, fotos de cada hora y liberación
     private async pdfRegistroCompleto(r: any) {
         if (this.generandoPdf) return;

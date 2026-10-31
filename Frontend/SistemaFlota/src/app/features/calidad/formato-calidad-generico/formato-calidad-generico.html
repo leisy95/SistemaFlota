@@ -51,9 +51,14 @@
         <input type="text" [(ngModel)]="filtroOP" (ngModelChange)="aplicarFiltros()" placeholder="Ej: 22310">
       </div>
 
-      <button class="btn-pdf" (click)="exportarPDF()">
+      <!-- <button class="btn-pdf" (click)="exportarPDF()">
         <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+      </button> -->
+
+      <button class="btn-pdf" (click)="generarPdfGeneral()">PDF general
+        <i class="fa-solid fa-file-pdf"></i>
       </button>
+
     </div>
 
     <div class="acordeon-desperdicio">
@@ -788,6 +793,11 @@
           <i class="fa-solid fa-file-pdf"></i>
           {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
         </button>
+
+        <!-- <button class="btn-pdf" [disabled]="generandoPdf" (click)="generarPdfIndividual(registroSeleccionado)">
+          <i class="fa-solid fa-file-pdf"></i>
+          {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
+        </button> -->
 
         <button class="btn-guardar"
           *ngIf="permisos.puedeCrear('calidad-formatos') && registroSeleccionado.estado === 'PendienteLiberacion'">
