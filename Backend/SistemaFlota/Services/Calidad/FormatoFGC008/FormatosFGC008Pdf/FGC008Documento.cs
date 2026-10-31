@@ -593,7 +593,7 @@ public class FGC008Documento
             texto.Bold();
     }
 
-    private static string Marca(bool valor) => valor ? "✓" : "";
+    private static string Marca(bool valor) => valor ? "\u2713" : "";
 
     private static string Numero(decimal valor, int decimales = 0)
     {

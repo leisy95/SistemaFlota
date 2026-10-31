@@ -247,16 +247,7 @@ if (!builder.Environment.IsDevelopment())
 QuestPDF.Settings.License = LicenseType.Community;
 try
 {
-    var fontPath = Path.Combine(builder.Environment.ContentRootPath, "Resources", "Fonts", "DejaVuSans.ttf");
-    if (File.Exists(fontPath))
-    {
-        using var stream = File.OpenRead(fontPath);
-        FontManager.RegisterFont(stream);
-    }
-}
-catch
-{
-}
+    
 var app = builder.Build();
 
 app.MapGet("/test-pdf", () =>
