@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <UserSecretsId>SistemaFlota</UserSecretsId>
@@ -33,6 +33,7 @@
   <ItemGroup>
     <Folder Include="Controllers\ControlEnvios\CostosFlete\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Resources\Fonts\" />
     <Folder Include="Services\Calidad\FormatoFGC008\FormatosFGC008Pdf\Components\" />
   </ItemGroup>
 

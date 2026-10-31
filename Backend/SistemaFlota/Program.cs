@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Drawing;
 using QuestPDF.Infrastructure;
 using SistemaFlota;
 using SistemaFlota.Authorization;
@@ -244,6 +245,18 @@ if (!builder.Environment.IsDevelopment())
 }
 
 QuestPDF.Settings.License = LicenseType.Community;
+try
+{
+    var fontPath = Path.Combine(builder.Environment.ContentRootPath, "Resources", "Fonts", "DejaVuSans.ttf");
+    if (File.Exists(fontPath))
+    {
+        using var stream = File.OpenRead(fontPath);
+        FontManager.RegisterFont(stream);
+    }
+}
+catch
+{
+}
 var app = builder.Build();
 
 app.MapGet("/test-pdf", () =>
