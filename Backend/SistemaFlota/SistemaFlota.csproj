@@ -35,6 +35,13 @@
     <Folder Include="Migrations\" />
     <Folder Include="Services\Calidad\FormatoFGC008\FormatosFGC008Pdf\Components\" />
   </ItemGroup>
+	
+  <ItemGroup>
+      <Content Include="Resources\Fonts\DejaVuSans.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+</ItemGroup>
 
 </Project>
 

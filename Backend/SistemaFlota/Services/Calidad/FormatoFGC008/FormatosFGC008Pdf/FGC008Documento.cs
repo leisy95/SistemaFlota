@@ -59,15 +59,15 @@ public class FGC008Documento
                 {
                     // Encabezado corporativo
                     column.Item()
-                        .Element(c => HeaderEmpresa.Dibujar(
-                            c,
-                            _logo,
-                            _empresa,
-                            "CONTROL BODEGA PRODUCTO TERMINADO",
-                            "F-GC-008",
-                            DateTime.Now.ToString("dd/MM/yyyy"),
-                            $"{_registros.Count} REGISTROS"
-                        ));
+                    .Element(c => HeaderEmpresa.Dibujar(
+                        c,
+                        _logo,
+                        _empresa,
+                        "CONTROL BODEGA PRODUCTO TERMINADO",
+                        "F-GC-008 V2",
+                        "30/07/2026",
+                        $"{_registros.Count} REGISTROS"
+                    ));
 
                     column.Item().PaddingTop(8);
 
