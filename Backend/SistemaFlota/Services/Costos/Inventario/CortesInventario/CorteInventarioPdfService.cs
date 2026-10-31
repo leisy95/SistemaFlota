@@ -374,7 +374,8 @@ public class CorteInventarioPdfService : ICorteInventarioPdfService
                 });
 
                 // PIE
-                page.Footer().Element(FooterEmpresa.Dibujar);
+                page.Footer()
+                    .Element(container => FooterEmpresa.Dibujar(container));
             });
         });
 

@@ -574,7 +574,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario.CortesInventari
 
                     // PIE DE PÁGINA
                     page.Footer()
-                        .Element(FooterEmpresa.Dibujar);
+                        .Element(container => FooterEmpresa.Dibujar(container));
                 });
             });
 

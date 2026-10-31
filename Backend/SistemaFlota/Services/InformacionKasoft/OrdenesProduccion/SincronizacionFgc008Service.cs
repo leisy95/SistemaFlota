@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SistemaFlota.Models.Calidad.FormatoFGC008;
 
 namespace SistemaFlota.Services.InformacionKasoft.OrdenesProduccion
 {

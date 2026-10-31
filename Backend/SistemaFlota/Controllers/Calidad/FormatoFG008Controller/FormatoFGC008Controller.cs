@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.Calidad.FormatoFGC008;
 using SistemaFlota.Services.Calidad.FormatoFGC008;
+using SistemaFlota.Services.Calidad.FormatoFGC008.FormatosFGC008Pdf;
 using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
+using System.Security.Claims;
 
 namespace SistemaFlota
 {
@@ -17,15 +18,18 @@ namespace SistemaFlota
         private readonly IFormatoFGC008Service _service;
         private readonly AuditoriaService _auditoria;
         private readonly IOrdenProduccionService _ordenProduccionService;
+        private readonly IFGC008PdfService _pdfService;
 
         public FormatoFGC008Controller(
             IFormatoFGC008Service service,
             AuditoriaService auditoria,
-            IOrdenProduccionService ordenProduccionService)
+            IOrdenProduccionService ordenProduccionService,
+            IFGC008PdfService pdfService)
         {
             _service = service;
             _auditoria = auditoria;
             _ordenProduccionService = ordenProduccionService;
+            _pdfService = pdfService;
         }
 
         private string GetUsuario() =>
@@ -60,6 +64,37 @@ namespace SistemaFlota
                 desde, hasta, op, pagina, porPagina);
 
             return Ok(resultado);
+        }
+
+        // Generar PDF del formato F-GC-008
+        [HttpGet("pdf")]
+        [Permiso("calidad-formatos", "ver")]
+        public async Task<IActionResult> GenerarPdf(
+            [FromQuery] DateTime? desde,
+            [FromQuery] DateTime? hasta,
+            [FromQuery] string? op)
+        {
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    desde,
+                    hasta,
+                    op
+                );
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"FGC008_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new
+                {
+                    mensaje = ex.Message
+                });
+            }
         }
 
         // Resumen general

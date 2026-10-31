@@ -152,7 +152,8 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                 });
         });
 
-        page.Footer().Element(FooterEmpresa.Dibujar);
+        page.Footer()
+            .Element(container => FooterEmpresa.Dibujar(container));
     }
 
     private void DibujarDatosRecepcion(

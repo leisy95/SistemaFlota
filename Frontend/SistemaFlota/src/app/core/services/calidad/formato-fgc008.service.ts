@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FormatoFGC008Service {
@@ -10,9 +10,11 @@ export class FormatoFGC008Service {
 
   private filtros(desde?: string, hasta?: string, op?: string): HttpParams {
     let params = new HttpParams();
+
     if (desde) params = params.set('desde', desde);
     if (hasta) params = params.set('hasta', hasta);
-    if (op) params = params.set('op', op);
+    if (op?.trim()) params = params.set('op', op.trim());
+
     return params;
   }
 
@@ -30,6 +32,14 @@ export class FormatoFGC008Service {
   // Tarjetas de resumen de todo el filtro
   getResumen(desde?: string, hasta?: string, op?: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/resumen`, { params: this.filtros(desde, hasta, op) });
+  }
+
+  // Generar PDF desde el backend
+  generarPdf(desde?: string, hasta?: string, op?: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/pdf`, {
+      params: this.filtros(desde, hasta, op),
+      responseType: 'blob'
+    });
   }
 
   crearRegistro(fd: FormData): Observable<any> { return this.http.post(this.apiUrl, fd); }

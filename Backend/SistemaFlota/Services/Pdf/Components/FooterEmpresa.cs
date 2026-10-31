@@ -7,7 +7,9 @@ namespace SistemaFlota.Services.Pdf.Components;
 
 public static class FooterEmpresa
 {
-    public static void Dibujar(IContainer container)
+    public static void Dibujar(
+        IContainer container,
+        string texto = "Layas Software - Orden de Compra")
     {
         container
             .BorderTop(1)
@@ -16,7 +18,7 @@ public static class FooterEmpresa
             .Row(row =>
             {
                 row.RelativeItem()
-                    .Text("Layas Software - Orden de Compra")
+                    .Text(texto)
                     .Style(PdfStyles.Footer);
 
                 row.ConstantItem(120)

@@ -36,8 +36,12 @@
         </button>
       </div>
       <button class="btn-filtrar" (click)="cargar(true)">Filtrar</button>
-      <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> {{
-        generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}</button>
+      <!-- <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> {{
+        generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}</button> -->
+      <button class="btn-pdf" [disabled]="generandoPdfBackend" (click)="exportarPDFBackend()">
+        <i class="fa-solid fa-file-pdf"></i>
+        {{ generandoPdfBackend ? 'Generando PDF...' : 'Exportar PDF' }}
+      </button>
       <button class="btn-importar" *ngIf="puedeCrear" (click)="mostrarModalImportar = true">
         <i class="fa-solid fa-file-import"></i> Importar Órdenes
       </button>

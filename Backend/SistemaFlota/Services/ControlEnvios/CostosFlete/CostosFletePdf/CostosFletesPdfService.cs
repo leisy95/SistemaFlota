@@ -407,7 +407,7 @@ namespace SistemaFlota.Services.ControlEnvios.CostosFletesPdf
 
                     // PIE DE PÁGINA CORPORATIVO
                     page.Footer()
-                        .Element(FooterEmpresa.Dibujar);
+                        .Element(container => FooterEmpresa.Dibujar(container));
                 });
             });
 

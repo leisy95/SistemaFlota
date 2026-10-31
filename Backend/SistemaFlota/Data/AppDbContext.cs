@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Models;
 using SistemaFlota.Models.Calidad;
+using SistemaFlota.Models.Calidad.FormatoFGC008;
 using SistemaFlota.Models.Categorias;
 using SistemaFlota.Models.Colores;
 using SistemaFlota.Models.ComprasNoFormalizadas.Inventario;

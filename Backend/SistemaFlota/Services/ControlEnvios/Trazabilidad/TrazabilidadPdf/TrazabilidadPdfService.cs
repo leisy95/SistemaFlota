@@ -404,7 +404,7 @@ namespace SistemaFlota.Services.ControlEnvios.Trazabilidad.TrazabilidadPdf
                     // PIE DE PÁGINA CORPORATIVO
                     // Se conserva en todas las páginas.
                     page.Footer()
-                        .Element(FooterEmpresa.Dibujar);
+                        .Element(container => FooterEmpresa.Dibujar(container));
                 });
             });
 

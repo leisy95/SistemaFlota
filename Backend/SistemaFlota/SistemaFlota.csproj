@@ -33,6 +33,7 @@
   <ItemGroup>
     <Folder Include="Controllers\ControlEnvios\CostosFlete\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Services\Calidad\FormatoFGC008\FormatosFGC008Pdf\Components\" />
   </ItemGroup>
 
 </Project>

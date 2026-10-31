@@ -330,7 +330,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesCompras
 
             // FOOTER
             page.Footer()
-                .Element(FooterEmpresa.Dibujar);
+                .Element(container => FooterEmpresa.Dibujar(container));
         }
     }
 }

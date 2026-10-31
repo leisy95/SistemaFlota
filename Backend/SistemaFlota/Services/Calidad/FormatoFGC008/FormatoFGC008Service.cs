@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.Calidad.FormatoFGC008;
+using SistemaFlota.Models.Calidad.FormatoFGC008;
 
 namespace SistemaFlota.Services.Calidad.FormatoFGC008
 {
@@ -19,7 +20,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
             _context = context;
         }
 
-        private IQueryable<SistemaFlota.FormatoFGC008> Filtrar(
+        private IQueryable<Models.Calidad.FormatoFGC008.FormatoFGC008> Filtrar(
             DateTime? desde, DateTime? hasta, string? op)
         {
             var query = _context.FormatosFGC008.AsQueryable();
@@ -37,7 +38,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
         }
 
         private async Task EnriquecerAsync(
-            List<SistemaFlota.FormatoFGC008> lista)
+            List<Models.Calidad.FormatoFGC008.FormatoFGC008> lista)
         {
             var ops = lista
                 .Where(f => f.Origen == "Bodega")
@@ -117,7 +118,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
             }
         }
 
-        public async Task<List<SistemaFlota.FormatoFGC008>> ObtenerTodosAsync(
+        public async Task<List<Models.Calidad.FormatoFGC008.FormatoFGC008>> ObtenerTodosAsync(
             DateTime? desde, DateTime? hasta, string? op)
         {
             var lista = await Filtrar(desde, hasta, op)
@@ -215,7 +216,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
             };
         }
 
-        public async Task<List<SistemaFlota.FormatoFGC008>> ObtenerPorOPAsync(
+        public async Task<List<Models.Calidad.FormatoFGC008.FormatoFGC008>> ObtenerPorOPAsync(
             string op)
         {
             return await _context.FormatosFGC008
@@ -224,14 +225,14 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
                 .ToListAsync();
         }
 
-        public async Task<SistemaFlota.FormatoFGC008?> ObtenerPorIdAsync(
+        public async Task<Models.Calidad.FormatoFGC008.FormatoFGC008?> ObtenerPorIdAsync(
             int id)
         {
             return await _context.FormatosFGC008.FindAsync(id);
         }
 
         public async Task<(
-            SistemaFlota.FormatoFGC008? Registro,
+            Models.Calidad.FormatoFGC008.FormatoFGC008? Registro,
             bool Duplicado)> CrearAsync(
                 FormatoFGC008Dto dto,
                 string usuario,
@@ -266,7 +267,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
                 await foto.CopyToAsync(stream);
             }
 
-            var registro = new SistemaFlota.FormatoFGC008
+            var registro = new Models.Calidad.FormatoFGC008.FormatoFGC008
             {
                 OrdenProduccion = dto.OrdenProduccion,
                 Cliente = dto.Cliente,
@@ -349,7 +350,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
         }
 
         public async Task<(bool Exito, string? Mensaje,
-            List<SistemaFlota.FormatoFGC008Foto>? Fotos)> SubirFotosAsync(
+            List<FormatoFGC008Foto>? Fotos)> SubirFotosAsync(
                 int id, List<IFormFile> fotos, string usuario)
         {
             if (fotos == null || fotos.Count == 0)
@@ -411,7 +412,7 @@ namespace SistemaFlota.Services.Calidad.FormatoFGC008
                 await f.CopyToAsync(stream);
 
                 registro.FotosEvidencia.Add(
-                    new SistemaFlota.FormatoFGC008Foto
+                    new FormatoFGC008Foto
                     {
                         Archivo = nombre,
                         SubidaPor = usuario

@@ -12,6 +12,7 @@ using SistemaFlota.Repositories.Calidad;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Calidad;
 using SistemaFlota.Services.Calidad.FormatoFGC008;
+using SistemaFlota.Services.Calidad.FormatoFGC008.FormatosFGC008Pdf;
 using SistemaFlota.Services.Calidad.Formatos;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
@@ -147,6 +148,7 @@ builder.Services.AddScoped<ImportacionExcelOrdenesProduccionService>();
 builder.Services.AddScoped<IProveedorOrdenesProduccion, OrdenesProduccionConContingencia>();
 builder.Services.AddScoped< IFormatoFGC008Service, FormatoFGC008Service>();
 builder.Services.AddScoped<FormatosCalidadService>();
+builder.Services.AddScoped<IFGC008PdfService, FGC008PdfService>();
 
 // Para auditoria global
 builder.Services.AddScoped<AuditoriaService>();

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SistemaFlota
+namespace SistemaFlota.Models.Calidad.FormatoFGC008
 {
     [Table("FormatoFGC008")]
     public class FormatoFGC008

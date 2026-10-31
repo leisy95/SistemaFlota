@@ -222,7 +222,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 });
 
             page.Footer()
-                .Element(FooterEmpresa.Dibujar);
+                .Element(container => FooterEmpresa.Dibujar(container));
         }
 
         // DATOS RECEPCIÓN

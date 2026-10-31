@@ -232,7 +232,7 @@ namespace SistemaFlota.Services.Costos.OrdenCompra
 
 
             page.Footer()
-                .Element(FooterEmpresa.Dibujar);
+                    .Element(container => FooterEmpresa.Dibujar(container));
         }
 
     }

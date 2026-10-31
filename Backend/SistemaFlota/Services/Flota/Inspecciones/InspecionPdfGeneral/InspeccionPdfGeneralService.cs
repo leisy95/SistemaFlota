@@ -307,7 +307,7 @@ namespace SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral
 
                     // Pie de página corporativo
                     page.Footer()
-                        .Element(FooterEmpresa.Dibujar);
+                        .Element(container => FooterEmpresa.Dibujar(container));
                 });
             });
 

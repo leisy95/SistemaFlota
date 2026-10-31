@@ -5,9 +5,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { FormatoFGC008Service } from '../../../core/services/formato-fgc008.service';
 import { PermisosService } from '../../../core/services/permisos.service';
 import { OrdenesProduccionService } from '../../../core/services/ordenes-produccion.service';
+import { FormatoFGC008Service } from '../../../core/services/calidad/formato-fgc008.service';
 
 
 @Component({
@@ -441,6 +441,34 @@ export class FormatoFGC008Component implements OnInit {
 
   cerrarFotoAmpliada() {
     this.fotoAmpliada = null;
+  }
+
+  generandoPdfBackend = false;
+  exportarPDFBackend(): void {
+    this.generandoPdfBackend = true;
+
+    this.service.generarPdf(
+      this.filtroDesde || undefined,
+      this.filtroHasta || undefined,
+      this.filtroOP?.trim() || undefined
+    ).subscribe({
+      next: (pdf: Blob) => {
+        const url = window.URL.createObjectURL(pdf);
+        const enlace = document.createElement('a');
+
+        enlace.href = url;
+        enlace.download = `F-GC-008_${new Date().getTime()}.pdf`;
+
+        enlace.click();
+
+        window.URL.revokeObjectURL(url);
+        this.generandoPdfBackend = false;
+      },
+      error: (error) => {
+        console.error('Error al generar PDF desde backend:', error);
+        this.generandoPdfBackend = false;
+      }
+    });
   }
 
   // ── PDF ──

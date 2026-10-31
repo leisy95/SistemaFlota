@@ -315,7 +315,7 @@ namespace SistemaFlota.Services.Flota.Inspecciones
 
                     // Pie de página corporativo
                     page.Footer()
-                        .Element(FooterEmpresa.Dibujar);
+                        .Element(container => FooterEmpresa.Dibujar(container));
                 });
             });
 

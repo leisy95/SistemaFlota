@@ -2,7 +2,7 @@
 {
     public class FormatoFGC008PaginadoDto
     {
-        public List<SistemaFlota.FormatoFGC008> Items { get; set; } = new();
+        public List<Models.Calidad.FormatoFGC008.FormatoFGC008> Items { get; set; } = new();
 
         public int Total { get; set; }
 
