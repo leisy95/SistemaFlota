@@ -2,7 +2,7 @@
 using SistemaFlota.Models.Calidad;
 using SistemaFlota.Repositories.Calidad;
 
-namespace SistemaFlota.Services.Calidad
+namespace SistemaFlota.Services.Calidad.GestionSnc
 {
     public class SalidaNoConformeService : ISalidaNoConformeService
     {

@@ -11,13 +11,14 @@ using SistemaFlota.Middlewares;
 using SistemaFlota.Models;
 using SistemaFlota.Repositories.Calidad;
 using SistemaFlota.Services.Auth;
-using SistemaFlota.Services.Calidad;
 using SistemaFlota.Services.Calidad.FormatoFGC008;
 using SistemaFlota.Services.Calidad.FormatoFGC008.FormatosFGC008Pdf;
 using SistemaFlota.Services.Calidad.Formatos;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfGenral;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual;
 using SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.SistemaFlota.Services.Calidad.Formatos.FormatosGenericos;
+using SistemaFlota.Services.Calidad.GestionSnc;
+using SistemaFlota.Services.Calidad.GestionSnc.GestionSncIndividualPdf;
 using SistemaFlota.Services.ComprasNoFormalizadas.ImpresionEtiquetasNoFormalizadas;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario;
 using SistemaFlota.Services.ComprasNoFormalizadas.Inventario.AjustesInventarios;
@@ -155,6 +156,7 @@ builder.Services.AddScoped<FormatosCalidadService>();
 builder.Services.AddScoped<IFGC008PdfService, FGC008PdfService>();
 builder.Services.AddScoped<IFormatoCalidadPdfService, FormatoCalidadPdfService>();
 builder.Services.AddScoped<IFormatoCalidadPdfIndividualService, FormatoCalidadPdfIndividualService>();
+builder.Services.AddScoped<ISalidaNoConformePdfService, SalidaNoConformePdfService>();
 
 // Para auditoria global
 builder.Services.AddScoped<AuditoriaService>();

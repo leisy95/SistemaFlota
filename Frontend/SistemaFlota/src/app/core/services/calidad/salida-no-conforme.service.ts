@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 export interface CrearSalidaNoConformeDto {
   ordenProduccion: string;
@@ -42,7 +42,7 @@ export interface VerificacionSncDto {
 export class SalidaNoConformeService {
   private apiUrl = `${environment.apiUrl}/SalidaNoConforme`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getRegistros(desde?: string, hasta?: string, referencia?: string, material?: string, ordenProduccion?: string, tipoDefecto?: string, proceso?: string): Observable<any[]> {
     let params = new HttpParams();
@@ -70,7 +70,7 @@ export class SalidaNoConformeService {
 
   cerrar(id: number, fd: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${id}/cerrar`, fd);
-}
+  }
 
   eliminar(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
@@ -102,5 +102,12 @@ export class SalidaNoConformeService {
 
   getEvidencias(id: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${id}/evidencias`);
+  }
+
+  // DESCARGAR PDF DE SALIDA NO CONFORME
+  descargarPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/pdf`, {
+      responseType: 'blob'
+    });
   }
 }

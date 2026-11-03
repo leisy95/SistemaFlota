@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SalidaNoConformeService, VerificacionSncDto } from '../../../core/services/salida-no-conforme.service';
 import { OrdenesProduccionService } from '../../../core/services/ordenes-produccion.service';
 import { OpcionesFormularioService } from '../../../core/services/opciones-formulario.service';
 import { PermisosService } from '../../../core/services/permisos.service';
@@ -10,6 +9,7 @@ import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-c
 import { environment } from '../../../../environments/environment';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { SalidaNoConformeService } from '../../../core/services/calidad/salida-no-conforme.service';
 
 @Component({
     selector: 'app-gestion-snc',
@@ -299,7 +299,7 @@ export class GestionSncComponent implements OnInit {
             ordenProduccion: '', referencia: '', cantidadKg: null, cliente: '',
             linea: '', material: '', proceso: '', descripcionSalida: '',
             tipoDefecto: '', impacto: '', causaRaiz: '', nombreReporta: '',
-            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades', fechaRealReporte: ''
+            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades', fechaRealReporte: 'yy'
         };
         this.evidenciaPdf = null;
         this.firmaReportaUrl = null;
@@ -487,6 +487,30 @@ export class GestionSncComponent implements OnInit {
             };
             img.onerror = (e) => { console.error('Error cargando imagen para PDF:', url, e); resolve(''); };
             img.src = url + '?t=' + Date.now();
+        });
+    }
+
+    exportarPDFIndividual(): void {
+        const r = this.registroSeleccionado;
+
+        if (!r) return;
+
+        this.service.descargarPdf(r.id).subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+
+                const enlace = document.createElement('a');
+                enlace.href = url;
+                enlace.download = `SNC_${r.ordenProduccion}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+                enlace.click();
+
+                window.URL.revokeObjectURL(url);
+            },
+            error: (error) => {
+                console.error('Error al descargar el PDF:', error);
+                alert('No fue posible generar el PDF de la salida no conforme.');
+            }
         });
     }
 

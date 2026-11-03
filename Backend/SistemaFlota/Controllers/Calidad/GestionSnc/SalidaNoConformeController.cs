@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs;
-using SistemaFlota.Services.Calidad;
+using SistemaFlota.Services.Calidad.GestionSnc;
+using SistemaFlota.Services.Calidad.GestionSnc.GestionSncIndividualPdf;
 using System.Security.Claims;
 
-namespace SistemaFlota.Controllers.Calidad
+namespace SistemaFlota.Controllers.Calidad.GestionSnc
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -16,12 +17,18 @@ namespace SistemaFlota.Controllers.Calidad
         private readonly ISalidaNoConformeService _service;
         private readonly AppDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ISalidaNoConformePdfService _pdfService;
 
-        public SalidaNoConformeController(ISalidaNoConformeService service, AppDbContext context, AuditoriaService auditoria)
+        public SalidaNoConformeController(
+            ISalidaNoConformeService service,
+            AppDbContext context,
+            AuditoriaService auditoria,
+            ISalidaNoConformePdfService pdfService)
         {
             _service = service;
             _context = context;
             _auditoria = auditoria;
+            _pdfService = pdfService;
         }
 
         private string GetUsuario() => User.FindFirst(ClaimTypes.Name)?.Value ?? "Desconocido";
@@ -146,6 +153,60 @@ namespace SistemaFlota.Controllers.Calidad
             var registros = await _service.ListarAsync(null, null, null, null, null, null, null);
             var total = _service.SumarKgDelMes(registros, mes, anio);
             return Ok(new { mes, anio, totalKg = total });
+        }
+
+        // GENERAR Y DESCARGAR PDF DE SALIDA NO CONFORME
+
+        [HttpGet("{id}/pdf")]
+        [Permiso("gestion-snc", "ver")]
+        public async Task<IActionResult> GenerarPdf(int id)
+        {
+            try
+            {
+                var contenido = await _pdfService.GenerarPdfAsync(id);
+
+                // Obtener el registro para construir el nombre del archivo
+                var registro = await _service.ObtenerAsync(id);
+
+                if (registro == null)
+                    return NotFound(new
+                    {
+                        mensaje = "No se encontró la salida no conforme."
+                    });
+
+                // Nombre seguro para el archivo
+                var orden = string.IsNullOrWhiteSpace(registro.OrdenProduccion)
+                    ? id.ToString()
+                    : string.Concat(
+                        registro.OrdenProduccion.Select(c =>
+                            Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)
+                    );
+
+                var fecha = DateTime.Now.ToString("yyyy-MM-dd");
+
+                var nombreArchivo = $"SNC_{orden}_{fecha}.pdf";
+
+                return File(
+                    contenido,
+                    "application/pdf",
+                    nombreArchivo
+                );
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new
+                {
+                    mensaje = "No se encontró la salida no conforme."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Error al generar el PDF de la salida no conforme.",
+                    detalle = ex.Message
+                });
+            }
         }
     }
 }

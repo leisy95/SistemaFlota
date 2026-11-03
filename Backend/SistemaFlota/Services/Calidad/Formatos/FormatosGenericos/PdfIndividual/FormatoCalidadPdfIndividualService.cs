@@ -44,9 +44,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
             _mezclaOrdenService = mezclaOrdenService;
         }
 
-        // =========================================================
         // GENERACIÓN DEL PDF
-        // =========================================================
 
         public async Task<byte[]> GenerarPdfRegistroAsync(int registroId)
         {
@@ -192,9 +190,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
             return Document.Create(documento.Compose).GeneratePdf();
         }
 
-        // =========================================================
         // ARCHIVOS E IMÁGENES
-        // =========================================================
 
         private string ObtenerLogo(string? logo)
         {
@@ -266,9 +262,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
             }
         }
 
-        // =========================================================
         // LECTURA DE JSON
-        // =========================================================
 
         private static JsonElement LeerJson(string? json)
         {
@@ -365,9 +359,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 : "-";
         }
 
-        // =========================================================
         // PARÁMETROS
-        // =========================================================
 
         private class ParametroPdf
         {
@@ -485,9 +477,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 "$1 $2");
         }
 
-        // =========================================================
         // DOCUMENTO PDF
-        // =========================================================
 
         private class DocumentoIndividual
         {
@@ -538,9 +528,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 _firma = firma;
             }
 
-            // =====================================================
             // COMPOSICIÓN PRINCIPAL
-            // =====================================================
 
             public void Compose(IDocumentContainer container)
             {
@@ -555,7 +543,9 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                         .FontColor(Negro));
 
                     // Encabezado empresarial
-                    page.Header().Element(c =>
+                    page.Header()
+                    .ShowOnce()
+                    .Element(c =>
                         HeaderEmpresa.Dibujar(
                             c,
                             _logo,
@@ -565,21 +555,19 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                             Fecha(_registro.Fecha),
                             Mostrar(_registro.OrdenProduccion)));
 
-                    // Contenido
-                    page.Content()
-                        .PaddingTop(8)
-                        .Column(column =>
-                        {
-                            column.Spacing(6);
+                    // CONTENIDO DEL DOCUMENTO
+                    page.Content().PaddingTop(8).Column(column =>
+                    {
+                        column.Spacing(6);
 
-                            DatosGenerales(column);
-                            SeccionMezcla(column);
-                            SeccionParametros(column);
-                            SeccionParametrosOperarios(column);
-                            SeccionVerificacion(column);
-                            SeccionFotografias(column);
-                            SeccionLiberacion(column);
-                        });
+                        DatosGenerales(column);
+                        SeccionMezcla(column);
+                        SeccionParametros(column);
+                        SeccionParametrosOperarios(column);
+                        SeccionVerificacion(column);
+                        SeccionFotografias(column);
+                        SeccionLiberacion(column);
+                    });
 
                     // Pie empresarial
                     page.Footer().Element(c =>
@@ -588,10 +576,6 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                             "Layas Software - Formato de Calidad"));
                 });
             }
-
-            // =====================================================
-            // TARJETAS DE SECCIÓN
-            // =====================================================
 
             private static void CardSeccion(
                 ColumnDescriptor column,
@@ -618,9 +602,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 1. DATOS GENERALES
-            // =====================================================
+            // DATOS GENERALES
 
             private void DatosGenerales(ColumnDescriptor column)
             {
@@ -658,9 +640,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 2. MEZCLA DE LA ORDEN
-            // =====================================================
+            // MEZCLA DE LA ORDEN
 
             private void SeccionMezcla(ColumnDescriptor column)
             {
@@ -731,9 +711,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 3. PARÁMETROS DEL REGISTRO
-            // =====================================================
+            // PARÁMETROS DEL REGISTRO
 
             private void SeccionParametros(ColumnDescriptor column)
             {
@@ -754,9 +732,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 4. PARÁMETROS POR OPERARIO
-            // =====================================================
+            // PARÁMETROS POR OPERARIO
 
             private void SeccionParametrosOperarios(
                 ColumnDescriptor column)
@@ -830,9 +806,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
             // OBTENER VALOR DE UNA RONDA
-            // =====================================================
 
             private static string ObtenerValorRonda(
                 JsonElement ronda,
@@ -862,9 +836,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 return "";
             }
 
-            // =====================================================
-            // 5. VERIFICACIÓN POR HORA
-            // =====================================================
+            // VERIFICACIÓN POR HORA
 
             private void SeccionVerificacion(ColumnDescriptor column)
             {
@@ -961,9 +933,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 6. FOTOGRAFÍAS DE EVIDENCIA
-            // =====================================================
+            // FOTOGRAFÍAS DE EVIDENCIA
 
             private void SeccionFotografias(ColumnDescriptor column)
             {
@@ -1047,9 +1017,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
-            // 7. LIBERACIÓN
-            // =====================================================
+            // LIBERACIÓN
 
             private void SeccionLiberacion(ColumnDescriptor column)
             {
@@ -1106,9 +1074,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                     });
             }
 
-            // =====================================================
             // TABLA DE DATOS GENERALES
-            // =====================================================
 
             private static void TablaDatos(
                 ColumnDescriptor column,
@@ -1159,9 +1125,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 });
             }
 
-            // =====================================================
             // TABLA DE PARÁMETROS
-            // =====================================================
 
             private static void TablaParametros(
                 ColumnDescriptor column,
@@ -1212,9 +1176,7 @@ namespace SistemaFlota.Services.Calidad.Formatos.FormatosGenericos.PdfIndividual
                 });
             }
 
-            // =====================================================
             // ESTILOS DE CELDAS
-            // =====================================================
 
             private static IContainer Celda(IContainer container)
             {

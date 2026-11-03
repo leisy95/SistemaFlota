@@ -1,7 +1,7 @@
 ﻿using SistemaFlota.DTOs;
 using SistemaFlota.Models.Calidad;
 
-namespace SistemaFlota.Services.Calidad
+namespace SistemaFlota.Services.Calidad.GestionSnc
 {
     public interface ISalidaNoConformeService
     {
