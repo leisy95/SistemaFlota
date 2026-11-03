@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VinculacionesFlotaChatService } from '../../../core/services/vinculaciones-flotachat.service';
 
+type TipoVinculacion = 'Conductor' | 'ContactoNotificacion' | 'Usuario';
+
 @Component({
   selector: 'app-vinculaciones-flotachat',
   standalone: true,
@@ -11,7 +13,7 @@ import { VinculacionesFlotaChatService } from '../../../core/services/vinculacio
   styleUrls: ['./vinculaciones-flotachat.scss']
 })
 export class VinculacionesFlotaChatComponent implements OnInit {
-  tipoActivo: 'Conductor' | 'ContactoNotificacion' = 'Conductor';
+  tipoActivo: TipoVinculacion = 'Conductor';
 
   pendientes: any[] = [];
   vinculados: any[] = [];
@@ -20,13 +22,13 @@ export class VinculacionesFlotaChatComponent implements OnInit {
 
   seleccionManual: { [usuarioId: number]: number | null } = {};
 
-  constructor(private service: VinculacionesFlotaChatService) {}
+  constructor(private service: VinculacionesFlotaChatService) { }
 
   ngOnInit(): void {
     this.cargarTodo();
   }
 
-  cambiarTipo(tipo: 'Conductor' | 'ContactoNotificacion') {
+  cambiarTipo(tipo: TipoVinculacion) {
     this.tipoActivo = tipo;
     this.seleccionManual = {};
     this.cargarTodo();
@@ -62,7 +64,7 @@ export class VinculacionesFlotaChatComponent implements OnInit {
 
     this.service.vincular(pendiente.id, this.tipoActivo, entidadId, pendiente.celular).subscribe({
       next: () => this.cargarTodo(),
-      error: (err) => { console.error(err); alert('Error al vincular'); }
+      error: (err) => alert(err.error?.mensaje || 'Error al vincular')
     });
   }
 

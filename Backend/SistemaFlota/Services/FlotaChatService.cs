@@ -6,8 +6,8 @@ using SistemaFlota.DTOs;
 
 namespace SistemaFlota
 {
-   
-    public class FlotaChatService : IMensajeriaService, IFlotaChatDirectorio
+    // Envía los avisos de SistemaFlota a FlotaChat por la integración con token.
+    public class FlotaChatService : IMensajeriaService, IFlotaChatDirectorio, IFlotaChatAvisos
     {
         public const string NombreCliente = "FlotaChat";
         private const int Intentos = 3;
@@ -19,6 +19,8 @@ namespace SistemaFlota
         private readonly string _token;
         private readonly int? _redirigirTodoA;
 
+        private record AvisoAceptado(int MensajeId, bool Duplicado);
+
         public FlotaChatService(IHttpClientFactory http, IConfiguration config, ILogger<FlotaChatService> logger,
                                 IServiceScopeFactory scopeFactory)
         {
@@ -28,18 +30,17 @@ namespace SistemaFlota
             _scopeFactory = scopeFactory;
             _token = config["FlotaChat:Token"] ?? throw new InvalidOperationException("Falta configurar FlotaChat:Token");
 
-           
+            // Solo para pruebas: todo aviso va a este canal (nunca a personas reales).
             _redirigirTodoA = int.TryParse(config["FlotaChat:RedirigirTodoA"], out var canal) ? canal : null;
             if (_redirigirTodoA.HasValue)
                 _logger.LogWarning("FlotaChat en modo pruebas: todos los avisos van al canal {Canal}", _redirigirTodoA);
         }
 
-       
+        // ── IMensajeriaService ─────────────────────────────────────────────
 
         public Task EnviarMensajeAsync(string numeroDestino, string mensaje) =>
             EnviarMensajeAsync(numeroDestino, mensaje, "General");
 
-        
         public async Task EnviarMensajeAsync(string numeroDestino, string mensaje, string categoria)
         {
             try
@@ -52,7 +53,7 @@ namespace SistemaFlota
                 }
 
                 _logger.LogWarning("Número {Numero} sin vincular a FlotaChat; se envía al grupo de {Categoria}", numeroDestino, categoria);
-                await EnviarAlGrupoAsync(mensaje, categoria);
+                await PublicarEnGrupoAsync(categoria, mensaje);
             }
             catch (Exception ex)
             {
@@ -63,7 +64,6 @@ namespace SistemaFlota
         public Task EnviarAMultiplesAsync(List<string> numeros, string mensaje) =>
             EnviarAMultiplesAsync(numeros, mensaje, "General");
 
-        
         public async Task EnviarAMultiplesAsync(List<string> numeros, string mensaje, string categoria)
         {
             try
@@ -82,7 +82,7 @@ namespace SistemaFlota
                 {
                     _logger.LogWarning("{Cantidad} contactos sin vincular reciben por el grupo de {Categoria}: {Numeros}",
                         sinVincular.Count, categoria, string.Join(", ", sinVincular));
-                    await EnviarAlGrupoAsync(mensaje, categoria);
+                    await PublicarEnGrupoAsync(categoria, mensaje);
                 }
             }
             catch (Exception ex)
@@ -91,6 +91,18 @@ namespace SistemaFlota
             }
         }
 
+        // ── IFlotaChatAvisos ───────────────────────────────────────────────
+
+        public Task<int?> PublicarEnGrupoAsync(string categoria, string texto)
+        {
+            var grupoId = int.TryParse(_config[$"FlotaChat:Grupo{categoria}"], out var id) ? id : 1;
+            return EnviarAvisoAsync("grupo", grupoId, texto, categoria);
+        }
+
+        public Task<int?> EnviarAUsuarioAsync(int flotaChatUsuarioId, string texto, string categoria) =>
+            EnviarAvisoAsync("usuario", flotaChatUsuarioId, texto, categoria);
+
+        // ── IFlotaChatDirectorio ───────────────────────────────────────────
 
         public async Task<List<UsuarioFlotaChatDto>?> ObtenerUsuariosAsync()
         {
@@ -114,7 +126,7 @@ namespace SistemaFlota
             }
         }
 
-       
+        // ── Internos ───────────────────────────────────────────────────────
 
         private async Task<int?> BuscarUsuarioVinculadoAsync(string? numero)
         {
@@ -128,15 +140,8 @@ namespace SistemaFlota
                 .FirstOrDefaultAsync();
         }
 
-      
-        private Task EnviarAlGrupoAsync(string mensaje, string categoria)
-        {
-            var grupoId = int.TryParse(_config[$"FlotaChat:Grupo{categoria}"], out var id) ? id : 1;
-            return EnviarAvisoAsync("grupo", grupoId, mensaje, categoria);
-        }
-
         
-        private async Task EnviarAvisoAsync(string tipoDestino, int destinoId, string mensaje, string categoria)
+        private async Task<int?> EnviarAvisoAsync(string tipoDestino, int destinoId, string mensaje, string categoria)
         {
             var texto = mensaje;
             if (_redirigirTodoA.HasValue)
@@ -169,18 +174,18 @@ namespace SistemaFlota
                     using var respuesta = await _http.CreateClient(NombreCliente).SendAsync(peticion);
                     if (respuesta.IsSuccessStatusCode)
                     {
-                        _logger.LogInformation("Aviso {IdExterno} enviado a FlotaChat ({Tipo} {Destino})",
-                            aviso.idExterno, tipoDestino, destinoId);
-                        return;
+                        var aceptado = await respuesta.Content.ReadFromJsonAsync<AvisoAceptado>();
+                        _logger.LogInformation("Aviso {IdExterno} enviado a FlotaChat ({Tipo} {Destino}), mensaje {MensajeId}",
+                            aviso.idExterno, tipoDestino, destinoId, aceptado?.MensajeId);
+                        return aceptado?.MensajeId;
                     }
 
-                    
                     var codigo = (int)respuesta.StatusCode;
                     if (codigo >= 400 && codigo < 500 && respuesta.StatusCode != HttpStatusCode.TooManyRequests)
                     {
                         var detalle = await respuesta.Content.ReadAsStringAsync();
                         _logger.LogError("FlotaChat rechazó el aviso {IdExterno} ({Codigo}): {Detalle}", aviso.idExterno, codigo, detalle);
-                        return;
+                        return null;
                     }
 
                     _logger.LogWarning("FlotaChat respondió {Codigo} al aviso {IdExterno} (intento {Intento} de {Total})",
@@ -196,6 +201,7 @@ namespace SistemaFlota
             }
 
             _logger.LogError("El aviso {IdExterno} no se pudo entregar a FlotaChat después de {Total} intentos", aviso.idExterno, Intentos);
+            return null;
         }
     }
 }

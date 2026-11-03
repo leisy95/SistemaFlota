@@ -232,6 +232,9 @@ builder.Services.AddHttpClient(FlotaChatService.NombreCliente, c =>
 builder.Services.AddSingleton<FlotaChatService>();
 builder.Services.AddSingleton<IMensajeriaService>(sp => sp.GetRequiredService<FlotaChatService>());
 builder.Services.AddSingleton<IFlotaChatDirectorio>(sp => sp.GetRequiredService<FlotaChatService>());
+builder.Services.AddScoped<BotConductorService>();
+builder.Services.AddSingleton<IFlotaChatAvisos>(sp => sp.GetRequiredService<FlotaChatService>());
+builder.Services.AddScoped<ConfirmacionPedidosService>();
 
 builder.Services.AddScoped<EntradasBodegaService>();
 builder.Services.AddScoped<MezclaOrdenService>();

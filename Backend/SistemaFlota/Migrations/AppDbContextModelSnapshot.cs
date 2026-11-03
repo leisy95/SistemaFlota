@@ -732,143 +732,6 @@ namespace SistemaFlota.Migrations
                     b.ToTable("ExamenesMedicos");
                 });
 
-            modelBuilder.Entity("SistemaFlota.FormatoFGC008", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("AccionesTomadas")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Bultos")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("CambioDespuesDeRevisar")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<decimal>("CantidadOP")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("CantidadReal")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("Cliente")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("DefectosSI")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Despachado")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("DiaEntrada")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("EmbalajeSI")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("EnProceso")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("EtiquetasSI")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("FechaRevision")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("FirmaDigital")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FotoEvidencia")
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal>("KilosEntrada")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("ListoBodega")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("OperariosBodega")
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
-
-                    b.Property<string>("OrdenProduccion")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Origen")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("Referencia")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RevisadoPor")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Seccion")
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
-
-                    b.Property<string>("Troquel")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<DateTime?>("UltimaSincronizacion")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("UltimoNumEntrada")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UnidadOP")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("UnidadReal")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<decimal>("UnidadesEntrada")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FormatoFGC008");
-                });
-
-            modelBuilder.Entity("SistemaFlota.FormatoFGC008Foto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Archivo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("FormatoFGC008Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubidaPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FormatoFGC008Id");
-
-                    b.ToTable("FormatoFGC008Foto");
-                });
-
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
                 {
                     b.Property<int>("Id")
@@ -1202,6 +1065,143 @@ namespace SistemaFlota.Migrations
                     b.HasIndex("RegistroFormatoCalidadId");
 
                     b.ToTable("FormatoCalidadFoto");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoFGC008.FormatoFGC008", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("AccionesTomadas")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Bultos")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("CambioDespuesDeRevisar")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal>("CantidadOP")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("CantidadReal")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Cliente")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("DefectosSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Despachado")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DiaEntrada")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("EmbalajeSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EnProceso")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EtiquetasSI")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FechaRevision")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FirmaDigital")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FotoEvidencia")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("KilosEntrada")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("ListoBodega")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("OperariosBodega")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("OrdenProduccion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Referencia")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RevisadoPor")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Seccion")
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("Troquel")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("UltimaSincronizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UltimoNumEntrada")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UnidadOP")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("UnidadReal")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<decimal>("UnidadesEntrada")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FormatoFGC008");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoFGC008.FormatoFGC008Foto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FormatoFGC008Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubidaPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormatoFGC008Id");
+
+                    b.ToTable("FormatoFGC008Foto");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Calidad.RegistroParametrosOperario", b =>
@@ -2135,6 +2135,10 @@ namespace SistemaFlota.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("TipoVueltaTemp")
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
 
                     b.Property<int?>("VehiculoIdTemp")
                         .HasColumnType("int");
@@ -3295,9 +3299,18 @@ namespace SistemaFlota.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("AvisoMensajeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Cliente")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int?>("ConfirmadoPorFlotaChatUsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreadoPorUsuarioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Destino")
                         .IsRequired()
@@ -3306,6 +3319,9 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("FechaConfirmacion")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("FechaDespacho")
                         .HasColumnType("datetime(6)");
@@ -3383,10 +3399,24 @@ namespace SistemaFlota.Migrations
                     b.Property<int>("GrupoId")
                         .HasColumnType("int");
 
+                    b.Property<string>("IdEvento")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int?>("MensajeId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Procesado")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("TipoMensaje")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("IdEvento")
+                        .IsUnique();
 
                     b.ToTable("RespuestasFlotaChat");
                 });
@@ -3823,15 +3853,6 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Conductor");
                 });
 
-            modelBuilder.Entity("SistemaFlota.FormatoFGC008Foto", b =>
-                {
-                    b.HasOne("SistemaFlota.FormatoFGC008", null)
-                        .WithMany("FotosEvidencia")
-                        .HasForeignKey("FormatoFGC008Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SistemaFlota.Incidente", b =>
                 {
                     b.HasOne("SistemaFlota.Autorizacion", "Autorizacion")
@@ -3924,6 +3945,15 @@ namespace SistemaFlota.Migrations
                         .IsRequired();
 
                     b.Navigation("RegistroFormatoCalidad");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoFGC008.FormatoFGC008Foto", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.Calidad.FormatoFGC008.FormatoFGC008", null)
+                        .WithMany("FotosEvidencia")
+                        .HasForeignKey("FormatoFGC008Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Calidad.RegistroParametrosOperario", b =>
@@ -4471,11 +4501,6 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Infracciones");
                 });
 
-            modelBuilder.Entity("SistemaFlota.FormatoFGC008", b =>
-                {
-                    b.Navigation("FotosEvidencia");
-                });
-
             modelBuilder.Entity("SistemaFlota.Inspeccion", b =>
                 {
                     b.Navigation("Detalles");
@@ -4484,6 +4509,11 @@ namespace SistemaFlota.Migrations
             modelBuilder.Entity("SistemaFlota.Models.Cajon", b =>
                 {
                     b.Navigation("Registros");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.Calidad.FormatoFGC008.FormatoFGC008", b =>
+                {
+                    b.Navigation("FotosEvidencia");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.ComprasNoFormalizadas.Inventario.CortesInventario.CorteInventarioNoFormalizado", b =>

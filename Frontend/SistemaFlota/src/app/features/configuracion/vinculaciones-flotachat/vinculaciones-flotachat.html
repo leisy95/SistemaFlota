@@ -3,7 +3,8 @@
   <div class="header">
     <div>
       <h1><i class="fa-solid fa-link"></i> Vincular con FlotaChat</h1>
-      <p class="subtitulo">Conecta los usuarios de FlotaChat con conductores o contactos de oficina</p>
+      <p class="subtitulo">Conecta los usuarios de FlotaChat con conductores, contactos de oficina o usuarios del
+        sistema</p>
     </div>
   </div>
 
@@ -11,13 +12,25 @@
     <button class="tab" [class.activo]="tipoActivo === 'Conductor'" (click)="cambiarTipo('Conductor')">
       <i class="fa-solid fa-id-card"></i> Conductores
     </button>
-    <button class="tab" [class.activo]="tipoActivo === 'ContactoNotificacion'" (click)="cambiarTipo('ContactoNotificacion')">
+    <button class="tab" [class.activo]="tipoActivo === 'ContactoNotificacion'"
+      (click)="cambiarTipo('ContactoNotificacion')">
       <i class="fa-solid fa-building"></i> Contactos de Oficina
+    </button>
+    <button class="tab" [class.activo]="tipoActivo === 'Usuario'" (click)="cambiarTipo('Usuario')">
+      <i class="fa-solid fa-user-tie"></i> Usuarios del Sistema
     </button>
   </div>
 
   <div class="aviso-info">
-    <i class="fa-solid fa-circle-info"></i> Vincula cada usuario de FlotaChat con su registro correspondiente para que el sistema pueda enviar mensajes individuales e identificar respuestas.
+    <i class="fa-solid fa-circle-info"></i>
+    <ng-container [ngSwitch]="tipoActivo">
+      <span *ngSwitchCase="'ContactoNotificacion'">Los contactos con "Recibe pedidos" activo y vinculados pueden
+        confirmar pedidos desde el grupo Pedidos.</span>
+      <span *ngSwitchCase="'Usuario'">Vincula a quienes crean pedidos en SistemaFlota para que reciban un mensaje cuando
+        su pedido pase a "En proceso".</span>
+      <span *ngSwitchDefault>Vincula cada usuario de FlotaChat con su registro correspondiente para que el sistema pueda
+        enviar mensajes individuales e identificar respuestas.</span>
+    </ng-container>
   </div>
 
   <!-- PENDIENTES -->
@@ -29,7 +42,10 @@
     <table>
       <thead>
         <tr>
-          <th>Nombre</th><th>WhatsApp</th><th>Sugerencia</th><th>Acciones</th>
+          <th>Nombre</th>
+          <th>WhatsApp</th>
+          <th>Sugerencia</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -69,7 +85,10 @@
     <table>
       <thead>
         <tr>
-          <th>Nombre</th><th>WhatsApp</th><th>Fecha vinculación</th><th>Acciones</th>
+          <th>Nombre</th>
+          <th>WhatsApp</th>
+          <th>Fecha vinculación</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace SistemaFlota
 {
     public class Pedido
@@ -29,6 +30,12 @@ namespace SistemaFlota
 
         // ── GESTIONADO POR ────────────────────────────────────────────────────
         public string? GestionadoPor { get; set; }
+
+        // ── FLOTACHAT ─────────────────────────────────────────────────────────
+        public int? CreadoPorUsuarioId { get; set; }                 // usuario de SistemaFlota que lo creó
+        public int? AvisoMensajeId { get; set; }                     // mensaje del aviso en el grupo Pedidos
+        public DateTime? FechaConfirmacion { get; set; }
+        public int? ConfirmadoPorFlotaChatUsuarioId { get; set; }
 
         // ── REFERENCIAS ───────────────────────────────────────────────────────
         public List<PedidoReferencia> Referencias { get; set; } = new();

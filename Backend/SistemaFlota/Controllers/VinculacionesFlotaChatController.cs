@@ -63,6 +63,25 @@ namespace SistemaFlota.Controllers
                 .Where(u => (rolBuscado == null || u.Rol == rolBuscado) && !yaVinculados.Contains(u.Id))
                 .ToList();
 
+            if (tipo == "Usuario")
+            {
+                var usuariosSistema = await _context.Usuarios
+                    .Where(u => u.Activo)
+                    .Select(u => new { u.Id, u.Username, u.Nombres, u.Apellidos, u.Telefono })
+                    .ToListAsync();
+
+                return Ok(pendientes.Select(u => new
+                {
+                    u.Id,
+                    u.Nombre,
+                    u.Celular,
+                    Sugerencia = usuariosSistema
+                        .Where(s => !string.IsNullOrEmpty(s.Telefono) && s.Telefono == u.Celular)
+                        .Select(s => new { s.Id, Nombre = NombreUsuario(s.Nombres, s.Apellidos, s.Username), s.Telefono })
+                        .FirstOrDefault()
+                }));
+            }
+
             if (tipo == "Conductor")
             {
                 var conductoresSistema = await _context.Conductores
@@ -94,6 +113,16 @@ namespace SistemaFlota.Controllers
         [HttpGet("entidades")]
         public async Task<IActionResult> GetEntidades([FromQuery] string tipo = "Conductor")
         {
+            if (tipo == "Usuario")
+            {
+                var usuarios = await _context.Usuarios
+                    .Where(u => u.Activo)
+                    .Select(u => new { u.Id, u.Username, u.Nombres, u.Apellidos, u.Telefono })
+                    .ToListAsync();
+
+                return Ok(usuarios.Select(u => new { u.Id, Nombre = NombreUsuario(u.Nombres, u.Apellidos, u.Username), u.Telefono }));
+            }
+
             if (tipo == "Conductor")
             {
                 return Ok(await _context.Conductores
@@ -106,13 +135,14 @@ namespace SistemaFlota.Controllers
                 .ToListAsync());
         }
 
+        // Una persona de FlotaChat puede tener una vinculación por tipo (por ejemplo, contacto de pedidos y usuario).
         [HttpPost]
         public async Task<IActionResult> Crear([FromBody] CrearVinculacionDto dto)
         {
             var existe = await _context.VinculacionesFlotaChat
-                .AnyAsync(v => v.FlotaChatUsuarioId == dto.FlotaChatUsuarioId);
+                .AnyAsync(v => v.FlotaChatUsuarioId == dto.FlotaChatUsuarioId && v.TipoEntidad == dto.TipoEntidad);
             if (existe)
-                return BadRequest(new { mensaje = "Este usuario de FlotaChat ya está vinculado" });
+                return BadRequest(new { mensaje = "Este usuario de FlotaChat ya tiene una vinculación de este tipo" });
 
             var vinculacion = new VinculacionFlotaChat
             {
@@ -144,6 +174,12 @@ namespace SistemaFlota.Controllers
             var vinculacion = await context.VinculacionesFlotaChat
                 .FirstOrDefaultAsync(v => v.FlotaChatUsuarioId == flotaChatUsuarioId && v.TipoEntidad == "Conductor");
             return vinculacion?.EntidadId;
+        }
+
+        private static string NombreUsuario(string? nombres, string? apellidos, string username)
+        {
+            var completo = $"{nombres} {apellidos}".Trim();
+            return completo.Length > 0 ? completo : username;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace SistemaFlota.Models
 {
     public class ConversacionFlotaChat
@@ -10,6 +11,7 @@ namespace SistemaFlota.Models
         public DateTime FechaExpiracion { get; set; } = DateTime.Now.AddMinutes(10);
         public int? VehiculoIdTemp { get; set; }
         public string? DestinoTemp { get; set; }
+        [MaxLength(30)] public string? TipoVueltaTemp { get; set; }
         public int? AutorizacionPendienteIdTemp { get; set; }
     }
 }
