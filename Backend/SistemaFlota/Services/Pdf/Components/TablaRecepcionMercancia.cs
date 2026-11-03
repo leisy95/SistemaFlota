@@ -7,11 +7,18 @@ namespace SistemaFlota.Services.Pdf.Components;
 
 public static class TablaRecepcionMercancia
 {
-    public static void Dibujar(IContainer container, IEnumerable<RecepcionMercanciaDetalle> detalles)
+    public static void Dibujar(
+        IContainer container,
+        IEnumerable<RecepcionMercanciaDetalle> detalles)
     {
+        var items = detalles.ToList();
+
         container.Column(col =>
         {
-            col.Item().PaddingBottom(8).Text("MATERIALES RECIBIDOS").Style(PdfStyles.Subtitulo);
+            col.Item()
+                .PaddingBottom(8)
+                .Text("MATERIALES RECIBIDOS")
+                .Style(PdfStyles.Subtitulo);
 
             col.Item()
                 .Border(1)
@@ -21,25 +28,43 @@ public static class TablaRecepcionMercancia
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(3);
-                        columns.RelativeColumn(1);
-                        columns.ConstantColumn(55);
-                        columns.ConstantColumn(55);
-                        columns.RelativeColumn(2);
-                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(3);   // Material
+                        columns.RelativeColumn(1.5f); // Color
+                        columns.ConstantColumn(48);  // KG
+                        columns.ConstantColumn(48);  // Bultos
+                        columns.RelativeColumn(2);   // Lote
+                        columns.RelativeColumn(1.5f); // Estado
+                        columns.RelativeColumn(2.5f); // Observaciones
                     });
 
                     table.Header(header =>
                     {
-                        header.Cell().Element(HeaderCell).Text("Material").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Color").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("KG").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Bultos").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).Text("Lote").Style(PdfStyles.HeaderTabla);
-                        header.Cell().Element(HeaderCell).AlignCenter().Text("Estado").Style(PdfStyles.HeaderTabla);
+                        header.Cell().Element(HeaderCell)
+                            .Text("Material").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .Text("Color").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("KG").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("Bultos").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .Text("Lote proveedor").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .AlignCenter()
+                            .Text("Estado").Style(PdfStyles.HeaderTabla);
+
+                        header.Cell().Element(HeaderCell)
+                            .Text("Observaciones").Style(PdfStyles.HeaderTabla);
                     });
 
-                    foreach (var item in detalles)
+                    foreach (var item in items)
                     {
                         table.Cell().Element(BodyCell)
                             .Text(item.OrdenCompraDetalle?.Material?.NombreMaterial ?? "-")
@@ -56,7 +81,7 @@ public static class TablaRecepcionMercancia
 
                         table.Cell().Element(BodyCell)
                             .AlignRight()
-                            .Text(item.BultosRecibidos.ToString("N2"))
+                            .Text(item.BultosRecibidos.ToString("N0"))
                             .Style(PdfStyles.CeldaTabla);
 
                         table.Cell().Element(BodyCell)
@@ -65,7 +90,14 @@ public static class TablaRecepcionMercancia
 
                         table.Cell().Element(BodyCell)
                             .AlignCenter()
-                            .Element(x => EstadoBadge.Dibujar(x, item.EstadoMaterial));
+                            .Text(item.EstadoMaterial ?? "-")
+                            .Style(PdfStyles.CeldaTabla);
+
+                        table.Cell().Element(BodyCell)
+                            .Text(string.IsNullOrWhiteSpace(item.Observaciones)
+                                ? "-"
+                                : item.Observaciones)
+                            .Style(PdfStyles.CeldaTabla);
                     }
                 });
         });

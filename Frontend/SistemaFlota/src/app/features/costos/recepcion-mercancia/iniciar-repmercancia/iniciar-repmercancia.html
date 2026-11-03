@@ -89,21 +89,23 @@
                 </div>
 
             </section>
+
             <!-- Items -->
             <section class="section-card">
                 <h3>
                     <i class="fa-solid fa-boxes-stacked"></i>
                     Items a Recibir (Selección Parcial Permitida)
                 </h3>
+
                 <div formArrayName="detalles">
 
                     <div class="item-card" *ngFor="let item of detalles.controls; let i = index" [formGroupName]="i">
 
+                        <!-- Encabezado del material -->
                         <div class="item-header">
 
                             <label>
                                 <input type="checkbox" formControlName="seleccionado">
-
                                 <span>{{ item.get('material')?.value }}</span>
                             </label>
 
@@ -131,78 +133,148 @@
                                 </span>
 
                             </div>
-
                         </div>
 
-                        <div class="form-grid">
+                        <!-- Información de lotes -->
+                        <div class="lotes-container" formArrayName="lotes">
 
-                            <div class="field">
-                                <label>Cantidad Recibida (KG)</label>
+                            <div class="lote-card" *ngFor="let lote of getLotes(item).controls; let j = index"
+                                [formGroupName]="j">
 
-                                <input type="number" class="input" formControlName="cantidadRecibida"
-                                    (wheel)="$any($event.target).blur()"
-                                    [class.is-invalid]="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
+                                <div class="lote-header">
+                                    <h4>
+                                        <i class="fa-solid fa-cube"></i>
+                                        Lote {{ j + 1 }}
+                                    </h4>
 
-                                <small class="error"
-                                    *ngIf="item.get('cantidadRecibida')?.invalid && item.get('cantidadRecibida')?.touched">
-                                    Cantidad requerida
+                                    <button type="button" class="btn-eliminar-lote" *ngIf="getLotes(item).length > 1"
+                                        (click)="eliminarLote(i, j)" [disabled]="!item.get('seleccionado')?.value">
+                                        <i class="fa-solid fa-trash"></i>
+                                        Eliminar
+                                    </button>
+                                </div>
+
+                                <div class="form-grid">
+
+                                    <!-- Lote proveedor -->
+                                    <div class="field">
+                                        <label>Lote del Proveedor</label>
+
+                                        <input class="input" formControlName="loteProveedor" placeholder="Ej: LOTE-001"
+                                            [class.is-invalid]="lote.get('loteProveedor')?.invalid && lote.get('loteProveedor')?.touched">
+
+                                        <small class="error"
+                                            *ngIf="lote.get('loteProveedor')?.invalid && lote.get('loteProveedor')?.touched">
+                                            Lote obligatorio
+                                        </small>
+                                    </div>
+
+                                    <!-- Cantidad -->
+                                    <div class="field">
+                                        <label>Cantidad Recibida (KG)</label>
+
+                                        <input type="number" class="input" formControlName="cantidadRecibida" min="0"
+                                            step="0.01" (wheel)="$any($event.target).blur()"
+                                            [class.is-invalid]="lote.get('cantidadRecibida')?.invalid && lote.get('cantidadRecibida')?.touched">
+
+                                        <small class="error"
+                                            *ngIf="lote.get('cantidadRecibida')?.invalid && lote.get('cantidadRecibida')?.touched">
+                                            Cantidad requerida
+                                        </small>
+                                    </div>
+
+                                    <!-- Bultos -->
+                                    <div class="field">
+                                        <label>Bultos Recibidos</label>
+
+                                        <input type="number" class="input" formControlName="bultosRecibidos" min="0"
+                                            step="1" (wheel)="$any($event.target).blur()"
+                                            [class.is-invalid]="lote.get('bultosRecibidos')?.invalid && lote.get('bultosRecibidos')?.touched">
+
+                                        <small class="error"
+                                            *ngIf="lote.get('bultosRecibidos')?.invalid && lote.get('bultosRecibidos')?.touched">
+                                            Bultos requeridos
+                                        </small>
+                                    </div>
+
+                                    <!-- Estado -->
+                                    <div class="field">
+                                        <label>Estado del Material</label>
+
+                                        <select class="select" formControlName="estadoMaterial"
+                                            [class.is-invalid]="lote.get('estadoMaterial')?.invalid && lote.get('estadoMaterial')?.touched">
+
+                                            <option value="Conforme">Conforme</option>
+                                            <option value="No Conforme">No Conforme</option>
+                                            <option value="Condicional">Condicional</option>
+
+                                        </select>
+                                    </div>
+
+                                    <!-- Observaciones -->
+                                    <div class="field full">
+                                        <label>Observaciones del Lote</label>
+
+                                        <textarea class="textarea" rows="3" formControlName="observaciones"
+                                            placeholder="Observaciones de este lote...">
+                            </textarea>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Agregar lote -->
+                            <button type="button" class="btn-agregar-lote" (click)="agregarLote(i)"
+                                [disabled]="!item.get('seleccionado')?.value">
+
+                                <i class="fa-solid fa-plus"></i>
+                                Agregar otro lote
+                            </button>
+
+                            <!-- Resumen del material -->
+                            <div class="resumen-lotes">
+
+                                <span>
+                                    KG distribuidos:
+                                    <strong>
+                                        {{ calcularTotalLotes(item, 'cantidadRecibida') | number:'1.0-2' }}
+                                    </strong>
+                                    /
+                                    {{ item.get('cantidadPendiente')?.value | number:'1.0-2' }} KG
+                                </span>
+
+                                <span>
+                                    Bultos distribuidos:
+                                    <strong>
+                                        {{ calcularTotalLotes(item, 'bultosRecibidos') }}
+                                    </strong>
+                                    /
+                                    {{ item.get('bultosPendientes')?.value | number:'1.0-2' }}
+                                </span>
+
+                                <!-- Mensajes de validación -->
+                                <small class="error" *ngIf="getLotes(item).hasError('excesoKg')">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    La suma de los lotes supera los KG pendientes.
                                 </small>
-                            </div>
 
-                            <div class="field">
-                                <label>Bultos Recibidos</label>
-
-                                <input type="number" class="input" formControlName="bultosRecibidos"
-                                    (wheel)="$any($event.target).blur()"
-                                    [class.is-invalid]="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
-
-                                <small class="error"
-                                    *ngIf="item.get('bultosRecibidos')?.invalid && item.get('bultosRecibidos')?.touched">
-                                    Bultos requeridos
+                                <small class="error" *ngIf="getLotes(item).hasError('excesoBultos')">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    La suma de los lotes supera los bultos pendientes.
                                 </small>
-                            </div>
 
-                            <div class="field">
-                                <label>
-                                    <i class="fa-solid fa-cube"></i>
-                                    Lote del Proveedor
-                                </label>
-
-                                <input class="input" formControlName="loteProveedor"
-                                    [class.is-invalid]="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
-
-                                <small class="error"
-                                    *ngIf="item.get('loteProveedor')?.invalid && item.get('loteProveedor')?.touched">
-                                    Lote obligatorio
+                                <small class="error" *ngIf="getLotes(item).hasError('sinLotes')">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    Debe agregar al menos un lote.
                                 </small>
+
                             </div>
-
-                            <div class="field">
-                                <label>Estado del Material</label>
-
-                                <select class="select" formControlName="estadoMaterial"
-                                    [class.is-invalid]="item.get('estadoMaterial')?.invalid && item.get('estadoMaterial')?.touched">
-
-                                    <option>Conforme</option>
-                                    <option>No Conforme</option>
-                                    <option>Condicional</option>
-
-                                </select>
-                            </div>
-
-                            <div class="field full">
-                                <label>Observaciones</label>
-
-                                <textarea class="textarea" rows="4" formControlName="observaciones">
-                                </textarea>
-                            </div>
-
                         </div>
 
                     </div>
-
                 </div>
             </section>
+
             <!-- Recepción -->
             <section class="section-card">
                 <h3>

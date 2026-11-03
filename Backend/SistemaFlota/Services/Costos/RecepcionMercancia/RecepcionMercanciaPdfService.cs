@@ -280,8 +280,8 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
     }
 
     private void DibujarEntregas(
-        ColumnDescriptor col,
-        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    ColumnDescriptor col,
+    Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
     {
         var entregas = recepcion.Detalles
             .GroupBy(d => d.NumeroEntrega)
@@ -294,10 +294,14 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
 
         foreach (var entrega in entregas)
         {
-            var fecha = entrega.Min(x => x.FechaEntrega);
-            var totalKg = entrega.Sum(x => x.CantidadRecibida);
-            var totalBultos = entrega.Sum(x => x.BultosRecibidos);
-            var procesada = entrega.All(x => x.ProcesadoInventario);
+            var detallesEntrega = entrega
+                .OrderBy(x => x.Id)
+                .ToList();
+
+            var fecha = detallesEntrega.Min(x => x.FechaEntrega);
+            var totalKg = detallesEntrega.Sum(x => x.CantidadRecibida);
+            var totalBultos = detallesEntrega.Sum(x => x.BultosRecibidos);
+            var procesada = detallesEntrega.All(x => x.ProcesadoInventario);
 
             col.Item().Element(x =>
             {
@@ -307,13 +311,21 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Fecha de entrega").Style(PdfStyles.Label);
-                            c.Item().Text(fecha.ToString("dd/MM/yyyy HH:mm")).Style(PdfStyles.Valor);
+                            c.Item()
+                                .Text("Fecha de entrega")
+                                .Style(PdfStyles.Label);
+
+                            c.Item()
+                                .Text(fecha.ToString("dd/MM/yyyy HH:mm"))
+                                .Style(PdfStyles.Valor);
                         });
 
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Estado").Style(PdfStyles.Label);
+                            c.Item()
+                                .Text("Estado de inventario")
+                                .Style(PdfStyles.Label);
+
                             c.Item()
                                 .Text(procesada
                                     ? "Ingresada a inventario"
@@ -325,18 +337,26 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                     contenido.Item()
                         .PaddingTop(10)
                         .Element(tabla =>
-                            TablaRecepcionMercancia.Dibujar(tabla, entrega));
+                            TablaRecepcionMercancia.Dibujar(
+                                tabla,
+                                detallesEntrega));
 
-                    contenido.Item().PaddingTop(8).Row(row =>
-                    {
-                        row.RelativeItem()
-                            .Text($"Total KG: {totalKg:N2}")
-                            .Style(PdfStyles.Valor);
+                    contenido.Item()
+                        .PaddingTop(8)
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Text($"Total KG: {totalKg:N2}")
+                                .Style(PdfStyles.Valor);
 
-                        row.RelativeItem()
-                            .Text($"Total Bultos: {totalBultos:N2}")
-                            .Style(PdfStyles.Valor);
-                    });
+                            row.RelativeItem()
+                                .Text($"Total Bultos: {totalBultos:N0}")
+                                .Style(PdfStyles.Valor);
+
+                            row.RelativeItem()
+                                .Text($"Lotes: {detallesEntrega.Count}")
+                                .Style(PdfStyles.Valor);
+                        });
                 });
             });
         }

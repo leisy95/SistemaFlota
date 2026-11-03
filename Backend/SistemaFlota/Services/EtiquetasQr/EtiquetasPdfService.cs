@@ -16,9 +16,10 @@ public class EtiquetasPdfService : IEtiquetasPdfService
         _context = context;
     }
 
+
     public async Task<byte[]> GenerarAsync(int recepcionId)
     {
-        // 1. Cargar la recepción actual con sus detalles completos
+        // 1. Cargar recepción con sus detalles
         var recepcion = await _context.RecepcionesMercancias
             .AsNoTracking()
             .Include(x => x.Detalles)
@@ -28,18 +29,18 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 .ThenInclude(x => x.Proveedor)
             .FirstAsync(x => x.Id == recepcionId);
 
-        // 2. Determinar el número de la última entrega realizada en este registro
+        // 2. Identificar la última entrega
         int ultimaEntregaActual = recepcion.Detalles.Any()
             ? recepcion.Detalles.Max(x => x.NumeroEntrega)
             : 1;
 
-        // 3. Filtrar los detalles recibidos en esta entrega específica
+        // 3. Obtener lotes de la última entrega
         var detallesEntregaActual = recepcion.Detalles
             .Where(x => x.NumeroEntrega == ultimaEntregaActual)
+            .OrderBy(x => x.Id)
             .ToList();
 
-        // 4. Obtener todos los detalles de entregas ANTERIORES
-        //    para la misma Orden de Compra
+        // 4. Obtener bultos de entregas anteriores
         var detallesAnteriores = await _context.RecepcionesMercancias
             .AsNoTracking()
             .Where(x => x.OrdenCompraId == recepcion.OrdenCompraId)
@@ -54,34 +55,33 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 int bultosActuales = (int)detalle.BultosRecibidos;
                 int ordenCompraDetalleId = detalle.OrdenCompraDetalleId;
 
-                // Sumar bultos ingresados en entregas anteriores
+                // 5. Sumar bultos de entregas anteriores
                 int bultosAnteriores = detallesAnteriores
                     .Where(x => x.OrdenCompraDetalleId == ordenCompraDetalleId)
                     .Sum(x => (int)x.BultosRecibidos);
 
-                // Total de bultos programados en la Orden de Compra
+                // 6. Sumar bultos de lotes anteriores de esta entrega
+                bultosAnteriores += detallesEntregaActual
+                    .Where(x =>
+                        x.OrdenCompraDetalleId == ordenCompraDetalleId &&
+                        x.Id < detalle.Id)
+                    .Sum(x => (int)x.BultosRecibidos);
+
+                // 7. Total de bultos de la orden
                 int totalBultos = (int)detalle.OrdenCompraDetalle!.Bultos;
 
-                // CÓDIGO DE TRAZABILIDAD
-
+                // 8. Código de trazabilidad
                 string numeroOrden = recepcion.OrdenCompra!.Numero;
 
-                // Últimos 3 números de la orden
                 string ultimosTresOrden = numeroOrden.Length >= 3
                     ? numeroOrden[^3..]
                     : numeroOrden.PadLeft(3, '0');
 
-                // Día de la fecha
-                string dia = recepcion.FechaRecepcion
-                    .ToString("MM");
+                string dia = recepcion.FechaRecepcion.ToString("MM");
+                string año = recepcion.FechaRecepcion.ToString("yy");
 
-                string año = recepcion.FechaRecepcion
-                    .ToString("yy");
-
-                // Lote completo
                 string lote = detalle.LoteProveedor?.Trim() ?? "";
 
-                // Parte del lote después del último "-"
                 string ultimoNumeroLote = "";
 
                 if (!string.IsNullOrWhiteSpace(lote))
@@ -95,8 +95,7 @@ public class EtiquetasPdfService : IEtiquetasPdfService
                 string codigoFormateado =
                     $"{ultimosTresOrden} · {dia} · {año} · {ultimoNumeroLote}";
 
-                // GENERAR PÁGINAS CONSECUTIVAS
-
+                // 9. Generar una página por cada bulto
                 for (int i = 1; i <= bultosActuales; i++)
                 {
                     int numeroBulto = bultosAnteriores + i;
@@ -123,7 +122,8 @@ public class EtiquetasPdfService : IEtiquetasPdfService
 
         return document.GeneratePdf();
     }
-    
+
+
     // Para generar todas las etiquetas cuando ya esten confirmadas
     public async Task<byte[]> GenerarTodasAsync(int recepcionId)
     {

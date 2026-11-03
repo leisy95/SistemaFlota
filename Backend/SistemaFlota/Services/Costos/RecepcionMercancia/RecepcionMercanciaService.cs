@@ -177,6 +177,12 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     "El usuario autenticado no tiene un nombre configurado.");
             }
 
+            if (dto.Detalles == null || !dto.Detalles.Any())
+            {
+                throw new InvalidOperationException(
+                    "Debe ingresar al menos un lote para registrar la recepción.");
+            }
+
             var orden = await _context.OrdenesCompra
                 .Include(o => o.Detalles)
                     .ThenInclude(d => d.Material)
@@ -186,7 +192,12 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             if (orden == null)
                 throw new Exception("La orden de compra no existe.");
 
-            var estadosNoRecepcionables = new[] { "Anulada", "Recepcionada", "Confirmada" };
+            var estadosNoRecepcionables = new[]
+            {
+        "Anulada",
+        "Recepcionada",
+        "Confirmada"
+    };
 
             if (estadosNoRecepcionables.Contains(
                 orden.Estado ?? string.Empty,
@@ -201,7 +212,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 .Include(r => r.Detalles)
                 .FirstOrDefaultAsync(r => r.OrdenCompraId == dto.OrdenCompraId);
 
-            // Si no existe, crear la recepción.
+            // Crear la recepción si todavía no existe.
             if (recepcion == null)
             {
                 var numeroRecepcion = await _consecutivoService
@@ -240,68 +251,91 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
             var numeroEntrega = recepcion.NumeroUltimaEntrega + 1;
             var fechaEntrega = DateTime.Now;
 
-            // Todos los detalles recibidos anteriormente para esta orden.
+            // Detalles recibidos anteriormente para esta orden.
             var recepcionesAnteriores = await _context.RecepcionesMercancias
                 .Where(r => r.OrdenCompraId == dto.OrdenCompraId)
                 .SelectMany(r => r.Detalles)
                 .ToListAsync();
 
-            var cantidadesNuevaEntrega = new Dictionary<int, decimal>();
-            var bultosNuevaEntrega = new Dictionary<int, decimal>();
+            // IDs de los detalles que pertenecen a esta orden.
+            var detallesOrdenIds = orden.Detalles
+                .Select(d => d.Id)
+                .ToHashSet();
 
-            bool agregoDetalle = false;
-
+            // Validar cada lote individualmente.
             foreach (var item in dto.Detalles)
             {
+                if (!detallesOrdenIds.Contains(item.OrdenCompraDetalleId))
+                {
+                    throw new InvalidOperationException(
+                        $"El detalle {item.OrdenCompraDetalleId} no pertenece a la orden de compra.");
+                }
+
                 var detalleOrden = orden.Detalles
-                    .FirstOrDefault(d => d.Id == item.OrdenCompraDetalleId);
+                    .First(d => d.Id == item.OrdenCompraDetalleId);
 
-                if (detalleOrden == null)
+                if (item.CantidadRecibida <= 0)
                 {
-                    throw new Exception(
-                        $"El detalle {item.OrdenCompraDetalleId} no pertenece a la orden de compra."
-                    );
+                    throw new InvalidOperationException(
+                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} debe ser mayor a cero.");
                 }
 
-                if (item.CantidadRecibida < 0)
+                if (item.BultosRecibidos <= 0)
                 {
-                    throw new Exception(
-                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} no puede ser negativa."
-                    );
+                    throw new InvalidOperationException(
+                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} deben ser mayores a cero.");
                 }
 
-                if (item.BultosRecibidos < 0)
+                // Los bultos deben ser números enteros.
+                if (item.BultosRecibidos != decimal.Truncate(item.BultosRecibidos))
                 {
-                    throw new Exception(
-                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} no pueden ser negativos."
-                    );
+                    throw new InvalidOperationException(
+                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} deben ser un número entero.");
                 }
 
-                // Si no recibió nada, no se crea detalle.
-                if (item.CantidadRecibida == 0 && item.BultosRecibidos == 0)
-                    continue;
-
-                agregoDetalle = true;
-
-                if (!cantidadesNuevaEntrega.ContainsKey(item.OrdenCompraDetalleId))
+                if (string.IsNullOrWhiteSpace(item.LoteProveedor))
                 {
-                    cantidadesNuevaEntrega[item.OrdenCompraDetalleId] = 0;
-                    bultosNuevaEntrega[item.OrdenCompraDetalleId] = 0;
+                    throw new InvalidOperationException(
+                        $"Debe ingresar el lote del proveedor para {detalleOrden.Material?.NombreMaterial}.");
                 }
 
-                cantidadesNuevaEntrega[item.OrdenCompraDetalleId] += item.CantidadRecibida;
-                bultosNuevaEntrega[item.OrdenCompraDetalleId] += item.BultosRecibidos;
+                if (string.IsNullOrWhiteSpace(item.EstadoMaterial))
+                {
+                    throw new InvalidOperationException(
+                        $"Debe seleccionar el estado del material {detalleOrden.Material?.NombreMaterial}.");
+                }
+            }
 
-                // Total recibido anteriormente.
+            // Agrupar los lotes de esta entrega por detalle de orden.
+            // Así se valida el total de KG y bultos de todos los lotes del material.
+            var cantidadesNuevaEntrega = dto.Detalles
+                .GroupBy(x => x.OrdenCompraDetalleId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(x => x.CantidadRecibida)
+                );
+
+            var bultosNuevaEntrega = dto.Detalles
+                .GroupBy(x => x.OrdenCompraDetalleId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(x => x.BultosRecibidos)
+                );
+
+            // Validar los acumulados contra lo pendiente de la orden.
+            foreach (var grupo in cantidadesNuevaEntrega)
+            {
+                var detalleOrden = orden.Detalles
+                    .First(d => d.Id == grupo.Key);
+
                 var cantidadRecibidaAnterior = recepcionesAnteriores
-                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Where(r => r.OrdenCompraDetalleId == grupo.Key)
                     .Sum(r => r.CantidadRecibida);
 
                 var bultosRecibidosAnterior = recepcionesAnteriores
-                    .Where(r => r.OrdenCompraDetalleId == item.OrdenCompraDetalleId)
+                    .Where(r => r.OrdenCompraDetalleId == grupo.Key)
                     .Sum(r => r.BultosRecibidos);
 
-                // Pendiente de la orden.
                 var cantidadPendiente = Math.Max(
                     0,
                     detalleOrden.CantidadKg - cantidadRecibidaAnterior
@@ -312,33 +346,38 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                     detalleOrden.Bultos - bultosRecibidosAnterior
                 );
 
-                // Acumulado de esta nueva entrega.
-                var cantidadNueva = cantidadesNuevaEntrega[item.OrdenCompraDetalleId];
-                var bultosNuevos = bultosNuevaEntrega[item.OrdenCompraDetalleId];
+                var cantidadNueva = grupo.Value;
+                var bultosNuevos = bultosNuevaEntrega[grupo.Key];
 
                 if (cantidadNueva > cantidadPendiente)
                 {
-                    throw new Exception(
-                        $"La cantidad recibida de {detalleOrden.Material?.NombreMaterial} " +
-                        $"supera la cantidad pendiente. Pendiente: {cantidadPendiente} kg."
+                    throw new InvalidOperationException(
+                        $"La suma de los lotes de {detalleOrden.Material?.NombreMaterial} " +
+                        $"supera los KG pendientes. Pendiente: {cantidadPendiente:N2} kg. " +
+                        $"Ingresado: {cantidadNueva:N2} kg."
                     );
                 }
 
                 if (bultosNuevos > bultosPendientes)
                 {
-                    throw new Exception(
-                        $"Los bultos recibidos de {detalleOrden.Material?.NombreMaterial} " +
-                        $"superan los bultos pendientes. Pendientes: {bultosPendientes}."
+                    throw new InvalidOperationException(
+                        $"La suma de los lotes de {detalleOrden.Material?.NombreMaterial} " +
+                        $"supera los bultos pendientes. Pendientes: {bultosPendientes:N0}. " +
+                        $"Ingresados: {bultosNuevos:N0}."
                     );
                 }
+            }
 
+            // Crear un registro independiente por cada lote.
+            foreach (var item in dto.Detalles)
+            {
                 var detalle = new RecepcionMercanciaDetalle
                 {
                     OrdenCompraDetalleId = item.OrdenCompraDetalleId,
                     CantidadRecibida = item.CantidadRecibida,
                     BultosRecibidos = item.BultosRecibidos,
-                    LoteProveedor = item.LoteProveedor,
-                    EstadoMaterial = item.EstadoMaterial,
+                    LoteProveedor = item.LoteProveedor.Trim(),
+                    EstadoMaterial = item.EstadoMaterial.Trim(),
                     Observaciones = item.Observaciones,
                     NumeroEntrega = numeroEntrega,
                     FechaEntrega = fechaEntrega,
@@ -348,14 +387,10 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 recepcion.Detalles.Add(detalle);
             }
 
-            if (!agregoDetalle)
-            {
-                throw new Exception(
-                    "Debe ingresar al menos una cantidad o bulto recibido."
-                );
-            }
+            // Cantidad de lotes creados en esta entrega.
+            var cantidadDetallesNuevos = dto.Detalles.Count;
 
-            // Guardamos el número de esta entrega.
+            // Guardar el número de esta entrega.
             recepcion.NumeroUltimaEntrega = numeroEntrega;
 
             await _context.SaveChangesAsync();
@@ -394,7 +429,7 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 $"para la orden de compra {orden.Numero}. " +
                 $"Proveedor: {orden.Proveedor?.Nombre ?? "No especificado"}. " +
                 $"Entrega número: {numeroEntrega}. " +
-                $"Cantidad de detalles recibidos: {recepcion.Detalles.Count}. " +
+                $"Cantidad de lotes recibidos en esta entrega: {cantidadDetallesNuevos}. " +
                 $"Estado de la orden: {orden.Estado}.",
                 recepcion.Id);
 
@@ -403,22 +438,22 @@ namespace SistemaFlota.Services.Costos.RecepcionMercancia
                 dto.Usuarios
             );
 
+            // Retornar los totales de toda la recepción.
             return new RecepcionMercanciaDto
             {
                 Id = recepcion.Id,
                 ConsecutivoEntrada = recepcion.NumeroRecepcion,
                 OrdenCompraId = recepcion.OrdenCompraId,
                 NumeroOrden = orden.Numero,
-                Proveedor = orden.Proveedor?.Nombre ?? "",
+                Proveedor = orden.Proveedor?.Nombre ?? string.Empty,
                 FechaRecepcion = recepcion.FechaRecepcion,
                 Conductor = recepcion.Conductor,
                 Transportadora = recepcion.Transportadora,
                 EmbalajeAdecuado = recepcion.EmbalajeAdecuado,
-                TotalKg = recepcion.Detalles.Sum(x => x.CantidadRecibida),
-                TotalBultos = recepcion.Detalles.Sum(x => x.BultosRecibidos)
+                TotalKg = todosLosDetallesRecibidos.Sum(x => x.CantidadRecibida),
+                TotalBultos = todosLosDetallesRecibidos.Sum(x => x.BultosRecibidos)
             };
         }
-
 
         public async Task ConfirmarRecepcionAsync(int id)
         {
