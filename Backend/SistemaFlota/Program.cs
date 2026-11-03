@@ -222,7 +222,16 @@ builder.Services.AddScoped<ICorteInventarioNoFormalizadoPdfService,
 
 builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFormalizadaService>();
 
-builder.Services.AddSingleton<IMensajeriaService, FlotaChatService>();
+// FlotaChat: avisos por la integración con token y lista de usuarios para vincular.
+builder.Services.AddHttpClient(FlotaChatService.NombreCliente, c =>
+{
+    c.BaseAddress = new Uri((builder.Configuration["FlotaChat:ApiUrl"] ?? "https://apichat.gecobagsci.com").TrimEnd('/') + "/");
+    c.Timeout = TimeSpan.FromSeconds(15);
+});
+
+builder.Services.AddSingleton<FlotaChatService>();
+builder.Services.AddSingleton<IMensajeriaService>(sp => sp.GetRequiredService<FlotaChatService>());
+builder.Services.AddSingleton<IFlotaChatDirectorio>(sp => sp.GetRequiredService<FlotaChatService>());
 
 builder.Services.AddScoped<EntradasBodegaService>();
 builder.Services.AddScoped<MezclaOrdenService>();

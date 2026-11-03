@@ -789,10 +789,10 @@
           Volver
         </button>
 
-        <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF(registroSeleccionado)">
+        <!-- <button class="btn-pdf" [disabled]="generandoPdf" (click)="exportarPDF(registroSeleccionado)">
           <i class="fa-solid fa-file-pdf"></i>
           {{ generandoPdf ? 'Generando PDF...' : 'Exportar PDF' }}
-        </button>
+        </button> -->
 
         <button class="btn-pdf" [disabled]="generandoPdf" (click)="generarPdfIndividual(registroSeleccionado)">
           <i class="fa-solid fa-file-pdf"></i>
