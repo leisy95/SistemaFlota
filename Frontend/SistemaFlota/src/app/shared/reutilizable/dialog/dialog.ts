@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-dialog',
+  standalone: true,
   imports: [
     CommonModule
   ],

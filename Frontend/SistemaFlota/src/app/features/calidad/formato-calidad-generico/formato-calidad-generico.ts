@@ -13,12 +13,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmacion } from '../../../shared/dialog-confirmacion/dialog-confirmacion';
 import { DialogInput } from '../../../shared/dialog-input/dialog-input';
 import { environment } from '../../../../environments/environment';
+import { Dialog } from '../../../shared/reutilizable/dialog/dialog';
 
 
 @Component({
     selector: 'app-formato-calidad-generico',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        Dialog,
+    ],
     templateUrl: './formato-calidad-generico.html',
     styleUrls: ['./formato-calidad-generico.scss']
 })
@@ -27,6 +32,14 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     codigoFormato: string = '';
     tipoFormato: any = null;
     caracteristicas: any[] = [];
+
+    mostrarDialog = false;
+    tituloDialog = '';
+    mensajeDialog = '';
+
+    tipoDialog: 'success' | 'warning' | 'error' | 'info' = 'info';
+
+    textoBotonDialog = 'Aceptar';
 
     // ── Estado de la vista ──
     vista: 'lista' | 'nuevo' | 'ver' | 'editar' | 'liberar' = 'lista';
@@ -153,7 +166,7 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
         private opcionesService: OpcionesFormularioService,
         public permisos: PermisosService,
         private route: ActivatedRoute,
-        private dialog: MatDialog
+        private dialog: MatDialog,
     ) { }
 
     ngOnInit(): void {
@@ -203,6 +216,22 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
             this.cargar();
         }
     }
+
+    mostrarMensaje(
+        titulo: string,
+        mensaje: string,
+        tipo: 'success' | 'warning' | 'error' | 'info' = 'info'
+    ) {
+        this.tituloDialog = titulo;
+        this.mensajeDialog = mensaje;
+        this.tipoDialog = tipo;
+        this.mostrarDialog = true;
+    }
+
+    cerrarDialog() {
+        this.mostrarDialog = false;
+    }
+
     cambiarOperario() {
         this.operarioSesion = null;
         this.operarioSeleccionadoLogin = '';
@@ -680,10 +709,14 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
                 }
 
                 // Si ya fue liberada, no permitir continuar.
+                // Si ya fue liberada, no permitir continuar.
                 if (data.estado === 'Liberado') {
-                    alert(
-                        'Esta orden ya fue liberada/cerrada. No se puede continuar trabajando en ella.'
+                    this.mostrarMensaje(
+                        'Orden no disponible',
+                        'Esta orden ya fue liberada/cerrada. No se puede continuar trabajando en ella.',
+                        'warning'
                     );
+
                     this.opExistente = null;
                     return;
                 }
@@ -986,7 +1019,14 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     }
 
     guardar() {
-        if (!this.form.ordenProduccion.trim()) { alert('Ingrese la orden de produccion'); return; }
+        if (!this.form.ordenProduccion.trim()) {
+            this.mostrarMensaje(
+                'Campo obligatorio',
+                'Ingrese la orden de producción para continuar.',
+                'warning'
+            );
+            return;
+        }
 
         const resultadosData = {
             rondas: this.rondas,
@@ -1145,8 +1185,14 @@ export class FormatoCalidadGenericoComponent implements OnInit, OnDestroy {
     }
 
     guardarLiberacion() {
-        if (this.form.puedeLiberarse === null) { alert('Seleccione SI o NO'); return; }
-
+        if (this.form.puedeLiberarse === null) {
+            this.mostrarMensaje(
+                'Liberación pendiente',
+                'Seleccione SI o NO para continuar.',
+                'warning'
+            );
+            return;
+        }
         const dto = {
             puedeLiberarse: this.form.puedeLiberarse,
             explicacionNoLiberado: this.form.explicacionNoLiberado,

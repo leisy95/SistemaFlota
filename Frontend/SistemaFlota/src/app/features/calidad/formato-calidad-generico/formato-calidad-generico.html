@@ -163,6 +163,10 @@
     </button>
   </div>
 
+  <app-dialog [visible]="mostrarDialog" [titulo]="tituloDialog" [mensaje]="mensajeDialog" [tipo]="tipoDialog"
+    [textoBoton]="textoBotonDialog" (cerrar)="cerrarDialog()">
+  </app-dialog>
+
   <!-- VISTA NUEVO / EDITAR -->
   <ng-container *ngIf="vista === 'nuevo' || vista === 'editar' || vista === 'liberar'">
     <div class="form-card">
