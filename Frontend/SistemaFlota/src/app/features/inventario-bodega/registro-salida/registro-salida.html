@@ -1,0 +1,251 @@
+<div class="page-container">
+
+    <!-- HEADER -->
+    <section class="header-card">
+        <div>
+            <h1>Registrar Salidas</h1>
+            <p>Registra la salida de productos del inventario y asigna el cliente correspondiente.</p>
+        </div>
+
+        <div class="header-icon">
+            <i class="fa-solid fa-truck-fast"></i>
+        </div>
+    </section>
+
+    <!-- CARDS RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div class="stat-content">
+                <span>Productos agregados</span>
+                <strong>{{ totalProductos }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon pendiente">
+                <i class="fa-solid fa-weight-hanging"></i>
+            </div>
+            <div class="stat-content">
+                <span>Peso total</span>
+                <strong>{{ totalPeso | number:'1.0-2' }} kg</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon recepcionada">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <span>Cliente seleccionado</span>
+                <strong class="cliente-resumen">
+                    {{ clienteSeleccionado ? 'Seleccionado' : 'Pendiente' }}
+                </strong>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- FORMULARIO -->
+    <section class="filter-card">
+
+        <!-- ESCANEAR REFERENCIA -->
+        <div class="field">
+            <label>Escanear referencia</label>
+
+            <div class="input-icon">
+                <i class="fa-solid fa-barcode"></i>
+
+                <input type="text" placeholder="Escanea o escribe una referencia..." [(ngModel)]="filtroReferencia"
+                    (ngModelChange)="onScanChange($event)" autofocus>
+            </div>
+
+            <small class="field-help">
+                <i class="fa-solid fa-circle-info"></i>
+                Escanea la referencia del producto para agregarlo.
+            </small>
+        </div>
+
+        <!-- SELECCIONAR CLIENTE -->
+        <div class="field cliente-field">
+            <label>Cliente</label>
+
+            <div class="input-icon">
+                <i class="fa-solid fa-user"></i>
+
+                <input type="text" placeholder="Buscar o seleccionar cliente..." [(ngModel)]="clienteBusqueda"
+                    (focus)="abrirClientes()" (input)="clienteSeleccionado = null; mostrarClientes = true">
+
+                <button *ngIf="clienteBusqueda" type="button" class="btn-limpiar-cliente" title="Limpiar cliente"
+                    (click)="limpiarCliente()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- LISTA DE CLIENTES -->
+            <div class="autocomplete-list" *ngIf="mostrarClientes">
+
+                <button type="button" class="autocomplete-option" *ngFor="let cliente of clientesFiltrados"
+                    (click)="seleccionarCliente(cliente)">
+                    <span class="cliente-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </span>
+
+                    <span class="cliente-info">
+                        <strong>{{ cliente.nombre }}</strong>
+                        <small>NIT: {{ cliente.documento }}</small>
+                    </span>
+
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <div class="autocomplete-empty" *ngIf="clientesFiltrados.length === 0">
+                    <i class="fa-solid fa-user-slash"></i>
+                    No se encontraron clientes.
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <!-- TABLA DE PRODUCTOS -->
+    <section class="table-card">
+
+        <div class="table-header">
+            <div>
+                <h2>Productos para salida</h2>
+                <span>{{ totalProductos }} productos agregados</span>
+            </div>
+
+            <div class="table-header-icon">
+                <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+        </div>
+
+        <div class="tabla">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Referencia</th>
+                        <th>Referencia Peso</th>
+                        <th>Peso Actual</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let item of productosPaginados">
+
+                        <td data-label="Referencia" class="numero">
+                            {{ item.referencia }}
+                        </td>
+
+                        <td data-label="Referencia Peso">
+                            <span class="referencia-peso">
+                                {{ item.referenciaPeso }}
+                            </span>
+                        </td>
+
+                        <td data-label="Peso Actual" class="total">
+                            {{ item.pesoActual | number:'1.0-2' }} kg
+                        </td>
+
+                        <td data-label="Acciones" class="acciones">
+                            <button type="button" class="btn-accion eliminar" title="Eliminar producto"
+                                (click)="quitarSeleccionado(item)">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    <!-- SIN REGISTROS -->
+                    <tr *ngIf="productosSeleccionados.length === 0">
+                        <td colspan="4" class="sin-registros">
+                            <i class="fa-solid fa-box-open"></i>
+                            <strong>No hay productos agregados</strong>
+                            <p>Escanea una referencia para comenzar a registrar la salida.</p>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="totalProductos > 0">
+
+            <div class="info">
+                Mostrando {{ registrosInicio }} - {{ registrosFin }}
+                de {{ totalProductos }} productos
+            </div>
+
+            <div class="controles">
+
+                <label>
+                    Mostrar
+
+                    <select [(ngModel)]="pageSize" (ngModelChange)="cambiarPageSize()">
+                        <option [ngValue]="5">5</option>
+                        <option [ngValue]="10">10</option>
+                        <option [ngValue]="20">20</option>
+                    </select>
+
+                    registros
+                </label>
+
+                <button class="btn-pagina" [disabled]="paginaActual === 1" (click)="paginaAnterior()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Anterior
+                </button>
+
+                <span>
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                </span>
+
+                <button class="btn-pagina" [disabled]="paginaActual >= totalPaginas" (click)="paginaSiguiente()">
+                    Siguiente
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ACCIONES GENERALES -->
+    <section class="acciones-generales">
+
+        <div class="acciones-info">
+            <i class="fa-solid fa-circle-info"></i>
+            Verifica los productos y el cliente antes de confirmar la salida.
+        </div>
+
+        <div class="acciones-botones">
+
+            <button type="button" class="btn-cancelar" (click)="cancelarSalida()">
+                <i class="fa-solid fa-xmark"></i>
+                Cancelar salida
+            </button>
+
+            <button type="button" class="btn-confirmar" (click)="confirmarSalida()"
+                [disabled]="!productosSeleccionados.length">
+                <i class="fa-solid fa-check"></i>
+                Confirmar salida
+            </button>
+
+        </div>
+
+    </section>
+
+</div>

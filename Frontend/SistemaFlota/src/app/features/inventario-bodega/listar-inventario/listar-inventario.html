@@ -1,0 +1,251 @@
+<div class="page-container">
+
+    <!-- HEADER -->
+    <section class="header-card">
+        <div>
+            <h1>Inventario</h1>
+            <p>Consulta y administra los productos disponibles en inventario.</p>
+        </div>
+
+        <button class="btn-agregar" (click)="ModalRegistrarProducto()">
+            <i class="fa-solid fa-plus"></i>
+            Agregar producto
+        </button>
+    </section>
+
+    <!-- CARDS RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div class="stat-content">
+                <span>Total productos</span>
+                <strong>{{ totalProductos }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon pendiente">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+            <div class="stat-content">
+                <span>Peso total</span>
+                <strong>{{ pesoTotal | number:'1.0-2' }} kg</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon recepcionada">
+                <i class="fa-solid fa-cubes"></i>
+            </div>
+            <div class="stat-content">
+                <span>Unidades disponibles</span>
+                <strong>{{ cantidadTotal | number }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon parcial">
+                <i class="fa-solid fa-palette"></i>
+            </div>
+            <div class="stat-content">
+                <span>Colores registrados</span>
+                <strong>{{ totalColores }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon confirmada">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="stat-content">
+                <span>Tipos de material</span>
+                <strong>{{ totalMateriales }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon valor">
+                <i class="fa-solid fa-barcode"></i>
+            </div>
+            <div class="stat-content">
+                <span>Referencias</span>
+                <strong>{{ totalReferencias }}</strong>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- FILTROS -->
+    <section class="filter-card">
+
+        <div class="field">
+            <label>Buscar producto</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Referencia, producto..." [(ngModel)]="buscar"
+                    (ngModelChange)="aplicarFiltros()">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Tipo de material</label>
+            <select [(ngModel)]="materialFiltro" (change)="aplicarFiltros()">
+                <option value="">Todos</option>
+                <option *ngFor="let material of materiales" [value]="material">
+                    {{ material }}
+                </option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Color</label>
+            <select [(ngModel)]="colorFiltro" (change)="aplicarFiltros()">
+                <option value="">Todos</option>
+                <option *ngFor="let color of colores" [value]="color">
+                    {{ color }}
+                </option>
+            </select>
+        </div>
+
+        <button class="btn-filter" (click)="limpiarFiltros()">
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            Limpiar filtros
+        </button>
+
+    </section>
+
+    <!-- TABLA -->
+    <section class="table-card">
+
+        <div class="table-header">
+            <div>
+                <h2>Listado de productos</h2>
+                <span>Productos registrados en el inventario</span>
+            </div>
+
+            <button class="btn-recalcular" (click)="recalcular()" [disabled]="cargando">
+                <i class="fa-solid fa-rotate" [class.fa-spin]="cargando"></i>
+                {{ cargando ? 'Recalculando...' : 'Recalcular inventario' }}
+            </button>
+        </div>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Referencia</th>
+                        <th>Tipo bolsa</th>
+                        <th>Material</th>
+                        <th>Color</th>
+                        <th>Medidas</th>
+                        <th>Calibre</th>
+                        <th>Peso</th>
+                        <th>Cantidad</th>
+                        <th>Paquete</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of inventarioPaginado">
+
+                        <td data-label="Referencia" class="numero">
+                            {{ item.referencia }}
+                        </td>
+
+                        <td data-label="Tipo bolsa">
+                            {{ item.tipoBolsa }}
+                        </td>
+
+                        <td data-label="Material">
+                            {{ item.tipoMaterial }}
+                        </td>
+
+                        <td data-label="Color">
+                            <span class="color-badge">
+                                <span class="color-dot" [style.background]="obtenerColor(item.color)">
+                                </span>
+                                {{ item.color }}
+                            </span>
+                        </td>
+
+                        <td data-label="Medidas">
+                            <span class="medidas">
+                                {{ item.ancho }} × {{ item.alto }} cm
+                            </span>
+                        </td>
+
+                        <td data-label="Calibre">
+                            {{ item.calibre }}
+                        </td>
+
+                        <td data-label="Peso" class="peso">
+                            {{ item.peso }} kg
+                        </td>
+
+                        <td data-label="Cantidad" class="center">
+                            {{ item.cantidad | number }}
+                        </td>
+
+                        <td data-label="Paquete">
+                            {{ item.paqueteNumero }} /
+                            {{ item.paqueteCantidad }}
+                        </td>
+
+                        <td data-label="Acciones" class="acciones">
+                            <button class="btn-accion editar" title="Editar producto" (click)="editarInventario(item)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+
+                            <button class="btn-accion eliminar" title="Eliminar producto"
+                                (click)="eliminarInventario(item.id)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    <tr *ngIf="inventarioPaginado.length === 0">
+                        <td colspan="10" class="sin-registros">
+                            <i class="fa-solid fa-box-open"></i>
+                            <p>No se encontraron productos en el inventario.</p>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="totalFiltrado > 0">
+
+            <div class="info">
+                Mostrando {{ registrosInicio }} - {{ registrosFin }}
+                de {{ totalFiltrado }} productos
+            </div>
+
+            <div class="controles">
+
+                <button class="btn-pagina" [disabled]="pagina === 1" (click)="paginaAnterior()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Anterior
+                </button>
+
+                <span>
+                    Página {{ pagina }} de {{ totalPaginas }}
+                </span>
+
+                <button class="btn-pagina" [disabled]="pagina >= totalPaginas" (click)="paginaSiguiente()">
+                    Siguiente
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        </div>
+
+    </section>
+
+</div>

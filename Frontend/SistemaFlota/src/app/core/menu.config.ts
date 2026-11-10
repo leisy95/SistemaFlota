@@ -395,6 +395,36 @@ export const MENU_MODULOS: MenuItem[] = [
         permiso: 'traslado-compras-no-formalizadas'
     },
 
+    // INVENTARIO -BODEGA
+    {
+        key: 'listar-inventario',
+        label: 'Inventario',
+        icon: 'fa-solid fa-dolly',
+        ruta: '/inventario-bodega/listar-inventario',
+        modulo: 'inventario-bodega',
+    },
+    {
+        key: 'registrar-entrada',
+        label: 'Registrar entrada',
+        icon: 'fa-solid fa-dolly',
+        ruta: '/inventario-bodega/registrar-entrada',
+        modulo: 'inventario-bodega',
+    },
+    {
+        key: 'entradas',
+        label: 'Mostrar Entradas',
+        icon: 'fa-solid fa-dolly',
+        ruta: '/inventario-bodega/mostrar-entradas',
+        modulo: 'inventario-bodega',
+    },
+    {
+        key: 'salidas',
+        label: 'Registro salidas',
+        icon: 'fa-solid fa-dolly',
+        ruta: '/inventario-bodega/registro-salidas',
+        modulo: 'inventario-bodega',
+    },
+
     // HISTORIAL ODO
     {
         key: 'historial-odo-pedido-compra',

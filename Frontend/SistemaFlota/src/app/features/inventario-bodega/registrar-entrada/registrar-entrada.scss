@@ -1,0 +1,745 @@
+.page-container {
+    width: 100%;
+    padding: 25px;
+    padding-top: 87px;
+    box-sizing: border-box;
+    background: #f4f6f9;
+    min-height: 100vh;
+}
+
+.header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 24px 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 22px;
+
+    h1 {
+        margin: 0 0 17px;
+    }
+
+    p {
+        margin: 0;
+        color: #718096;
+        font-size: 14px;
+    }
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 23px;
+
+    &.total {
+        background: #e8f0fe;
+        color: #2563eb;
+    }
+
+    &.pendiente {
+        background: #fff4df;
+        color: #d97706;
+    }
+
+    &.recepcionada {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    span {
+        font-size: 13px;
+        color: #718096;
+    }
+
+    strong {
+        font-size: 23px;
+        color: #243b53;
+    }
+}
+
+.filter-card {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.field {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+}
+
+.input-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #dce2ea;
+    border-radius: 8px;
+    padding: 0 13px;
+    height: 44px;
+    background: #fff;
+
+    i {
+        color: #64748b;
+    }
+
+    input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 14px;
+        color: #334155;
+    }
+
+    &:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+}
+
+.btn-filter,
+.btn-agregar,
+.btn-pagina,
+.btn-confirmar {
+    height: 44px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 8px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-filter {
+    background: #2563eb;
+    color: white;
+
+    &:hover {
+        background: #1d4ed8;
+    }
+}
+
+.btn-agregar {
+    background: #0f766e;
+    color: white;
+
+    &:hover {
+        background: #115e59;
+    }
+}
+
+.btn-pagina {
+    background: #e2e8f0;
+    color: #334155;
+
+    &:hover {
+        background: #cbd5e1;
+    }
+}
+
+.btn-confirmar {
+    background: #16a34a;
+    color: white;
+
+    &:hover {
+        background: #15803d;
+    }
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* TARJETA DE INFORMACIÓN */
+
+.table-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 22px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+
+    h2 {
+        color: #243b53;
+        font-size: 20px;
+        margin: 0 0 6px;
+    }
+
+    p {
+        color: #718096;
+        font-size: 13px;
+        margin: 0;
+    }
+}
+
+.badge {
+    padding: 8px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &.confirmada {
+        background: #dcfce7;
+        color: #15803d;
+    }
+}
+
+.tabla {
+    width: 100%;
+    overflow-x: auto;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+
+        .total {
+            font-weight: 700;
+            color: #0f766e;
+        }
+    }
+}
+
+/* CARACTERÍSTICAS */
+
+.subtitulo {
+    font-size: 16px;
+    color: #334155;
+    margin: 25px 0 15px;
+}
+
+.caracteristicas {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+.caracteristica {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 9px;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    text-align: center;
+
+    span {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    strong {
+        font-size: 15px;
+        color: #243b53;
+    }
+}
+
+/* REFERENCIA IMPRESA */
+
+.referencia-impresa {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #dce2ea;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+
+    span {
+        font-size: 16px;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    strong {
+        font-size: 19px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        font-style: italic;
+        color: #334155;
+    }
+}
+
+/* CÓDIGO DE BARRAS */
+
+.barcode-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px auto;
+    padding: 0;
+    overflow: hidden;
+
+    h3 {
+        font-size: 15px;
+        color: #334155;
+        margin-bottom: 10px;
+    }
+
+    ngx-barcode6 {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 100%;
+    }
+
+    ::ng-deep svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+    }
+}
+
+.fecha-impresion {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 15px;
+}
+
+.acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+/* SIN REGISTROS */
+
+.sin-registros {
+    text-align: center;
+    padding: 55px 20px;
+
+    >i {
+        font-size: 55px;
+        color: #94a3b8;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        color: #334155;
+        font-size: 20px;
+    }
+
+    p {
+        color: #718096;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 1000px) {
+
+    .page-container {
+        margin-top: 10px;
+    }
+
+    .caracteristicas {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+    .page-container {
+        padding: 12px;
+    }
+
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+
+    .caracteristicas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-card {
+        align-items: stretch;
+    }
+
+    .field {
+        min-width: 100%;
+    }
+
+    .filter-card button {
+        flex: 1;
+    }
+
+    .table-card {
+        padding: 15px;
+    }
+
+    .table-header {
+        align-items: flex-start;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .acciones {
+        flex-direction: column;
+    }
+
+    .acciones button {
+        width: 100%;
+    }
+}
+
+/* IMPRESIÓN DE ETIQUETA
+   FORMATO ORIGINAL 160 x 117 mm */
+
+
+@media print {
+
+    @page {
+        size: 160mm 117mm;
+        margin: 0;
+    }
+
+    html,
+    body {
+        width: 160mm !important;
+        height: 117mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        background: white !important;
+    }
+
+    /* Ocultar todo el sistema */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* Mostrar únicamente el contenido de la etiqueta */
+    .page-container,
+    .page-container * {
+        visibility: visible !important;
+    }
+
+    /* Fijar la etiqueta a la página */
+    .page-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 160mm !important;
+        height: 117mm !important;
+        min-height: 117mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        background: white !important;
+    }
+
+    /* Ocultar elementos que no se imprimen */
+    .header-card,
+    .stats-container,
+    .filter-card,
+    .table-header,
+    .subtitulo,
+    .acciones,
+    .sin-registros,
+    app-sidebar,
+    app-topbar {
+        display: none !important;
+    }
+
+    /* CONTENEDOR PRINCIPAL DE LA ETIQUETA */
+    .table-card {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+
+        width: 160mm !important;
+        height: 117mm !important;
+        min-height: 117mm !important;
+
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 4mm !important;
+
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+
+        overflow: hidden !important;
+        background: white !important;
+
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Tabla original de ocho columnas */
+    .tabla {
+        display: block !important;
+        width: 100% !important;
+        overflow: visible !important;
+        margin-bottom: 15px !important;
+
+        table {
+            display: table !important;
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+
+            thead {
+                display: table-header-group !important;
+            }
+
+            tbody {
+                display: table-row-group !important;
+            }
+
+            tr {
+                display: table-row !important;
+            }
+
+            th,
+            td {
+                display: table-cell !important;
+                border: 1px solid #000 !important;
+                padding: 7px 2px !important;
+                text-align: center !important;
+                font-size: 18px !important;
+                color: #222 !important;
+                white-space: normal !important;
+            }
+
+            th {
+                font-weight: bold !important;
+                background: #f0f0f0 !important;
+            }
+        }
+    }
+
+    /* Seis cuadros de características */
+    .caracteristicas {
+        display: grid !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .caracteristica {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        min-width: 0 !important;
+        min-height: 80px !important;
+        box-sizing: border-box !important;
+        padding: 8px 4px !important;
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        background: white !important;
+
+        span {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            color: #222 !important;
+        }
+
+        strong {
+            font-size: 18px !important;
+            font-weight: normal !important;
+            color: #222 !important;
+            overflow-wrap: anywhere !important;
+        }
+    }
+
+    /* REFERENCIA */
+    .referencia-impresa {
+        display: flex !important;
+        flex: 0 0 auto !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        width: 100% !important;
+        height: 17mm !important;
+        min-height: 17mm !important;
+
+        box-sizing: border-box !important;
+        margin: 0 0 2mm 0 !important;
+        padding: 1mm !important;
+
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        gap: 1mm !important;
+
+        span {
+            font-size: 11px !important;
+            font-weight: bold !important;
+            color: #000 !important;
+        }
+
+        strong {
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            font-style: italic !important;
+            letter-spacing: 1px !important;
+            color: #000 !important;
+            overflow-wrap: anywhere !important;
+            text-align: center !important;
+        }
+    }
+
+    /* CÓDIGO DE BARRAS */
+    .barcode-section {
+        display: flex !important;
+        flex: 0 0 25mm !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        width: 100% !important;
+        height: 25mm !important;
+        min-height: 25mm !important;
+
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: visible !important;
+        visibility: visible !important;
+
+        h3 {
+            display: none !important;
+        }
+
+        ngx-barcode6 {
+            display: block !important;
+            width: 100% !important;
+            max-width: 145mm !important;
+            height: 23mm !important;
+            text-align: center !important;
+            visibility: visible !important;
+            overflow: visible !important;
+        }
+
+        svg {
+            display: block !important;
+            visibility: visible !important;
+
+            width: 145mm !important;
+            max-width: 100% !important;
+            height: 23mm !important;
+
+            margin: 0 auto !important;
+        }
+
+        canvas {
+            display: block !important;
+            visibility: visible !important;
+            max-width: 100% !important;
+            height: 23mm !important;
+            margin: 0 auto !important;
+        }
+    }
+
+    /* FECHA DE IMPRESIÓN */
+    .fecha-impresion {
+        display: block !important;
+        flex: 0 0 auto !important;
+
+        position: static !important;
+
+        width: 100% !important;
+        height: 6mm !important;
+
+        box-sizing: border-box !important;
+        margin: 1mm 0 0 0 !important;
+        padding: 0 !important;
+
+        text-align: center !important;
+        font-size: 10px !important;
+        line-height: 6mm !important;
+        color: #000 !important;
+
+        visibility: visible !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .tabla table tbody tr td::before,
+    .tabla table tbody tr td::after {
+        content: none !important;
+        display: none !important;
+    }
+}

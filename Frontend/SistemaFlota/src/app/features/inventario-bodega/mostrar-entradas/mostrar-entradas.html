@@ -1,0 +1,240 @@
+<div class="page-container">
+
+    <!-- HEADER -->
+    <section class="header-card">
+        <div>
+            <h1>Entradas de Inventario</h1>
+            <p>Consulta y administra las entradas de mercancía al inventario.</p>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn-devolucion" routerLink="/inventario-bodega/devoluciones"
+                *ngIf="rol === 'Administrador' || rol === 'Auxiliar' || rol === 'Despachador'">
+
+                <i class="fa-solid fa-rotate-left"></i>
+                Devoluciones
+            </button>
+
+            <button class="btn-ajuste" (click)="activarModoAjuste()" *ngIf="!modoAjuste"
+                [disabled]="rol === 'Auxiliar' || rol === 'Precorte' || rol === 'Invitado'">
+                <i class="fa-solid fa-sliders"></i>
+                Ajuste general
+            </button>
+        </div>
+    </section>
+
+    <!-- CARDS RESUMEN -->
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div class="stat-content">
+                <span>Total Entradas</span>
+                <strong>{{ total }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon pendiente">
+                <i class="fa-solid fa-box"></i>
+            </div>
+            <div class="stat-content">
+                <span>En Almacén</span>
+                <strong>{{ totalEnAlmacen }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon recepcionada">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <span>Otros Estados</span>
+                <strong>{{ totalOtrosEstados }}</strong>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- FILTROS -->
+    <section class="filter-card">
+
+        <div class="field">
+            <label>Buscar entrada</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Referencia, estado..." (keyup)="aplicarFiltro($event)">
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Filtrar por fecha</label>
+            <div class="input-icon">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" (change)="filtrarPorFecha($event)">
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ACCIONES AJUSTE -->
+    <section class="ajuste-card" *ngIf="modoAjuste">
+
+        <div class="ajuste-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>
+                Selecciona las entradas que deseas incluir en el ajuste general.
+            </span>
+            <strong>{{ seleccionadas.length }} seleccionadas</strong>
+        </div>
+
+        <div class="ajuste-actions">
+            <button class="btn-confirmar" (click)="confirmarAjusteGeneral()"
+                [disabled]="!seleccionadas.length || rol !== 'Administrador'">
+                <i class="fa-solid fa-check"></i>
+                Confirmar ajuste
+            </button>
+
+            <button class="btn-cancelar" (click)="cancelarAjuste()">
+                Cancelar
+            </button>
+        </div>
+
+    </section>
+
+    <!-- TABLA -->
+    <section class="table-card">
+
+        <div class="table-header">
+            <div>
+                <h2>Listado de Entradas</h2>
+                <span>{{ entradasFiltradas.length }} registros encontrados</span>
+            </div>
+        </div>
+
+        <div class="tabla">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th *ngIf="modoAjuste" class="check-column">
+                            Seleccionar
+                        </th>
+                        <th>Referencia</th>
+                        <th>Referencia Peso</th>
+                        <th>Fecha Ingreso</th>
+                        <th>Peso Actual</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let item of registrosPaginados">
+
+                        <!-- CHECKBOX -->
+                        <td *ngIf="modoAjuste" data-label="Seleccionar">
+                            <input type="checkbox" class="check-input" [checked]="estaSeleccionada(item)"
+                                (change)="toggleSeleccion(item)">
+                        </td>
+
+                        <!-- REFERENCIA -->
+                        <td data-label="Referencia" class="numero">
+                            {{ item.referencia }}
+                        </td>
+
+                        <!-- REFERENCIA PESO -->
+                        <td data-label="Referencia Peso">
+                            {{ item.referenciaPeso }}
+                        </td>
+
+                        <!-- FECHA -->
+                        <td data-label="Fecha Ingreso">
+                            <i class="fa-regular fa-calendar"></i>
+                            {{ item.fechaRegistroItem | date:'dd/MM/yyyy HH:mm' }}
+                        </td>
+
+                        <!-- PESO -->
+                        <td data-label="Peso Actual" class="total">
+                            {{ item.pesoActual | number:'1.0-2' }} kg
+                        </td>
+
+                        <!-- ESTADO -->
+                        <td data-label="Estado">
+                            <span class="badge" [ngClass]="item.estado.toLowerCase()">
+                                {{ item.estado }}
+                            </span>
+                        </td>
+
+                        <!-- ACCIONES -->
+                        <td data-label="Acciones" class="acciones">
+
+                            <button class="btn-accion btn-eliminar" title="Eliminar entrada"
+                                (click)="eliminarItem(item.id)" [disabled]="item.estado !== 'EN_ALMACEN' ||
+                           rol === 'Auxiliar' ||
+                           rol === 'Precorte' ||
+                           rol === 'Invitado'">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+
+                            <button class="btn-accion btn-imprimir" title="Imprimir etiqueta"
+                                (click)="reimprimirEtiqueta(item)"
+                                [disabled]="rol === 'Auxiliar' || rol === 'Invitado'">
+                                <i class="fa-solid fa-print"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    <!-- SIN REGISTROS -->
+                    <tr *ngIf="entradasFiltradas.length === 0">
+                        <td [attr.colspan]="modoAjuste ? 7 : 6" class="sin-registros">
+                            <i class="fa-solid fa-box-open"></i>
+                            <p>No se encontraron entradas de inventario.</p>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion">
+
+            <div class="info">
+                Mostrando {{ registrosInicio }} - {{ registrosFin }}
+                de {{ entradasFiltradas.length }} registros
+            </div>
+
+            <div class="controles">
+                <label>Registros por página</label>
+
+                <select [value]="pageSize" (change)="cambiarPageSize($event)">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                </select>
+
+                <button class="btn-pagina" [disabled]="paginaActual === 1" (click)="paginaAnterior()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span>
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                </span>
+
+                <button class="btn-pagina" [disabled]="paginaActual >= totalPaginas" (click)="paginaSiguiente()">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>

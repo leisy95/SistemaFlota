@@ -389,10 +389,22 @@ tbody td {
   border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
   width: auto;
+  transition: all 0.2s ease;
 
   &:hover {
     background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -670,4 +682,48 @@ tbody td {
     grid-template-columns: 1fr !important;
   }
 
+}
+
+@media print {
+
+  /* Ocultar encabezado del sistema */
+  app-header,
+  .topbar,
+  header.topbar {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Ocultar menú lateral */
+  app-sidebar,
+  .sidebar,
+  .sidebar-overlay,
+  .menu-lateral {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Ocultar botón hamburguesa */
+  .btn-hamburguesa,
+  button.btn-hamburguesa,
+  .menu-toggle,
+  .menu-hamburguesa,
+  .sidebar-toggle,
+  .mobile-toggle,
+  .toggle-sidebar {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Quitar espacio reservado al menú lateral */
+  .main-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .main-content.expandido {
+    margin-left: 0 !important;
+  }
 }

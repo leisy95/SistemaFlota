@@ -20,6 +20,7 @@ export const routes: Routes = [
 
 
   // SISTEMA CON SIDEBAR
+
   {
     path: '',
     component: Layout,
@@ -74,6 +75,13 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/compras-no-formalizadas/compras.routes')
             .then(r => r.COMPRAS_ROUTES)
+      },
+
+      {
+        path: 'inventario-bodega',
+        loadChildren: () =>
+          import('./features/inventario-bodega/inventario-bodega.routes')
+            .then(r => r.INVENTARIOBODEGA_ROUTES)
       },
 
       {
