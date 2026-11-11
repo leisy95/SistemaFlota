@@ -19,7 +19,10 @@ using SistemaFlota.Models.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.HistorialVersionOdo;
 using SistemaFlota.Models.Idempotencia;
-using SistemaFlota.Models.InventarioBodega;
+using SistemaFlota.Models.InventariosBodega.Clientes;
+using SistemaFlota.Models.InventariosBodega.EntradasBodega;
+using SistemaFlota.Models.InventariosBodega.Inventario;
+using SistemaFlota.Models.InventariosBodega.SalidasBodega;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 
@@ -115,11 +118,18 @@ namespace SistemaFlota
         public DbSet<PedidoCompra> PedidosCompra { get; set; }
         public DbSet<MovimientoProducto> MovimientosProducto { get; set; }
 
-        // InventarioBodega
-        // -- Inventario Bodega --
+        // Inventario Bodega
+
+        // Clientes Bodega
+        public DbSet<Cliente> Clientes { get; set; }
         public DbSet<InventarioBodega> InventariosBodega { get; set; }
         public DbSet<InventarioBodegaItem> InventariosBodegaItems { get; set; }
         public DbSet<MovimientoInventarioBodega> MovimientosInventarioBodega { get; set; }
+
+        // Salidas Bodega
+        public DbSet<SalidaBodega> SalidasBodega { get; set; }
+
+        public DbSet<SalidaBodegaDetalle> SalidasBodegaDetalles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -419,6 +429,38 @@ namespace SistemaFlota
 
             modelBuilder.Entity<MovimientoInventarioBodega>()
                 .HasIndex(m => m.Fecha);
+
+            // SALIDAS DE BODEGA
+            modelBuilder.Entity<SalidaBodega>()
+                .HasOne(s => s.Cliente)
+                .WithMany(c => c.SalidasBodega)
+                .HasForeignKey(s => s.ClienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SalidaBodega>()
+                .HasMany(s => s.Detalles)
+                .WithOne(d => d.SalidaBodega)
+                .HasForeignKey(d => d.SalidaBodegaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación SalidaBodegaDetalle - InventarioBodegaItem
+            modelBuilder.Entity<SalidaBodegaDetalle>()
+                .HasOne(d => d.InventarioBodegaItem)
+                .WithMany()
+                .HasForeignKey(d => d.InventarioBodegaItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SalidaBodegaDetalle>()
+                .HasIndex(d => d.SalidaBodegaId);
+
+            modelBuilder.Entity<SalidaBodegaDetalle>()
+                .HasIndex(d => d.InventarioBodegaItemId);
+
+            modelBuilder.Entity<SalidaBodega>()
+                .HasIndex(s => s.Estado);
+
+            modelBuilder.Entity<SalidaBodega>()
+                .HasIndex(s => s.FechaCreacion);
         }
     }
 }

@@ -1,0 +1,100 @@
+<div class="modal-overlay" (click)="cerrarDialog()">
+
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+
+            <div>
+                <h2>
+                    {{ modoEdicion ? 'Editar cliente' : 'Registrar cliente' }}
+                </h2>
+
+                <p>
+                    {{ modoEdicion
+                    ? 'Modifica la información del cliente.'
+                    : 'Completa los datos para registrar un nuevo cliente.'
+                    }}
+                </p>
+            </div>
+
+            <button type="button" class="btn-cerrar" (click)="cerrarDialog()" [disabled]="guardando">
+                &times;
+            </button>
+
+        </div>
+
+        <!-- FORMULARIO -->
+        <form #formCliente="ngForm" (ngSubmit)="guardarCliente()">
+
+            <div class="modal-body">
+
+                <!-- NOMBRE -->
+                <div class="form-group">
+                    <label for="nombre">
+                        Nombre del cliente <span>*</span>
+                    </label>
+
+                    <input type="text" id="nombre" name="nombre" [(ngModel)]="formulario.nombre" required
+                        maxlength="150" placeholder="Ingrese el nombre del cliente">
+                </div>
+
+                <!-- DIRECCIÓN -->
+                <div class="form-group">
+                    <label for="direccion">Dirección</label>
+
+                    <input type="text" id="direccion" name="direccion" [(ngModel)]="formulario.direccion"
+                        maxlength="250" placeholder="Ingrese la dirección">
+                </div>
+
+                <!-- TELÉFONO -->
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+
+                    <input type="text" id="telefono" name="telefono" [(ngModel)]="formulario.telefono" maxlength="30"
+                        placeholder="Ingrese el teléfono">
+                </div>
+
+                <!-- EMAIL -->
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+
+                    <input type="email" id="email" name="email" [(ngModel)]="formulario.email" maxlength="150" email
+                        #emailInput="ngModel" placeholder="ejemplo@correo.com">
+
+                    <small class="error-text" *ngIf="emailInput.invalid && emailInput.touched">
+                        Ingrese un correo electrónico válido.
+                    </small>
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+
+                <button type="button" class="btn-cancelar" (click)="cerrarDialog()" [disabled]="guardando">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="btn-guardar" [disabled]="guardando || formCliente.invalid">
+
+                    <i class="fas" [ngClass]="modoEdicion ? 'fa-save' : 'fa-plus'">
+                    </i>
+
+                    {{
+                    guardando
+                    ? 'Guardando...'
+                    : (modoEdicion
+                    ? 'Actualizar cliente'
+                    : 'Guardar cliente')
+                    }}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

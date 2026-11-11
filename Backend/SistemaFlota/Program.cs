@@ -51,8 +51,10 @@ using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.InformacionKasoft;
 using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
 using SistemaFlota.Services.InventarioBodega;
+using SistemaFlota.Services.InventarioBodega.Clientes;
 using SistemaFlota.Services.InventarioBodega.EntradasBodega;
 using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
+using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
@@ -253,8 +255,10 @@ builder.Services.AddScoped<IPedidoCompraService, PedidoCompraService>();
 builder.Services.AddScoped<IMovimientoProductoService, MovimientoProductoService>();
 
 // Inventario Bodega
+builder.Services.AddScoped<IClienteBodegaService, ClienteBodegaService>();
 builder.Services.AddScoped<IInventarioBodegaService, InventarioBodegaService>();
 builder.Services.AddScoped<IEntradaInventarioService, EntradaInventarioService>();
+builder.Services.AddScoped<ISalidaBodegaService, SalidaBodegaService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();

@@ -1,0 +1,331 @@
+.page-container {
+    padding: 24px;
+    padding-top: 87px;
+    background: var(--fondo);
+    min-height: 100%;
+}
+
+/* ENCABEZADO */
+.header-card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-claro);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    h1 {
+        margin: 0 0 17px;
+    }
+
+    p {
+        margin: 0;
+        color: var(--gris-oscuro);
+        font-size: 14px;
+    }
+}
+
+.header-icon {
+    width: 55px;
+    height: 55px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: var(--verde-suave);
+    color: var(--verde-oscuro);
+    font-size: 23px;
+}
+
+.table-card,
+.filter-card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-claro);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* ENCABEZADO TABLA */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+
+    h3 {
+        margin: 0 0 6px;
+        color: var(--azul-oscuro);
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    p {
+        margin: 0;
+        color: var(--gris-medio);
+        font-size: 13px;
+    }
+}
+
+.total-badge {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: var(--verde-suave);
+    color: var(--verde-oscuro);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* TABLA */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 550px;
+}
+
+.codigo-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    background: #F1F5F0;
+    color: var(--verde-oscuro);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.peso-text {
+    color: var(--azul-oscuro);
+    font-weight: 700;
+}
+
+.estado-badge {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 20px;
+    background: var(--verde-suave);
+    color: var(--verde-oscuro);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* FORMULARIO */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+
+    i {
+        color: var(--verde-oscuro);
+        font-size: 18px;
+    }
+
+    h3 {
+        margin: 0;
+        color: var(--azul-oscuro);
+        font-size: 17px;
+        font-weight: 700;
+    }
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+
+    label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--azul-medio);
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 110px;
+        padding: 13px 14px;
+        border: 1px solid var(--gris-claro);
+        border-radius: 9px;
+        background: #FAFCF9;
+        color: var(--azul-oscuro);
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: vertical;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &::placeholder {
+            color: #9AA6A0;
+        }
+
+        &:focus {
+            border-color: var(--verde-principal);
+            box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.16);
+            background: var(--blanco);
+        }
+    }
+}
+
+.error-text {
+    color: var(--rojo-oscuro);
+    font-size: 12px;
+}
+
+/* BOTONES */
+.acciones-generales {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    margin-bottom: 15px;
+}
+
+.btn-cancelar,
+.btn-confirmar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 43px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+}
+
+.btn-cancelar {
+    border: 1px solid var(--gris-claro);
+    background: var(--blanco);
+    color: var(--gris-oscuro);
+
+    &:hover:not(:disabled) {
+        background: #F1F3F0;
+        border-color: var(--gris-medio);
+    }
+}
+
+.btn-confirmar {
+    border: 1px solid var(--verde-oscuro);
+    background: var(--verde-oscuro);
+    color: var(--blanco);
+
+    &:hover:not(:disabled) {
+        background: var(--verde-oscuro-hover);
+        border-color: var(--verde-oscuro-hover);
+        transform: translateY(-1px);
+    }
+}
+
+/* SIN REGISTROS */
+.sin-registros {
+    padding: 45px 20px;
+    text-align: center;
+    color: var(--gris-medio);
+
+    i {
+        font-size: 38px;
+        margin-bottom: 14px;
+        color: var(--gris-medio);
+    }
+
+    h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        color: var(--gris-oscuro);
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+    }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .page-container {
+        padding: 14px;
+    }
+
+    .header-card,
+    .table-card,
+    .filter-card {
+        padding: 17px;
+    }
+
+    .header-info {
+        align-items: flex-start;
+
+        h1 {
+            font-size: 20px;
+        }
+
+        p {
+            line-height: 1.5;
+        }
+    }
+
+    .header-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 19px;
+    }
+
+    .table-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .acciones-generales {
+        flex-direction: column-reverse;
+        align-items: stretch;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .header-info {
+        gap: 12px;
+
+        h1 {
+            font-size: 18px;
+        }
+    }
+
+    .tabla {
+        min-width: 500px;
+    }
+}

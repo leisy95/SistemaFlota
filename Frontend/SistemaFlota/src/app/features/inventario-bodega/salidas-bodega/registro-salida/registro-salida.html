@@ -1,0 +1,273 @@
+<div class="salidas-container">
+
+    <!-- ENCABEZADO -->
+    <div class="header-card">
+        <div>
+            <h2 class="title">Registrar salidas</h2>
+            <p>Escanea los productos y registra su salida de inventario.</p>
+        </div>
+
+        <div class="header-status" *ngIf="idSalida">
+            <span class="estado-badge">
+                {{ estadoSalida === 'EN_PROCESO' ? 'En proceso' : estadoSalida }}
+            </span>
+        </div>
+    </div>
+
+    <!-- CARGANDO -->
+    <div class="loading-container" *ngIf="cargando">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Consultando salida actual...</span>
+    </div>
+
+    <!-- FORMULARIO -->
+    <div class="formulario-card">
+
+        <!-- ESCANEAR REFERENCIA -->
+        <div class="form-group">
+            <label for="filtroReferencia">
+                Escanear referencia
+            </label>
+
+            <div class="input-icon">
+                <i class="fa-solid fa-barcode"></i>
+
+                <input id="filtroReferencia" type="text" class="form-control" [(ngModel)]="filtroReferencia"
+                    (ngModelChange)="onScanChange($event)" placeholder="Escanea o escribe la referencia..."
+                    [disabled]="procesando || cargando || estadoSalida !== '' && estadoSalida !== 'EN_PROCESO'"
+                    autocomplete="off" autofocus />
+
+                <span class="input-loading" *ngIf="procesando">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </span>
+            </div>
+
+            <small class="form-hint">
+                Escanea el código QR o escribe la referencia del producto.
+            </small>
+        </div>
+
+        <!-- SELECCIONAR CLIENTE -->
+        <div class="form-group">
+            <label for="cliente">
+                Cliente <span class="required">*</span>
+            </label>
+
+            <div class="autocomplete-container">
+
+                <div class="input-icon">
+                    <i class="fa-solid fa-user"></i>
+
+                    <input id="cliente" type="text" class="form-control" [(ngModel)]="clienteBusqueda"
+                        placeholder="Busca por nombre o documento..." (focus)="abrirClientes()"
+                        (input)="abrirClientes()" autocomplete="off" />
+
+                    <button type="button" class="btn-clear" *ngIf="clienteSeleccionado" (click)="limpiarCliente()"
+                        title="Limpiar cliente">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="autocomplete-list" *ngIf="mostrarClientes && !clienteSeleccionado">
+
+                    <button type="button" class="autocomplete-option" *ngFor="let cliente of clientesFiltrados"
+                        (click)="seleccionarCliente(cliente)">
+
+                        <div class="cliente-info">
+                            <strong>{{ cliente.nombre }}</strong>
+                            <small>{{ cliente.documento }}</small>
+                        </div>
+
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+
+                    <div class="autocomplete-empty" *ngIf="clientesFiltrados.length === 0">
+                        No se encontraron clientes.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <small class="form-hint" *ngIf="clienteSeleccionado">
+                Cliente seleccionado:
+                {{ clienteSeleccionado.nombre }}
+            </small>
+        </div>
+
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="resumen-grid">
+
+        <div class="resumen-card">
+            <div class="resumen-icon productos">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div>
+                <span>Total productos</span>
+                <strong>{{ totalProductos }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card">
+            <div class="resumen-icon peso">
+                <i class="fa-solid fa-weight-hanging"></i>
+            </div>
+
+            <div>
+                <span>Peso total</span>
+                <strong>{{ totalPeso | number:'1.2-2' }} kg</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TABLA DE PRODUCTOS -->
+    <div class="tabla-card">
+
+        <div class="tabla-header">
+            <div>
+                <h3>Productos seleccionados</h3>
+                <p>Productos incluidos en la salida actual.</p>
+            </div>
+
+            <span class="contador">
+                {{ totalProductos }} productos
+            </span>
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="tabla-salidas">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Referencia peso</th>
+                        <th>Peso actual</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let element of productosPaginados; let i = index">
+
+                        <td>
+                            {{ (paginaActual - 1) * pageSize + i + 1 }}
+                        </td>
+
+                        <td>
+                            <span class="referencia">
+                                {{ element.referenciaPeso }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ element.pesoActual | number:'1.2-2' }} kg
+                            </strong>
+                        </td>
+
+                        <td class="text-center">
+                            <button type="button" class="btn-eliminar" title="Eliminar producto"
+                                (click)="quitarSeleccionado(element)" [disabled]="procesando">
+
+                                <i class="fa-solid fa-trash"></i>
+                                Eliminar
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    <tr *ngIf="!totalProductos">
+                        <td colspan="4" class="empty-state">
+                            <i class="fa-solid fa-box-open"></i>
+
+                            <strong>No hay productos agregados</strong>
+
+                            <span>
+                                Escanea una referencia para comenzar.
+                            </span>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="totalProductos">
+
+            <label>
+                Mostrar
+
+                <select [(ngModel)]="pageSize" (ngModelChange)="cambiarPageSize()">
+
+                    <option [ngValue]="5">5</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+
+                </select>
+
+                registros
+            </label>
+
+            <div class="paginacion-info">
+                Mostrando {{ registrosInicio }} -
+                {{ registrosFin }} de {{ totalProductos }}
+            </div>
+
+            <div class="paginacion-botones">
+
+                <button type="button" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Anterior
+                </button>
+
+                <span>
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                </span>
+
+                <button type="button" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">
+                    Siguiente
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="acciones">
+
+        <button type="button" class="btn-cancelar" (click)="cancelarSalida()" [disabled]="!idSalida || procesando">
+
+            <i class="fa-solid fa-ban"></i>
+            Cancelar salida
+        </button>
+
+        <button type="button" class="btn-confirmar" (click)="confirmarSalida()"
+            [disabled]="!idSalida || !totalProductos || !clienteSeleccionado || procesando">
+
+            <i class="fa-solid fa-check"></i>
+
+            <span *ngIf="!procesando">
+                Confirmar salida
+            </span>
+
+            <span *ngIf="procesando">
+                Procesando...
+            </span>
+
+        </button>
+
+    </div>
+
+</div>

@@ -1,0 +1,204 @@
+<div class="page-container">
+
+    <!-- HEADER -->
+    <div class="header-card">
+
+        <div>
+            <h1>Clientes de Bodega</h1>
+            <p>Consulta los clientes registrados en el inventario de bodega.</p>
+        </div>
+
+        <div class="header-info">
+            Total clientes: {{ total }}
+        </div>
+
+        <button class="btn-agregar" type="button" (click)="abrirCrearCliente()">
+
+            <i class="fas fa-plus"></i>
+            Agregar cliente
+
+        </button>
+
+    </div>
+
+    <!-- FILTROS -->
+    <div class="table-card">
+
+        <div class="filtros-container">
+
+            <!-- BÚSQUEDA GENERAL -->
+            <div class="filtro-item">
+
+                <label>Buscar cliente</label>
+
+                <input type="text" [(ngModel)]="buscar" placeholder="Nombre, dirección, teléfono o email..."
+                    (keyup.enter)="aplicarFiltros()">
+
+            </div>
+
+            <!-- FILTRO NOMBRE -->
+            <div class="filtro-item">
+
+                <label>Nombre</label>
+
+                <input type="text" [(ngModel)]="filtroNombre" placeholder="Filtrar por nombre"
+                    (keyup.enter)="aplicarFiltros()">
+
+            </div>
+
+            <!-- FILTRO TELÉFONO -->
+            <div class="filtro-item">
+
+                <label>Teléfono</label>
+
+                <input type="text" [(ngModel)]="filtroTelefono" placeholder="Filtrar por teléfono"
+                    (keyup.enter)="aplicarFiltros()">
+
+            </div>
+
+            <!-- FILTRO EMAIL -->
+            <div class="filtro-item">
+
+                <label>Email</label>
+
+                <input type="text" [(ngModel)]="filtroEmail" placeholder="Filtrar por email"
+                    (keyup.enter)="aplicarFiltros()">
+
+            </div>
+
+            <!-- ACCIONES DE FILTROS -->
+            <div class="filtro-acciones">
+
+                <button type="button" class="btn-agregar" (click)="aplicarFiltros()">
+
+                    <i class="fas fa-search"></i>
+                    Buscar
+
+                </button>
+
+                <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
+
+                    <i class="fas fa-eraser"></i>
+                    Limpiar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABLA RESPONSIVE -->
+    <div class="table-card">
+
+        <div class="table-responsive">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Dirección</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <!-- CARGANDO -->
+                    <tr *ngIf="cargando">
+                        <td colspan="5" class="text-center">
+                            Cargando clientes...
+                        </td>
+                    </tr>
+
+                    <!-- LISTADO -->
+                    <tr *ngFor="let cliente of clientes">
+
+                        <td data-label="Nombre">
+                            {{ cliente.nombre }}
+                        </td>
+
+                        <td data-label="Dirección">
+                            {{ cliente.direccion || 'No registrada' }}
+                        </td>
+
+                        <td data-label="Teléfono">
+                            {{ cliente.telefono || 'No registrado' }}
+                        </td>
+
+                        <td data-label="Email">
+                            {{ cliente.email || 'No registrado' }}
+                        </td>
+
+                        <td data-label="Acciones">
+
+                            <button type="button" class="btn-editar" title="Editar cliente"
+                                (click)="abrirEditarCliente(cliente)">
+
+                                <i class="fas fa-edit"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    <!-- SIN REGISTROS -->
+                    <tr *ngIf="!cargando && clientes.length === 0">
+                        <td colspan="5" class="text-center">
+                            No hay clientes registrados.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="total > 0">
+
+            <div class="paginacion-info">
+
+                Mostrando
+                {{ (pagina - 1) * pageSize + 1 }}
+                -
+                {{ (pagina - 1) * pageSize + clientes.length }}
+                de {{ total }} clientes
+
+            </div>
+
+            <div class="paginacion-controles">
+
+                <button type="button" class="btn-pagina" [disabled]="pagina <= 1 || cargando"
+                    (click)="cambiarPagina(pagina - 1)">
+
+                    <i class="fas fa-chevron-left"></i>
+                    Anterior
+
+                </button>
+
+                <span class="pagina-actual">
+                    Página {{ pagina }} de {{ totalPaginas }}
+                </span>
+
+                <button type="button" class="btn-pagina" [disabled]="pagina >= totalPaginas || cargando"
+                    (click)="cambiarPagina(pagina + 1)">
+
+                    Siguiente
+                    <i class="fas fa-chevron-right"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

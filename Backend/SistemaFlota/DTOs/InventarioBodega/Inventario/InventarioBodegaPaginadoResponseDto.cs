@@ -1,6 +1,6 @@
 ﻿using SistemaFlota.DTOs.InventarioBodega.Inventario;
 using InventarioBodegaModel =
-    SistemaFlota.Models.InventarioBodega.InventarioBodega;
+    SistemaFlota.Models.InventariosBodega.Inventario.InventarioBodega;
 
 namespace SistemaFlota.DTOs.InventarioBodega
 {

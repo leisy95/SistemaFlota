@@ -15,7 +15,7 @@
 
     <form [formGroup]="form">
 
-        <!-- BÚSQUEDA Y CLIENTE -->
+        <!-- BÚSQUEDA Y OBSERVACIÓN -->
         <div class="filter-card">
 
             <div class="section-title">
@@ -25,45 +25,54 @@
 
             <div class="form-grid">
 
+                <!-- CÓDIGO DE BARRAS -->
                 <div class="field">
                     <label for="referenciaPeso">Código de barras</label>
 
                     <div class="input-icon">
                         <i class="fa-solid fa-barcode"></i>
+
                         <input id="referenciaPeso" type="text" formControlName="referenciaPeso"
                             placeholder="Escanee o escriba el código" (keyup.enter)="buscarItem()" />
                     </div>
 
                     <small class="error-text" *ngIf="form.get('referenciaPeso')?.invalid &&
-                   form.get('referenciaPeso')?.touched">
+                        form.get('referenciaPeso')?.touched">
+
                         El código es obligatorio.
+
                     </small>
                 </div>
 
+                <!-- BOTÓN BUSCAR -->
                 <div class="field field-button">
                     <label>&nbsp;</label>
-                    <button type="button" class="btn-buscar" (click)="buscarItem()">
+
+                    <button type="button" class="btn-buscar" (click)="buscarItem()" [disabled]="buscando || cargando">
+
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        Buscar item
+
+                        {{ buscando ? 'Buscando...' : 'Buscar item' }}
+
                     </button>
                 </div>
 
+                <!-- OBSERVACIÓN -->
                 <div class="field">
-                    <label for="clienteId">Cliente</label>
+                    <label for="observacion">Observación de devolución</label>
 
                     <div class="input-icon">
-                        <i class="fa-solid fa-users"></i>
-                        <select id="clienteId" formControlName="clienteId">
-                            <option value="">Seleccione un cliente</option>
-                            <option *ngFor="let cliente of clientes" [value]="cliente.id">
-                                {{ cliente.nombre }}
-                            </option>
-                        </select>
+                        <i class="fa-solid fa-comment"></i>
+
+                        <input id="observacion" type="text" formControlName="observacion"
+                            placeholder="Motivo de la devolución" />
                     </div>
 
-                    <small class="error-text" *ngIf="form.get('clienteId')?.invalid &&
-                   form.get('clienteId')?.touched">
-                        Seleccione un cliente.
+                    <small class="error-text" *ngIf="form.get('observacion')?.invalid &&
+                        form.get('observacion')?.touched">
+
+                        La observación es obligatoria.
+
                     </small>
                 </div>
 
@@ -71,8 +80,11 @@
 
             <!-- MENSAJE DE VALIDACIÓN -->
             <div class="item-ok" *ngIf="dataSource.length > 0">
+
                 <i class="fa-solid fa-circle-check"></i>
+
                 Item válido encontrado y listo para devolución.
+
             </div>
 
         </div>
@@ -94,16 +106,20 @@
             <div class="table-responsive" *ngIf="dataSource.length > 0; else sinProductos">
 
                 <table class="tabla">
+
                     <thead>
                         <tr>
                             <th>Referencia</th>
                             <th>Código de barras</th>
                             <th>Peso actual</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
 
                     <tbody>
+
                         <tr *ngFor="let item of dataSource">
+
                             <td data-label="Referencia">
                                 <strong>{{ item.referencia }}</strong>
                             </td>
@@ -119,18 +135,33 @@
                                     {{ item.pesoActual | number:'1.2-2' }} kg
                                 </span>
                             </td>
+
+                            <td data-label="Estado">
+                                <span class="codigo-badge">
+                                    {{ item.estado }}
+                                </span>
+                            </td>
+
                         </tr>
+
                     </tbody>
+
                 </table>
 
             </div>
 
             <ng-template #sinProductos>
+
                 <div class="sin-registros">
                     <i class="fa-solid fa-box-open"></i>
+
                     <h3>No hay productos para devolver</h3>
-                    <p>Escanee un código de barras y presione Buscar item.</p>
+
+                    <p>
+                        Escanee un código de barras y presione Buscar item.
+                    </p>
                 </div>
+
             </ng-template>
 
         </div>
@@ -138,15 +169,19 @@
         <!-- BOTONES -->
         <div class="acciones-generales">
 
-            <button type="button" class="btn-cancelar" (click)="regresar()">
+            <button type="button" class="btn-cancelar" (click)="regresar()" [disabled]="cargando">
+
                 <i class="fa-solid fa-arrow-left"></i>
+
                 Regresar
+
             </button>
 
             <button type="button" class="btn-confirmar" (click)="confirmarDevolucion()"
-                [disabled]="!inventarioItemId || cargando">
+                [disabled]="!inventarioItemId || cargando || buscando">
 
                 <i class="fa-solid fa-rotate-left"></i>
+
                 {{ cargando ? 'Procesando...' : 'Registrar devolución' }}
 
             </button>
@@ -154,4 +189,5 @@
         </div>
 
     </form>
+
 </div>

@@ -25,15 +25,29 @@ export const INVENTARIOBODEGA_ROUTES: Routes = [
     {
         path: 'registro-salidas',
         loadComponent: () =>
-            import('./registro-salida/registro-salida')
+            import('./salidas-bodega/registro-salida/registro-salida')
                 .then(c => c.RegistroSalida),
+    },
+
+    {
+        path: 'listar-clientes',
+        loadComponent: () =>
+            import('./clientes/cliente-bodega/cliente-bodega')
+                .then(c => c.ClienteBodega),
     },
 
     {
         path: 'devoluciones',
         loadComponent: () =>
-            import('./devoluciones/devoluciones')
+            import('./entradas-bodega/devoluciones/devoluciones')
                 .then(c => c.Devoluciones),
+    },
+
+    {
+        path: 'ajuste-general',
+        loadComponent: () =>
+            import('./entradas-bodega/ajuste-entradas/ajuste-entradas')
+                .then(c => c.AjusteEntradas),
     },
 
     {

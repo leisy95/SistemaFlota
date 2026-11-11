@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.InventarioBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
-using SistemaFlota.Models.InventarioBodega;
 using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Helper.InventariosBodega;
 
 using InventarioBodegaModel =
-    SistemaFlota.Models.InventarioBodega.InventarioBodega;
+    SistemaFlota.Models.InventariosBodega.Inventario.InventarioBodega;
 
 namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
 {

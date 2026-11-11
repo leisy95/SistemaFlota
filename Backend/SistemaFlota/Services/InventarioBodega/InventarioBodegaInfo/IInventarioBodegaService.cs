@@ -1,6 +1,6 @@
 ﻿using SistemaFlota.DTOs.InventarioBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
-using SistemaFlota.Models.InventarioBodega;
+using SistemaFlota.Models.InventariosBodega.Inventario;
 
 public interface IInventarioBodegaService
 {

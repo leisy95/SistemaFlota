@@ -1,8 +1,8 @@
-﻿
+﻿using SistemaFlota.Models.InventariosBodega.EntradasBodega;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SistemaFlota.Models.InventarioBodega
+namespace SistemaFlota.Models.InventariosBodega.Inventario
 {
     public class InventarioBodega
     {

@@ -1,7 +1,21 @@
+
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+
+import { EntradaInventarioService } from '../../../../core/services/inventario-bodega/entrada-inventario/entrada-inventario.service';
+import { NgxBarcode6 } from 'ngx-barcode6';
+
+interface EntradaInventario {
+  id: number;
+  referencia: string;
+  referenciaPeso: string;
+  fechaRegistroItem: string;
+  pesoActual: number;
+  estado: string;
+}
 
 @Component({
   selector: 'app-mostrar-entradas',
@@ -14,7 +28,8 @@ import { RouterModule } from '@angular/router';
   templateUrl: './mostrar-entradas.html',
   styleUrl: './mostrar-entradas.scss',
 })
-export class MostrarEntradas {
+export class MostrarEntradas implements OnInit {
+
   rol = 'Administrador';
 
   modoAjuste = false;
@@ -22,119 +37,103 @@ export class MostrarEntradas {
   buscar = '';
   fechaFiltro = '';
 
+  observacionAjuste = '';
+
   paginaActual = 1;
   pageSize = 5;
 
   seleccionadas: number[] = [];
 
-  // Datos quemados
-  entradas: any[] = [
-    {
-      id: 1,
-      referencia: 'MAT-001',
-      referenciaPeso: 'REF-P001',
-      fechaRegistroItem: '2026-11-09T08:30:00',
-      pesoActual: 250,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 2,
-      referencia: 'MAT-002',
-      referenciaPeso: 'REF-P002',
-      fechaRegistroItem: '2026-11-08T10:15:00',
-      pesoActual: 180,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 3,
-      referencia: 'MAT-003',
-      referenciaPeso: 'REF-P003',
-      fechaRegistroItem: '2026-11-07T14:20:00',
-      pesoActual: 320,
-      estado: 'DESPACHADO'
-    },
-    {
-      id: 4,
-      referencia: 'MAT-004',
-      referenciaPeso: 'REF-P004',
-      fechaRegistroItem: '2026-11-06T09:00:00',
-      pesoActual: 150,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 5,
-      referencia: 'MAT-005',
-      referenciaPeso: 'REF-P005',
-      fechaRegistroItem: '2026-11-05T11:45:00',
-      pesoActual: 400,
-      estado: 'ANULADO'
-    },
-    {
-      id: 6,
-      referencia: 'MAT-006',
-      referenciaPeso: 'REF-P006',
-      fechaRegistroItem: '2026-11-04T16:10:00',
-      pesoActual: 275,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 7,
-      referencia: 'MAT-007',
-      referenciaPeso: 'REF-P007',
-      fechaRegistroItem: '2026-11-03T13:25:00',
-      pesoActual: 190,
-      estado: 'DESPACHADO'
-    },
-    {
-      id: 8,
-      referencia: 'MAT-008',
-      referenciaPeso: 'REF-P008',
-      fechaRegistroItem: '2026-11-02T08:50:00',
-      pesoActual: 350,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 9,
-      referencia: 'MAT-009',
-      referenciaPeso: 'REF-P009',
-      fechaRegistroItem: '2026-11-01T12:30:00',
-      pesoActual: 210,
-      estado: 'EN_ALMACEN'
-    },
-    {
-      id: 10,
-      referencia: 'MAT-010',
-      referenciaPeso: 'REF-P010',
-      fechaRegistroItem: '2026-10-30T15:40:00',
-      pesoActual: 500,
-      estado: 'ANULADO'
-    }
-  ];
+  entradas: EntradaInventario[] = [];
+
+  // PARA REIMPRESIÓN
+  itemParaImprimir: EntradaInventario | null = null;
+  fechaReimpresion = new Date();
+
+  cargando = false;
+  cargandoAjuste = false;
+
+  constructor(
+    private entradaService: EntradaInventarioService,
+    private toastr: ToastrService,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarEntradas();
+  }
+
+  // CONSULTAR ENTRADAS DESDE LA API
+  cargarEntradas(): void {
+
+    this.cargando = true;
+
+    this.entradaService.obtenerEntradas().subscribe({
+
+      next: (respuesta) => {
+
+        this.entradas = respuesta ?? [];
+
+        this.paginaActual = 1;
+        this.cargando = false;
+
+      },
+
+      error: (error) => {
+
+        console.error('Error al consultar entradas:', error);
+
+        this.toastr.error(
+          'No fue posible cargar las entradas de inventario.'
+        );
+
+        this.cargando = false;
+
+      }
+
+    });
+  }
 
   // FILTROS
+  get entradasFiltradas(): EntradaInventario[] {
 
-  get entradasFiltradas(): any[] {
     return this.entradas.filter(item => {
 
-      const texto = this.buscar.toLowerCase();
+      const texto = this.buscar.trim().toLowerCase();
 
       const coincideTexto =
-        item.referencia.toLowerCase().includes(texto) ||
-        item.referenciaPeso.toLowerCase().includes(texto) ||
-        item.estado.toLowerCase().includes(texto);
+        (item.referencia ?? '').toLowerCase().includes(texto) ||
+        (item.referenciaPeso ?? '').toLowerCase().includes(texto) ||
+        (item.estado ?? '').toLowerCase().includes(texto);
 
-      const fechaItem = new Date(item.fechaRegistroItem)
-        .toLocaleDateString('en-CA');
+      const fechaItem = item.fechaRegistroItem
+        ? this.obtenerFechaLocal(item.fechaRegistroItem)
+        : '';
 
       const coincideFecha =
         !this.fechaFiltro || fechaItem === this.fechaFiltro;
 
       return coincideTexto && coincideFecha;
+
     });
   }
 
-  // ESTADÍSTICAS
+  private obtenerFechaLocal(fecha: string): string {
 
+    const date = new Date(fecha);
+
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    const anio = date.getFullYear();
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const dia = String(date.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
+  }
+
+  // ESTADÍSTICAS
   get total(): number {
     return this.entradas.length;
   }
@@ -152,7 +151,6 @@ export class MostrarEntradas {
   }
 
   // PAGINACIÓN
-
   get totalPaginas(): number {
     return Math.max(
       1,
@@ -160,7 +158,8 @@ export class MostrarEntradas {
     );
   }
 
-  get registrosPaginados(): any[] {
+  get registrosPaginados(): EntradaInventario[] {
+
     const inicio = (this.paginaActual - 1) * this.pageSize;
 
     return this.entradasFiltradas.slice(
@@ -182,23 +181,35 @@ export class MostrarEntradas {
     );
   }
 
+  // EVENTOS DE FILTROS
   aplicarFiltro(event: Event): void {
-    this.buscar = (event.target as HTMLInputElement).value;
+
+    this.buscar = (
+      event.target as HTMLInputElement
+    ).value;
+
     this.paginaActual = 1;
   }
 
   filtrarPorFecha(event: Event): void {
-    this.fechaFiltro = (event.target as HTMLInputElement).value;
+
+    this.fechaFiltro = (
+      event.target as HTMLInputElement
+    ).value;
+
     this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
+
     this.buscar = '';
     this.fechaFiltro = '';
     this.paginaActual = 1;
+
   }
 
   cambiarPageSize(event: Event): void {
+
     this.pageSize = Number(
       (event.target as HTMLSelectElement).value
     );
@@ -207,86 +218,125 @@ export class MostrarEntradas {
   }
 
   paginaAnterior(): void {
+
     if (this.paginaActual > 1) {
       this.paginaActual--;
     }
+
   }
 
   paginaSiguiente(): void {
+
     if (this.paginaActual < this.totalPaginas) {
       this.paginaActual++;
     }
+
   }
 
   // AJUSTE GENERAL
-
   activarModoAjuste(): void {
-    this.modoAjuste = true;
-    this.seleccionadas = [];
-  }
 
-  cancelarAjuste(): void {
-    this.modoAjuste = false;
-    this.seleccionadas = [];
-  }
-
-  toggleSeleccion(item: any): void {
-    if (this.estaSeleccionada(item)) {
-      this.seleccionadas = this.seleccionadas.filter(
-        id => id !== item.id
-      );
-    } else {
-      this.seleccionadas.push(item.id);
-    }
-  }
-
-  estaSeleccionada(item: any): boolean {
-    return this.seleccionadas.includes(item.id);
-  }
-
-  confirmarAjusteGeneral(): void {
-    if (this.rol !== 'Administrador' || !this.seleccionadas.length) {
+    if (this.rol !== 'Administrador') {
       return;
     }
 
-    console.log('Entradas seleccionadas:', this.seleccionadas);
+    this.modoAjuste = true;
+    this.seleccionadas = [];
+    this.observacionAjuste = '';
 
-    alert(
-      `Ajuste general realizado para ${this.seleccionadas.length} entradas (simulación).`
-    );
-
-    this.cancelarAjuste();
   }
 
-  // ACCIONES SIMULADAS
+  cancelarAjuste(): void {
 
+    this.modoAjuste = false;
+    this.seleccionadas = [];
+    this.observacionAjuste = '';
+
+  }
+
+  // SOLO SE PUEDEN SELECCIONAR ITEMS DISPONIBLES
+  toggleSeleccion(item: EntradaInventario): void {
+
+    if (item.estado !== 'EN_ALMACEN') {
+      this.toastr.warning(
+        'Solo puedes seleccionar items que estén en almacén.'
+      );
+      return;
+    }
+
+    if (this.estaSeleccionada(item)) {
+
+      this.seleccionadas = this.seleccionadas.filter(
+        id => id !== item.id
+      );
+
+    } else {
+
+      this.seleccionadas.push(item.id);
+
+    }
+
+  }
+
+  estaSeleccionada(item: EntradaInventario): boolean {
+
+    return this.seleccionadas.includes(item.id);
+
+  }
+
+  // EJECUTAR AJUSTE GENERAL REAL
+  confirmarAjusteGeneral(): void {
+
+    if (this.rol !== 'Administrador') {
+      this.toastr.warning('No tienes permisos para realizar ajustes.');
+      return;
+    }
+
+    if (this.seleccionadas.length === 0) {
+      this.toastr.warning('Debes seleccionar al menos un item.');
+      return;
+    }
+
+    const itemsSeleccionados = this.entradas.filter(
+      item => this.seleccionadas.includes(item.id) &&
+        item.estado?.toUpperCase() === 'EN_ALMACEN'
+    );
+
+    if (itemsSeleccionados.length === 0) {
+      this.toastr.warning('No hay elementos disponibles para ajustar.');
+      return;
+    }
+
+    this.router.navigate(
+      ['/inventario-bodega/ajuste-general'],
+      {
+        state: {
+          items: itemsSeleccionados
+        }
+      }
+    );
+  }
+
+  // ELIMINAR ENTRADA
   eliminarItem(id: number): void {
+
     const confirmar = confirm(
       '¿Estás seguro de eliminar esta entrada?'
     );
 
     if (!confirmar) return;
 
-    this.entradas = this.entradas.filter(
-      item => item.id !== id
-    );
+    // Pendiente de conectar con el endpoint de eliminación.
+    console.log('Eliminar entrada:', id);
 
-    this.seleccionadas = this.seleccionadas.filter(
-      itemId => itemId !== id
-    );
-
-    if (this.paginaActual > this.totalPaginas) {
-      this.paginaActual = this.totalPaginas;
-    }
   }
 
-  reimprimirEtiqueta(item: any): void {
-    alert(
-      `Simulación de impresión de etiqueta: ${item.referencia}`
-    );
+  // REIMPRIMIR ETIQUETA
+  reimprimirEtiqueta(item: EntradaInventario): void {
 
-    console.log('Etiqueta:', item);
+    // Pendiente de conectar con el endpoint de impresión.
+    console.log('Reimprimir etiqueta:', item);
+
   }
 
-  // NUEVA ORDEN / DEVOLUCIONES NO APLICAN EN ESTE MÓDULO
 }

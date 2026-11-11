@@ -395,33 +395,40 @@ export const MENU_MODULOS: MenuItem[] = [
         permiso: 'traslado-compras-no-formalizadas'
     },
 
-    // INVENTARIO -BODEGA
+    // INVENTARIO - BODEGA
     {
         key: 'listar-inventario',
         label: 'Inventario',
-        icon: 'fa-solid fa-dolly',
+        icon: 'fa-solid fa-boxes-stacked',
         ruta: '/inventario-bodega/listar-inventario',
         modulo: 'inventario-bodega',
     },
     {
         key: 'registrar-entrada',
         label: 'Registrar entrada',
-        icon: 'fa-solid fa-dolly',
+        icon: 'fa-solid fa-box-open',
         ruta: '/inventario-bodega/registrar-entrada',
         modulo: 'inventario-bodega',
     },
     {
         key: 'entradas',
         label: 'Mostrar Entradas',
-        icon: 'fa-solid fa-dolly',
+        icon: 'fa-solid fa-arrow-right-to-bracket',
         ruta: '/inventario-bodega/mostrar-entradas',
         modulo: 'inventario-bodega',
     },
     {
         key: 'salidas',
         label: 'Registro salidas',
-        icon: 'fa-solid fa-dolly',
+        icon: 'fa-solid fa-arrow-right-from-bracket',
         ruta: '/inventario-bodega/registro-salidas',
+        modulo: 'inventario-bodega',
+    },
+    {
+        key: 'listar-clientes',
+        label: 'Listar Clientes',
+        icon: 'fa-solid fa-users',
+        ruta: '/inventario-bodega/listar-clientes',
         modulo: 'inventario-bodega',
     },
 

@@ -7,11 +7,32 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SistemaFlota.Migrations
 {
     /// <inheritdoc />
-    public partial class CrearModuloInventarioBodega : Migration
+    public partial class CrearModuloInventarioBodegaCompleto : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Clientes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nombre = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Direccion = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Telefono = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clientes", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateTable(
                 name: "InventariosBodega",
                 columns: table => new
@@ -54,6 +75,33 @@ namespace SistemaFlota.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_InventariosBodega", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SalidasBodega",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Usuario = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Estado = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaSalida = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    FechaCancelacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ClienteId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SalidasBodega", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SalidasBodega_Clientes_ClienteId",
+                        column: x => x.ClienteId,
+                        principalTable: "Clientes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -122,6 +170,34 @@ namespace SistemaFlota.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "SalidasBodegaDetalles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SalidaBodegaId = table.Column<int>(type: "int", nullable: false),
+                    InventarioBodegaItemId = table.Column<int>(type: "int", nullable: false),
+                    FechaAgregado = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SalidasBodegaDetalles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SalidasBodegaDetalles_InventariosBodegaItems_InventarioBodeg~",
+                        column: x => x.InventarioBodegaItemId,
+                        principalTable: "InventariosBodegaItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SalidasBodegaDetalles_SalidasBodega_SalidaBodegaId",
+                        column: x => x.SalidaBodegaId,
+                        principalTable: "SalidasBodega",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_InventariosBodega_ReferenciaNormalizada",
                 table: "InventariosBodega",
@@ -147,6 +223,31 @@ namespace SistemaFlota.Migrations
                 name: "IX_MovimientosInventarioBodega_IdInventarioBodegaItem",
                 table: "MovimientosInventarioBodega",
                 column: "IdInventarioBodegaItem");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SalidasBodega_ClienteId",
+                table: "SalidasBodega",
+                column: "ClienteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SalidasBodega_Estado",
+                table: "SalidasBodega",
+                column: "Estado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SalidasBodega_FechaCreacion",
+                table: "SalidasBodega",
+                column: "FechaCreacion");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SalidasBodegaDetalles_InventarioBodegaItemId",
+                table: "SalidasBodegaDetalles",
+                column: "InventarioBodegaItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SalidasBodegaDetalles_SalidaBodegaId",
+                table: "SalidasBodegaDetalles",
+                column: "SalidaBodegaId");
         }
 
         /// <inheritdoc />
@@ -156,10 +257,19 @@ namespace SistemaFlota.Migrations
                 name: "MovimientosInventarioBodega");
 
             migrationBuilder.DropTable(
+                name: "SalidasBodegaDetalles");
+
+            migrationBuilder.DropTable(
                 name: "InventariosBodegaItems");
 
             migrationBuilder.DropTable(
+                name: "SalidasBodega");
+
+            migrationBuilder.DropTable(
                 name: "InventariosBodega");
+
+            migrationBuilder.DropTable(
+                name: "Clientes");
         }
     }
 }

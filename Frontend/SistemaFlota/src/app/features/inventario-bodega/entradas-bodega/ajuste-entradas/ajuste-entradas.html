@@ -1,0 +1,145 @@
+<div class="page-container">
+
+    <!-- ENCABEZADO -->
+    <div class="header-card">
+        <div class="header-info">
+            <div class="header-icon">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+
+            <div>
+                <h1>Ajuste de Entradas</h1>
+                <p>
+                    Revisa los productos seleccionados y registra
+                    el ajuste de inventario.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE ITEMS -->
+    <div class="table-card">
+
+        <div class="table-header">
+            <div>
+                <h3>Items seleccionados</h3>
+                <p>Detalle de las entradas que serán ajustadas.</p>
+            </div>
+
+            <span class="total-badge">
+                {{ items.length }} item(s)
+            </span>
+        </div>
+
+        <div class="table-responsive" *ngIf="items.length > 0; else sinItems">
+
+            <table class="tabla">
+
+                <thead>
+                    <tr>
+                        <th>Referencia</th>
+                        <th>Peso actual</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of items">
+
+                        <td data-label="Referencia">
+                            <span class="codigo-badge">
+                                {{ item.referenciaPeso }}
+                            </span>
+                        </td>
+
+                        <td data-label="Peso actual">
+                            <span class="peso-text">
+                                {{ item.pesoActual | number:'1.2-2' }} kg
+                            </span>
+                        </td>
+
+                        <td data-label="Estado">
+                            <span class="estado-badge">
+                                {{ item.estado }}
+                            </span>
+                        </td>
+
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <ng-template #sinItems>
+            <div class="sin-registros">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>No hay items seleccionados</h3>
+                <p>Selecciona los items que deseas ajustar.</p>
+            </div>
+        </ng-template>
+
+    </div>
+
+    <!-- FORMULARIO DE AJUSTE -->
+    <form [formGroup]="ajusteForm" (ngSubmit)="confirmarAjuste()">
+
+        <div class="filter-card">
+
+            <div class="section-title">
+                <i class="fa-solid fa-comment-dots"></i>
+                <h3>Información del ajuste</h3>
+            </div>
+
+            <div class="form-grid">
+
+                <div class="field field-full">
+                    <label for="observacion">
+                        Observación *
+                    </label>
+
+                    <textarea id="observacion" formControlName="observacion" rows="4"
+                        placeholder="Describe el motivo del ajuste de inventario...">
+                    </textarea>
+
+                    <small class="error-text" *ngIf="
+                            ajusteForm.get('observacion')?.invalid &&
+                            ajusteForm.get('observacion')?.touched
+                        ">
+
+                        La observación es obligatoria.
+
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- BOTONES -->
+        <div class="acciones-generales">
+
+            <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="loading">
+
+                <i class="fa-solid fa-arrow-left"></i>
+                Cancelar
+
+            </button>
+
+            <button type="submit" class="btn-confirmar" [disabled]="
+                    loading ||
+                    ajusteForm.invalid ||
+                    items.length === 0
+                ">
+
+                <i class="fa-solid fa-check"></i>
+
+                {{ loading ? 'Procesando...' : 'Confirmar ajuste' }}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
