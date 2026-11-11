@@ -3,30 +3,26 @@
     <div class="dialog">
 
         <div class="icono" [ngClass]="tipo">
-
-            <i *ngIf="tipo === 'success'" class="fa-solid fa-circle-check">
-            </i>
-
-            <i *ngIf="tipo === 'warning'" class="fa-solid fa-triangle-exclamation">
-            </i>
-
-            <i *ngIf="tipo === 'error'" class="fa-solid fa-circle-xmark">
-            </i>
-
-            <i *ngIf="tipo === 'info'" class="fa-solid fa-circle-info">
-            </i>
-
+            <i *ngIf="tipo === 'success'" class="fa-solid fa-circle-check"></i>
+            <i *ngIf="tipo === 'warning'" class="fa-solid fa-triangle-exclamation"></i>
+            <i *ngIf="tipo === 'error'" class="fa-solid fa-circle-xmark"></i>
+            <i *ngIf="tipo === 'info'" class="fa-solid fa-circle-info"></i>
+            <i *ngIf="tipo === 'question'" class="fa-solid fa-circle-question"></i>
         </div>
 
         <h2>{{ titulo }}</h2>
 
         <p>{{ mensaje }}</p>
 
-        <button class="btn" (click)="cerrarDialog()">
+        <div class="dialog-actions">
+            <button *ngIf="mostrarCancelar" class="btn btn-secondary" (click)="cancelar()">
+                {{ textoCancelar }}
+            </button>
 
-            {{ textoBoton }}
-
-        </button>
+            <button class="btn btn-primary" (click)="aceptar()">
+                {{ textoBoton }}
+            </button>
+        </div>
 
     </div>
 

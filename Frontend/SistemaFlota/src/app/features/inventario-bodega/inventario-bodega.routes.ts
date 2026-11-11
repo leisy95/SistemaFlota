@@ -11,14 +11,14 @@ export const INVENTARIOBODEGA_ROUTES: Routes = [
     {
         path: 'listar-inventario',
         loadComponent: () =>
-            import('./listar-inventario/listar-inventario')
+            import('./inventario/listar-inventario/listar-inventario')
                 .then(c => c.ListarInventario),
     },
 
     {
         path: 'mostrar-entradas',
         loadComponent: () =>
-            import('./mostrar-entradas/mostrar-entradas')
+            import('./entradas-bodega/mostrar-entradas/mostrar-entradas')
                 .then(c => c.MostrarEntradas),
     },
 
@@ -39,7 +39,7 @@ export const INVENTARIOBODEGA_ROUTES: Routes = [
     {
         path: 'registrar-entrada',
         loadComponent: () =>
-            import('./registrar-entrada/registrar-entrada')
+            import('./entradas-bodega/registrar-entrada/registrar-entrada')
                 .then(c => c.RegistrarEntrada),
     }
 

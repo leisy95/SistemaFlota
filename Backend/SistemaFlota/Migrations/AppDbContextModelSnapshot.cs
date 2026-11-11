@@ -2821,6 +2821,184 @@ namespace SistemaFlota.Migrations
                     b.ToTable("IdempotencyLogs");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.InventarioBodega", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Alto")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Ancho")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Calibre")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Densidad")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal>("FuelleFondo")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("FuelleLateral")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("FuelleSuperior")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("ImpresoNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("Impreso/No");
+
+                    b.Property<decimal>("PaqueteCantidad")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("PaqueteNumero")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Peso")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ReferenciaImpresa")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("ReferenciaNormalizada")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("SegundoColor")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("Segundo color");
+
+                    b.Property<string>("TipoBolsa")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("Tipo de Bolsa");
+
+                    b.Property<string>("TipoMaterial")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("Tipo Material");
+
+                    b.Property<string>("Troquel")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferenciaNormalizada")
+                        .IsUnique();
+
+                    b.ToTable("InventariosBodega");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.InventarioBodegaItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("FechaRegistroItem")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdInventarioBodega")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PesoActual")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ReferenciaPeso")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdInventarioBodega");
+
+                    b.ToTable("InventariosBodegaItems");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.MovimientoInventarioBodega", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdInventarioBodega")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdInventarioBodegaItem")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal>("Peso")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ReferenciaPeso")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("IdInventarioBodega");
+
+                    b.HasIndex("IdInventarioBodegaItem");
+
+                    b.ToTable("MovimientosInventarioBodega");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
                 {
                     b.Property<int>("Id")
@@ -4378,6 +4556,36 @@ namespace SistemaFlota.Migrations
                     b.Navigation("Cajon");
                 });
 
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.InventarioBodegaItem", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.InventarioBodega.InventarioBodega", "InventarioBodega")
+                        .WithMany("InventarioItems")
+                        .HasForeignKey("IdInventarioBodega")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InventarioBodega");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.MovimientoInventarioBodega", b =>
+                {
+                    b.HasOne("SistemaFlota.Models.InventarioBodega.InventarioBodega", "InventarioBodega")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdInventarioBodega")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaFlota.Models.InventarioBodega.InventarioBodegaItem", "InventarioBodegaItem")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdInventarioBodegaItem")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InventarioBodega");
+
+                    b.Navigation("InventarioBodegaItem");
+                });
+
             modelBuilder.Entity("SistemaFlota.Models.OpcionFormulario", b =>
                 {
                     b.HasOne("SistemaFlota.Models.TipoFormatoCalidad", "TipoFormato")
@@ -4578,6 +4786,18 @@ namespace SistemaFlota.Migrations
             modelBuilder.Entity("SistemaFlota.Models.CyreleRegistro", b =>
                 {
                     b.Navigation("Fotos");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.InventarioBodega", b =>
+                {
+                    b.Navigation("InventarioItems");
+
+                    b.Navigation("Movimientos");
+                });
+
+            modelBuilder.Entity("SistemaFlota.Models.InventarioBodega.InventarioBodegaItem", b =>
+                {
+                    b.Navigation("Movimientos");
                 });
 
             modelBuilder.Entity("SistemaFlota.Models.Proveedores.Proveedor", b =>

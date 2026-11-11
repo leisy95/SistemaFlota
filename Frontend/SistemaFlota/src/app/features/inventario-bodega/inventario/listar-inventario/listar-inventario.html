@@ -7,7 +7,7 @@
             <p>Consulta y administra los productos disponibles en inventario.</p>
         </div>
 
-        <button class="btn-agregar" (click)="ModalRegistrarProducto()">
+        <button class="btn-agregar" (click)="ModalRegistrarProducto()" [disabled]="cargandoInventario">
             <i class="fa-solid fa-plus"></i>
             Agregar producto
         </button>
@@ -22,7 +22,7 @@
             </div>
             <div class="stat-content">
                 <span>Total productos</span>
-                <strong>{{ totalProductos }}</strong>
+                <strong>{{ totalProductos | number }}</strong>
             </div>
         </div>
 
@@ -52,7 +52,7 @@
             </div>
             <div class="stat-content">
                 <span>Colores registrados</span>
-                <strong>{{ totalColores }}</strong>
+                <strong>{{ totalColores | number }}</strong>
             </div>
         </div>
 
@@ -62,7 +62,7 @@
             </div>
             <div class="stat-content">
                 <span>Tipos de material</span>
-                <strong>{{ totalMateriales }}</strong>
+                <strong>{{ totalMateriales | number }}</strong>
             </div>
         </div>
 
@@ -72,7 +72,7 @@
             </div>
             <div class="stat-content">
                 <span>Referencias</span>
-                <strong>{{ totalReferencias }}</strong>
+                <strong>{{ totalReferencias | number }}</strong>
             </div>
         </div>
 
@@ -83,34 +83,44 @@
 
         <div class="field">
             <label>Buscar producto</label>
+
             <div class="input-icon">
                 <i class="fa-solid fa-magnifying-glass"></i>
+
                 <input type="text" placeholder="Referencia, producto..." [(ngModel)]="buscar"
-                    (ngModelChange)="aplicarFiltros()">
+                    (ngModelChange)="aplicarFiltros()" [disabled]="cargandoInventario">
             </div>
         </div>
 
         <div class="field">
             <label>Tipo de material</label>
-            <select [(ngModel)]="materialFiltro" (change)="aplicarFiltros()">
+
+            <select [(ngModel)]="materialFiltro" (ngModelChange)="aplicarFiltros()" [disabled]="cargandoInventario">
+
                 <option value="">Todos</option>
+
                 <option *ngFor="let material of materiales" [value]="material">
                     {{ material }}
                 </option>
+
             </select>
         </div>
 
         <div class="field">
             <label>Color</label>
-            <select [(ngModel)]="colorFiltro" (change)="aplicarFiltros()">
+
+            <select [(ngModel)]="colorFiltro" (ngModelChange)="aplicarFiltros()" [disabled]="cargandoInventario">
+
                 <option value="">Todos</option>
+
                 <option *ngFor="let color of colores" [value]="color">
                     {{ color }}
                 </option>
+
             </select>
         </div>
 
-        <button class="btn-filter" (click)="limpiarFiltros()">
+        <button class="btn-filter" (click)="limpiarFiltros()" [disabled]="cargandoInventario">
             <i class="fa-solid fa-filter-circle-xmark"></i>
             Limpiar filtros
         </button>
@@ -126,14 +136,18 @@
                 <span>Productos registrados en el inventario</span>
             </div>
 
-            <button class="btn-recalcular" (click)="recalcular()" [disabled]="cargando">
-                <i class="fa-solid fa-rotate" [class.fa-spin]="cargando"></i>
+            <button class="btn-recalcular" (click)="recalcular()" [disabled]="cargando || cargandoInventario">
+
+                <i class="fa-solid fa-rotate" [class.fa-spin]="cargando">
+                </i>
+
                 {{ cargando ? 'Recalculando...' : 'Recalcular inventario' }}
             </button>
         </div>
 
         <div class="tabla">
             <table>
+
                 <thead>
                     <tr>
                         <th>Referencia</th>
@@ -144,76 +158,99 @@
                         <th>Calibre</th>
                         <th>Peso</th>
                         <th>Cantidad</th>
-                        <th>Paquete</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr *ngFor="let item of inventarioPaginado">
 
-                        <td data-label="Referencia" class="numero">
-                            {{ item.referencia }}
+                    <!-- CARGANDO -->
+                    <tr *ngIf="cargandoInventario">
+                        <td colspan="9" class="sin-registros">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Cargando inventario...</p>
                         </td>
+                    </tr>
 
-                        <td data-label="Tipo bolsa">
-                            {{ item.tipoBolsa }}
-                        </td>
+                    <!-- REGISTROS -->
+                    <ng-container *ngIf="!cargandoInventario">
 
-                        <td data-label="Material">
-                            {{ item.tipoMaterial }}
-                        </td>
+                        <tr *ngFor="let item of inventarioPaginado">
 
-                        <td data-label="Color">
-                            <span class="color-badge">
-                                <span class="color-dot" [style.background]="obtenerColor(item.color)">
+                            <td data-label="Referencia" class="numero">
+                                {{ item.referencia }}
+                            </td>
+
+                            <td data-label="Tipo bolsa">
+                                {{ item.tipoBolsa || '—' }}
+                            </td>
+
+                            <td data-label="Material">
+                                {{ item.tipoMaterial || '—' }}
+                            </td>
+
+                            <td data-label="Color">
+                                <span class="color-badge">
+
+                                    <span class="color-dot" [style.background]="obtenerColor(item.color)">
+                                    </span>
+
+                                    {{ item.color || '—' }}
+
                                 </span>
-                                {{ item.color }}
-                            </span>
-                        </td>
+                            </td>
 
-                        <td data-label="Medidas">
-                            <span class="medidas">
-                                {{ item.ancho }} × {{ item.alto }} cm
-                            </span>
-                        </td>
+                            <td data-label="Medidas">
+                                <span class="medidas">
+                                    {{ item.ancho }} × {{ item.alto }} cm
+                                </span>
+                            </td>
 
-                        <td data-label="Calibre">
-                            {{ item.calibre }}
-                        </td>
+                            <td data-label="Calibre">
+                                {{ item.calibre }}
+                            </td>
 
-                        <td data-label="Peso" class="peso">
-                            {{ item.peso }} kg
-                        </td>
+                            <td data-label="Peso" class="peso">
+                                {{ item.peso | number:'1.0-2' }} kg
+                            </td>
 
-                        <td data-label="Cantidad" class="center">
-                            {{ item.cantidad | number }}
-                        </td>
+                            <td data-label="Cantidad" class="center">
+                                {{ item.cantidad | number }}
+                            </td>
 
-                        <td data-label="Paquete">
-                            {{ item.paqueteNumero }} /
-                            {{ item.paqueteCantidad }}
-                        </td>
+                            <td data-label="Acciones" class="acciones">
 
-                        <td data-label="Acciones" class="acciones">
-                            <button class="btn-accion editar" title="Editar producto" (click)="editarInventario(item)">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
+                                <button class="btn-accion detalle" title="Ver detalles"
+                                    (click)="verDetalleInventario(item)">
 
-                            <button class="btn-accion eliminar" title="Eliminar producto"
-                                (click)="eliminarInventario(item.id)">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
 
-                    </tr>
+                                <button class="btn-accion editar" title="Editar producto"
+                                    (click)="editarInventario(item)">
 
-                    <tr *ngIf="inventarioPaginado.length === 0">
-                        <td colspan="10" class="sin-registros">
-                            <i class="fa-solid fa-box-open"></i>
-                            <p>No se encontraron productos en el inventario.</p>
-                        </td>
-                    </tr>
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+
+                                <button class="btn-accion eliminar" title="Eliminar producto"
+                                    (click)="eliminarInventario(item.id)">
+
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        <!-- SIN RESULTADOS -->
+                        <tr *ngIf="inventarioPaginado.length === 0">
+                            <td colspan="9" class="sin-registros">
+                                <i class="fa-solid fa-box-open"></i>
+                                <p>No se encontraron productos en el inventario.</p>
+                            </td>
+                        </tr>
+
+                    </ng-container>
 
                 </tbody>
             </table>
@@ -229,7 +266,8 @@
 
             <div class="controles">
 
-                <button class="btn-pagina" [disabled]="pagina === 1" (click)="paginaAnterior()">
+                <button class="btn-pagina" [disabled]="pagina === 1 || cargandoInventario" (click)="paginaAnterior()">
+
                     <i class="fa-solid fa-chevron-left"></i>
                     Anterior
                 </button>
@@ -238,12 +276,15 @@
                     Página {{ pagina }} de {{ totalPaginas }}
                 </span>
 
-                <button class="btn-pagina" [disabled]="pagina >= totalPaginas" (click)="paginaSiguiente()">
+                <button class="btn-pagina" [disabled]="pagina >= totalPaginas || cargandoInventario"
+                    (click)="paginaSiguiente()">
+
                     Siguiente
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
 
             </div>
+
         </div>
 
     </section>

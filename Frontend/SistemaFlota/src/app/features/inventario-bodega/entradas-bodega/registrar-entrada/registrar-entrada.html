@@ -17,7 +17,7 @@
             </div>
             <div class="stat-content">
                 <span>Total Referencias</span>
-                <strong>{{ inventarios.length }}</strong>
+                <strong>{{ inventario ? 1 : 0 }}</strong>
             </div>
         </div>
 
@@ -123,10 +123,10 @@
                         <td data-label="Largo">{{ inventario.alto || 0 }}</td>
                         <td data-label="FF">{{ inventario.fuelleFondo || 0 }}</td>
                         <td data-label="FS">{{ inventario.fuelleSuperior || 0 }}</td>
-                        <td data-label="Unidad">{{ inventario.unidad || 'PG' }}</td>
+                        <td data-label="Unidad">PG</td>
                         <td data-label="Calibre">{{ inventario.calibre || 0 }}</td>
                         <td data-label="Peso KG" class="total">
-                            {{ pesoMostrado || inventario.pesoActual || 0 }}
+                            {{ pesoMostrado ?? inventario.peso ?? 0 }}
                         </td>
                     </tr>
                 </tbody>

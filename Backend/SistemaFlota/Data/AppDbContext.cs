@@ -19,6 +19,7 @@ using SistemaFlota.Models.Costos.OrdenesTraslado;
 using SistemaFlota.Models.Costos.RecepcionMercancias;
 using SistemaFlota.Models.HistorialVersionOdo;
 using SistemaFlota.Models.Idempotencia;
+using SistemaFlota.Models.InventarioBodega;
 using SistemaFlota.Models.Prov_Materiales.Materiales;
 using SistemaFlota.Models.Proveedores;
 
@@ -113,6 +114,12 @@ namespace SistemaFlota
         // Historial Version Odo
         public DbSet<PedidoCompra> PedidosCompra { get; set; }
         public DbSet<MovimientoProducto> MovimientosProducto { get; set; }
+
+        // InventarioBodega
+        // -- Inventario Bodega --
+        public DbSet<InventarioBodega> InventariosBodega { get; set; }
+        public DbSet<InventarioBodegaItem> InventariosBodegaItems { get; set; }
+        public DbSet<MovimientoInventarioBodega> MovimientosInventarioBodega { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -376,6 +383,42 @@ namespace SistemaFlota
                 .WithMany()
                 .HasForeignKey(x => x.MaterialNoFormalizadoId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Inventario Bodega 
+            modelBuilder.Entity<InventarioBodegaItem>()
+                .HasOne(i => i.InventarioBodega)
+                .WithMany(i => i.InventarioItems)
+                .HasForeignKey(i => i.IdInventarioBodega)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasOne(m => m.InventarioBodega)
+                .WithMany(i => i.Movimientos)
+                .HasForeignKey(m => m.IdInventarioBodega)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasOne(m => m.InventarioBodegaItem)
+                .WithMany(i => i.Movimientos)
+                .HasForeignKey(m => m.IdInventarioBodegaItem)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Índices para consultas rápidas
+            modelBuilder.Entity<InventarioBodega>()
+                .HasIndex(i => i.ReferenciaNormalizada)
+                .IsUnique();
+
+            modelBuilder.Entity<InventarioBodegaItem>()
+                .HasIndex(i => i.IdInventarioBodega);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasIndex(m => m.IdInventarioBodega);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasIndex(m => m.IdInventarioBodegaItem);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasIndex(m => m.Fecha);
         }
     }
 }
