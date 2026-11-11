@@ -75,7 +75,7 @@ export class CrearOrdenCompra implements OnInit {
 
     if (!this.modoEditar) {
       this.orden.fechaOrden = this.obtenerFechaHoy();
-      this.orden.fechaEntrega = this.obtenerFechaMasUnMes();
+      this.orden.fechaEntrega = this.obtenerFechaHoy();
     }
 
     this.obtenerProveedores();
@@ -88,13 +88,13 @@ export class CrearOrdenCompra implements OnInit {
   }
 
   private obtenerFechaHoy(): string {
-    return new Date().toISOString().substring(0, 10);
-  }
-
-  private obtenerFechaMasUnMes(): string {
     const fecha = new Date();
-    fecha.setMonth(fecha.getMonth() + 1);
-    return fecha.toISOString().substring(0, 10);
+
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 
   obtenerProveedores(): void {
@@ -278,7 +278,15 @@ export class CrearOrdenCompra implements OnInit {
     if (!this.orden.formaPago?.trim()) return false;
     if (!this.orden.fechaOrden) return false;
     if (!this.orden.fechaEntrega) return false;
-    if (this.orden.fechaEntrega < this.orden.fechaOrden) return false;
+    if (this.orden.fechaEntrega < this.orden.fechaOrden) {
+      this.toastr.warning(
+        'La fecha de entrega no puede ser anterior a la fecha de la orden.',
+        'Fecha inválida'
+      );
+
+      return false;
+    }
+
     if (!this.orden.lugarEntrega?.trim()) return false;
 
     const impuesto = Number(this.orden.porcentajeImpuesto);
