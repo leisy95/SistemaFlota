@@ -27,16 +27,18 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     .RecepcionesMercanciasNoFormalizadas
                     .AsNoTracking()
 
-                    // ORDEN DE COMPRA - PROVEEDOR
+                    // ORDEN DE COMPRA + PROVEEDOR
                     .Include(r => r.OrdenCompraNoFormalizada)
                         .ThenInclude(o => o.ProveedorNoFormalizado)
 
+                    // DETALLES + ORDEN DE COMPRA DETALLE + MATERIAL
                     .Include(r => r.Detalles)
                         .ThenInclude(d =>
                             d.OrdenCompraDetalleNoFormalizada)
                         .ThenInclude(od =>
                             od.MaterialNoFormalizado)
 
+                    // USUARIO QUE CONFIRMA
                     .Include(r => r.UsuarioConfirmacion)
 
                     .FirstOrDefaultAsync(r => r.Id == idRecepcion);
@@ -153,13 +155,6 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                     col.Item()
                         .Element(x =>
                             DibujarTransporte(
-                                x,
-                                recepcion));
-
-                    // OBSERVACIONES GENERALES
-                    col.Item()
-                        .Element(x =>
-                            DibujarObservacionesGenerales(
                                 x,
                                 recepcion));
 
@@ -487,32 +482,10 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.RecepcionMercancia
                 });
         }
 
-        // OBSERVACIONES GENERALES
-        private void DibujarObservacionesGenerales(
-            IContainer container,
-            Models.ComprasNoFormalizadas.RecepcionMercancias
-                .RecepcionMercanciaNoFormalizada recepcion)
-        {
-            Card.Dibujar(
-                container,
-                "OBSERVACIONES GENERALES",
-                contenido =>
-                {
-                    var observaciones = string.IsNullOrWhiteSpace(
-                        recepcion.Observaciones)
-                        ? "Sin observaciones generales."
-                        : recepcion.Observaciones.Trim();
-
-                    contenido.Item()
-                        .Text(observaciones)
-                        .Style(PdfStyles.Valor);
-                });
-        }
-
         // HISTORIAL DE ENTREGAS
         private void DibujarEntregas(
-            ColumnDescriptor col,
-            Models.ComprasNoFormalizadas.RecepcionMercancias
+    ColumnDescriptor col,
+    Models.ComprasNoFormalizadas.RecepcionMercancias
         .RecepcionMercanciaNoFormalizada recepcion)
         {
             var entregas = recepcion.Detalles
