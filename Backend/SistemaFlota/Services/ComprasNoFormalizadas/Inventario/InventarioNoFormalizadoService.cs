@@ -207,6 +207,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     await query.SumAsync(i => i.ValorInventario);
             }
 
+
             var items = await query
                 .OrderBy(i => i.Material!.NombreMaterial)
                 .ThenBy(i => i.Color)
@@ -222,39 +223,35 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                     Color = i.Color,
                     Densidad = i.Material.Densidad,
 
-                    StockActual = puedeVerDatosNumericos
-                        ? i.StockActual
-                        : null,
+                    // Datos operativos: siempre visibles
+                    StockActual = i.StockActual,
 
-                    CantidadComprometida = puedeVerDatosNumericos
-                        ? _context.OrdenesTrasladoNoFormalizadas
-                            .Where(o =>
-                                o.Estado == "Pendiente" ||
-                                o.Estado == "Verificando")
-                            .SelectMany(o => o.Detalles)
-                            .Where(d =>
-                                d.MaterialNoFormalizadoId == i.MaterialId &&
-                                d.Color == i.Color)
-                            .Sum(d => (decimal?)d.CantidadKg) ?? 0m
-                        : null,
+                    CantidadComprometida = _context.OrdenesTrasladoNoFormalizadas
+                        .Where(o =>
+                            o.Estado == "Pendiente" ||
+                            o.Estado == "Verificando")
+                        .SelectMany(o => o.Detalles)
+                        .Where(d =>
+                            d.MaterialNoFormalizadoId == i.MaterialId &&
+                            d.Color == i.Color)
+                        .Sum(d => (decimal?)d.CantidadKg) ?? 0m,
 
-                    StockDisponible = puedeVerDatosNumericos
-                        ? Math.Max(
-                            i.StockActual -
-                            (
-                                _context.OrdenesTrasladoNoFormalizadas
-                                    .Where(o =>
-                                        o.Estado == "Pendiente" ||
-                                        o.Estado == "Verificando")
-                                    .SelectMany(o => o.Detalles)
-                                    .Where(d =>
-                                        d.MaterialNoFormalizadoId == i.MaterialId &&
-                                        d.Color == i.Color)
-                                    .Sum(d => (decimal?)d.CantidadKg) ?? 0m
-                            ),
-                            0m)
-                        : null,
+                    StockDisponible = Math.Max(
+                        i.StockActual -
+                        (
+                            _context.OrdenesTrasladoNoFormalizadas
+                                .Where(o =>
+                                    o.Estado == "Pendiente" ||
+                                    o.Estado == "Verificando")
+                                .SelectMany(o => o.Detalles)
+                                .Where(d =>
+                                    d.MaterialNoFormalizadoId == i.MaterialId &&
+                                    d.Color == i.Color)
+                                .Sum(d => (decimal?)d.CantidadKg) ?? 0m
+                        ),
+                        0m),
 
+                    // Datos financieros: sujetos al permiso
                     CostoPromedio = puedeVerDatosNumericos
                         ? i.CostoPromedio
                         : null,
@@ -264,6 +261,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.Inventario
                         : null
                 })
                 .ToListAsync();
+
 
             return new InventarioNoFormalizadoPaginadoDto
             {

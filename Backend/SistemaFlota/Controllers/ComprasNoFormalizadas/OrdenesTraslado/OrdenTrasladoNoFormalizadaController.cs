@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.ComprasNoFormalizadas.OrdenesTraslado;
 using SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado;
@@ -7,6 +8,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrdenTrasladoNoFormalizadaController : ControllerBase
     {
         private readonly IOrdenTrasladoNoFormalizadaService _service;
@@ -19,7 +21,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 
         // Crear orden de traslado
         [HttpPost]
-        [Permiso("traslados", "crear")]
+        [Permiso("traslado-compras-no-formalizadas", "crear")]
         public async Task<IActionResult> Crear(
             [FromBody] CrearOrdenTrasladoNoFormalizadaDto dto)
         {
@@ -36,7 +38,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 
         // Obtener traslado por ID
         [HttpGet("{id}")]
-        [Permiso("traslados", "ver")]
+        [Permiso("traslado-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> Obtener(int id)
         {
             var resultado = await _service.ObtenerPorIdAsync(id);
@@ -52,7 +54,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 
         // Listar todos los traslados
         [HttpGet]
-        [Permiso("traslados", "ver")]
+        [Permiso("traslado-compras-no-formalizadas", "ver")]
         public async Task<IActionResult> ObtenerTodos(
             [FromQuery] string? search,
             [FromQuery] string? estado,
@@ -76,7 +78,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 
         // Verificar orden
         [HttpPut("verificar")]
-        [Permiso("traslados", "editar")]
+        [Permiso("traslado-compras-no-formalizadas", "editar")]
         public async Task<IActionResult> Verificar(
             [FromBody] VerificarOrdenTrasladoNoFormalizadaDto dto)
         {
@@ -93,7 +95,7 @@ namespace SistemaFlota.Controllers.ComprasNoFormalizadas.OrdenesTraslado
 
         // Confirmar orden
         [HttpPut("{id}/confirmar")]
-        [Permiso("traslados", "editar")]
+        [Permiso("traslado-compras-no-formalizadas", "editar")]
         public async Task<IActionResult> Confirmar(int id)
         {
             try
