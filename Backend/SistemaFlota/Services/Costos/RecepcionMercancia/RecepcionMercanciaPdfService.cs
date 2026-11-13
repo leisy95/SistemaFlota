@@ -105,6 +105,10 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
             // TRANSPORTE
             col.Item().Element(x => DibujarTransporte(x, recepcion));
 
+            // OBSERVACIONES GENERALES
+            col.Item().Element(x =>
+                DibujarObservacionesGenerales(x, recepcion));
+
             DibujarEntregas(col, recepcion);
             DibujarResumen(col, recepcion);
 
@@ -277,6 +281,27 @@ public class RecepcionMercanciaPdfService : IRecepcionMercanciaPdfService
                 });
             });
         });
+    }
+
+    // OBSERVACIONES GENERALES
+    private void DibujarObservacionesGenerales(
+        IContainer container,
+        Models.Costos.RecepcionMercancias.RecepcionMercancia recepcion)
+    {
+        Card.Dibujar(
+            container,
+            "OBSERVACIONES GENERALES",
+            contenido =>
+            {
+                var observaciones = string.IsNullOrWhiteSpace(
+                    recepcion.Observaciones)
+                    ? "Sin observaciones generales."
+                    : recepcion.Observaciones.Trim();
+
+                contenido.Item()
+                    .Text(observaciones)
+                    .Style(PdfStyles.Valor);
+            });
     }
 
     private void DibujarEntregas(
