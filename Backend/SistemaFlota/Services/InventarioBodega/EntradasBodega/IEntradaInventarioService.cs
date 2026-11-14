@@ -7,7 +7,10 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
 {
     public interface IEntradaInventarioService
     {
-        Task<List<MostrarEntradaDto>> ObtenerEntradasAsync();
+        Task<EntradasBodegaPaginadasDto> FiltrarEntradasAsync(
+            FiltroEntradaBodegaDto filtros);
+        Task<List<MostrarEntradaDto>> ObtenerEntradasAsync(
+            string? estado = null);
 
         Task<IngresarPesoResponseDto> IngresarPesoAsync(
             IngresarPesoDto request,

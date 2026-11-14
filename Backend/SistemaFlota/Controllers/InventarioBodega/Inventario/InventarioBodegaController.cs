@@ -38,6 +38,25 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
             }
         }
 
+        // OBTENER REFERENCIAS PARA ENTRADAS
+        [HttpGet("sugerencias")]
+        public async Task<IActionResult> ObtenerSugerencias(
+            [FromQuery] string? buscar = null)
+        {
+            try
+            {
+                var resultado = await _service.ObtenerSugerenciasAsync(buscar);
+                return Ok(resultado);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al consultar las sugerencias de referencias."
+                });
+            }
+        }
+
         // OBTENER INVENTARIO PAGINADO
         [HttpGet("paginado")]
         public async Task<IActionResult> ObtenerPaginado(

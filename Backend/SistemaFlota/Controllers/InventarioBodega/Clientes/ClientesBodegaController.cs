@@ -78,11 +78,23 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
             return Ok(respuesta);
         }
 
-        // ELIMINAR CLIENTE
-        [HttpDelete("eliminar/{id:int}")]
-        public async Task<IActionResult> EliminarCliente(int id)
+        /// DESACTIVAR CLIENTE
+        [HttpPut("desactivar/{id:int}")]
+        public async Task<IActionResult> DesactivarCliente(int id)
         {
-            var respuesta = await _clienteService.EliminarClienteAsync(id);
+            var respuesta = await _clienteService.DesactivarClienteAsync(id);
+
+            if (!respuesta.Exito)
+                return BadRequest(respuesta);
+
+            return Ok(respuesta);
+        }
+
+        // REACTIVAR CLIENTE
+        [HttpPut("reactivar/{id:int}")]
+        public async Task<IActionResult> ReactivarCliente(int id)
+        {
+            var respuesta = await _clienteService.ReactivarClienteAsync(id);
 
             if (!respuesta.Exito)
                 return BadRequest(respuesta);

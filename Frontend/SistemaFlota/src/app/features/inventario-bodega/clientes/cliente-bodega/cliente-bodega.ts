@@ -14,6 +14,7 @@ import {
 } from '../../../../core/models/inventario-bodega/clientes/cliente-bodega.model';
 
 import { CrearCliente } from '../crear-cliente/crear-cliente';
+import { Dialog } from '../../../../shared/reutilizable/dialog/dialog';
 
 @Component({
   selector: 'app-cliente-bodega',
@@ -179,6 +180,156 @@ export class ClienteBodega implements OnInit {
 
     });
 
+  }
+
+  // DESACTIVAR CLIENTE
+  // DESACTIVAR CLIENTE
+  desactivarCliente(cliente: ClienteBodegaModel): void {
+
+    if (!cliente.activo) {
+      this.dialog.open(Dialog, {
+        width: '400px',
+        data: {
+          titulo: 'Cliente desactivado',
+          mensaje: 'El cliente ya se encuentra desactivado.',
+          tipo: 'info',
+          textoBoton: 'Aceptar',
+          mostrarCancelar: false
+        }
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(Dialog, {
+      width: '400px',
+      data: {
+        titulo: '¿Desactivar cliente?',
+        mensaje: `¿Deseas desactivar al cliente "${cliente.nombre}"?`,
+        tipo: 'question',
+        textoBoton: 'Sí, desactivar',
+        textoCancelar: 'Cancelar',
+        mostrarCancelar: true
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmado => {
+
+      if (!confirmado) return;
+
+      this.clienteService.desactivarCliente(cliente.id).subscribe({
+
+        next: respuesta => {
+
+          if (!respuesta.exito) {
+            this.dialog.open(Dialog, {
+              width: '400px',
+              data: {
+                titulo: 'No fue posible desactivar',
+                mensaje: respuesta.mensaje,
+                tipo: 'error'
+              }
+            });
+            return;
+          }
+
+          this.dialog.open(Dialog, {
+            width: '400px',
+            data: {
+              titulo: 'Cliente desactivado',
+              mensaje: respuesta.mensaje,
+              tipo: 'success'
+            }
+          });
+
+          this.listarClientes();
+        },
+
+        error: error => {
+          this.dialog.open(Dialog, {
+            width: '400px',
+            data: {
+              titulo: 'Error',
+              mensaje: error.error?.mensaje || 'No fue posible desactivar el cliente.',
+              tipo: 'error'
+            }
+          });
+        }
+      });
+    });
+  }
+
+  // REACTIVAR CLIENTE
+  // REACTIVAR CLIENTE
+  reactivarCliente(cliente: ClienteBodegaModel): void {
+
+    if (cliente.activo) {
+      this.dialog.open(Dialog, {
+        width: '400px',
+        data: {
+          titulo: 'Cliente activo',
+          mensaje: 'El cliente ya se encuentra activo.',
+          tipo: 'info'
+        }
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(Dialog, {
+      width: '400px',
+      data: {
+        titulo: '¿Reactivar cliente?',
+        mensaje: `¿Deseas reactivar al cliente "${cliente.nombre}"?`,
+        tipo: 'question',
+        textoBoton: 'Sí, reactivar',
+        textoCancelar: 'Cancelar',
+        mostrarCancelar: true
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmado => {
+
+      if (!confirmado) return;
+
+      this.clienteService.reactivarCliente(cliente.id).subscribe({
+
+        next: respuesta => {
+
+          if (!respuesta.exito) {
+            this.dialog.open(Dialog, {
+              width: '400px',
+              data: {
+                titulo: 'No fue posible reactivar',
+                mensaje: respuesta.mensaje,
+                tipo: 'error'
+              }
+            });
+            return;
+          }
+
+          this.dialog.open(Dialog, {
+            width: '400px',
+            data: {
+              titulo: 'Cliente reactivado',
+              mensaje: respuesta.mensaje,
+              tipo: 'success'
+            }
+          });
+
+          this.listarClientes();
+        },
+
+        error: error => {
+          this.dialog.open(Dialog, {
+            width: '400px',
+            data: {
+              titulo: 'Error',
+              mensaje: error.error?.mensaje || 'No fue posible reactivar el cliente.',
+              tipo: 'error'
+            }
+          });
+        }
+      });
+    });
   }
 
 }

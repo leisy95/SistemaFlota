@@ -25,7 +25,10 @@ namespace SistemaFlota.Migrations
                     Telefono = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    Activo = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -203,6 +206,11 @@ namespace SistemaFlota.Migrations
                 table: "InventariosBodega",
                 column: "ReferenciaNormalizada",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventariosBodegaItems_Estado_FechaRegistroItem",
+                table: "InventariosBodegaItems",
+                columns: new[] { "Estado", "FechaRegistroItem" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventariosBodegaItems_IdInventarioBodega",

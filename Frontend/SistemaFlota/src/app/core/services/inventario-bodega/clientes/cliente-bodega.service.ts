@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 
-import { ClienteBodega, ClienteBodegaFiltro, ClientesBodegaPaginados } from '../../../models/inventario-bodega/clientes/cliente-bodega.model';
+import { ClienteBodega, ClienteBodegaFiltro, ClientesBodegaPaginados, RespuestaClienteDto } from '../../../models/inventario-bodega/clientes/cliente-bodega.model';
 
 import {
     ClienteBodegaRequestDto,
@@ -45,6 +45,11 @@ export class ClienteBodegaService {
             params = params.set('email', filtros.email.trim());
         }
 
+        // FILTRAR POR ESTADO ACTIVO
+        if (filtros.activo !== undefined) {
+            params = params.set('activo', String(filtros.activo));
+        }
+
         return this.http.get<ClientesBodegaPaginados>(
             `${this.apiUrl}/listar`,
             { params }
@@ -78,10 +83,19 @@ export class ClienteBodegaService {
         );
     }
 
-    // ELIMINAR CLIENTE
-    eliminarCliente(id: number): Observable<RespuestaClienteBodegaDto> {
-        return this.http.delete<RespuestaClienteBodegaDto>(
-            `${this.apiUrl}/eliminar/${id}`
+    // DESACTIVAR CLIENTE
+    desactivarCliente(id: number): Observable<RespuestaClienteDto> {
+        return this.http.put<RespuestaClienteDto>(
+            `${this.apiUrl}/desactivar/${id}`,
+            {}
+        );
+    }
+
+    // REACTIVAR CLIENTE
+    reactivarCliente(id: number): Observable<RespuestaClienteDto> {
+        return this.http.put<RespuestaClienteDto>(
+            `${this.apiUrl}/reactivar/${id}`,
+            {}
         );
     }
 }

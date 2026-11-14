@@ -1,17 +1,21 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { SalidaBodegaService } from '../../../../core/services/inventario-bodega/salidas-bodega/salida-bodega.service';
-import { SalidaBodegaActual } from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.model';
-import { ConfirmarSalidaBodegaDto, RespuestaSalidaBodegaDto } from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.dto';
 
-interface Cliente {
-  id: number;
-  nombre: string;
-  documento: string;
-}
+import { SalidaBodegaService } from '../../../../core/services/inventario-bodega/salidas-bodega/salida-bodega.service';
+
+import { ClienteBodegaService } from '../../../../core/services/inventario-bodega/clientes/cliente-bodega.service';
+
+import { SalidaBodegaActual } from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.model';
+
+import {
+  ConfirmarSalidaBodegaDto,
+  RespuestaSalidaBodegaDto
+} from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.dto';
+
+import { ClienteBodega } from '../../../../core/models/inventario-bodega/clientes/cliente-bodega.model';
 
 interface ProductoSalida {
   id: number;
@@ -41,36 +45,29 @@ export class RegistroSalida implements OnInit {
 
   filtroReferencia = '';
 
+  // CLIENTES
   clienteBusqueda = '';
-  clienteSeleccionado: Cliente | null = null;
+  clienteSeleccionado: ClienteBodega | null = null;
   mostrarClientes = false;
+
+  clientes: ClienteBodega[] = [];
+  cargandoClientes = false;
 
   paginaActual = 1;
   pageSize = 5;
 
   productosSeleccionados: ProductoSalida[] = [];
 
-  clientes: Cliente[] = [
-    { id: 1, nombre: 'Plásticos Industriales S.A.S.', documento: '900123456' },
-    { id: 2, nombre: 'Empaques del Valle S.A.S.', documento: '901234567' },
-    { id: 3, nombre: 'Distribuciones Nacionales', documento: '800123456' },
-    { id: 4, nombre: 'Comercializadora Andina', documento: '900654321' },
-    { id: 5, nombre: 'Industrias del Pacífico', documento: '901567890' },
-    { id: 6, nombre: 'Empaques Flexibles S.A.S.', documento: '901345678' },
-    { id: 7, nombre: 'Industrias Plásticas de Colombia', documento: '800987654' },
-    { id: 8, nombre: 'Comercializadora Industrial', documento: '900456789' }
-  ];
-
   constructor(
     private readonly salidaService: SalidaBodegaService,
+    private readonly clienteService: ClienteBodegaService,
     private readonly toastr: ToastrService
   ) { }
 
   ngOnInit(): void {
     this.cargarSalidaActual();
+    this.cargarClientes();
   }
-
-  // CONSULTAR SALIDA ACTUAL
 
   cargarSalidaActual(): void {
 
@@ -114,6 +111,78 @@ export class RegistroSalida implements OnInit {
         );
       }
     });
+  }
+
+  cargarClientes(buscar: string = ''): void {
+
+    this.cargandoClientes = true;
+
+    this.clienteService.listarClientes({
+      buscar: buscar.trim(),
+      nombre: '',
+      telefono: '',
+      email: '',
+      activo: true,
+      pagina: 1,
+      pageSize: 100
+    }).subscribe({
+
+      next: (respuesta) => {
+
+        this.clientes = respuesta.items ?? [];
+        this.cargandoClientes = false;
+
+      },
+
+      error: () => {
+
+        this.clientes = [];
+        this.cargandoClientes = false;
+
+        this.toastr.error(
+          'No fue posible cargar los clientes.',
+          'Error'
+        );
+      }
+    });
+  }
+
+  get clientesFiltrados(): ClienteBodega[] {
+    return this.clientes;
+  }
+
+  abrirClientes(): void {
+
+    this.mostrarClientes = true;
+
+    if (this.clientes.length === 0 && !this.cargandoClientes) {
+      this.cargarClientes(this.clienteBusqueda);
+    }
+  }
+
+  buscarCliente(valor: string): void {
+
+    this.clienteBusqueda = valor;
+    this.clienteSeleccionado = null;
+    this.mostrarClientes = true;
+
+    this.cargarClientes(valor);
+  }
+
+  seleccionarCliente(cliente: ClienteBodega): void {
+
+    this.clienteSeleccionado = cliente;
+    this.clienteBusqueda = cliente.nombre;
+    this.mostrarClientes = false;
+  }
+
+  limpiarCliente(): void {
+
+    this.clienteSeleccionado = null;
+    this.clienteBusqueda = '';
+    this.mostrarClientes = false;
+
+    this.cargarClientes();
   }
 
   private crearSalida(callback: (id: number) => void): void {
@@ -189,62 +258,51 @@ export class RegistroSalida implements OnInit {
   }
 
   // AGREGAR PRODUCTO POR REFERENCIA
+
   private agregarReferencia(idSalida: number, referencia: string): void {
+
     this.procesando = true;
 
     this.salidaService.agregarPorReferencia(idSalida, referencia).subscribe({
+
       next: (respuesta: RespuestaSalidaBodegaDto) => {
+
         this.procesando = false;
         this.filtroReferencia = '';
 
         if (!respuesta.exito) {
-          this.toastr.warning(respuesta.mensaje, 'No se pudo agregar');
+
+          this.toastr.warning(
+            respuesta.mensaje,
+            'No se pudo agregar'
+          );
+
           return;
         }
 
-        this.toastr.success(respuesta.mensaje, 'Producto agregado');
+        this.toastr.success(
+          respuesta.mensaje,
+          'Producto agregado'
+        );
+
         this.cargarSalidaActual();
       },
+
       error: (error) => {
+
         this.procesando = false;
         this.filtroReferencia = '';
-        this.toastr.error(error.error?.mensaje || 'No fue posible agregar el producto.', 'Error');
+
+        this.toastr.error(
+          error.error?.mensaje ||
+          'No fue posible agregar el producto.',
+          'Error'
+        );
       }
     });
   }
 
-  get clientesFiltrados(): Cliente[] {
-
-    const texto = this.clienteBusqueda.toLowerCase().trim();
-
-    if (!texto) {
-      return this.clientes;
-    }
-
-    return this.clientes.filter(cliente =>
-      cliente.nombre.toLowerCase().includes(texto) ||
-      cliente.documento.includes(texto)
-    );
-  }
-
-  seleccionarCliente(cliente: Cliente): void {
-
-    this.clienteSeleccionado = cliente;
-    this.clienteBusqueda = cliente.nombre;
-    this.mostrarClientes = false;
-  }
-
-  abrirClientes(): void {
-    this.mostrarClientes = true;
-  }
-
-  limpiarCliente(): void {
-
-    this.clienteSeleccionado = null;
-    this.clienteBusqueda = '';
-    this.mostrarClientes = false;
-  }
-
+  // PRODUCTOS PAGINADOS
 
   get productosPaginados(): ProductoSalida[] {
 
@@ -340,7 +398,6 @@ export class RegistroSalida implements OnInit {
   }
 
   cambiarPageSize(): void {
-
     this.paginaActual = 1;
   }
 
@@ -357,6 +414,8 @@ export class RegistroSalida implements OnInit {
       this.paginaActual++;
     }
   }
+
+  // CONFIRMAR SALIDA
 
   confirmarSalida(): void {
 

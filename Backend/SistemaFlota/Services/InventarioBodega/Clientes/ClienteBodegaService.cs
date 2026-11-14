@@ -2,16 +2,24 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.InventarioBodega.Clientes;
 using SistemaFlota.Models.InventariosBodega.Clientes;
+using SistemaFlota.Services.Auditorias.Base;
+using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.InventarioBodega.Clientes
 {
-    public class ClienteBodegaService : IClienteBodegaService
+    public class ClienteBodegaService : BaseService, IClienteBodegaService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public ClienteBodegaService(AppDbContext context)
+        public ClienteBodegaService(
+           AppDbContext context,
+           ICurrentUserService currentUser,
+           SistemaFlota.AuditoriaService auditoria)
+           : base(auditoria, currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         // LISTAR CLIENTES CON FILTROS Y PAGINACIÓN
@@ -23,6 +31,11 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
 
             IQueryable<Cliente> consulta = _context.Clientes
                 .AsNoTracking();
+
+            if (filtros.Activo.HasValue)
+            {
+                consulta = consulta.Where(c => c.Activo == filtros.Activo.Value);
+            }
 
             // BÚSQUEDA GENERAL
             if (!string.IsNullOrWhiteSpace(filtros.Buscar))
@@ -89,7 +102,8 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
                     Nombre = c.Nombre,
                     Direccion = c.Direccion,
                     Telefono = c.Telefono,
-                    Email = c.Email
+                    Email = c.Email,
+                    Activo = c.Activo
                 })
                 .ToListAsync();
 
@@ -141,11 +155,19 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
                 Nombre = dto.Nombre.Trim(),
                 Direccion = dto.Direccion?.Trim(),
                 Telefono = dto.Telefono?.Trim(),
-                Email = dto.Email?.Trim()
+                Email = dto.Email?.Trim(),
+                FechaCreacion = DateTime.Now,
+                Activo = true
             };
 
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Crear",
+                "ClientesBodega",
+                $"Se creó el cliente {cliente.Nombre}.",
+                cliente.Id);
 
             return new RespuestaClienteDto
             {
@@ -194,8 +216,15 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
             cliente.Direccion = dto.Direccion?.Trim();
             cliente.Telefono = dto.Telefono?.Trim();
             cliente.Email = dto.Email?.Trim();
+            cliente.FechaActualizacion = DateTime.Now;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Actualizar",
+                "ClientesBodega",
+                $"Se actualizó el cliente {cliente.Nombre}.",
+                cliente.Id);
 
             return new RespuestaClienteDto
             {
@@ -205,8 +234,8 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
             };
         }
 
-        // ELIMINAR CLIENTE
-        public async Task<RespuestaClienteDto> EliminarClienteAsync(int id)
+        // DESACTIVAR CLIENTE
+        public async Task<RespuestaClienteDto> DesactivarClienteAsync(int id)
         {
             if (id <= 0)
             {
@@ -229,26 +258,86 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
                 };
             }
 
-            // VERIFICAR SI TIENE SALIDAS ASOCIADAS
-            var tieneSalidas = await _context.SalidasBodega
-                .AnyAsync(s => s.ClienteId == id);
-
-            if (tieneSalidas)
+            if (!cliente.Activo)
             {
                 return new RespuestaClienteDto
                 {
                     Exito = false,
-                    Mensaje = "No se puede eliminar el cliente porque tiene salidas de bodega asociadas."
+                    Mensaje = "El cliente ya se encuentra desactivado."
                 };
             }
 
-            _context.Clientes.Remove(cliente);
+            // DESACTIVAR CLIENTE
+            cliente.Activo = false;
+            cliente.FechaActualizacion = DateTime.Now;
+
             await _context.SaveChangesAsync();
+
+            // AUDITORÍA
+            await AuditarAsync(
+                "Desactivar",
+                "ClientesBodega",
+                $"Se desactivó el cliente {cliente.Nombre}.",
+                cliente.Id);
 
             return new RespuestaClienteDto
             {
                 Exito = true,
-                Mensaje = "Cliente eliminado correctamente.",
+                Mensaje = "Cliente desactivado correctamente.",
+                Id = id
+            };
+        }
+
+        // REACTIVAR CLIENTE
+        public async Task<RespuestaClienteDto> ReactivarClienteAsync(int id)
+        {
+            if (id <= 0)
+            {
+                return new RespuestaClienteDto
+                {
+                    Exito = false,
+                    Mensaje = "El identificador del cliente no es válido."
+                };
+            }
+
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cliente == null)
+            {
+                return new RespuestaClienteDto
+                {
+                    Exito = false,
+                    Mensaje = "Cliente no encontrado."
+                };
+            }
+
+            if (cliente.Activo)
+            {
+                return new RespuestaClienteDto
+                {
+                    Exito = false,
+                    Mensaje = "El cliente ya se encuentra activo."
+                };
+            }
+
+            // REACTIVAR CLIENTE
+            cliente.Activo = true;
+            cliente.FechaActualizacion = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            // AUDITORÍA
+            await AuditarAsync(
+                "Reactivar",
+                "ClientesBodega",
+                $"Se reactivó el cliente {cliente.Nombre}.",
+                cliente.Id);
+
+            return new RespuestaClienteDto
+            {
+                Exito = true,
+                Mensaje = "Cliente reactivado correctamente.",
                 Id = id
             };
         }

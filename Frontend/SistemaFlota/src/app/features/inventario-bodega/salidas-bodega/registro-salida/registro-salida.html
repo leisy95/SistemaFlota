@@ -59,29 +59,60 @@
                     <i class="fa-solid fa-user"></i>
 
                     <input id="cliente" type="text" class="form-control" [(ngModel)]="clienteBusqueda"
-                        placeholder="Busca por nombre o documento..." (focus)="abrirClientes()"
-                        (input)="abrirClientes()" autocomplete="off" />
+                        placeholder="Busca por nombre, teléfono o correo..." (focus)="abrirClientes()"
+                        (input)="buscarCliente($any($event.target).value)" autocomplete="off" [disabled]="procesando" />
+
+                    <span class="input-loading" *ngIf="cargandoClientes">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </span>
 
                     <button type="button" class="btn-clear" *ngIf="clienteSeleccionado" (click)="limpiarCliente()"
                         title="Limpiar cliente">
+
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
+                <!-- RESULTADOS -->
                 <div class="autocomplete-list" *ngIf="mostrarClientes && !clienteSeleccionado">
 
                     <button type="button" class="autocomplete-option" *ngFor="let cliente of clientesFiltrados"
                         (click)="seleccionarCliente(cliente)">
 
                         <div class="cliente-info">
+
                             <strong>{{ cliente.nombre }}</strong>
-                            <small>{{ cliente.documento }}</small>
+
+                            <small *ngIf="cliente.telefono">
+                                <i class="fa-solid fa-phone"></i>
+                                {{ cliente.telefono }}
+                            </small>
+
+                            <small *ngIf="cliente.email">
+                                <i class="fa-solid fa-envelope"></i>
+                                {{ cliente.email }}
+                            </small>
+
+                            <small *ngIf="cliente.direccion">
+                                <i class="fa-solid fa-location-dot"></i>
+                                {{ cliente.direccion }}
+                            </small>
+
                         </div>
 
                         <i class="fa-solid fa-check"></i>
+
                     </button>
 
-                    <div class="autocomplete-empty" *ngIf="clientesFiltrados.length === 0">
+                    <!-- CARGANDO -->
+                    <div class="autocomplete-empty" *ngIf="cargandoClientes">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Consultando clientes...
+                    </div>
+
+                    <!-- SIN RESULTADOS -->
+                    <div class="autocomplete-empty" *ngIf="!cargandoClientes && clientesFiltrados.length === 0">
+
                         No se encontraron clientes.
                     </div>
 
@@ -89,10 +120,12 @@
 
             </div>
 
+            <!-- CLIENTE SELECCIONADO -->
             <small class="form-hint" *ngIf="clienteSeleccionado">
                 Cliente seleccionado:
                 {{ clienteSeleccionado.nombre }}
             </small>
+
         </div>
 
     </div>

@@ -1,8 +1,15 @@
+
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgxBarcode6 } from 'ngx-barcode6';
-import { IngresarPesoDto, IngresarPesoResponseDto, InventarioBodega } from '../../../../core/models/inventario-bodega/inventario-bodega.models';
+
+import {
+  IngresarPesoDto,
+  IngresarPesoResponseDto,
+  InventarioBodega
+} from '../../../../core/models/inventario-bodega/inventario-bodega.models';
+
 import { InventarioBodegaService } from '../../../../core/services/inventario-bodega/Inventario/inventario-bodega.service';
 import { EntradaInventarioService } from '../../../../core/services/inventario-bodega/entrada-inventario/entrada-inventario.service';
 import { DialogService } from '../../../../core/services/dialogs/dialog.service';
@@ -35,13 +42,60 @@ export class RegistrarEntrada {
   cargando = false;
   registrando = false;
 
+  // SUGERENCIAS DE REFERENCIAS
+  sugerencias: string[] = [];
+  sugerenciasVisibles = false;
+  cargandoSugerencias = false;
+
   constructor(
     private inventarioService: InventarioBodegaService,
     private entradaInventarioService: EntradaInventarioService,
     private dialogService: DialogService
   ) { }
 
-  // CONSULTAR REFERENCIA
+  // MOSTRAR SUGERENCIAS AL ENFOCAR EL INPUT
+  mostrarSugerencias(): void {
+    this.sugerenciasVisibles = true;
+    this.cargarSugerencias();
+  }
+
+  // CONSULTAR SUGERENCIAS EN EL BACKEND
+  cargarSugerencias(): void {
+    this.cargandoSugerencias = true;
+
+    this.inventarioService.obtenerSugerencias(this.referencia).subscribe({
+      next: (resultado) => {
+        this.sugerencias = resultado;
+        this.cargandoSugerencias = false;
+      },
+      error: () => {
+        this.sugerencias = [];
+        this.cargandoSugerencias = false;
+      }
+    });
+  }
+
+  // FILTRAR SUGERENCIAS MIENTRAS ESCRIBE
+  filtrarSugerencias(): void {
+    this.sugerenciasVisibles = true;
+    this.cargarSugerencias();
+  }
+
+  // SELECCIONAR REFERENCIA DE LAS SUGERENCIAS
+  seleccionarReferencia(referencia: string): void {
+    this.referencia = referencia;
+    this.sugerenciasVisibles = false;
+    this.sugerencias = [];
+
+    this.buscar();
+  }
+
+  // CERRAR SUGERENCIAS
+  cerrarSugerencias(): void {
+    this.sugerenciasVisibles = false;
+  }
+
+  // CONSULTAR REFERENCIA COMPLETA
   buscar(): void {
     const codigo = this.referencia.trim();
 
@@ -54,12 +108,17 @@ export class RegistrarEntrada {
       return;
     }
 
+    this.sugerenciasVisibles = false;
+    this.sugerencias = [];
+
     this.cargando = true;
     this.inventario = null;
     this.barcodeValue = '';
     this.pesoMostrado = null;
     this.pesoActual = null;
 
+    // ESTA CONSULTA SE CONSERVA:
+    // Obtiene todos los datos del inventario seleccionado.
     this.inventarioService.obtenerPorReferencia(codigo).subscribe({
       next: (resultado) => {
         this.inventario = resultado;
@@ -94,18 +153,25 @@ export class RegistrarEntrada {
   // REGISTRAR ENTRADA DE PESO
   confirmarIngresoPeso(): void {
     if (!this.inventario) {
-      this.dialogService.alerta('Referencia requerida', 'Primero debe consultar una referencia.', 'warning');
+      this.dialogService.alerta(
+        'Referencia requerida',
+        'Primero debe consultar una referencia.',
+        'warning'
+      );
       return;
     }
 
     const peso = Number(this.pesoIngresado);
 
     if (!Number.isFinite(peso) || peso <= 0) {
-      this.dialogService.alerta('Peso inválido', 'Ingrese un peso válido.', 'warning');
+      this.dialogService.alerta(
+        'Peso inválido',
+        'Ingrese un peso válido.',
+        'warning'
+      );
       return;
     }
 
-    // 1. Mostrar diálogo de confirmación antes de guardar
     const dialogRef = this.dialogService.alerta(
       'Confirmar Ingreso',
       `¿Seguro deseas ingresar el peso ${peso} a la referencia ${this.inventario.referencia}?`,
@@ -137,7 +203,6 @@ export class RegistrarEntrada {
           this.pesoIngresado = null;
           this.registrando = false;
 
-          // Alerta de éxito e imprimir al cerrar
           const successDialog = this.dialogService.alerta(
             '¡Éxito!',
             'Peso registrado correctamente.',
@@ -150,8 +215,15 @@ export class RegistrarEntrada {
         },
         error: (error) => {
           this.registrando = false;
-          const mensaje = error.error?.message || 'Error al registrar el peso.';
-          this.dialogService.alerta('Error', mensaje, 'error');
+
+          const mensaje =
+            error.error?.message || 'Error al registrar el peso.';
+
+          this.dialogService.alerta(
+            'Error',
+            mensaje,
+            'error'
+          );
         }
       });
     });
@@ -166,6 +238,9 @@ export class RegistrarEntrada {
     this.inventario = null;
     this.barcodeValue = '';
     this.fechaImpresion = new Date();
+
+    this.sugerencias = [];
+    this.sugerenciasVisibles = false;
   }
 
   // IMPRIMIR ETIQUETA

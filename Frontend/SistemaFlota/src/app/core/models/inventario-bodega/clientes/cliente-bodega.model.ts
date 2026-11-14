@@ -5,6 +5,7 @@ export interface ClienteBodega {
     direccion: string | null;
     telefono: string | null;
     email: string | null;
+    activo: boolean;
 }
 
 export interface ClienteRequestDto {
@@ -33,6 +34,7 @@ export interface ClienteBodegaFiltro {
     nombre: string;
     telefono: string;
     email: string;
+    activo?: boolean;
     pagina: number;
     pageSize: number;
 }

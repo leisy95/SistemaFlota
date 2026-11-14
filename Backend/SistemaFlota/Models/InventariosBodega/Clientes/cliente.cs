@@ -20,6 +20,13 @@ namespace SistemaFlota.Models.InventariosBodega.Clientes
         [MaxLength(100)]
         [EmailAddress]
         public string? Email { get; set; }
+
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
+        public DateTime? FechaActualizacion { get; set; }
+
+        public bool Activo { get; set; } = true;
+
         public ICollection<SalidaBodega> SalidasBodega { get; set; }
             = new List<SalidaBodega>();
     }

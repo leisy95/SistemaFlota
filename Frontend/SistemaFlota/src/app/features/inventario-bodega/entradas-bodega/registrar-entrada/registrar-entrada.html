@@ -49,10 +49,37 @@
         <div class="field">
             <label>Buscar Referencia</label>
 
-            <div class="input-icon">
-                <i class="fa-solid fa-barcode"></i>
-                <input type="text" [(ngModel)]="referencia" placeholder="Ingrese o escanee la referencia..."
-                    (keyup.enter)="buscar()">
+            <div class="autocomplete-container">
+                <div class="input-icon">
+                    <i class="fa-solid fa-barcode"></i>
+
+                    <input type="text" [(ngModel)]="referencia" placeholder="Ingrese o escanee la referencia..."
+                        (focus)="mostrarSugerencias()" (input)="filtrarSugerencias()" (keyup.enter)="buscar()"
+                        (blur)="cerrarSugerencias()">
+                </div>
+
+                <!-- SUGERENCIAS -->
+                <div class="sugerencias-lista" *ngIf="sugerenciasVisibles && sugerencias.length > 0">
+
+                    <button type="button" class="sugerencia-item" *ngFor="let sugerencia of sugerencias"
+                        (mousedown)="seleccionarReferencia(sugerencia)">
+
+                        <i class="fa-solid fa-barcode"></i>
+                        {{ sugerencia }}
+
+                    </button>
+                </div>
+
+                <!-- CARGANDO -->
+                <div class="sugerencias-vacias" *ngIf="sugerenciasVisibles && cargandoSugerencias">
+                    Consultando referencias...
+                </div>
+
+                <!-- SIN RESULTADOS -->
+                <div class="sugerencias-vacias"
+                    *ngIf="sugerenciasVisibles && !cargandoSugerencias && sugerencias.length === 0">
+                    No se encontraron referencias.
+                </div>
             </div>
         </div>
 

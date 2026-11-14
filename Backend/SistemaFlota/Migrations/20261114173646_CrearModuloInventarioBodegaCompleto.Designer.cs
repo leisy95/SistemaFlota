@@ -11,7 +11,7 @@ using SistemaFlota;
 namespace SistemaFlota.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261111212417_CrearModuloInventarioBodegaCompleto")]
+    [Migration("20261114173646_CrearModuloInventarioBodegaCompleto")]
     partial class CrearModuloInventarioBodegaCompleto
     {
         /// <inheritdoc />
@@ -2830,6 +2830,9 @@ namespace SistemaFlota.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Direccion")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -2837,6 +2840,12 @@ namespace SistemaFlota.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -2880,6 +2889,8 @@ namespace SistemaFlota.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IdInventarioBodega");
+
+                    b.HasIndex("Estado", "FechaRegistroItem");
 
                     b.ToTable("InventariosBodegaItems");
                 });

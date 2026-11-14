@@ -112,6 +112,54 @@
     }
 }
 
+.autocomplete-container {
+    position: relative;
+    width: 100%;
+}
+
+.sugerencias-lista,
+.sugerencias-vacias {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #dce3dc;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+}
+
+.sugerencias-lista {
+    overflow: hidden;
+}
+
+.sugerencia-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    color: #333;
+}
+
+.sugerencia-item:hover {
+    background: #f0f7eb;
+}
+
+.sugerencia-item i {
+    color: #558b2f;
+}
+
+.sugerencias-vacias {
+    padding: 12px 15px;
+    color: #777;
+}
+
 .input-icon {
     display: flex;
     align-items: center;

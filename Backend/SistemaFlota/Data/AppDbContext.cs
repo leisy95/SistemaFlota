@@ -421,6 +421,13 @@ namespace SistemaFlota
             modelBuilder.Entity<InventarioBodegaItem>()
                 .HasIndex(i => i.IdInventarioBodega);
 
+            modelBuilder.Entity<InventarioBodegaItem>()
+                .HasIndex(i => new
+                {
+                    i.Estado,
+                    i.FechaRegistroItem
+                });
+
             modelBuilder.Entity<MovimientoInventarioBodega>()
                 .HasIndex(m => m.IdInventarioBodega);
 

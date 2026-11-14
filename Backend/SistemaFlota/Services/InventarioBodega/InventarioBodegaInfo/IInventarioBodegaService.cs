@@ -6,6 +6,8 @@ public interface IInventarioBodegaService
 {
     Task<List<InventarioBodega>> ObtenerAsync();
 
+    Task<List<string>> ObtenerSugerenciasAsync(string? buscar);
+
     Task<InventarioBodegaPaginadoResponseDto> ObtenerPaginadoAsync(
         string? buscar,
         string? material,

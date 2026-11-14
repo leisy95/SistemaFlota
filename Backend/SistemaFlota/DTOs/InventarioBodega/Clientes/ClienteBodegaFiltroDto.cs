@@ -10,6 +10,8 @@
 
         public string? Email { get; set; }
 
+        public bool? Activo { get; set; }
+
         public int Pagina { get; set; } = 1;
 
         public int PageSize { get; set; } = 10;

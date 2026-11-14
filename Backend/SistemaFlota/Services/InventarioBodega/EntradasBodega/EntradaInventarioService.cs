@@ -25,11 +25,26 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
         }
 
         // OBTENER ENTRADAS DE INVENTARIO
-        public async Task<List<MostrarEntradaDto>> ObtenerEntradasAsync()
+        public async Task<List<MostrarEntradaDto>> ObtenerEntradasAsync(
+            string? estado = null)
         {
-            return await _context.InventariosBodegaItems
+            var query = _context.InventariosBodegaItems
                 .AsNoTracking()
+                .AsQueryable();
+
+            // POR DEFECTO: MOSTRAR SOLO ITEMS EN ALMACÉN
+            if (string.IsNullOrWhiteSpace(estado))
+            {
+                query = query.Where(i => i.Estado == "EN_ALMACEN");
+            }
+            else
+            {
+                query = query.Where(i => i.Estado == estado.Trim().ToUpper());
+            }
+
+            return await query
                 .OrderByDescending(i => i.FechaRegistroItem)
+                .ThenByDescending(i => i.Id)
                 .Select(i => new MostrarEntradaDto
                 {
                     Id = i.Id,
@@ -40,6 +55,98 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
                     Estado = i.Estado
                 })
                 .ToListAsync();
+        }
+
+        // FILTRAR ENTRADAS CON PAGINACIÓN DESDE EL BACKEND
+        public async Task<EntradasBodegaPaginadasDto> FiltrarEntradasAsync(
+            FiltroEntradaBodegaDto filtros)
+        {
+            if (filtros.Pagina < 1)
+                filtros.Pagina = 1;
+
+            if (filtros.PageSize < 1)
+                filtros.PageSize = 10;
+
+            if (filtros.PageSize > 100)
+                filtros.PageSize = 100;
+
+            var query = _context.InventariosBodegaItems
+                .AsNoTracking()
+                .AsQueryable();
+
+            // FILTRO POR ESTADO
+            if (!string.IsNullOrWhiteSpace(filtros.Estado) &&
+                !filtros.Estado.Trim().Equals(
+                    "TODOS",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var estado = filtros.Estado.Trim().ToUpperInvariant();
+
+                query = query.Where(i => i.Estado == estado);
+            }
+            else if (string.IsNullOrWhiteSpace(filtros.Estado))
+            {
+                // POR DEFECTO SOLO EN ALMACÉN
+                query = query.Where(i => i.Estado == "EN_ALMACEN");
+            }
+
+            // BÚSQUEDA POR REFERENCIA
+            if (!string.IsNullOrWhiteSpace(filtros.Buscar))
+            {
+                var buscar = filtros.Buscar.Trim();
+
+                query = query.Where(i =>
+                    i.InventarioBodega.Referencia.Contains(buscar) ||
+                    i.ReferenciaPeso.Contains(buscar));
+            }
+
+            // FECHA INICIAL
+            if (filtros.FechaInicio.HasValue)
+            {
+                var fechaInicio = filtros.FechaInicio.Value.Date;
+
+                query = query.Where(i =>
+                    i.FechaRegistroItem >= fechaInicio);
+            }
+
+            // FECHA FINAL: INCLUYE TODO EL DÍA
+            if (filtros.FechaFin.HasValue)
+            {
+                var fechaFin = filtros.FechaFin.Value.Date.AddDays(1);
+
+                query = query.Where(i =>
+                    i.FechaRegistroItem < fechaFin);
+            }
+
+            // TOTAL DE REGISTROS FILTRADOS
+            var total = await query.CountAsync();
+
+            // PAGINACIÓN EN BASE DE DATOS
+            var items = await query
+                .OrderByDescending(i => i.FechaRegistroItem)
+                .ThenByDescending(i => i.Id)
+                .Skip((filtros.Pagina - 1) * filtros.PageSize)
+                .Take(filtros.PageSize)
+                .Select(i => new MostrarEntradaDto
+                {
+                    Id = i.Id,
+                    Referencia = i.InventarioBodega.Referencia,
+                    ReferenciaPeso = i.ReferenciaPeso,
+                    FechaRegistroItem = i.FechaRegistroItem,
+                    PesoActual = i.PesoActual,
+                    Estado = i.Estado
+                })
+                .ToListAsync();
+
+            return new EntradasBodegaPaginadasDto
+            {
+                Items = items,
+                Total = total,
+                Pagina = filtros.Pagina,
+                PageSize = filtros.PageSize,
+                TotalPaginas = (int)Math.Ceiling(
+                    total / (double)filtros.PageSize)
+            };
         }
 
         // REGISTRAR ENTRADA DE PESO
@@ -103,7 +210,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
 
                 try
                 {
-                    Console.WriteLine("INICIO DEL REGISTRO");
 
                     // CREAR ITEM
                     var nuevoItem = new InventarioBodegaItem
@@ -121,11 +227,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
                     producto.Peso += request.Peso;
                     producto.Cantidad += 1;
 
-                    Console.WriteLine("GUARDANDO ITEM E INVENTARIO");
-
                     await _context.SaveChangesAsync();
-
-                    Console.WriteLine("PRIMER GUARDADO OK");
 
                     // REGISTRAR MOVIMIENTO
                     var nuevoMovimiento = new MovimientoInventarioBodega
@@ -142,15 +244,18 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
 
                     _context.MovimientosInventarioBodega.Add(nuevoMovimiento);
 
-                    Console.WriteLine("GUARDANDO MOVIMIENTO");
-
                     await _context.SaveChangesAsync();
 
-                    Console.WriteLine("SEGUNDO GUARDADO OK");
+                    // AUDITORÍA
+                    await AuditarAsync(
+                        "Crear",
+                        "InventarioBodega",
+                        $"Se registró una entrada de {request.Peso} kg. " +
+                        $"Referencia: {producto.Referencia}. " +
+                        $"Referencia individual: {nuevoItem.ReferenciaPeso}.",
+                        nuevoItem.Id);
 
                     await transaction.CommitAsync();
-
-                    Console.WriteLine("TRANSACCION CONFIRMADA");
 
                     return new IngresarPesoResponseDto
                     {
@@ -242,6 +347,17 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
                     _context.MovimientosInventarioBodega.Add(movimiento);
 
                     await _context.SaveChangesAsync();
+
+                    // AUDITORÍA
+                    await AuditarAsync(
+                        "Devolucion",
+                        "InventarioBodega",
+                        $"Se devolvió el item {item.ReferenciaPeso} al almacén. " +
+                        $"Referencia: {inventario.Referencia}. " +
+                        $"Peso devuelto: {item.PesoActual} kg. " +
+                        $"Observación: {request.Observacion}.",
+                        item.Id);
+
                     await transaction.CommitAsync();
 
                     return "Devolución registrada correctamente.";
@@ -349,6 +465,16 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
                     }
 
                     await _context.SaveChangesAsync();
+
+                    // AUDITORÍA
+                    await AuditarAsync(
+                        "AjusteGeneral",
+                        "InventarioBodega",
+                        $"Se aplicó un ajuste general a {items.Count} items. " +
+                        $"IDs: {string.Join(", ", items.Select(i => i.Id))}. " +
+                        $"Observación: {request.Observacion}.",
+                        null);
+
                     await transaction.CommitAsync();
 
                     return $"Ajuste general aplicado correctamente a {items.Count} items.";

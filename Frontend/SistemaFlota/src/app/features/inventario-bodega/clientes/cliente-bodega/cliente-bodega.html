@@ -102,6 +102,7 @@
                         <th>Dirección</th>
                         <th>Teléfono</th>
                         <th>Email</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -133,13 +134,32 @@
                         <td data-label="Email">
                             {{ cliente.email || 'No registrado' }}
                         </td>
+                        <td data-label="Estado">
+                            <span [class.estado-activo]="cliente.activo" [class.estado-inactivo]="!cliente.activo">
+                                {{ cliente.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </td>
 
                         <td data-label="Acciones">
 
-                            <button type="button" class="btn-editar" title="Editar cliente"
+                            <button type="button" class="btn-editar" title="Editar cliente" [disabled]="!cliente.activo"
                                 (click)="abrirEditarCliente(cliente)">
 
                                 <i class="fas fa-edit"></i>
+
+                            </button>
+
+                            <button *ngIf="cliente.activo" type="button" class="btn-desactivar"
+                                title="Desactivar cliente" (click)="desactivarCliente(cliente)">
+
+                                <i class="fas fa-ban"></i>
+
+                            </button>
+
+                            <button *ngIf="!cliente.activo" type="button" class="btn-reactivar"
+                                title="Reactivar cliente" (click)="reactivarCliente(cliente)">
+
+                                <i class="fas fa-check-circle"></i>
 
                             </button>
 

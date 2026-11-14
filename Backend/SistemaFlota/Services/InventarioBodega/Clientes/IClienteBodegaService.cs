@@ -14,6 +14,8 @@ namespace SistemaFlota.Services.InventarioBodega.Clientes
         Task<RespuestaClienteDto> ActualizarClienteAsync(
             int id, EditarClienteRequestDto dto);
 
-        Task<RespuestaClienteDto> EliminarClienteAsync(int id);
+        Task<RespuestaClienteDto> DesactivarClienteAsync(int id);
+
+        Task<RespuestaClienteDto> ReactivarClienteAsync(int id);
     }
 }

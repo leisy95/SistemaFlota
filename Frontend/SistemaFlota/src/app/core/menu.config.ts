@@ -431,6 +431,13 @@ export const MENU_MODULOS: MenuItem[] = [
         ruta: '/inventario-bodega/listar-clientes',
         modulo: 'inventario-bodega',
     },
+    {
+        key: 'historial-movimientos',
+        label: 'Historial Movimientos',
+        icon: 'fa-solid fa-users',
+        ruta: '/inventario-bodega/historial-movimientos',
+        modulo: 'inventario-bodega',
+    },
 
     // HISTORIAL ODO
     {

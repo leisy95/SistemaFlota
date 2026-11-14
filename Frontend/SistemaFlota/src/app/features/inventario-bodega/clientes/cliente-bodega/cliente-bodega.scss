@@ -93,6 +93,48 @@
     margin-top: 5px;
 }
 
+.estado-activo,
+.estado-inactivo {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.estado-activo {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.estado-inactivo {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.btn-desactivar,
+.btn-reactivar {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    padding: 6px;
+}
+
+.btn-desactivar {
+    color: #d32f2f;
+}
+
+.btn-reactivar {
+    color: #2e7d32;
+}
+
+.btn-editar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 // BOTÓN LIMPIAR
 .btn-limpiar {
     display: inline-flex;

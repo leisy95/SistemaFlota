@@ -100,6 +100,14 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "SalidasBodega",
+                $"Se creó una nueva salida de bodega. " +
+                $"Usuario: {UsuarioActual}. " +
+                $"Estado: {salida.Estado}.",
+                salida.Id);
+
             return new RespuestaSalidaBodegaDto
             {
                 Exito = true,
@@ -172,6 +180,14 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "AgregarItem",
+                "SalidasBodega",
+                $"Se agregó el item {item.ReferenciaPeso} " +
+                $"a la salida {salida.Id}. " +
+                $"Estado del item: {item.Estado}.",
+                salida.Id);
+
             return Exito("Item agregado a la salida.", item.Id);
         }
 
@@ -237,6 +253,13 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "AgregarItem",
+                "SalidasBodega",
+                $"Se agregó el item {item.ReferenciaPeso} " +
+                $"a la salida {salida.Id} mediante búsqueda por referencia.",
+                salida.Id);
+
             return Exito("Item agregado correctamente.", item.Id);
         }
 
@@ -260,11 +283,19 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
                 return Error("El item no está en esta salida.");
             }
 
+            var referencia = salidaItem.InventarioBodegaItem.ReferenciaPeso;
+
             salidaItem.InventarioBodegaItem.Estado = "EN_ALMACEN";
 
             _context.SalidasBodegaDetalles.Remove(salidaItem);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "QuitarItem",
+                "SalidasBodega",
+                $"Se retiró el item {referencia} de la salida {idSalida}.",
+                idSalida);
 
             return Exito("Item eliminado de la salida.");
         }
@@ -371,6 +402,14 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Confirmar",
+                "SalidasBodega",
+                $"Se confirmó la salida {salida.Id} para el cliente {cliente.Nombre}. " +
+                $"Total de items: {salida.Detalles.Count}. " +
+                $"Usuario: {UsuarioActual}.",
+                salida.Id);
+
             return Exito("Salida confirmada correctamente.", salida.Id);
         }
 
@@ -400,6 +439,14 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
             salida.FechaCancelacion = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Cancelar",
+                "SalidasBodega",
+                $"Se canceló la salida {salida.Id}. " +
+                $"Items liberados: {salida.Detalles.Count}. " +
+                $"Usuario: {UsuarioActual}.",
+                salida.Id);
 
             return Exito("Salida cancelada correctamente.", salida.Id);
         }

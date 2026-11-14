@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { IngresarPesoDto, IngresarPesoResponseDto } from '../../../models/inventario-bodega/inventario-bodega.models';
@@ -18,9 +18,17 @@ export class EntradaInventarioService {
     constructor(private http: HttpClient) { }
 
     // OBTENER ENTRADAS DE INVENTARIO
-    obtenerEntradas(): Observable<MostrarEntradaDto[]> {
+    obtenerEntradas(estado?: string): Observable<MostrarEntradaDto[]> {
+
+        let params = new HttpParams();
+
+        if (estado) {
+            params = params.set('estado', estado);
+        }
+
         return this.http.get<MostrarEntradaDto[]>(
-            `${this.apiUrl}/mostrar-entradas`
+            `${this.apiUrl}/mostrar-entradas`,
+            { params: params }
         );
     }
 

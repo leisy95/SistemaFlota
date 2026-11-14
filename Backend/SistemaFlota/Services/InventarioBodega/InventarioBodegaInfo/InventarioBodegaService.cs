@@ -34,6 +34,29 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
                 .ToListAsync();
         }
 
+        // OBTENER SUGERENCIAS DE REFERENCIAS
+        public async Task<List<string>> ObtenerSugerenciasAsync(string? buscar)
+        {
+            var consulta = _context.InventariosBodega
+                .AsNoTracking()
+                .Where(i => i.Referencia != null && i.Referencia != "");
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                var texto = buscar.Trim();
+
+                consulta = consulta.Where(i =>
+                    i.Referencia.StartsWith(texto));
+            }
+
+            return await consulta
+                .OrderBy(i => i.Referencia)
+                .Select(i => i.Referencia)
+                .Take(5)
+                .ToListAsync();
+        }
+
+
         // OBTENER INVENTARIO PAGINADO CON FILTROS Y RESUMEN
         public async Task<InventarioBodegaPaginadoResponseDto>
             ObtenerPaginadoAsync(
@@ -229,6 +252,14 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
 
             await _context.SaveChangesAsync();
 
+            await AuditarAsync(
+                "Crear",
+                "InventarioBodega",
+                $"Se registró un nuevo producto en el inventario. " +
+                $"Referencia: {inventario.Referencia}. " +
+                $"Descripción: {inventario.Descripcion}.",
+                inventario.Id);
+
             return new RegistrarItemResponseDto
             {
                 IdItemGenerado = inventario.Id,
@@ -283,6 +314,15 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
             inventario.PaqueteCantidad = request.PaqueteCantidad;
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Actualizar",
+                "InventarioBodega",
+                $"Se actualizó el producto del inventario. " +
+                $"ID: {inventario.Id}. " +
+                $"Referencia: {inventario.Referencia}. " +
+                $"Descripción: {inventario.Descripcion}.",
+                inventario.Id);
 
             return true;
         }
@@ -343,6 +383,15 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
                 }
 
                 await _context.SaveChangesAsync();
+
+                await AuditarAsync(
+                    "Recalcular",
+                    "InventarioBodega",
+                    $"Se ejecutó el recálculo general del inventario. " +
+                    $"Total de inventarios: {inventarios.Count}. " +
+                    $"Inventarios actualizados: {actualizados}.",
+                    null);
+
                 await transaction.CommitAsync();
 
                 return new RecalcularInventarioBodegaResponseDto
@@ -368,9 +417,20 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
             if (inventario == null)
                 return false;
 
+            var referencia = inventario.Referencia;
+            var descripcion = inventario.Descripcion;
+
             _context.InventariosBodega.Remove(inventario);
 
             await _context.SaveChangesAsync();
+
+            await AuditarAsync(
+                "Eliminar",
+                "InventarioBodega",
+                $"Se eliminó un producto del inventario. " +
+                $"Referencia: {referencia}. " +
+                $"Descripción: {descripcion}.",
+                id);
 
             return true;
         }

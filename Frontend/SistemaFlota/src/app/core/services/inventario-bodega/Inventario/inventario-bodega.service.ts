@@ -25,6 +25,20 @@ export class InventarioBodegaService {
         return this.http.get<InventarioBodega[]>(this.apiUrl);
     }
 
+    // OBTENER SUGERENCIAS DE REFERENCIAS
+    obtenerSugerencias(buscar: string = ''): Observable<string[]> {
+        let params = new HttpParams();
+
+        if (buscar.trim()) {
+            params = params.set('buscar', buscar.trim());
+        }
+
+        return this.http.get<string[]>(
+            `${this.apiUrl}/sugerencias`,
+            { params }
+        );
+    }
+
     // OBTENER PAGINADO
     obtenerPaginado(
         buscar: string,

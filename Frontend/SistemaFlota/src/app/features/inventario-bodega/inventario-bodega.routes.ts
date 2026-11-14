@@ -55,6 +55,13 @@ export const INVENTARIOBODEGA_ROUTES: Routes = [
         loadComponent: () =>
             import('./entradas-bodega/registrar-entrada/registrar-entrada')
                 .then(c => c.RegistrarEntrada),
+    },
+
+    {
+        path: 'historial-movimientos',
+        loadComponent: () =>
+            import('./historial-movimientos/historial-movimientos')
+                .then(c => c.HistorialMovimientos),
     }
 
 ];

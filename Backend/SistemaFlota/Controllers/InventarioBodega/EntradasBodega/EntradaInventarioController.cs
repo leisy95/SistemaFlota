@@ -23,11 +23,12 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
 
         // OBTENER ENTRADAS DE INVENTARIO
         [HttpGet("mostrar-entradas")]
-        public async Task<IActionResult> ObtenerEntradas()
+        public async Task<IActionResult> ObtenerEntradas(
+            [FromQuery] string? estado = null)
         {
             try
             {
-                var resultado = await _service.ObtenerEntradasAsync();
+                var resultado = await _service.ObtenerEntradasAsync(estado);
 
                 return Ok(resultado);
             }
@@ -36,6 +37,27 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
                 return StatusCode(500, new
                 {
                     message = "Error al consultar las entradas de inventario.",
+                    detalle = ex.Message
+                });
+            }
+        }
+
+        // FILTRAR ENTRADAS CON PAGINACIÓN
+        [HttpGet("filtrar-entradas")]
+        public async Task<IActionResult> FiltrarEntradas(
+            [FromQuery] FiltroEntradaBodegaDto filtros)
+        {
+            try
+            {
+                var resultado = await _service.FiltrarEntradasAsync(filtros);
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al filtrar las entradas de inventario.",
                     detalle = ex.Message
                 });
             }
