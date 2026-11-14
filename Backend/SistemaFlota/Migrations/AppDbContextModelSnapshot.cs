@@ -3032,8 +3032,7 @@ namespace SistemaFlota.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReferenciaNormalizada")
-                        .IsUnique();
+                    b.HasIndex("ReferenciaNormalizada");
 
                     b.ToTable("InventariosBodega");
                 });

@@ -415,8 +415,7 @@ namespace SistemaFlota
 
             // Índices para consultas rápidas
             modelBuilder.Entity<InventarioBodega>()
-                .HasIndex(i => i.ReferenciaNormalizada)
-                .IsUnique();
+                .HasIndex(i => i.ReferenciaNormalizada);
 
             modelBuilder.Entity<InventarioBodegaItem>()
                 .HasIndex(i => i.IdInventarioBodega);
