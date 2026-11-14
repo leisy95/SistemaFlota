@@ -25,24 +25,18 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
         }
 
         // OBTENER ENTRADAS DE INVENTARIO
-        public async Task<List<MostrarEntradaDto>> ObtenerEntradasAsync(
-            string? estado = null)
+        public async Task<List<MostrarEntradaDto>> ObtenerEntradasAsync(string? estado = null)
         {
             var query = _context.InventariosBodegaItems
                 .AsNoTracking()
                 .AsQueryable();
 
-            // POR DEFECTO: MOSTRAR SOLO ITEMS EN ALMACÉN
             if (string.IsNullOrWhiteSpace(estado))
-            {
                 query = query.Where(i => i.Estado == "EN_ALMACEN");
-            }
             else
-            {
                 query = query.Where(i => i.Estado == estado.Trim().ToUpper());
-            }
 
-            return await query
+            var entradas = await query
                 .OrderByDescending(i => i.FechaRegistroItem)
                 .ThenByDescending(i => i.Id)
                 .Select(i => new MostrarEntradaDto
@@ -55,6 +49,16 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega
                     Estado = i.Estado
                 })
                 .ToListAsync();
+
+            foreach (var entrada in entradas)
+            {
+                entrada.FechaRegistroItem = DateTime.SpecifyKind(
+                    entrada.FechaRegistroItem,
+                    DateTimeKind.Utc
+                );
+            }
+
+            return entradas;
         }
 
         // FILTRAR ENTRADAS CON PAGINACIÓN DESDE EL BACKEND
