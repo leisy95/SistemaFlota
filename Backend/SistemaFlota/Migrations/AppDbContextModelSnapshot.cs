@@ -2898,6 +2898,9 @@ namespace SistemaFlota.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime(6)");
 
@@ -2935,6 +2938,8 @@ namespace SistemaFlota.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
 
                     b.HasIndex("Fecha");
 
@@ -4668,6 +4673,11 @@ namespace SistemaFlota.Migrations
 
             modelBuilder.Entity("SistemaFlota.Models.InventariosBodega.EntradasBodega.MovimientoInventarioBodega", b =>
                 {
+                    b.HasOne("SistemaFlota.Models.InventariosBodega.Clientes.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SistemaFlota.Models.InventariosBodega.Inventario.InventarioBodega", "InventarioBodega")
                         .WithMany("Movimientos")
                         .HasForeignKey("IdInventarioBodega")
@@ -4679,6 +4689,8 @@ namespace SistemaFlota.Migrations
                         .HasForeignKey("IdInventarioBodegaItem")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Cliente");
 
                     b.Navigation("InventarioBodega");
 

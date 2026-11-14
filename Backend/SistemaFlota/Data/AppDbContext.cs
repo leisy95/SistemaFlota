@@ -402,6 +402,13 @@ namespace SistemaFlota
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<MovimientoInventarioBodega>()
+                .HasOne(m => m.Cliente)
+                .WithMany()
+                .HasForeignKey(m => m.ClienteId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MovimientoInventarioBodega>()
                 .HasOne(m => m.InventarioBodega)
                 .WithMany(i => i.Movimientos)
                 .HasForeignKey(m => m.IdInventarioBodega)

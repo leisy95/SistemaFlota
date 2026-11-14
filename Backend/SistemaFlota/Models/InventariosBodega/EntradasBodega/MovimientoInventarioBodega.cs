@@ -1,4 +1,5 @@
-﻿using SistemaFlota.Models.InventariosBodega.Inventario;
+﻿using SistemaFlota.Models.InventariosBodega.Clientes;
+using SistemaFlota.Models.InventariosBodega.Inventario;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -48,5 +49,11 @@ namespace SistemaFlota.Models.InventariosBodega.EntradasBodega
 
         [ForeignKey(nameof(IdInventarioBodegaItem))]
         public InventarioBodegaItem InventarioBodegaItem { get; set; }
+
+        // Relación opcional con Cliente
+        public int? ClienteId { get; set; }
+
+        [ForeignKey(nameof(ClienteId))]
+        public Cliente? Cliente { get; set; }
     }
 }
