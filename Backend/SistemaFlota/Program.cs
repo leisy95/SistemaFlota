@@ -50,6 +50,12 @@ using SistemaFlota.Services.HistorialVersionOdo;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.InformacionKasoft;
 using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
+using SistemaFlota.Services.InventarioBodega;
+using SistemaFlota.Services.InventarioBodega.Clientes;
+using SistemaFlota.Services.InventarioBodega.EntradasBodega;
+using SistemaFlota.Services.InventarioBodega.HistorialMovimientos;
+using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
+using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using System.Text;
@@ -224,7 +230,6 @@ builder.Services.AddScoped<ICorteInventarioNoFormalizadoPdfService,
 
 builder.Services.AddScoped<IOrdenTrasladoNoFormalizadaService, OrdenTrasladoNoFormalizadaService>();
 
-// FlotaChat: avisos por la integración con token y lista de usuarios para vincular.
 builder.Services.AddHttpClient(FlotaChatService.NombreCliente, c =>
 {
     c.BaseAddress = new Uri((builder.Configuration["FlotaChat:ApiUrl"] ?? "https://apichat.gecobagsci.com").TrimEnd('/') + "/");
@@ -249,6 +254,14 @@ builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();
 // Historial Odo
 builder.Services.AddScoped<IPedidoCompraService, PedidoCompraService>();
 builder.Services.AddScoped<IMovimientoProductoService, MovimientoProductoService>();
+
+// Inventario Bodega
+builder.Services.AddScoped<IClienteBodegaService, ClienteBodegaService>();
+builder.Services.AddScoped<IInventarioBodegaService, InventarioBodegaService>();
+builder.Services.AddScoped<IEntradaInventarioService, EntradaInventarioService>();
+builder.Services.AddScoped<ISalidaBodegaService, SalidaBodegaService>();
+builder.Services.AddScoped<IHistorialInventarioBodegaService,
+    HistorialInventarioBodegaService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();

@@ -124,6 +124,9 @@ export class Sidebar implements OnInit {
     } else if (url.startsWith('/compras/2')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('compras-2');
 
+    } else if (url.startsWith('/inventario-bodega')) {
+      this.modulosVisibles = this.obtenerMenuPorModulo('inventario-bodega');
+
     } else if (url.startsWith('/historial-odo')) {
       this.modulosVisibles = this.obtenerMenuPorModulo('historial-odo');
 

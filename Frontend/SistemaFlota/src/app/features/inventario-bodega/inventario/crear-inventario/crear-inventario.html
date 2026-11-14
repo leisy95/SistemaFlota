@@ -1,0 +1,260 @@
+<div class="modal-container">
+
+    <!-- HEADER -->
+    <header class="modal-header">
+        <div class="header-info">
+            <div class="header-icon">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div>
+                <span class="header-etiqueta">GESTIÓN DE INVENTARIO</span>
+
+                <h2>
+                    {{ esEdicion ? 'Editar inventario' : 'Registrar inventario' }}
+                </h2>
+
+                <p>
+                    {{ esEdicion
+                    ? 'Actualiza las características y existencias del producto.'
+                    : 'Completa la información para registrar un nuevo producto.'
+                    }}
+                </p>
+            </div>
+        </div>
+
+        <div class="header-estado" *ngIf="esEdicion">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Modo edición
+        </div>
+    </header>
+
+    <!-- FORMULARIO -->
+    <form [formGroup]="form" class="formulario" (ngSubmit)="guardar()">
+
+        <div class="form-body">
+
+            <!-- IDENTIFICACIÓN -->
+            <section class="form-seccion">
+
+                <div class="seccion-header">
+                    <div class="seccion-icono verde">
+                        <i class="fa-solid fa-barcode"></i>
+                    </div>
+
+                    <div>
+                        <h3>Identificación del producto</h3>
+                        <p>Datos principales para identificar el inventario</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="campo campo-destacado">
+                        <label>
+                            Referencia
+                            <span class="obligatorio">*</span>
+                        </label>
+
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-barcode"></i>
+                            <input type="text" formControlName="referencia" placeholder="Ej. REF-001">
+                        </div>
+
+                        <small class="error" *ngIf="form.get('referencia')?.touched && form.get('referencia')?.invalid">
+                            La referencia es obligatoria.
+                        </small>
+                    </div>
+
+                    <div class="campo">
+                        <label>Tipo de bolsa</label>
+                        <input type="text" formControlName="tipoBolsa" placeholder="Tipo de bolsa">
+                    </div>
+
+                    <div class="campo">
+                        <label>Tipo de material</label>
+                        <input type="text" formControlName="tipoMaterial" placeholder="Ej. Polietileno">
+                    </div>
+
+                    <div class="campo">
+                        <label>Densidad</label>
+                        <input type="text" formControlName="densidad" placeholder="Densidad del material">
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- MEDIDAS -->
+            <section class="form-seccion">
+
+                <div class="seccion-header">
+                    <div class="seccion-icono azul">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                    </div>
+
+                    <div>
+                        <h3>Características técnicas</h3>
+                        <p>Medidas y especificaciones físicas del producto</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="campo">
+                        <label>Ancho</label>
+                        <div class="input-wrapper">
+                            <input type="number" formControlName="ancho" placeholder="0" min="0">
+                            <span class="unidad">cm</span>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Alto</label>
+                        <div class="input-wrapper">
+                            <input type="number" formControlName="alto" placeholder="0" min="0">
+                            <span class="unidad">cm</span>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Calibre</label>
+                        <input type="number" formControlName="calibre" placeholder="Calibre">
+                    </div>
+
+                    <div class="campo">
+                        <label>Fuelle lateral</label>
+                        <input type="number" formControlName="fuelleLateral" placeholder="Fuelle lateral">
+                    </div>
+
+                    <div class="campo">
+                        <label>Fuelle de fondo</label>
+                        <input type="number" formControlName="fuelleFondo" placeholder="Fuelle de fondo">
+                    </div>
+
+                    <div class="campo">
+                        <label>Fuelle superior</label>
+                        <input type="number" formControlName="fuelleSuperior" placeholder="Fuelle superior">
+                    </div>
+
+                    <div class="campo">
+                        <label>Troquel</label>
+                        <input type="text" formControlName="troquel" placeholder="Tipo de troquel">
+                    </div>
+
+                    <div class="campo">
+                        <label>Referencia impresa</label>
+                        <input type="text" formControlName="referenciaImpresa" placeholder="Referencia impresa">
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- MATERIAL Y COLOR -->
+            <section class="form-seccion">
+
+                <div class="seccion-header">
+                    <div class="seccion-icono morado">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+
+                    <div>
+                        <h3>Color e impresión</h3>
+                        <p>Información visual y de personalización del producto</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="campo">
+                        <label>Color principal</label>
+                        <input type="text" formControlName="color" placeholder="Color principal">
+                    </div>
+
+                    <div class="campo">
+                        <label>Segundo color</label>
+                        <input type="text" formControlName="segundoColor" placeholder="Segundo color">
+                    </div>
+
+                    <div class="campo">
+                        <label>Impresión</label>
+                        <input type="text" formControlName="impresoNo" placeholder="Indicar impresión">
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- EXISTENCIAS -->
+            <section class="form-seccion">
+
+                <div class="seccion-header">
+                    <div class="seccion-icono dorado">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+
+                    <div>
+                        <h3>Existencias y empaque</h3>
+                        <p>Registra las cantidades y el peso del producto</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="campo">
+                        <label>Peso</label>
+                        <div class="input-wrapper">
+                            <input type="number" formControlName="peso" placeholder="0.00" min="0" step="0.01">
+                            <span class="unidad">kg</span>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Cantidad</label>
+                        <div class="input-wrapper">
+                            <input type="number" formControlName="cantidad" placeholder="0" min="0">
+                            <span class="unidad">und.</span>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Paquete número</label>
+                        <input type="number" formControlName="paqueteNumero" placeholder="Número de paquete" min="0">
+                    </div>
+
+                    <div class="campo">
+                        <label>Cantidad por paquete</label>
+                        <input type="number" formControlName="paqueteCantidad" placeholder="Cantidad por paquete"
+                            min="0">
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="modal-actions">
+
+            <span class="footer-info">
+                <i class="fa-solid fa-circle-info"></i>
+                Verifica los datos antes de guardar.
+            </span>
+
+            <div class="acciones-botones">
+                <button type="button" class="btn-cancelar" (click)="cancelar()">
+                    <i class="fa-solid fa-xmark"></i>
+                    Cancelar
+                </button>
+
+                <button type="submit" class="btn-guardar" [disabled]="form.invalid">
+
+                    <i class="fa-solid" [ngClass]="esEdicion ? 'fa-floppy-disk' : 'fa-plus'">
+                    </i>
+
+                    {{ esEdicion ? 'Guardar cambios' : 'Registrar producto' }}
+                </button>
+            </div>
+
+        </footer>
+
+    </form>
+</div>

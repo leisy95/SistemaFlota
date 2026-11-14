@@ -1,0 +1,214 @@
+<div class="detalle-container">
+
+    <!-- HEADER -->
+    <header class="detalle-header">
+        <div class="header-info">
+            <div class="header-icon">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+
+            <div>
+                <h2>Detalle del producto</h2>
+                <p>Información completa del producto en inventario</p>
+            </div>
+        </div>
+
+        <button class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </header>
+
+    <!-- BODY -->
+    <div class="detalle-body">
+
+        <!-- IDENTIFICACIÓN -->
+        <section class="producto-identificacion">
+            <div class="producto-icono">
+                <i class="fa-solid fa-cube"></i>
+            </div>
+
+            <div class="producto-info">
+                <span class="producto-label">REFERENCIA DEL PRODUCTO</span>
+                <h3>{{ item.referencia }}</h3>
+
+                <div class="producto-tags">
+                    <span>{{ item.tipoBolsa || 'Sin tipo de bolsa' }}</span>
+                    <span>{{ item.tipoMaterial || 'Sin material' }}</span>
+                </div>
+            </div>
+
+            <div class="producto-estado">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Registrado</span>
+            </div>
+        </section>
+
+        <!-- INFORMACIÓN GENERAL -->
+        <section class="detalle-seccion">
+            <div class="seccion-header">
+                <div class="seccion-icono verde">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                <div>
+                    <h3>Información general</h3>
+                    <p>Identificación y clasificación del producto</p>
+                </div>
+            </div>
+
+            <div class="detalle-grid">
+                <div class="detalle-campo">
+                    <span>Tipo de bolsa</span>
+                    <strong>{{ item.tipoBolsa || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Tipo de material</span>
+                    <strong>{{ item.tipoMaterial || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Densidad</span>
+                    <strong>{{ item.densidad || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Color principal</span>
+                    <strong>{{ item.color || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Segundo color</span>
+                    <strong>{{ item.segundoColor || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Impresión</span>
+                    <strong>{{ item.impresoNo || '—' }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARACTERÍSTICAS TÉCNICAS -->
+        <section class="detalle-seccion">
+            <div class="seccion-header">
+                <div class="seccion-icono azul">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                </div>
+                <div>
+                    <h3>Características técnicas</h3>
+                    <p>Medidas y especificaciones del producto</p>
+                </div>
+            </div>
+
+            <div class="detalle-grid">
+                <div class="detalle-campo">
+                    <span>Ancho</span>
+                    <strong>{{ item.ancho}} <small>cm</small></strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Alto</span>
+                    <strong>{{ item.alto }} <small>cm</small></strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Calibre</span>
+                    <strong>{{ item.calibre }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Fuelle lateral</span>
+                    <strong>{{ item.fuelleLateral }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Fuelle de fondo</span>
+                    <strong>{{ item.fuelleFondo }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Fuelle superior</span>
+                    <strong>{{ item.fuelleSuperior }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Troquel</span>
+                    <strong>{{ item.troquel || '—' }}</strong>
+                </div>
+
+                <div class="detalle-campo">
+                    <span>Referencia impresa</span>
+                    <strong>{{ item.referenciaImpresa || '—' }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXISTENCIAS -->
+        <section class="detalle-seccion">
+            <div class="seccion-header">
+                <div class="seccion-icono dorado">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div>
+                    <h3>Existencias y empaque</h3>
+                    <p>Resumen de cantidades disponibles</p>
+                </div>
+            </div>
+
+            <div class="existencias-grid">
+
+                <div class="existencia-card peso">
+                    <div class="existencia-icono">
+                        <i class="fa-solid fa-weight-hanging"></i>
+                    </div>
+                    <span>Peso total</span>
+                    <strong>{{ item.peso | number:'1.0-2' }}</strong>
+                    <small>Kilogramos (kg)</small>
+                </div>
+
+                <div class="existencia-card cantidad">
+                    <div class="existencia-icono">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <span>Cantidad</span>
+                    <strong>{{ item.cantidad | number }}</strong>
+                    <small>Unidades</small>
+                </div>
+
+                <div class="existencia-card">
+                    <div class="existencia-icono">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <span>Paquete número</span>
+                    <strong>{{ item.paqueteNumero }}</strong>
+                    <small>Identificación</small>
+                </div>
+
+                <div class="existencia-card">
+                    <div class="existencia-icono">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <span>Paquete cantidad</span>
+                    <strong>{{ item.paqueteCantidad }}</strong>
+                    <small>Unidades por paquete</small>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="detalle-footer">
+        <span>
+            <i class="fa-solid fa-shield-halved"></i>
+            Información del inventario
+        </span>
+
+        <button class="btn-cerrar-footer" (click)="cerrar()">
+            <i class="fa-solid fa-check"></i>
+            Cerrar
+        </button>
+    </footer>
+
+</div>

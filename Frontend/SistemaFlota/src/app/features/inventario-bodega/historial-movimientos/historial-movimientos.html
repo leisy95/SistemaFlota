@@ -1,0 +1,293 @@
+<div class="historial-container">
+
+    <!-- Encabezado -->
+    <div class="encabezado">
+        <div>
+            <h2>Historial de movimientos</h2>
+            <p>Consulta y seguimiento de las operaciones realizadas en Inventario Bodega.</p>
+        </div>
+
+        <button class="btn-actualizar" (click)="cargarHistorial()" [disabled]="cargando">
+            <i class="fa-solid fa-rotate"></i>
+            Actualizar
+        </button>
+    </div>
+
+    <!-- Resumen -->
+    <div class="resumen-grid">
+
+        <div class="resumen-card verde">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <span>Total movimientos</span>
+                <strong>{{ resumen.totalMovimientos }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card azul">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <div>
+                <span>Creaciones</span>
+                <strong>{{ resumen.totalCreaciones }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card dorado">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+                <span>Actualizaciones</span>
+                <strong>{{ resumen.totalActualizaciones }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card rojo">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+            <div>
+                <span>Eliminaciones</span>
+                <strong>{{ resumen.totalEliminaciones }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card gris">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div>
+                <span>Confirmaciones</span>
+                <strong>{{ resumen.totalConfirmaciones }}</strong>
+            </div>
+        </div>
+
+        <div class="resumen-card rojo">
+            <div class="resumen-icono">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+            <div>
+                <span>Cancelaciones</span>
+                <strong>{{ resumen.totalCancelaciones }}</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Filtros -->
+    <section class="filtros-card">
+        <div class="filtros-header">
+            <div>
+                <h3><i class="fa-solid fa-filter"></i> Filtros de búsqueda</h3>
+                <p>Utiliza los filtros para encontrar movimientos específicos.</p>
+            </div>
+        </div>
+
+        <div class="filtros-grid">
+
+            <div class="campo busqueda">
+                <label>Buscar</label>
+                <div class="input-icono">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" [(ngModel)]="filtros.buscar" placeholder="Usuario, detalle, registro..."
+                        (keyup.enter)="aplicarFiltros()" />
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Desde</label>
+                <input type="date" [(ngModel)]="filtros.desde" />
+            </div>
+
+            <div class="campo">
+                <label>Hasta</label>
+                <input type="date" [(ngModel)]="filtros.hasta" />
+            </div>
+
+            <div class="campo">
+                <label>Módulo</label>
+                <select [(ngModel)]="filtros.modulo">
+                    <option value="">Todos los módulos</option>
+                    <option *ngFor="let modulo of opciones.modulos" [value]="modulo">
+                        {{ modulo }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Acción</label>
+                <select [(ngModel)]="filtros.accion">
+                    <option value="">Todas las acciones</option>
+                    <option *ngFor="let accion of opciones.acciones" [value]="accion">
+                        {{ accion }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Usuario</label>
+                <select [(ngModel)]="filtros.usuario">
+                    <option value="">Todos los usuarios</option>
+                    <option *ngFor="let usuario of opciones.usuarios" [value]="usuario">
+                        {{ usuario }}
+                    </option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="filtros-acciones">
+            <button class="btn-limpiar" (click)="limpiarFiltros()">
+                <i class="fa-solid fa-eraser"></i>
+                Limpiar
+            </button>
+
+            <button class="btn-buscar" (click)="aplicarFiltros()" [disabled]="cargando">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Aplicar filtros
+            </button>
+        </div>
+    </section>
+
+    <!-- Tabla -->
+    <section class="tabla-card">
+
+        <div class="tabla-header">
+            <div>
+                <h3>Movimientos registrados</h3>
+                <p>
+                    {{ totalRegistros }} registros encontrados
+                </p>
+            </div>
+
+            <div class="registros-select">
+                <label>Mostrar</label>
+                <select [(ngModel)]="porPagina" (ngModelChange)="cambiarPorPagina()">
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                    <option [ngValue]="50">50</option>
+                    <option [ngValue]="100">100</option>
+                </select>
+                <span>registros</span>
+            </div>
+        </div>
+
+        <div class="tabla-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Detalle</th>
+                        <th>Registro</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngIf="cargando">
+                        <td colspan="7" class="estado-tabla">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            Cargando movimientos...
+                        </td>
+                    </tr>
+
+                    <tr *ngIf="!cargando && !hayMovimientos">
+                        <td colspan="7" class="estado-tabla vacio">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <strong>No se encontraron movimientos</strong>
+                            <span>Intenta modificar los filtros de búsqueda.</span>
+                        </td>
+                    </tr>
+
+                    <tr *ngFor="let movimiento of movimientos">
+                        <td class="fecha">
+                            {{ formatearFecha(movimiento.fecha) }}
+                        </td>
+
+                        <td>
+                            <div class="usuario-info">
+                                <span class="usuario-avatar">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                                <div>
+                                    <strong>{{ movimiento.usuario || 'Sin usuario' }}</strong>
+                                    <small>{{ movimiento.rol || 'Sin rol' }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="modulo-badge">
+                                {{ movimiento.modulo }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="accion-badge" [ngClass]="obtenerClaseAccion(movimiento.accion)">
+                                {{ movimiento.accion }}
+                            </span>
+                        </td>
+
+                        <td class="detalle">
+                            {{ movimiento.detalle || 'Sin detalle' }}
+                        </td>
+
+                        <td>
+                            <span class="registro-id">
+                                {{ movimiento.registroId ?? '—' }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="resultado-badge"
+                                [class.resultado-exito]="(movimiento.resultado || '').toLowerCase() === 'exitoso'"
+                                [class.resultado-error]="(movimiento.resultado || '').toLowerCase() === 'error'">
+                                {{ movimiento.resultado || '—' }}
+                            </span>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="paginacion" *ngIf="!cargando && totalRegistros > 0">
+
+            <span class="paginacion-info">
+                Página {{ pagina }} de {{ totalPaginas }}
+            </span>
+
+            <div class="paginacion-botones">
+                <button (click)="cambiarPagina(1)" [disabled]="pagina === 1" title="Primera página">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+
+                <button (click)="cambiarPagina(pagina - 1)" [disabled]="pagina === 1" title="Anterior">
+                    <i class="fa-solid fa-angle-left"></i>
+                </button>
+
+                <span class="pagina-actual">{{ pagina }}</span>
+
+                <button (click)="cambiarPagina(pagina + 1)" [disabled]="pagina >= totalPaginas" title="Siguiente">
+                    <i class="fa-solid fa-angle-right"></i>
+                </button>
+
+                <button (click)="cambiarPagina(totalPaginas)" [disabled]="pagina >= totalPaginas" title="Última página">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
