@@ -37,8 +37,6 @@ export class MostrarEntradas implements OnInit {
   buscar = '';
   fechaFiltro = '';
 
-  observacionAjuste = '';
-
   paginaActual = 1;
   pageSize = 5;
 
@@ -242,7 +240,6 @@ export class MostrarEntradas implements OnInit {
 
     this.modoAjuste = true;
     this.seleccionadas = [];
-    this.observacionAjuste = '';
 
   }
 
@@ -250,7 +247,6 @@ export class MostrarEntradas implements OnInit {
 
     this.modoAjuste = false;
     this.seleccionadas = [];
-    this.observacionAjuste = '';
 
   }
 

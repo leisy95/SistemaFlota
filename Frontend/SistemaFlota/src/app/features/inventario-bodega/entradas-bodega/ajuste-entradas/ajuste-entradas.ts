@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { EntradaInventarioService } from '../../../../core/services/inventario-bodega/entrada-inventario/entrada-inventario.service';
 import { MostrarEntradaDto } from '../../../../core/models/inventario-bodega/entrada-bodega/entradas-bodega.models';
+import { DialogService } from '../../../../core/services/dialogs/dialog.service';
 
 @Component({
   selector: 'app-ajuste-entradas',
@@ -33,7 +34,8 @@ export class AjusteEntradas implements OnInit {
     private entradaService: EntradaInventarioService,
     private toastr: ToastrService,
     private router: Router,
-    private location: Location
+    private location: Location,
+    private dialogService: DialogService
   ) {
     this.ajusteForm = this.fb.group({
       observacion: ['', [
@@ -93,40 +95,51 @@ export class AjusteEntradas implements OnInit {
       return;
     }
 
-    const confirmar = window.confirm(
-      `¿Está seguro de realizar el ajuste de ${this.items.length} elementos?`
+    // Confirmación mediante DialogService
+    const dialogRef = this.dialogService.alerta(
+      'Confirmar ajuste',
+      `¿Está seguro de realizar el ajuste de ${this.items.length} elementos? Esta acción no se puede deshacer.`,
+      'question',
+      true,
+      'Confirmar ajuste',
+      'Cancelar'
     );
 
-    if (!confirmar) return;
-
-    const request = {
-      itemIds: this.items.map(item => item.id),
-      observacion
-    };
-
-    this.loading = true;
-
-    this.entradaService.ajusteGeneral(request).subscribe({
-      next: (respuesta) => {
-        this.toastr.success(
-          respuesta.message || 'Ajuste realizado correctamente.'
-        );
-
-        this.ajusteForm.reset();
-        this.items = [];
-
-        this.router.navigate(['/inventario-bodega/mostrar-entradas']);
-      },
-      error: (error) => {
-        console.error('Error al realizar el ajuste:', error);
-
-        this.toastr.error(
-          error.error?.message || 'No fue posible realizar el ajuste.'
-        );
-      },
-      complete: () => {
-        this.loading = false;
+    dialogRef.afterClosed().subscribe(confirmado => {
+      if (!confirmado) {
+        return;
       }
+
+      const request = {
+        itemIds: this.items.map(item => item.id),
+        observacion
+      };
+
+      this.loading = true;
+
+      this.entradaService.ajusteGeneral(request).subscribe({
+        next: (respuesta) => {
+          this.loading = false;
+
+          this.toastr.success(
+            respuesta.message || 'Ajuste realizado correctamente.'
+          );
+
+          this.ajusteForm.reset();
+          this.items = [];
+
+          this.router.navigate(['/inventario-bodega/mostrar-entradas']);
+        },
+        error: (error) => {
+          this.loading = false;
+
+          console.error('Error al realizar el ajuste:', error);
+
+          this.toastr.error(
+            error.error?.message || 'No fue posible realizar el ajuste.'
+          );
+        }
+      });
     });
   }
 

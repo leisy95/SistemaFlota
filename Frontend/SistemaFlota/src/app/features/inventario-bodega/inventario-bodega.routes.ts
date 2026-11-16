@@ -9,6 +9,13 @@ export const INVENTARIOBODEGA_ROUTES: Routes = [
     },
 
     {
+        path: 'dashboard',
+        loadComponent: () =>
+            import('./dashboard-bodega/dashboard-bodega')
+                .then(c => c.DashboardBodega),
+    },
+
+    {
         path: 'listar-inventario',
         loadComponent: () =>
             import('./inventario/listar-inventario/listar-inventario')

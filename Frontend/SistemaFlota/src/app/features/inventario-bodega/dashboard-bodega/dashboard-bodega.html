@@ -1,0 +1,331 @@
+<div class="movimientos-container">
+
+    <!-- ENCABEZADO -->
+    <div class="encabezado">
+        <div class="encabezado-info">
+            <div class="icono-titulo">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div>
+                <h2>Movimientos de inventario</h2>
+                <p>Consulta y seguimiento de entradas, salidas y existencias</p>
+            </div>
+        </div>
+
+        <button class="btn-exportar" type="button" (click)="exportarCSV()" [disabled]="!movimientosFiltrados.length">
+            <i class="fa-solid fa-file-csv"></i>
+            Exportar CSV
+        </button>
+    </div>
+
+    <!-- FILTROS -->
+    <section class="filtros-card">
+        <div class="filtros-titulo">
+            <h3>
+                <i class="fa-solid fa-filter"></i>
+                Filtros de búsqueda
+            </h3>
+        </div>
+
+        <div class="filtros-grid">
+
+            <div class="campo">
+                <label for="fechaInicio">Fecha inicial</label>
+                <input id="fechaInicio" type="date" [(ngModel)]="fechaInicio">
+            </div>
+
+            <div class="campo">
+                <label for="fechaFin">Fecha final</label>
+                <input id="fechaFin" type="date" [(ngModel)]="fechaFin">
+            </div>
+
+            <div class="campo">
+                <label for="tipoMovimiento">Tipo de movimiento</label>
+                <select id="tipoMovimiento" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+                    <option value="">Todos los movimientos</option>
+                    <option value="Inicial">Inventario inicial</option>
+                    <option value="Entrada">Entrada</option>
+                    <option value="Devolucion">Devolución</option>
+                    <option value="Salida">Salida</option>
+                    <option value="Eliminado">Eliminado</option>
+                    <option value="Ajuste">Ajuste</option>
+                </select>
+            </div>
+
+            <div class="campo campo-busqueda">
+                <label for="buscar">Buscar movimiento</label>
+                <div class="input-busqueda">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="buscar" type="text" placeholder="Referencia, usuario o cliente..." [(ngModel)]="buscar"
+                        (input)="aplicarFiltros()">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="filtros-acciones">
+            <button class="btn-limpiar" type="button" (click)="limpiarFiltros()">
+                <i class="fa-solid fa-eraser"></i>
+                Limpiar
+            </button>
+
+            <button class="btn-filtrar" type="button" (click)="cargarAuditoria()" [disabled]="cargando">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Consultar
+            </button>
+        </div>
+    </section>
+
+    <!-- ERROR -->
+    <div class="mensaje-error" *ngIf="error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ error }}
+        <button type="button" (click)="cargarAuditoria()">
+            Reintentar
+        </button>
+    </div>
+
+    <!-- CARGANDO -->
+    <div class="cargando" *ngIf="cargando">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Cargando movimientos...</span>
+    </div>
+
+    <ng-container *ngIf="!cargando && auditoria">
+
+        <!-- RESUMEN -->
+        <section class="resumen-section">
+
+            <div class="seccion-encabezado">
+                <div>
+                    <h3>Resumen del inventario</h3>
+                    <p>Consolidado de movimientos y existencias</p>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card kpi-verde">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Inventario inicial</span>
+                        <strong>{{ auditoria.resumen.inventarioInicial.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.inventarioInicial.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-azul">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Entradas</span>
+                        <strong>{{ auditoria.resumen.entradas.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.entradas.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-rojo">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Salidas</span>
+                        <strong>{{ auditoria.resumen.salidas.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.salidas.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-dorado">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Devoluciones</span>
+                        <strong>{{ auditoria.resumen.devoluciones.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.devoluciones.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-gris">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Eliminados</span>
+                        <strong>{{ auditoria.resumen.eliminados.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.eliminados.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-amarillo">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Ajustes</span>
+                        <strong>{{ auditoria.resumen.ajustes.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.ajustes.peso) }} kg</small>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-existencias">
+                    <div class="kpi-icono">
+                        <i class="fa-solid fa-warehouse"></i>
+                    </div>
+                    <div class="kpi-contenido">
+                        <span>Existencias actuales</span>
+                        <strong>{{ auditoria.resumen.existencias.cantidad }}</strong>
+                        <small>{{ formatearPeso(auditoria.resumen.existencias.peso) }} kg</small>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ESTADÍSTICAS -->
+        <section class="estadisticas-card">
+            <div class="seccion-encabezado">
+                <div>
+                    <h3>Movimientos por tipo</h3>
+                    <p>Cantidad de registros según su clasificación</p>
+                </div>
+            </div>
+
+            <div class="estadisticas-grid">
+                <div class="estadistica-item" *ngFor="let estadistica of auditoria.totalesPorTipo">
+
+                    <div class="estadistica-info">
+                        <span>{{ obtenerNombreTipo(estadistica.tipo) }}</span>
+                        <strong>{{ estadistica.total }}</strong>
+                    </div>
+
+                    <div class="barra-fondo">
+                        <div class="barra-progreso" [ngClass]="obtenerClaseTipo(estadistica.tipo)" [style.width.%]="
+                (estadistica.total /
+                (movimientos.length || 1)) * 100
+              ">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABLA DE MOVIMIENTOS -->
+        <section class="tabla-card">
+
+            <div class="tabla-encabezado">
+                <div>
+                    <h3>Historial de movimientos</h3>
+                    <p>
+                        {{ movimientosFiltrados.length }}
+                        registros encontrados
+                    </p>
+                </div>
+
+                <div class="tabla-controles">
+                    <label for="cantidadRegistros">Mostrar</label>
+                    <select id="cantidadRegistros" [ngModel]="elementosPorPagina"
+                        (ngModelChange)="cambiarCantidadPorPagina(+$event)">
+                        <option [ngValue]="10">10</option>
+                        <option [ngValue]="25">25</option>
+                        <option [ngValue]="50">50</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tabla-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Referencia peso</th>
+                            <th>Tipo</th>
+                            <th>Peso (kg)</th>
+                            <th>Usuario</th>
+                            <th>Cliente</th>
+                            <th>Observación</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let movimiento of movimientosPaginados">
+
+                            <td class="fecha-cell">
+                                {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
+                            </td>
+
+                            <td class="referencia-cell">
+                                {{ movimiento.referencia }}
+                            </td>
+
+                            <td>
+                                {{ movimiento.referenciaPeso }}
+                            </td>
+
+                            <td>
+                                <span class="tipo-badge" [ngClass]="obtenerClaseTipo(movimiento.tipo)">
+                                    {{ obtenerNombreTipo(movimiento.tipo) }}
+                                </span>
+                            </td>
+
+                            <td class="peso-cell">
+                                {{ formatearPeso(movimiento.peso) }}
+                            </td>
+
+                            <td>{{ movimiento.usuario }}</td>
+
+                            <td>{{ movimiento.cliente || '—' }}</td>
+
+                            <td class="observacion-cell">
+                                {{ movimiento.observacion || '—' }}
+                            </td>
+
+                        </tr>
+
+                        <tr *ngIf="!movimientosPaginados.length">
+                            <td colspan="8" class="sin-registros">
+                                <i class="fa-solid fa-box-open"></i>
+                                <strong>No hay movimientos registrados</strong>
+                                <span>No se encontraron resultados para los filtros seleccionados.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="paginacion" *ngIf="movimientosFiltrados.length">
+
+                <span class="paginacion-info">
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                </span>
+
+                <div class="paginacion-botones">
+
+                    <button type="button" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <button type="button" *ngFor="let pagina of paginas" [class.activa]="paginaActual === pagina"
+                        (click)="cambiarPagina(pagina)">
+                        {{ pagina }}
+                    </button>
+
+                    <button type="button" (click)="cambiarPagina(paginaActual + 1)"
+                        [disabled]="paginaActual === totalPaginas">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+            </div>
+
+        </section>
+
+    </ng-container>
+
+</div>

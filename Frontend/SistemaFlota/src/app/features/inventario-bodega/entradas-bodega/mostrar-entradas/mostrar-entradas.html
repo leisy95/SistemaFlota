@@ -90,23 +90,11 @@
             <strong>{{ seleccionadas.length }} seleccionadas</strong>
         </div>
 
-        <!-- OBSERVACIÓN DEL AJUSTE -->
-        <div class="field observacion-field">
-            <label for="observacionAjuste">
-                Observación del ajuste *
-            </label>
-
-            <textarea id="observacionAjuste" name="observacionAjuste" [(ngModel)]="observacionAjuste" rows="3"
-                maxlength="500" placeholder="Describe el motivo del ajuste de inventario...">
-        </textarea>
-        </div>
-
         <div class="ajuste-actions">
 
             <button class="btn-confirmar" (click)="confirmarAjusteGeneral()" [disabled]="
                 !seleccionadas.length ||
                 rol !== 'Administrador' ||
-                !observacionAjuste.trim() ||
                 cargandoAjuste
             ">
 

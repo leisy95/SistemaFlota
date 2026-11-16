@@ -397,6 +397,13 @@ export const MENU_MODULOS: MenuItem[] = [
 
     // INVENTARIO - BODEGA
     {
+        key: 'dashboard',
+        label: 'Dashboard',
+        icon: 'fa-solid fa-boxes-stacked',
+        ruta: '/inventario-bodega/dashboard',
+        modulo: 'inventario-bodega',
+    },
+    {
         key: 'listar-inventario',
         label: 'Inventario',
         icon: 'fa-solid fa-boxes-stacked',
