@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string Referencia { get; set; } = string.Empty;
+        public string? Cliente { get; set; }
         public string ReferenciaPeso { get; set; } = string.Empty;
         public decimal Peso { get; set; }
         public DateTime Fecha { get; set; }

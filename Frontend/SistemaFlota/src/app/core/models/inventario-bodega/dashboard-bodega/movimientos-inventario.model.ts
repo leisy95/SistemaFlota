@@ -1,4 +1,3 @@
-
 export interface MovimientoInventarioRequest {
     referencia: string;
     referenciaPeso: string;
@@ -67,10 +66,30 @@ export interface UsuarioMasActivo {
     total: number;
 }
 
+// Filtros enviados al backend
+export interface MovimientoInventarioFiltros {
+    fechaInicio?: string;
+    fechaFin?: string;
+    referencia?: string;
+    usuario?: string;
+    cliente?: string;
+    tipo?: string;
+    referenciaImpresa?: string;
+    pagina: number;
+    pageSize: number;
+}
+
+// Respuesta de auditoría con paginación
 export interface MovimientoInventarioAuditoriaCompleta {
     resumen: MovimientoInventarioAuditoriaResumen;
     movimientos: MovimientoInventarioAuditoria[];
     totalesPorTipo: MovimientoInventarioEstadistica[];
     referenciasMasMovidas: ReferenciaMasMovida[];
     usuariosMasActivos: UsuarioMasActivo[];
+
+    // Metadatos de paginación
+    pagina: number;
+    pageSize: number;
+    totalRegistros: number;
+    totalPaginas: number;
 }

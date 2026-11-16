@@ -11,5 +11,11 @@
         public List<ReferenciaMasMovidaDto> ReferenciasMasMovidas { get; set; } = new();
 
         public List<UsuarioMasActivoDto> UsuariosMasActivos { get; set; } = new();
+
+        // Paginación
+        public int Pagina { get; set; }
+        public int PageSize { get; set; }
+        public int TotalRegistros { get; set; }
+        public int TotalPaginas { get; set; }
     }
 }

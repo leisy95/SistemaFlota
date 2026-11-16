@@ -44,13 +44,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
         // GET: api/MovimientosInventario/auditoria
         [HttpGet("auditoria")]
         public async Task<ActionResult<MovimientoInventarioAuditoriaCompletaDto>>
-            GetAuditoria(
-                [FromQuery] DateTime? fechaInicio,
-                [FromQuery] DateTime? fechaFin)
+            GetAuditoria([FromQuery] MovimientoInventarioFiltroDto filtros)
         {
-            var auditoria = await _service.ObtenerAuditoriaAsync(
-                fechaInicio,
-                fechaFin);
+            var auditoria = await _service.ObtenerAuditoriaAsync(filtros);
 
             return Ok(auditoria);
         }

@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <button class="btn-exportar" type="button" (click)="exportarCSV()" [disabled]="!movimientosFiltrados.length">
+        <button class="btn-exportar" type="button" (click)="exportarCSV()" [disabled]="!movimientos.length">
             <i class="fa-solid fa-file-csv"></i>
             Exportar CSV
         </button>
@@ -42,7 +42,7 @@
 
             <div class="campo">
                 <label for="tipoMovimiento">Tipo de movimiento</label>
-                <select id="tipoMovimiento" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+                <select id="tipoMovimiento" [(ngModel)]="filtroTipo">
                     <option value="">Todos los movimientos</option>
                     <option value="Inicial">Inventario inicial</option>
                     <option value="Entrada">Entrada</option>
@@ -57,8 +57,7 @@
                 <label for="buscar">Buscar movimiento</label>
                 <div class="input-busqueda">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input id="buscar" type="text" placeholder="Referencia, usuario o cliente..." [(ngModel)]="buscar"
-                        (input)="aplicarFiltros()">
+                    <input id="buscar" type="text" placeholder="Buscar por referencia..." [(ngModel)]="buscar">
                 </div>
             </div>
 
@@ -70,7 +69,7 @@
                 Limpiar
             </button>
 
-            <button class="btn-filtrar" type="button" (click)="cargarAuditoria()" [disabled]="cargando">
+            <button class="btn-filtrar" type="button" (click)="aplicarFiltros()" [disabled]="cargando">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 Consultar
             </button>
@@ -81,6 +80,7 @@
     <div class="mensaje-error" *ngIf="error">
         <i class="fa-solid fa-circle-exclamation"></i>
         {{ error }}
+
         <button type="button" (click)="cargarAuditoria()">
             Reintentar
         </button>
@@ -205,9 +205,9 @@
 
                     <div class="barra-fondo">
                         <div class="barra-progreso" [ngClass]="obtenerClaseTipo(estadistica.tipo)" [style.width.%]="
-                (estadistica.total /
-                (movimientos.length || 1)) * 100
-              ">
+                                (estadistica.total /
+                                (totalRegistros || 1)) * 100
+                            ">
                         </div>
                     </div>
                 </div>
@@ -221,8 +221,7 @@
                 <div>
                     <h3>Historial de movimientos</h3>
                     <p>
-                        {{ movimientosFiltrados.length }}
-                        registros encontrados
+                        {{ totalRegistros }} registros encontrados
                     </p>
                 </div>
 
@@ -233,6 +232,7 @@
                         <option [ngValue]="10">10</option>
                         <option [ngValue]="25">25</option>
                         <option [ngValue]="50">50</option>
+                        <option [ngValue]="100">100</option>
                     </select>
                 </div>
             </div>
@@ -253,7 +253,7 @@
                     </thead>
 
                     <tbody>
-                        <tr *ngFor="let movimiento of movimientosPaginados">
+                        <tr *ngFor="let movimiento of movimientos">
 
                             <td class="fecha-cell">
                                 {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
@@ -287,7 +287,7 @@
 
                         </tr>
 
-                        <tr *ngIf="!movimientosPaginados.length">
+                        <tr *ngIf="!movimientos.length">
                             <td colspan="8" class="sin-registros">
                                 <i class="fa-solid fa-box-open"></i>
                                 <strong>No hay movimientos registrados</strong>
@@ -298,27 +298,42 @@
                 </table>
             </div>
 
-            <!-- PAGINACIÓN -->
-            <div class="paginacion" *ngIf="movimientosFiltrados.length">
+            <!-- PAGINACIÓN DESDE BACKEND -->
+            <div class="paginacion" *ngIf="totalRegistros > 0">
 
                 <span class="paginacion-info">
-                    Página {{ paginaActual }} de {{ totalPaginas }}
+                    Mostrando
+                    {{ (paginaActual - 1) * elementosPorPagina + 1 }}
+                    -
+                    {{ (paginaActual - 1) * elementosPorPagina + movimientos.length }}
+                    de {{ totalRegistros }} registros
                 </span>
 
                 <div class="paginacion-botones">
 
-                    <button type="button" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+                    <button type="button" (click)="cambiarPagina(1)" [disabled]="paginaActual === 1 || cargando"
+                        title="Primera página">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </button>
+
+                    <button type="button" (click)="cambiarPagina(paginaActual - 1)"
+                        [disabled]="paginaActual === 1 || cargando">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
 
                     <button type="button" *ngFor="let pagina of paginas" [class.activa]="paginaActual === pagina"
-                        (click)="cambiarPagina(pagina)">
+                        [disabled]="cargando" (click)="cambiarPagina(pagina)">
                         {{ pagina }}
                     </button>
 
                     <button type="button" (click)="cambiarPagina(paginaActual + 1)"
-                        [disabled]="paginaActual === totalPaginas">
+                        [disabled]="paginaActual === totalPaginas || cargando">
                         <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                    <button type="button" (click)="cambiarPagina(totalPaginas)"
+                        [disabled]="paginaActual === totalPaginas || cargando" title="Última página">
+                        <i class="fa-solid fa-angles-right"></i>
                     </button>
 
                 </div>

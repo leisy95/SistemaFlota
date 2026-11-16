@@ -387,6 +387,7 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
                         Fecha = DateTime.UtcNow,
                         Tipo = "Salida",
                         Usuario = UsuarioActual,
+                        ClienteId = cliente.Id,
                         Observacion = $"Salida a cliente: {cliente.Nombre}",
                         IdInventarioBodega = item.IdInventarioBodega,
                         IdInventarioBodegaItem = item.Id

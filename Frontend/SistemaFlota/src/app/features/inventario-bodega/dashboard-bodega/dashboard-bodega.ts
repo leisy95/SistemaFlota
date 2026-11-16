@@ -1,8 +1,14 @@
+
 import { Component, OnInit } from '@angular/core';
-import { MovimientoInventarioAuditoria, MovimientoInventarioAuditoriaCompleta } from '../../../core/models/inventario-bodega/dashboard-bodega/movimientos-inventario.model';
-import { MovimientosInventarioService } from '../../../core/services/inventario-bodega/dashboard-bodega/movimientos-inventario.service';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import {
+  MovimientoInventarioAuditoria,
+  MovimientoInventarioAuditoriaCompleta,
+  MovimientoInventarioFiltros
+} from '../../../core/models/inventario-bodega/dashboard-bodega/movimientos-inventario.model';
+
+import { MovimientosInventarioService } from '../../../core/services/inventario-bodega/dashboard-bodega/movimientos-inventario.service';
 
 @Component({
   selector: 'app-dashboard-bodega',
@@ -19,7 +25,6 @@ export class DashboardBodega implements OnInit {
   auditoria: MovimientoInventarioAuditoriaCompleta | null = null;
 
   movimientos: MovimientoInventarioAuditoria[] = [];
-  movimientosFiltrados: MovimientoInventarioAuditoria[] = [];
 
   fechaInicio = '';
   fechaFin = '';
@@ -29,6 +34,7 @@ export class DashboardBodega implements OnInit {
   cargando = false;
   error = '';
 
+  // Paginación controlada por backend
   paginaActual = 1;
   elementosPorPagina = 10;
 
@@ -40,18 +46,32 @@ export class DashboardBodega implements OnInit {
     this.cargarAuditoria();
   }
 
+  // Cargar auditoría con filtros y paginación desde backend
   cargarAuditoria(): void {
     this.cargando = true;
     this.error = '';
 
-    this.movimientosService.obtenerAuditoria(
-      this.fechaInicio || undefined,
-      this.fechaFin || undefined
-    ).subscribe({
+    const filtros: MovimientoInventarioFiltros = {
+      fechaInicio: this.fechaInicio || undefined,
+      fechaFin: this.fechaFin || undefined,
+      tipo: this.filtroTipo || undefined,
+
+      // El buscador general se envía como filtro de referencia.
+      referencia: this.buscar.trim() || undefined,
+
+      pagina: this.paginaActual,
+      pageSize: this.elementosPorPagina
+    };
+
+    this.movimientosService.obtenerAuditoria(filtros).subscribe({
       next: (respuesta) => {
         this.auditoria = respuesta;
         this.movimientos = respuesta.movimientos || [];
-        this.aplicarFiltros();
+
+        // Sincronizar paginación con la respuesta del backend
+        this.paginaActual = respuesta.pagina;
+        this.elementosPorPagina = respuesta.pageSize;
+
         this.cargando = false;
       },
       error: (error) => {
@@ -62,67 +82,63 @@ export class DashboardBodega implements OnInit {
     });
   }
 
+  // Aplicar filtros
   aplicarFiltros(): void {
-    const termino = this.buscar.trim().toLowerCase();
-
-    this.movimientosFiltrados = this.movimientos.filter(movimiento => {
-      const coincideTipo = !this.filtroTipo ||
-        movimiento.tipo?.toLowerCase() === this.filtroTipo.toLowerCase();
-
-      const coincideTexto = !termino ||
-        movimiento.referencia?.toLowerCase().includes(termino) ||
-        movimiento.referenciaPeso?.toLowerCase().includes(termino) ||
-        movimiento.usuario?.toLowerCase().includes(termino) ||
-        movimiento.cliente?.toLowerCase().includes(termino) ||
-        movimiento.referenciaImpresa?.toLowerCase().includes(termino);
-
-      return coincideTipo && coincideTexto;
-    });
-
     this.paginaActual = 1;
+    this.cargarAuditoria();
   }
 
+  // Limpiar filtros
   limpiarFiltros(): void {
     this.fechaInicio = '';
     this.fechaFin = '';
     this.filtroTipo = '';
     this.buscar = '';
 
+    this.paginaActual = 1;
+
     this.cargarAuditoria();
   }
 
-  get movimientosPaginados(): MovimientoInventarioAuditoria[] {
-    const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
-
-    return this.movimientosFiltrados.slice(
-      inicio,
-      inicio + this.elementosPorPagina
-    );
+  // Total de registros según backend
+  get totalRegistros(): number {
+    return this.auditoria?.totalRegistros || 0;
   }
 
+  // Total de páginas según backend
   get totalPaginas(): number {
-    return Math.ceil(
-      this.movimientosFiltrados.length / this.elementosPorPagina
-    ) || 1;
+    return this.auditoria?.totalPaginas || 1;
   }
 
+  // Cambiar página consultando nuevamente el backend
   cambiarPagina(pagina: number): void {
-    if (pagina < 1 || pagina > this.totalPaginas) {
+    if (pagina < 1 || pagina > this.totalPaginas || pagina === this.paginaActual) {
       return;
     }
 
     this.paginaActual = pagina;
+    this.cargarAuditoria();
   }
 
+  // Cambiar cantidad de registros por página
   cambiarCantidadPorPagina(cantidad: number): void {
     this.elementosPorPagina = cantidad;
     this.paginaActual = 1;
+    this.cargarAuditoria();
   }
 
+  // Números de páginas visibles
   get paginas(): number[] {
+    const total = this.totalPaginas;
+    const actual = this.paginaActual;
+
+    const inicio = Math.max(1, actual - 2);
+    const fin = Math.min(total, inicio + 4);
+    const inicioAjustado = Math.max(1, fin - 4);
+
     return Array.from(
-      { length: this.totalPaginas },
-      (_, i) => i + 1
+      { length: fin - inicioAjustado + 1 },
+      (_, i) => inicioAjustado + i
     );
   }
 
@@ -170,8 +186,9 @@ export class DashboardBodega implements OnInit {
     });
   }
 
+  // Exportar los movimientos de la página actual
   exportarCSV(): void {
-    if (!this.movimientosFiltrados.length) {
+    if (!this.movimientos.length) {
       return;
     }
 
@@ -187,7 +204,7 @@ export class DashboardBodega implements OnInit {
       'Observación'
     ];
 
-    const filas = this.movimientosFiltrados.map(m => [
+    const filas = this.movimientos.map(m => [
       m.referencia,
       m.referenciaPeso,
       this.obtenerNombreTipo(m.tipo),

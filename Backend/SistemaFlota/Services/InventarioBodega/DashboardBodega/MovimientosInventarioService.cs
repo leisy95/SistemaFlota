@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.InventarioBodega.DashboardBodega;
 using SistemaFlota.Models.InventariosBodega.EntradasBodega;
-using SistemaFlota.Services.Auditorias.Base;
-using SistemaFlota.Services.Auth;
 
 namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
 {
@@ -30,6 +28,9 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
                     Tipo = m.Tipo,
                     Usuario = m.Usuario,
                     ReferenciaImpresa = m.InventarioBodega.ReferenciaImpresa,
+                    Cliente = m.Cliente != null
+                        ? m.Cliente.Nombre
+                        : null,
                     InventarioNombre = m.InventarioBodega.Referencia,
                     InventarioItemCodigo = m.InventarioBodegaItem.ReferenciaPeso
                 })
@@ -52,6 +53,9 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
                     Tipo = m.Tipo,
                     Usuario = m.Usuario,
                     ReferenciaImpresa = m.InventarioBodega.ReferenciaImpresa,
+                    Cliente = m.Cliente != null
+                        ? m.Cliente.Nombre
+                        : null,
                     InventarioNombre = m.InventarioBodega.Referencia,
                     InventarioItemCodigo = m.InventarioBodegaItem.ReferenciaPeso
                 })
@@ -59,27 +63,214 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
         }
 
         // AUDITORÍA
+
         public async Task<MovimientoInventarioAuditoriaCompletaDto>
-            ObtenerAuditoriaAsync(DateTime? fechaInicio, DateTime? fechaFin)
+            ObtenerAuditoriaAsync(MovimientoInventarioFiltroDto filtros)
         {
-            var query = _context.MovimientosInventarioBodega.AsQueryable();
+            // Normalizar paginación
+            var pagina = Math.Max(1, filtros.Pagina);
+            var pageSize = Math.Clamp(filtros.PageSize, 1, 100);
 
-            if (fechaInicio.HasValue)
+            // Consulta base
+            var query = _context.MovimientosInventarioBodega
+                .AsNoTracking()
+                .AsQueryable();
+
+            // FILTRO POR FECHAS
+            if (filtros.FechaInicio.HasValue)
             {
-                query = query.Where(m =>
-                    m.Fecha >= fechaInicio.Value.Date.ToUniversalTime());
+                var fechaInicio = filtros.FechaInicio.Value.Date.ToUniversalTime();
+
+                query = query.Where(m => m.Fecha >= fechaInicio);
             }
 
-            if (fechaFin.HasValue)
+            if (filtros.FechaFin.HasValue)
             {
-                query = query.Where(m =>
-                    m.Fecha <= fechaFin.Value.Date
-                        .AddDays(1)
-                        .AddTicks(-1)
-                        .ToUniversalTime());
+                var fechaFin = filtros.FechaFin.Value.Date
+                    .AddDays(1)
+                    .AddTicks(-1)
+                    .ToUniversalTime();
+
+                query = query.Where(m => m.Fecha <= fechaFin);
             }
 
-            var movimientosList = await query
+            // FILTRO POR REFERENCIA
+            if (!string.IsNullOrWhiteSpace(filtros.Referencia))
+            {
+                var referencia = filtros.Referencia.Trim();
+
+                query = query.Where(m =>
+                    m.Referencia.Contains(referencia));
+            }
+
+            // FILTRO POR USUARIO
+            if (!string.IsNullOrWhiteSpace(filtros.Usuario))
+            {
+                var usuario = filtros.Usuario.Trim();
+
+                query = query.Where(m =>
+                    m.Usuario != null &&
+                    m.Usuario.Contains(usuario));
+            }
+
+            // FILTRO POR CLIENTE
+            if (!string.IsNullOrWhiteSpace(filtros.Cliente))
+            {
+                var cliente = filtros.Cliente.Trim();
+
+                query = query.Where(m =>
+                    m.Cliente != null &&
+                    m.Cliente.Nombre.Contains(cliente));
+            }
+
+            // FILTRO POR TIPO
+            if (!string.IsNullOrWhiteSpace(filtros.Tipo))
+            {
+                var tipo = filtros.Tipo.Trim();
+
+                query = query.Where(m =>
+                    m.Tipo.Contains(tipo));
+            }
+
+            // FILTRO POR REFERENCIA IMPRESA
+            if (!string.IsNullOrWhiteSpace(filtros.ReferenciaImpresa))
+            {
+                var referenciaImpresa = filtros.ReferenciaImpresa.Trim();
+
+                query = query.Where(m =>
+                    m.InventarioBodega != null &&
+                    m.InventarioBodega.ReferenciaImpresa != null &&
+                    m.InventarioBodega.ReferenciaImpresa.Contains(referenciaImpresa));
+            }
+
+            // TOTAL DE REGISTROS FILTRADOS
+            var totalRegistros = await query.CountAsync();
+
+            var totalPaginas = (int)Math.Ceiling(
+                totalRegistros / (double)pageSize
+            );
+
+            // RESUMEN AGRUPADO POR TIPO
+            // Se calcula sobre todos los registros filtrados.
+            var agrupados = await query
+                .GroupBy(m => m.Tipo)
+                .Select(g => new
+                {
+                    Tipo = g.Key,
+                    Cantidad = g.Count(),
+                    Peso = g.Sum(m => m.Peso)
+                })
+                .ToListAsync();
+
+            var inicial = agrupados.FirstOrDefault(x => x.Tipo == "Inicial");
+            var entradas = agrupados.FirstOrDefault(x => x.Tipo == "Entrada");
+            var salidas = agrupados.FirstOrDefault(x => x.Tipo == "Salida");
+            var devoluciones = agrupados.FirstOrDefault(x => x.Tipo == "Devolucion");
+            var eliminados = agrupados.FirstOrDefault(x => x.Tipo == "Eliminado");
+            var ajustes = agrupados.FirstOrDefault(x => x.Tipo == "Ajuste");
+
+            // EXISTENCIAS
+            var existenciasCantidad =
+                (inicial?.Cantidad ?? 0)
+                + (entradas?.Cantidad ?? 0)
+                + (devoluciones?.Cantidad ?? 0)
+                - (ajustes?.Cantidad ?? 0)
+                - (salidas?.Cantidad ?? 0)
+                - (eliminados?.Cantidad ?? 0);
+
+            var existenciasPeso =
+                (inicial?.Peso ?? 0)
+                + (entradas?.Peso ?? 0)
+                + (devoluciones?.Peso ?? 0)
+                - (ajustes?.Peso ?? 0)
+                - (salidas?.Peso ?? 0)
+                - (eliminados?.Peso ?? 0);
+
+            // RESUMEN
+            var resumen = new MovimientoInventarioAuditoriaResumenDto
+            {
+                InventarioInicial = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = inicial?.Cantidad ?? 0,
+                    Peso = inicial?.Peso ?? 0
+                },
+
+                Entradas = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = entradas?.Cantidad ?? 0,
+                    Peso = entradas?.Peso ?? 0
+                },
+
+                Salidas = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = salidas?.Cantidad ?? 0,
+                    Peso = salidas?.Peso ?? 0
+                },
+
+                Devoluciones = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = devoluciones?.Cantidad ?? 0,
+                    Peso = devoluciones?.Peso ?? 0
+                },
+
+                Eliminados = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = eliminados?.Cantidad ?? 0,
+                    Peso = eliminados?.Peso ?? 0
+                },
+
+                Ajustes = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = ajustes?.Cantidad ?? 0,
+                    Peso = ajustes?.Peso ?? 0
+                },
+
+                Existencias = new MovimientoInventarioTotalesDto
+                {
+                    Cantidad = existenciasCantidad,
+                    Peso = existenciasPeso
+                }
+            };
+
+            // TOTALES POR TIPO
+            var totalesPorTipo = agrupados
+                .Select(g => new MovimientoInventarioEstadisticaDto
+                {
+                    Tipo = g.Tipo,
+                    Total = g.Cantidad
+                })
+                .ToList();
+
+            // REFERENCIAS MÁS MOVIDAS
+            var referenciasMasMovidas = await query
+                .GroupBy(m => m.Referencia)
+                .Select(g => new ReferenciaMasMovidaDto
+                {
+                    Referencia = g.Key,
+                    Total = g.Count()
+                })
+                .OrderByDescending(x => x.Total)
+                .Take(5)
+                .ToListAsync();
+
+            // USUARIOS MÁS ACTIVOS
+            var usuariosMasActivos = await query
+                .GroupBy(m => m.Usuario)
+                .Select(g => new UsuarioMasActivoDto
+                {
+                    Usuario = g.Key ?? "Sin usuario",
+                    Total = g.Count()
+                })
+                .OrderByDescending(x => x.Total)
+                .Take(5)
+                .ToListAsync();
+
+            // MOVIMIENTOS PAGINADOS
+            var movimientos = await query
+                .OrderByDescending(m => m.Fecha)
+                .ThenByDescending(m => m.Id)
+                .Skip((pagina - 1) * pageSize)
+                .Take(pageSize)
                 .Select(m => new MovimientoInventarioAuditoriaDto
                 {
                     Referencia = m.Referencia,
@@ -94,127 +285,23 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
                     ReferenciaImpresa = m.InventarioBodega.ReferenciaImpresa,
                     Observacion = m.Observacion
                 })
-                .OrderByDescending(m => m.Fecha)
                 .ToListAsync();
-
-            var inventarioInicial = movimientosList
-                .Where(m => m.Tipo == "Inicial").ToList();
-
-            var entradas = movimientosList
-                .Where(m => m.Tipo == "Entrada").ToList();
-
-            var devoluciones = movimientosList
-                .Where(m => m.Tipo == "Devolucion").ToList();
-
-            var salidas = movimientosList
-                .Where(m => m.Tipo == "Salida").ToList();
-
-            var eliminados = movimientosList
-                .Where(m => m.Tipo == "Eliminado").ToList();
-
-            var ajustes = movimientosList
-                .Where(m => m.Tipo == "Ajuste").ToList();
-
-            // EXISTENCIAS
-            var existenciasCantidad =
-                inventarioInicial.Count
-                + entradas.Count
-                + devoluciones.Count
-                - ajustes.Count
-                - salidas.Count
-                - eliminados.Count;
-
-            var existenciasPeso =
-                inventarioInicial.Sum(x => x.Peso)
-                + entradas.Sum(x => x.Peso)
-                + devoluciones.Sum(x => x.Peso)
-                - ajustes.Sum(x => x.Peso)
-                - salidas.Sum(x => x.Peso)
-                - eliminados.Sum(x => x.Peso);
-
-            // RESUMEN
-            var resumen = new MovimientoInventarioAuditoriaResumenDto
-            {
-                InventarioInicial = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = inventarioInicial.Count,
-                    Peso = inventarioInicial.Sum(x => x.Peso)
-                },
-                Entradas = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = entradas.Count,
-                    Peso = entradas.Sum(x => x.Peso)
-                },
-                Salidas = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = salidas.Count,
-                    Peso = salidas.Sum(x => x.Peso)
-                },
-                Devoluciones = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = devoluciones.Count,
-                    Peso = devoluciones.Sum(x => x.Peso)
-                },
-                Eliminados = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = eliminados.Count,
-                    Peso = eliminados.Sum(x => x.Peso)
-                },
-                Ajustes = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = ajustes.Count,
-                    Peso = ajustes.Sum(x => x.Peso)
-                },
-                Existencias = new MovimientoInventarioTotalesDto
-                {
-                    Cantidad = existenciasCantidad,
-                    Peso = existenciasPeso
-                }
-            };
-
-            // ESTADÍSTICAS POR TIPO
-            var totalesPorTipo = movimientosList
-                .GroupBy(m => m.Tipo)
-                .Select(g => new MovimientoInventarioEstadisticaDto
-                {
-                    Tipo = g.Key,
-                    Total = g.Count()
-                })
-                .ToList();
-
-            // REFERENCIAS MÁS MOVIDAS
-            var referenciasMasMovidas = movimientosList
-                .GroupBy(m => m.Referencia)
-                .Select(g => new ReferenciaMasMovidaDto
-                {
-                    Referencia = g.Key,
-                    Total = g.Count()
-                })
-                .OrderByDescending(x => x.Total)
-                .Take(5)
-                .ToList();
-
-            // USUARIOS MÁS ACTIVOS
-            var usuariosMasActivos = movimientosList
-                .GroupBy(m => m.Usuario)
-                .Select(g => new UsuarioMasActivoDto
-                {
-                    Usuario = g.Key,
-                    Total = g.Count()
-                })
-                .OrderByDescending(x => x.Total)
-                .Take(5)
-                .ToList();
 
             return new MovimientoInventarioAuditoriaCompletaDto
             {
                 Resumen = resumen,
-                Movimientos = movimientosList,
+                Movimientos = movimientos,
                 TotalesPorTipo = totalesPorTipo,
                 ReferenciasMasMovidas = referenciasMasMovidas,
-                UsuariosMasActivos = usuariosMasActivos
+                UsuariosMasActivos = usuariosMasActivos,
+
+                Pagina = pagina,
+                PageSize = pageSize,
+                TotalRegistros = totalRegistros,
+                TotalPaginas = totalPaginas
             };
         }
+
 
         // REGISTRAR MOVIMIENTO
         public async Task<MovimientoInventarioResponseDto>
@@ -249,6 +336,9 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
                     Fecha = m.Fecha,
                     Tipo = m.Tipo,
                     Usuario = m.Usuario,
+                    Cliente = m.Cliente != null
+                        ? m.Cliente.Nombre
+                        : null,
                     ReferenciaImpresa = m.InventarioBodega.ReferenciaImpresa,
                     InventarioNombre = m.InventarioBodega.Referencia,
                     InventarioItemCodigo = m.InventarioBodegaItem.ReferenciaPeso
