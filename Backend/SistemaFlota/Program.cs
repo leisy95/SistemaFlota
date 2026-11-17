@@ -53,6 +53,7 @@ using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
 using SistemaFlota.Services.InventarioBodega;
 using SistemaFlota.Services.InventarioBodega.Clientes;
 using SistemaFlota.Services.InventarioBodega.DashboardBodega;
+using SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInventarioPdf;
 using SistemaFlota.Services.InventarioBodega.EntradasBodega;
 using SistemaFlota.Services.InventarioBodega.HistorialMovimientos;
 using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
@@ -258,6 +259,8 @@ builder.Services.AddScoped<IMovimientoProductoService, MovimientoProductoService
 
 // Inventario Bodega
 builder.Services.AddScoped<IMovimientosInventarioService, MovimientosInventarioService>();
+builder.Services.AddScoped<IMovimientosInventarioPdfService,
+    MovimientosInventarioPdfService>();
 builder.Services.AddScoped<IClienteBodegaService, ClienteBodegaService>();
 builder.Services.AddScoped<IInventarioBodegaService, InventarioBodegaService>();
 builder.Services.AddScoped<IEntradaInventarioService, EntradaInventarioService>();

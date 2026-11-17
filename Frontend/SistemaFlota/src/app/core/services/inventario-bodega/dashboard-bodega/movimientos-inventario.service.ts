@@ -81,6 +81,17 @@ export class MovimientosInventarioService {
         );
     }
 
+    // Generar PDF de movimientos
+    generarPdf(
+        filtros: MovimientoInventarioFiltros
+    ): Observable<Blob> {
+        return this.http.post(
+            `${this.apiUrl}/pdf`,
+            filtros,
+            { responseType: 'blob' }
+        );
+    }
+
     // Registrar movimiento
     registrarMovimiento(
         movimiento: MovimientoInventarioRequest

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.DashboardBodega;
 using SistemaFlota.Services.InventarioBodega.DashboardBodega;
+using SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInventarioPdf;
 
 namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
 {
@@ -12,11 +13,14 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
     public class MovimientosInventarioController : ControllerBase
     {
         private readonly IMovimientosInventarioService _service;
+        private readonly IMovimientosInventarioPdfService _pdfService;
 
         public MovimientosInventarioController(
-            IMovimientosInventarioService service)
+            IMovimientosInventarioService service,
+            IMovimientosInventarioPdfService pdfService)
         {
             _service = service;
+            _pdfService = pdfService;
         }
 
         // LISTAR MOVIMIENTOS
@@ -53,6 +57,35 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             var auditoria = await _service.ObtenerAuditoriaAsync(filtros);
 
             return Ok(auditoria);
+        }
+
+        // GENERAR PDF DE MOVIMIENTOS FILTRADOS
+        [HttpPost("pdf")]
+        [Permiso("historial-movimientos-bodega", "ver")]
+        public async Task<IActionResult> GenerarPdf(
+            [FromBody] MovimientoInventarioFiltroDto filtros)
+        {
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(filtros);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    "movimientos-inventario.pdf"
+                );
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        mensaje = "Error al generar el PDF de movimientos.",
+                        detalle = ex.Message
+                    }
+                );
+            }
         }
 
         //FILTROS 

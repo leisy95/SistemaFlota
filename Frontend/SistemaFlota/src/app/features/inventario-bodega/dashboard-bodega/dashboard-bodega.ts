@@ -261,4 +261,63 @@ export class DashboardBodega implements OnInit {
 
     URL.revokeObjectURL(url);
   }
+
+  // Exportar PDF
+  exportarPDF(): void {
+
+    const filtros: MovimientoInventarioFiltros = {
+      fechaInicio: this.fechaInicio || undefined,
+      fechaFin: this.fechaFin || undefined,
+      tipo: this.filtroTipo || undefined,
+      referencia: this.buscar.trim() || undefined,
+      usuario: this.buscarUsuario.trim() || undefined,
+      cliente: this.buscarCliente.trim() || undefined
+    };
+
+    // Abrir ventana inmediatamente para evitar bloqueo del navegador
+    const ventana = window.open('', '_blank');
+
+    if (!ventana) {
+      this.error = 'El navegador bloqueó la ventana emergente. Permite las ventanas emergentes para generar el PDF.';
+      return;
+    }
+
+    this.cargando = true;
+    this.error = '';
+
+    this.movimientosService.generarPdf(filtros).subscribe({
+
+      next: (respuesta: Blob) => {
+
+        const archivo = new Blob(
+          [respuesta],
+          { type: 'application/pdf' }
+        );
+
+        const url = window.URL.createObjectURL(archivo);
+
+        ventana.location.href = url;
+
+        // Liberar memoria después de un tiempo
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 60000);
+
+        this.cargando = false;
+      },
+
+      error: (error) => {
+
+        console.error('Error al generar PDF:', error);
+
+        ventana.close();
+
+        this.error = 'No fue posible generar el PDF de movimientos.';
+
+        this.cargando = false;
+      }
+
+    });
+  }
+
 }

@@ -13,10 +13,18 @@
             </div>
         </div>
 
-        <button class="btn-exportar" type="button" (click)="exportarCSV()" [disabled]="!movimientos.length">
-            <i class="fa-solid fa-file-csv"></i>
-            Exportar CSV
-        </button>
+        <div class="acciones-exportar">
+            <button class="btn-excel" type="button" (click)="exportarCSV()" [disabled]="!movimientos.length">
+                <i class="fa-solid fa-file-csv"></i>
+                Exportar CSV
+            </button>
+
+            <button class="btn-agregar" type="button" (click)="exportarPDF()"
+                [disabled]="cargando || !movimientos.length">
+                <i class="fa-solid fa-file-pdf"></i>
+                Exportar PDF
+            </button>
+        </div>
     </div>
 
     <!-- FILTROS -->
@@ -98,14 +106,13 @@
 
         </div>
 
-
         <div class="filtros-acciones">
             <button class="btn-limpiar" type="button" (click)="limpiarFiltros()">
                 <i class="fa-solid fa-eraser"></i>
                 Limpiar
             </button>
 
-            <button class="btn-filtrar" type="button" (click)="aplicarFiltros()" [disabled]="cargando">
+            <button class="btn-agregar" type="button" (click)="aplicarFiltros()" [disabled]="cargando">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 Consultar
             </button>
@@ -280,33 +287,37 @@
                     <tbody>
                         <tr *ngFor="let movimiento of movimientos">
 
-                            <td class="fecha-cell">
+                            <td class="fecha-cell" data-label="Fecha">
                                 {{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}
                             </td>
 
-                            <td class="referencia-cell">
+                            <td class="referencia-cell" data-label="Referencia">
                                 {{ movimiento.referencia }}
                             </td>
 
-                            <td>
+                            <td data-label="Referencia peso">
                                 {{ movimiento.referenciaPeso }}
                             </td>
 
-                            <td>
+                            <td data-label="Tipo">
                                 <span class="tipo-badge" [ngClass]="obtenerClaseTipo(movimiento.tipo)">
                                     {{ obtenerNombreTipo(movimiento.tipo) }}
                                 </span>
                             </td>
 
-                            <td class="peso-cell">
+                            <td class="peso-cell" data-label="Peso (kg)">
                                 {{ formatearPeso(movimiento.peso) }}
                             </td>
 
-                            <td>{{ movimiento.usuario }}</td>
+                            <td data-label="Usuario">
+                                {{ movimiento.usuario }}
+                            </td>
 
-                            <td>{{ movimiento.cliente || '—' }}</td>
+                            <td data-label="Cliente">
+                                {{ movimiento.cliente || '—' }}
+                            </td>
 
-                            <td class="observacion-cell">
+                            <td class="observacion-cell" data-label="Observación">
                                 {{ movimiento.observacion || '—' }}
                             </td>
 
