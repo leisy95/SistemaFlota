@@ -301,7 +301,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                     // ENCABEZADO DE TABLA
                                     table.Header(header =>
                                     {
-                                        CrearEncabezado(header.Cell(), "ID");
                                         CrearEncabezado(header.Cell(), "REFERENCIA");
                                         CrearEncabezado(header.Cell(), "REF. PESO");
                                         CrearEncabezado(header.Cell(), "FECHA");
