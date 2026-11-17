@@ -6,6 +6,7 @@ using SistemaFlota.DTOs.InventarioBodega.Devoluciones;
 using SistemaFlota.DTOs.InventarioBodega.EntradasBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
 using SistemaFlota.Services.InventarioBodega.EntradasBodega;
+using SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventarioPdf;
 
 namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
 {
@@ -15,11 +16,14 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
     public class EntradaInventarioController : ControllerBase
     {
         private readonly IEntradaInventarioService _service;
+        private readonly IEntradasInventarioPdfService _pdfService;
 
         public EntradaInventarioController(
-            IEntradaInventarioService service)
+            IEntradaInventarioService service,
+            IEntradasInventarioPdfService pdfService)
         {
             _service = service;
+            _pdfService = pdfService;
         }
 
         // OBTENER ENTRADAS DE INVENTARIO
@@ -61,6 +65,53 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
                 return StatusCode(500, new
                 {
                     message = "Error al filtrar las entradas de inventario.",
+                    detalle = ex.Message
+                });
+            }
+        }
+
+        // EXPORTAR ENTRADAS A PDF
+        [HttpGet("exportar-pdf")]
+        [Permiso("entradas", "ver")]
+        public async Task<IActionResult> ExportarPdf(
+            [FromQuery] string? buscar = null,
+            [FromQuery] DateTime? fechaInicio = null,
+            [FromQuery] DateTime? fechaFin = null)
+        {
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    buscar,
+                    fechaInicio,
+                    fechaFin);
+
+                var nombreArchivo =
+                    $"Entradas_Inventario_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    nombreArchivo);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al generar el PDF de entradas de inventario.",
                     detalle = ex.Message
                 });
             }

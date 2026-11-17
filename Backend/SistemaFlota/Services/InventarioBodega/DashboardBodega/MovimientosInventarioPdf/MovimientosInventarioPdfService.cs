@@ -231,7 +231,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                                 ObtenerLogo(empresa.Logo),
                                 empresa,
                                 "AUDITORÍA DE INVENTARIO",
-                                "",
+                                "F-GC-027 V2",
                                 "MOVIMIENTOS DE INVENTARIO",
                                 $"Total registros: {movimientos.Count}"
                             );

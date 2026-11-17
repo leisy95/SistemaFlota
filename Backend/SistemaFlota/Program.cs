@@ -55,6 +55,7 @@ using SistemaFlota.Services.InventarioBodega.Clientes;
 using SistemaFlota.Services.InventarioBodega.DashboardBodega;
 using SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInventarioPdf;
 using SistemaFlota.Services.InventarioBodega.EntradasBodega;
+using SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventarioPdf;
 using SistemaFlota.Services.InventarioBodega.HistorialMovimientos;
 using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
 using SistemaFlota.Services.InventarioBodega.SalidasBodega;
@@ -264,6 +265,8 @@ builder.Services.AddScoped<IMovimientosInventarioPdfService,
 builder.Services.AddScoped<IClienteBodegaService, ClienteBodegaService>();
 builder.Services.AddScoped<IInventarioBodegaService, InventarioBodegaService>();
 builder.Services.AddScoped<IEntradaInventarioService, EntradaInventarioService>();
+builder.Services.AddScoped<IEntradasInventarioPdfService,
+    EntradasInventarioPdfService>();
 builder.Services.AddScoped<ISalidaBodegaService, SalidaBodegaService>();
 builder.Services.AddScoped<IHistorialInventarioBodegaService,
     HistorialInventarioBodegaService>();

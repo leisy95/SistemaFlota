@@ -42,6 +42,36 @@ export class EntradaInventarioService {
         );
     }
 
+    // EXPORTAR ENTRADAS DE INVENTARIO A PDF
+    exportarPdf(
+        buscar?: string,
+        fechaInicio?: string,
+        fechaFin?: string
+    ): Observable<Blob> {
+
+        let params = new HttpParams();
+
+        if (buscar?.trim()) {
+            params = params.set('buscar', buscar.trim());
+        }
+
+        if (fechaInicio) {
+            params = params.set('fechaInicio', fechaInicio);
+        }
+
+        if (fechaFin) {
+            params = params.set('fechaFin', fechaFin);
+        }
+
+        return this.http.get(
+            `${this.apiUrl}/exportar-pdf`,
+            {
+                params,
+                responseType: 'blob'
+            }
+        );
+    }
+
     // REGISTRAR DEVOLUCIÓN
     registrarDevolucion(
         request: DevolucionEntradaDto

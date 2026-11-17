@@ -335,4 +335,30 @@ export class MostrarEntradas implements OnInit {
 
   }
 
+  // EXPORTAR PDF CON LOS FILTROS APLICADOS
+  exportarPdf(): void {
+    this.entradaService.exportarPdf(
+      this.buscar,
+      this.fechaFiltro || undefined,
+      this.fechaFiltro || undefined
+    ).subscribe({
+      next: (pdf) => {
+        const url = window.URL.createObjectURL(pdf);
+        const enlace = document.createElement('a');
+
+        enlace.href = url;
+        enlace.download = `Entradas_Inventario_${new Date().getTime()}.pdf`;
+        enlace.click();
+
+        window.URL.revokeObjectURL(url);
+
+        this.toastr.success('PDF generado correctamente.');
+      },
+      error: (error) => {
+        console.error('Error al generar PDF:', error);
+        this.toastr.error('No fue posible generar el PDF.');
+      }
+    });
+  }
+
 }
