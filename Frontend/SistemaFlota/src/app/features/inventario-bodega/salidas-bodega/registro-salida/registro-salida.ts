@@ -1,6 +1,6 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 
@@ -36,6 +36,12 @@ interface ProductoSalida {
   styleUrl: './registro-salida.scss',
 })
 export class RegistroSalida implements OnInit {
+
+  @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
+
+  private scanTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  ultimoCodigoLeido = '';
 
   idSalida: number | null = null;
   estadoSalida = '';
@@ -223,38 +229,67 @@ export class RegistroSalida implements OnInit {
     });
   }
 
+  private resetInput(): void {
+    this.filtroReferencia = '';
+
+    setTimeout(() => {
+      this.inputRef?.nativeElement.focus();
+    }, 0);
+  }
+
   // ESCANEAR REFERENCIA QR
 
   onScanChange(valor: string): void {
 
-    const referencia = valor.trim().toUpperCase();
-
-    if (!referencia || this.procesando || this.cargando) {
-      return;
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
     }
 
-    if (this.idSalida) {
+    if (!valor) return;
 
-      if (this.estadoSalida !== 'EN_PROCESO') {
+    // Esperar a que el lector termine de escribir la referencia
+    this.scanTimeout = setTimeout(() => {
 
-        this.toastr.warning(
-          'Esta salida ya no está disponible.',
-          'Salida finalizada'
-        );
+      const referencia = valor.trim().toUpperCase();
 
-        this.filtroReferencia = '';
+      if (!referencia || referencia === this.ultimoCodigoLeido) {
+        return;
+      }
+
+      if (this.procesando || this.cargando) {
+        return;
+      }
+
+      this.ultimoCodigoLeido = referencia;
+
+      if (this.idSalida) {
+
+        if (this.estadoSalida !== 'EN_PROCESO') {
+
+          this.toastr.warning(
+            'Esta salida ya no está disponible.',
+            'Salida finalizada'
+          );
+
+          this.resetInput();
+          return;
+        }
+
+        this.agregarReferencia(this.idSalida, referencia);
 
         return;
       }
 
-      this.agregarReferencia(this.idSalida, referencia);
+      this.crearSalida((id) => {
+        this.agregarReferencia(id, referencia);
+      });
 
-      return;
-    }
+      // Permitir escanear nuevamente la misma referencia
+      setTimeout(() => {
+        this.ultimoCodigoLeido = '';
+      }, 1000);
 
-    this.crearSalida((id) => {
-      this.agregarReferencia(id, referencia);
-    });
+    }, 300);
   }
 
   // AGREGAR PRODUCTO POR REFERENCIA
@@ -291,7 +326,7 @@ export class RegistroSalida implements OnInit {
       error: (error) => {
 
         this.procesando = false;
-        this.filtroReferencia = '';
+        this.resetInput();
 
         this.toastr.error(
           error.error?.mensaje ||

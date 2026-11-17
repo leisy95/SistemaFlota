@@ -65,7 +65,7 @@ namespace SistemaFlota.Services.ComprasNoFormalizadas.OrdenesTraslado
             await ValidarStockDisponibleAsync(dto.Materiales);
 
             var numeroOrden = await _consecutivoService.GenerarAsync(
-                "OrdenTrasladoNoFormalizada");
+                    "OrdenTrasladoNoFormalizado");
 
             var fechaActual = DateTime.Now;
 

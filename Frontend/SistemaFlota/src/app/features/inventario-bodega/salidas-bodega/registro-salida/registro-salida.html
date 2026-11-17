@@ -32,10 +32,9 @@
             <div class="input-icon">
                 <i class="fa-solid fa-barcode"></i>
 
-                <input id="filtroReferencia" type="text" class="form-control" [(ngModel)]="filtroReferencia"
+                <input #inputRef id="filtroReferencia" type="text" class="form-control" [(ngModel)]="filtroReferencia"
                     (ngModelChange)="onScanChange($event)" placeholder="Escanea o escribe la referencia..."
-                    [disabled]="procesando || cargando || estadoSalida !== '' && estadoSalida !== 'EN_PROCESO'"
-                    autocomplete="off" autofocus />
+                    autocomplete="off" />
 
                 <span class="input-loading" *ngIf="procesando">
                     <i class="fa-solid fa-spinner fa-spin"></i>
