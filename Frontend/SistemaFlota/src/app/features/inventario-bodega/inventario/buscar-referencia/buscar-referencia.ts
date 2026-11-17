@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef } from '@angular/material/dialog';
-import { debounceTime, map, Observable, startWith } from 'rxjs';
 import * as XLSX from 'xlsx';
 
 import { InventarioBodega } from '../../../../core/models/inventario-bodega/inventario-bodega.models';
@@ -24,7 +23,6 @@ export class BuscarReferencia implements OnInit {
   referenciaControl = new FormControl('');
 
   referencias: string[] = [];
-  referenciasFiltradas!: Observable<string[]>;
 
   inventarioGeneral: InventarioBodega | null = null;
 
@@ -43,53 +41,24 @@ export class BuscarReferencia implements OnInit {
 
   ngOnInit(): void {
     this.cargarReferencias();
-    this.configurarFiltro();
   }
 
   // CARGAR REFERENCIAS
   cargarReferencias(): void {
 
-    this.inventarioService.obtener().subscribe({
+    this.inventarioService.obtenerSugerencias().subscribe({
       next: (res) => {
-
-        this.referencias = res
-          .map(i => i.referencia)
-          .filter(Boolean)
-          .sort((a, b) =>
-            a.localeCompare(b, 'es', {
-              sensitivity: 'base'
-            })
-          );
+        this.referencias = res;
       },
-
-      error: () => {
+      error: (error) => {
+        console.error('Error al cargar referencias:', error);
         this.referencias = [];
       }
     });
   }
 
-  // AUTOCOMPLETADO
-  configurarFiltro(): void {
-
-    this.referenciasFiltradas =
-      this.referenciaControl.valueChanges.pipe(
-        startWith(''),
-        debounceTime(200),
-        map(value => this.filtrarReferencias(value || ''))
-      );
-  }
-
-  filtrarReferencias(valor: string): string[] {
-
-    const texto = valor.toLowerCase().trim();
-
-    return this.referencias.filter(ref =>
-      ref.toLowerCase().includes(texto)
-    );
-  }
-
-  // BUSCAR REFERENCIA
-  moverAlSegundo(): void {
+  // SELECCIONAR REFERENCIA
+  seleccionarReferencia(): void {
 
     const referencia = this.referenciaControl.value?.trim();
 
@@ -98,9 +67,9 @@ export class BuscarReferencia implements OnInit {
     this.buscarReferencia(referencia);
   }
 
+  // BUSCAR REFERENCIA
   buscarReferencia(referencia: string): void {
 
-    // Limpiar resultados anteriores
     this.inventarioGeneral = null;
     this.items = [];
     this.itemsFiltrados = [];
@@ -113,10 +82,8 @@ export class BuscarReferencia implements OnInit {
 
         next: (inventario) => {
 
-          // Mostrar información general
           this.inventarioGeneral = inventario;
 
-          // Consultar bultos asociados al inventario
           this.inventarioService
             .obtenerItems(inventario.id)
             .subscribe({
@@ -127,16 +94,11 @@ export class BuscarReferencia implements OnInit {
                 this.itemsFiltrados = [...respuestaItems];
 
                 this.pagina = 1;
-
-                this.referenciaControl.setValue('');
               },
 
               error: (error) => {
 
-                console.error(
-                  'Error al consultar los bultos:',
-                  error
-                );
+                console.error('Error al consultar los bultos:', error);
 
                 this.items = [];
                 this.itemsFiltrados = [];
@@ -146,10 +108,7 @@ export class BuscarReferencia implements OnInit {
 
         error: (error) => {
 
-          console.error(
-            'Error al consultar el inventario:',
-            error
-          );
+          console.error('Error al consultar el inventario:', error);
 
           this.inventarioGeneral = null;
           this.items = [];
@@ -262,7 +221,6 @@ export class BuscarReferencia implements OnInit {
     }));
 
     const hoja = XLSX.utils.json_to_sheet(datos);
-
     const libro = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(

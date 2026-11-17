@@ -14,22 +14,26 @@
             <div class="campo-referencia">
                 <label for="referencia">Referencia</label>
 
-                <input id="referencia" type="text" [formControl]="referenciaControl" list="listaReferencias"
-                    placeholder="Ej. 1R0BL9009.0*000.0*4.00" (keyup.enter)="moverAlSegundo()" #referenciaInput />
+                <select id="referencia" [formControl]="referenciaControl">
 
-                <datalist id="listaReferencias">
-                    <option *ngFor="let ref of referenciasFiltradas | async" [value]="ref">
+                    <option value="">Seleccione una referencia</option>
+
+                    <option *ngFor="let ref of referencias" [value]="ref">
+                        {{ ref }}
                     </option>
-                </datalist>
+                </select>
             </div>
 
             <div class="botones">
-                <button type="button" class="btn-principal" (click)="moverAlSegundo()">
+                <button type="button" class="btn-principal" (click)="seleccionarReferencia()"
+                    [disabled]="!referenciaControl.value">
+
                     <i class="fas fa-search"></i>
                     Buscar
                 </button>
 
                 <button type="button" class="btn-regresar" (click)="regresar()">
+
                     <i class="fas fa-arrow-left"></i>
                     Regresar
                 </button>

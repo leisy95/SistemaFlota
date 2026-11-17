@@ -51,12 +51,12 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
             }
 
             return await consulta
-                .OrderBy(i => i.Referencia)
+                .OrderBy(i => i.Referencia.StartsWith("4") ? 0 : 1)
+                .ThenBy(i => i.Referencia)
                 .Select(i => i.Referencia)
                 .Take(5)
                 .ToListAsync();
         }
-
 
         // OBTENER INVENTARIO PAGINADO CON FILTROS Y RESUMEN
         public async Task<InventarioBodegaPaginadoResponseDto>
@@ -176,8 +176,12 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
             }
 
             // REGISTROS DE LA PÁGINA
+            // PRIORIDAD: REFERENCIAS QUE COMIENZAN POR 4
             var items = await consultaFiltrada
-                .OrderBy(i => i.Referencia)
+                .OrderBy(i =>
+                    i.Referencia != null && i.Referencia.StartsWith("4") ? 0 : 1)
+                .ThenBy(i => i.Referencia)
+                .ThenBy(i => i.Id)
                 .Skip((pagina - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
