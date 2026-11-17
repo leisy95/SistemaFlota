@@ -55,6 +55,15 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             return Ok(auditoria);
         }
 
+        //FILTROS 
+        [HttpGet("filtros/opciones")]
+        [Permiso("historial-movimientos-bodega", "ver")]
+        public async Task<IActionResult> ObtenerOpcionesFiltros()
+        {
+            var respuesta = await _service.ObtenerOpcionesFiltrosAsync();
+            return Ok(respuesta);
+        }
+
         // REGISTRAR MOVIMIENTO
         [HttpPost]
         [Permiso("historial-movimientos-bodega", "crear")]

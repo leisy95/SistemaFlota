@@ -31,6 +31,13 @@ export class DashboardBodega implements OnInit {
   filtroTipo = '';
   buscar = '';
 
+  buscarUsuario = '';
+  buscarCliente = '';
+
+  tiposMovimiento: string[] = [];
+  usuariosDisponibles: string[] = [];
+  clientesDisponibles: string[] = [];
+
   cargando = false;
   error = '';
 
@@ -43,6 +50,7 @@ export class DashboardBodega implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.cargarOpcionesFiltros();
     this.cargarAuditoria();
   }
 
@@ -55,10 +63,9 @@ export class DashboardBodega implements OnInit {
       fechaInicio: this.fechaInicio || undefined,
       fechaFin: this.fechaFin || undefined,
       tipo: this.filtroTipo || undefined,
-
-      // El buscador general se envía como filtro de referencia.
       referencia: this.buscar.trim() || undefined,
-
+      usuario: this.buscarUsuario || undefined,
+      cliente: this.buscarCliente || undefined,
       pagina: this.paginaActual,
       pageSize: this.elementosPorPagina
     };
@@ -82,6 +89,19 @@ export class DashboardBodega implements OnInit {
     });
   }
 
+  cargarOpcionesFiltros(): void {
+    this.movimientosService.obtenerOpcionesFiltros().subscribe({
+      next: (respuesta) => {
+        this.tiposMovimiento = respuesta.tipos || [];
+        this.usuariosDisponibles = respuesta.usuarios || [];
+        this.clientesDisponibles = respuesta.clientes || [];
+      },
+      error: (error) => {
+        console.error('Error al cargar opciones de filtros:', error);
+      }
+    });
+  }
+
   // Aplicar filtros
   aplicarFiltros(): void {
     this.paginaActual = 1;
@@ -94,6 +114,8 @@ export class DashboardBodega implements OnInit {
     this.fechaFin = '';
     this.filtroTipo = '';
     this.buscar = '';
+    this.buscarUsuario = '';
+    this.buscarCliente = '';
 
     this.paginaActual = 1;
 

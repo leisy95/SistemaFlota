@@ -75,8 +75,8 @@ export interface MovimientoInventarioFiltros {
     cliente?: string;
     tipo?: string;
     referenciaImpresa?: string;
-    pagina: number;
-    pageSize: number;
+    pagina?: number;
+    pageSize?: number;
 }
 
 // Respuesta de auditoría con paginación
@@ -92,4 +92,12 @@ export interface MovimientoInventarioAuditoriaCompleta {
     pageSize: number;
     totalRegistros: number;
     totalPaginas: number;
+}
+
+
+// Para filtros
+export interface MovimientoInventarioFiltrosOpciones {
+    tipos: string[];
+    usuarios: string[];
+    clientes: string[];
 }

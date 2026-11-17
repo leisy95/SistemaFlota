@@ -7,6 +7,7 @@ import { environment } from '../../../../../environments/environment';
 import {
     MovimientoInventarioAuditoriaCompleta,
     MovimientoInventarioFiltros,
+    MovimientoInventarioFiltrosOpciones,
     MovimientoInventarioRequest,
     MovimientoInventarioResponse
 } from '../../../models/inventario-bodega/dashboard-bodega/movimientos-inventario.model';
@@ -36,8 +37,8 @@ export class MovimientosInventarioService {
     ): Observable<MovimientoInventarioAuditoriaCompleta> {
 
         let params = new HttpParams()
-            .set('pagina', filtros.pagina.toString())
-            .set('pageSize', filtros.pageSize.toString());
+            .set('pagina', (filtros.pagina ?? 1).toString())
+            .set('pageSize', (filtros.pageSize ?? 10).toString());
 
         if (filtros.fechaInicio) {
             params = params.set('fechaInicio', filtros.fechaInicio);
@@ -70,6 +71,13 @@ export class MovimientosInventarioService {
         return this.http.get<MovimientoInventarioAuditoriaCompleta>(
             `${this.apiUrl}/auditoria`,
             { params }
+        );
+    }
+
+    // Para filtros
+    obtenerOpcionesFiltros() {
+        return this.http.get<MovimientoInventarioFiltrosOpciones>(
+            `${this.apiUrl}/filtros/opciones`
         );
     }
 

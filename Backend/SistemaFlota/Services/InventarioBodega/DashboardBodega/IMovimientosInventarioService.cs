@@ -12,6 +12,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
 
         Task<MovimientoInventarioAuditoriaCompletaDto>
             ObtenerAuditoriaAsync(MovimientoInventarioFiltroDto filtros);
+        Task<MovimientoInventarioFiltrosOpcionesDto> ObtenerOpcionesFiltrosAsync();
 
         Task<MovimientoInventarioResponseDto>
             RegistrarMovimientoAsync(MovimientoInventarioRequestDto request);

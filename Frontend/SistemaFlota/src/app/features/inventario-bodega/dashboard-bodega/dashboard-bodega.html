@@ -28,39 +28,76 @@
             </h3>
         </div>
 
+
         <div class="filtros-grid">
 
+            <!-- FECHA INICIAL -->
             <div class="campo">
                 <label for="fechaInicio">Fecha inicial</label>
                 <input id="fechaInicio" type="date" [(ngModel)]="fechaInicio">
             </div>
 
+            <!-- FECHA FINAL -->
             <div class="campo">
                 <label for="fechaFin">Fecha final</label>
                 <input id="fechaFin" type="date" [(ngModel)]="fechaFin">
             </div>
 
+            <!-- TIPO DE MOVIMIENTO DESDE BD -->
             <div class="campo">
                 <label for="tipoMovimiento">Tipo de movimiento</label>
                 <select id="tipoMovimiento" [(ngModel)]="filtroTipo">
+
                     <option value="">Todos los movimientos</option>
-                    <option value="Inicial">Inventario inicial</option>
-                    <option value="Entrada">Entrada</option>
-                    <option value="Devolucion">Devolución</option>
-                    <option value="Salida">Salida</option>
-                    <option value="Ajuste">Ajuste</option>
+
+                    <option *ngFor="let tipo of tiposMovimiento" [value]="tipo">
+                        {{ obtenerNombreTipo(tipo) }}
+                    </option>
                 </select>
             </div>
 
+            <!-- REFERENCIA -->
             <div class="campo campo-busqueda">
-                <label for="buscar">Buscar movimiento</label>
+                <label for="buscarReferencia">Referencia</label>
+
                 <div class="input-busqueda">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input id="buscar" type="text" placeholder="Buscar por referencia..." [(ngModel)]="buscar">
+
+                    <input id="buscarReferencia" type="text" placeholder="Buscar por referencia..."
+                        [(ngModel)]="buscar">
                 </div>
             </div>
 
+            <!-- USUARIO -->
+            <div class="campo">
+                <label for="buscarUsuario">Usuario</label>
+
+                <select id="buscarUsuario" [(ngModel)]="buscarUsuario">
+
+                    <option value="">Todos los usuarios</option>
+
+                    <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario">
+                        {{ usuario }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- CLIENTE -->
+            <div class="campo">
+                <label for="buscarCliente">Cliente</label>
+
+                <select id="buscarCliente" [(ngModel)]="buscarCliente">
+
+                    <option value="">Todos los clientes</option>
+
+                    <option *ngFor="let cliente of clientesDisponibles" [value]="cliente">
+                        {{ cliente }}
+                    </option>
+                </select>
+            </div>
+
         </div>
+
 
         <div class="filtros-acciones">
             <button class="btn-limpiar" type="button" (click)="limpiarFiltros()">

@@ -1,12 +1,7 @@
-:host {
-    display: block;
-    width: 100%;
-    min-width: 0;
-}
-
 .movimientos-container {
     width: 100%;
     padding: 20px;
+    padding-top: 87px;
     background: var(--fondo);
     min-height: 100%;
     box-sizing: border-box;
@@ -42,10 +37,7 @@
 }
 
 .encabezado h2 {
-    margin: 0 0 5px;
-    font-size: 23px;
-    font-weight: 700;
-    color: var(--azul-oscuro);
+    margin: 0 0 12px;
 }
 
 .encabezado p {
@@ -593,14 +585,11 @@ button:disabled {
 @media (max-width: 768px) {
     .movimientos-container {
         padding: 14px;
+        padding-top: 80px;
     }
 
     .encabezado {
         align-items: flex-start;
-    }
-
-    .encabezado h2 {
-        font-size: 19px;
     }
 
     .icono-titulo {
@@ -657,7 +646,7 @@ button:disabled {
     }
 
     .encabezado h2 {
-        font-size: 17px;
+        font-size: 20px;
     }
 
     .encabezado p {

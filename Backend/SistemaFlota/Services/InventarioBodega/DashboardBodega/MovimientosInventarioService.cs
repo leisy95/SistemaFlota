@@ -302,6 +302,42 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega
             };
         }
 
+        // PARA FILTROS
+        public async Task<MovimientoInventarioFiltrosOpcionesDto> ObtenerOpcionesFiltrosAsync()
+        {
+            var tipos = await _context.MovimientosInventarioBodega
+                .AsNoTracking()
+                .Where(m => !string.IsNullOrEmpty(m.Tipo))
+                .Select(m => m.Tipo!)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            var usuarios = await _context.MovimientosInventarioBodega
+                .AsNoTracking()
+                .Where(m => !string.IsNullOrEmpty(m.Usuario))
+                .Select(m => m.Usuario!)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            var clientes = await _context.MovimientosInventarioBodega
+                .AsNoTracking()
+                .Where(m => m.Cliente != null &&
+                            !string.IsNullOrEmpty(m.Cliente.Nombre))
+                .Select(m => m.Cliente!.Nombre!)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return new MovimientoInventarioFiltrosOpcionesDto
+            {
+                Tipos = tipos,
+                Usuarios = usuarios,
+                Clientes = clientes
+            };
+        }
+
 
         // REGISTRAR MOVIMIENTO
         public async Task<MovimientoInventarioResponseDto>
