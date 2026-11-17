@@ -14,14 +14,29 @@
             <div class="campo-referencia">
                 <label for="referencia">Referencia</label>
 
-                <select id="referencia" [formControl]="referenciaControl">
+                <div class="buscador-referencias">
 
-                    <option value="">Seleccione una referencia</option>
+                    <input id="referencia" type="text" [formControl]="referenciaControl"
+                        placeholder="Ej. 1R0BL9009.0*000.0*4.00" autocomplete="off" (input)="filtrarReferencias()"
+                        (focus)="mostrarReferencias = true" />
 
-                    <option *ngFor="let ref of referencias" [value]="ref">
-                        {{ ref }}
-                    </option>
-                </select>
+                    <div class="lista-referencias" *ngIf="mostrarReferencias">
+
+                        <button type="button" *ngFor="let ref of referencias" (click)="seleccionarReferenciaLista(ref)">
+
+                            {{ ref }}
+
+                        </button>
+
+                        <div class="sin-referencias" *ngIf="referencias.length === 0">
+
+                            No se encontraron referencias.
+
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
 
             <div class="botones">

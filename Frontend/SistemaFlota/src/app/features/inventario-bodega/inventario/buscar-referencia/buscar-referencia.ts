@@ -13,7 +13,7 @@ import { InventarioBodegaService } from '../../../../core/services/inventario-bo
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
   ],
   templateUrl: './buscar-referencia.html',
   styleUrl: './buscar-referencia.scss',
@@ -30,6 +30,8 @@ export class BuscarReferencia implements OnInit {
   itemsFiltrados: any[] = [];
 
   filtro = '';
+  todasLasReferencias: string[] = [];
+  mostrarReferencias = false;
 
   pagina = 1;
   pageSize = 5;
@@ -45,14 +47,15 @@ export class BuscarReferencia implements OnInit {
 
   // CARGAR REFERENCIAS
   cargarReferencias(): void {
-
     this.inventarioService.obtenerSugerencias().subscribe({
       next: (res) => {
-        this.referencias = res;
+        this.todasLasReferencias = res;
+        this.referencias = [...res];
       },
       error: (error) => {
         console.error('Error al cargar referencias:', error);
         this.referencias = [];
+        this.todasLasReferencias = [];
       }
     });
   }
@@ -117,6 +120,23 @@ export class BuscarReferencia implements OnInit {
           this.pagina = 1;
         }
       });
+  }
+
+  filtrarReferencias(): void {
+    const texto = (this.referenciaControl.value || '')
+      .trim()
+      .toLowerCase();
+
+    this.referencias = this.todasLasReferencias.filter(ref =>
+      ref.toLowerCase().startsWith(texto)
+    );
+
+    this.mostrarReferencias = true;
+  }
+
+  seleccionarReferenciaLista(ref: string): void {
+    this.referenciaControl.setValue(ref);
+    this.mostrarReferencias = false;
   }
 
   // FILTRAR RESULTADOS

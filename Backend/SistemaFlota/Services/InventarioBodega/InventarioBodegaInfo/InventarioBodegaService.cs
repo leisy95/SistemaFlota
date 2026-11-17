@@ -54,7 +54,7 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
                 .OrderBy(i => i.Referencia.StartsWith("4") ? 0 : 1)
                 .ThenBy(i => i.Referencia)
                 .Select(i => i.Referencia)
-                .Take(5)
+                .Take(100)
                 .ToListAsync();
         }
 
