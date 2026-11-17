@@ -86,7 +86,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 .ThenByDescending(i => i.Id)
                 .Select(i => new MostrarEntradaDto
                 {
-                    Id = i.Id,
                     Referencia = i.InventarioBodega.Referencia,
                     ReferenciaPeso = i.ReferenciaPeso,
                     FechaRegistroItem = i.FechaRegistroItem,
@@ -290,7 +289,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                 {
                                     table.ColumnsDefinition(columns =>
                                     {
-                                        columns.ConstantColumn(28);
                                         columns.RelativeColumn(1.1f);
                                         columns.RelativeColumn(1.5f);
                                         columns.RelativeColumn(1.2f);
@@ -311,9 +309,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                     // REGISTROS
                                     foreach (var entrada in entradas)
                                     {
-                                        CrearCelda(
-                                            table.Cell(),
-                                            entrada.Id.ToString());
 
                                         CrearCelda(
                                             table.Cell(),
