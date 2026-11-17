@@ -111,7 +111,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             {
                 document.Page(page =>
                 {
-                    // FORMATO VERTICAL
+                    // FORMATO A4 VERTICAL
                     page.Size(PageSizes.A4);
                     page.Margin(20);
                     page.DefaultTextStyle(x => x.FontSize(9));
@@ -270,8 +270,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                 contenido =>
                                 {
                                     contenido.Item()
-                                        .Text(
-                                            $"{pesoTotal.ToString("N2", cultura)} kg")
+                                        .Text($"{pesoTotal.ToString("N2", cultura)} kg")
                                         .Style(PdfStyles.Total);
                                 });
                         });
@@ -287,47 +286,61 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                             {
                                 contenido.Item().Table(table =>
                                 {
+                                    // DISTRIBUCIÓN DE COLUMNAS
                                     table.ColumnsDefinition(columns =>
                                     {
-                                        columns.RelativeColumn(1.1f);
-                                        columns.RelativeColumn(1.5f);
-                                        columns.RelativeColumn(1.2f);
-                                        columns.RelativeColumn(1);
-                                        columns.RelativeColumn(1);
+                                        columns.RelativeColumn(2.2f); // REFERENCIA
+                                        columns.RelativeColumn(1.6f); // REF. PESO
+                                        columns.RelativeColumn(1.5f); // FECHA
+                                        columns.RelativeColumn(0.9f); // PESO
+                                        columns.RelativeColumn(1.3f); // ESTADO
                                     });
 
                                     // ENCABEZADO DE TABLA
                                     table.Header(header =>
                                     {
-                                        CrearEncabezado(header.Cell(), "REFERENCIA");
-                                        CrearEncabezado(header.Cell(), "REF. PESO");
-                                        CrearEncabezado(header.Cell(), "FECHA");
-                                        CrearEncabezado(header.Cell(), "PESO");
-                                        CrearEncabezado(header.Cell(), "ESTADO");
+                                        CrearEncabezado(
+                                            header.Cell(), "REFERENCIA");
+
+                                        CrearEncabezado(
+                                            header.Cell(), "REF. PESO");
+
+                                        CrearEncabezado(
+                                            header.Cell(), "FECHA");
+
+                                        CrearEncabezado(
+                                            header.Cell(), "PESO");
+
+                                        CrearEncabezado(
+                                            header.Cell(), "ESTADO");
                                     });
 
                                     // REGISTROS
                                     foreach (var entrada in entradas)
                                     {
-
+                                        // REFERENCIA
                                         CrearCelda(
                                             table.Cell(),
                                             entrada.Referencia ?? "");
 
+                                        // REFERENCIA PESO
                                         CrearCelda(
                                             table.Cell(),
                                             entrada.ReferenciaPeso ?? "");
 
-                                        CrearCelda(
+                                        // FECHA
+                                        CrearCeldaCentrada(
                                             table.Cell(),
                                             entrada.FechaRegistroItem.ToString(
                                                 "dd/MM/yyyy HH:mm"));
 
-                                        CrearCelda(
+                                        // PESO
+                                        CrearCeldaCentrada(
                                             table.Cell(),
                                             $"{entrada.PesoActual.ToString("N2", cultura)} kg");
 
-                                        CrearCelda(
+                                        // ESTADO
+                                        CrearCeldaCentrada(
                                             table.Cell(),
                                             entrada.Estado ?? "");
                                     }
@@ -366,7 +379,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 .Style(PdfStyles.HeaderTabla);
         }
 
-        // CREAR CELDAS
+        // CREAR CELDAS ALINEADAS A LA IZQUIERDA
         private static void CrearCelda(
             IContainer container,
             string texto)
@@ -374,10 +387,29 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             container
                 .BorderBottom(1)
                 .BorderColor(PdfColors.GrisClaro)
-                .Padding(5)
+                .PaddingVertical(8)
+                .PaddingHorizontal(6)
                 .AlignMiddle()
                 .Text(texto)
-                .Style(PdfStyles.CeldaTabla);
+                .Style(PdfStyles.CeldaTabla)
+                .FontSize(8);
+        }
+
+        // CREAR CELDAS CENTRADAS
+        private static void CrearCeldaCentrada(
+            IContainer container,
+            string texto)
+        {
+            container
+                .BorderBottom(1)
+                .BorderColor(PdfColors.GrisClaro)
+                .PaddingVertical(8)
+                .PaddingHorizontal(4)
+                .AlignCenter()
+                .AlignMiddle()
+                .Text(texto)
+                .Style(PdfStyles.CeldaTabla)
+                .FontSize(8);
         }
     }
 }
