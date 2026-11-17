@@ -6,6 +6,7 @@ import { environment } from '../../../../../environments/environment';
 import {
     ActualizarInventarioBodegaDto,
     InventarioBodega,
+    InventarioBodegaItemConsulta,
     RecalcularInventarioBodegaResponseDto,
     RegistrarItemDto,
     RegistrarItemResponseDto
@@ -85,6 +86,13 @@ export class InventarioBodegaService {
         return this.http.post<RegistrarItemResponseDto>(
             `${this.apiUrl}/registrar`,
             request
+        );
+    }
+
+    // OBTENER BULTOS DE UN INVENTARIO
+    obtenerItems(idInventarioBodega: number): Observable<InventarioBodegaItemConsulta[]> {
+        return this.http.get<InventarioBodegaItemConsulta[]>(
+            `${this.apiUrl}/${idInventarioBodega}/items`
         );
     }
 

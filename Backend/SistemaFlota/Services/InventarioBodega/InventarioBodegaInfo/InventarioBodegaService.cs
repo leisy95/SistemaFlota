@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs.InventarioBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
+using SistemaFlota.Models.InventariosBodega.EntradasBodega;
 using SistemaFlota.Services.Auditorias.Base;
 using SistemaFlota.Services.Auth;
 using SistemaFlota.Services.Helper.InventariosBodega;
@@ -266,6 +267,19 @@ namespace SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo
                 Referencia = inventario.Referencia,
                 Message = "Producto registrado correctamente en Inventario"
             };
+        }
+
+        // OBTENER BULTOS DISPONIBLES EN ALMACÉN
+        public async Task<List<InventarioBodegaItem>>
+            ObtenerItemsPorInventarioAsync(int idInventarioBodega)
+        {
+            return await _context.InventariosBodegaItems
+                .AsNoTracking()
+                .Where(i =>
+                    i.IdInventarioBodega == idInventarioBodega &&
+                    i.Estado == "EN_ALMACEN")
+                .OrderByDescending(i => i.FechaRegistroItem)
+                .ToListAsync();
         }
 
         // EDITAR INVENTARIO

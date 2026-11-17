@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
 using SistemaFlota.Services.InventarioBodega;
 
@@ -22,6 +23,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // OBTENER TODOS
         [HttpGet]
+        [Permiso("listar-inventario", "ver")]
         public async Task<IActionResult> Obtener()
         {
             try
@@ -40,6 +42,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // OBTENER REFERENCIAS PARA ENTRADAS
         [HttpGet("sugerencias")]
+        [Permiso("registrar-entrada", "ver")]
         public async Task<IActionResult> ObtenerSugerencias(
             [FromQuery] string? buscar = null)
         {
@@ -59,6 +62,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // OBTENER INVENTARIO PAGINADO
         [HttpGet("paginado")]
+        [Permiso("listar-inventario", "ver")]
         public async Task<IActionResult> ObtenerPaginado(
             [FromQuery] string? buscar = null,
             [FromQuery] string? material = null,
@@ -87,8 +91,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
             }
         }
 
-        // BUSCAR POR REFERENCIA
+        // BUSCAR POR REFERENCIA 
         [HttpGet("referencia/{referencia}")]
+        [Permiso("registrar-entrada", "ver")]
         public async Task<IActionResult> ObtenerPorReferencia(
             string referencia)
         {
@@ -118,6 +123,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // REGISTRAR PRODUCTO
         [HttpPost("registrar")]
+        [Permiso("listar-inventario", "crear")]
         public async Task<IActionResult> RegistrarItem(
             [FromBody] RegistrarItemDto request)
         {
@@ -144,8 +150,30 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
             }
         }
 
+        // OBTENER BULTOS POR INVENTARIO
+        [HttpGet("{id:int}/items")]
+        [Permiso("listar-inventario", "ver")]
+        public async Task<IActionResult> ObtenerItems(int id)
+        {
+            try
+            {
+                var resultado =
+                    await _service.ObtenerItemsPorInventarioAsync(id);
+
+                return Ok(resultado);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al consultar los bultos del inventario."
+                });
+            }
+        }
+
         // EDITAR INVENTARIO
         [HttpPut("editar/{id:int}")]
+        [Permiso("listar-inventario", "editar")]
         public async Task<IActionResult> EditarInventario(
             int id,
             [FromBody] ActualizarInventarioBodegaDto request)
@@ -186,6 +214,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // RECALCULAR INVENTARIO
         [HttpPost("recalcular")]
+        [Permiso("listar-inventario", "editar")]
         public async Task<IActionResult> RecalcularInventario()
         {
             try
@@ -213,6 +242,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Inventario
 
         // ELIMINAR INVENTARIO
         [HttpDelete("eliminar/{id:int}")]
+        [Permiso("listar-inventario", "eliminar")]
         public async Task<IActionResult> EliminarInventario(int id)
         {
             try

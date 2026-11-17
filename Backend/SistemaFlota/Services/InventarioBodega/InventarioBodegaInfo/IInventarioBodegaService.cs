@@ -1,5 +1,6 @@
 ﻿using SistemaFlota.DTOs.InventarioBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
+using SistemaFlota.Models.InventariosBodega.EntradasBodega;
 using SistemaFlota.Models.InventariosBodega.Inventario;
 
 public interface IInventarioBodegaService
@@ -20,6 +21,9 @@ public interface IInventarioBodegaService
 
     Task<RegistrarItemResponseDto> RegistrarItemAsync(
         RegistrarItemDto request);
+
+    Task<List<InventarioBodegaItem>> ObtenerItemsPorInventarioAsync(
+        int idInventarioBodega);
 
     Task<bool> EditarInventarioAsync(
         int id,

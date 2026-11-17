@@ -9,6 +9,7 @@ import { InventarioBodega } from '../../../../core/models/inventario-bodega/inve
 import { InventarioBodegaService } from '../../../../core/services/inventario-bodega/Inventario/inventario-bodega.service';
 import { CrearInventario } from '../crear-inventario/crear-inventario';
 import { DetalleInvenatrio } from '../detalle-invenatrio/detalle-invenatrio';
+import { BuscarReferencia } from '../buscar-referencia/buscar-referencia';
 
 interface ResumenInventario {
   totalProductos: number;
@@ -123,6 +124,16 @@ export class ListarInventario implements OnInit {
           'Inventario'
         );
       }
+    });
+  }
+
+  abrirBuscarReferencia(): void {
+    this.dialog.open(BuscarReferencia, {
+      width: '1100px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false
     });
   }
 

@@ -56,6 +56,41 @@ export class ClienteBodegaService {
         );
     }
 
+    // LISTAR CLIENTES PARA REGISTRO DE SALIDAS
+    listarClientesParaSalidas(
+        filtros: ClienteBodegaFiltro
+    ): Observable<ClientesBodegaPaginados> {
+
+        let params = new HttpParams()
+            .set('pagina', filtros.pagina)
+            .set('pageSize', filtros.pageSize);
+
+        if (filtros.buscar.trim()) {
+            params = params.set('buscar', filtros.buscar.trim());
+        }
+
+        if (filtros.nombre.trim()) {
+            params = params.set('nombre', filtros.nombre.trim());
+        }
+
+        if (filtros.telefono.trim()) {
+            params = params.set('telefono', filtros.telefono.trim());
+        }
+
+        if (filtros.email.trim()) {
+            params = params.set('email', filtros.email.trim());
+        }
+
+        if (filtros.activo !== undefined) {
+            params = params.set('activo', String(filtros.activo));
+        }
+
+        return this.http.get<ClientesBodegaPaginados>(
+            `${this.apiUrl}/para-salidas`,
+            { params }
+        );
+    }
+
     // OBTENER CLIENTE POR ID
     obtenerCliente(id: number): Observable<ClienteBodega> {
         return this.http.get<ClienteBodega>(

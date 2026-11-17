@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.Devoluciones;
 using SistemaFlota.DTOs.InventarioBodega.EntradasBodega;
 using SistemaFlota.DTOs.InventarioBodega.Inventario;
@@ -23,6 +24,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
 
         // OBTENER ENTRADAS DE INVENTARIO
         [HttpGet("mostrar-entradas")]
+        [Permiso("entradas", "ver")]
         public async Task<IActionResult> ObtenerEntradas(
             [FromQuery] string? estado = null)
         {
@@ -44,6 +46,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
 
         // FILTRAR ENTRADAS CON PAGINACIÓN
         [HttpGet("filtrar-entradas")]
+        [Permiso("entradas", "ver")]
         public async Task<IActionResult> FiltrarEntradas(
             [FromQuery] FiltroEntradaBodegaDto filtros)
         {
@@ -65,6 +68,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.EntradasBodega
 
         // REGISTRAR ENTRADA DE PESO
         [HttpPost("ingresar-peso")]
+        [Permiso("registrar-entrada", "crear")]
         public async Task<IActionResult> IngresarPeso(
             [FromBody] IngresarPesoDto request)
         {

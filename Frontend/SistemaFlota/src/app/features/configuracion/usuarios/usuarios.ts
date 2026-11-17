@@ -120,6 +120,14 @@ export class UsuariosComponent implements OnInit {
     { key: 'inventario-compras-no-formalizadas', label: 'Inventario', grupo: 'COMPRAS NO FORMALIZADAS' },
     { key: 'traslado-compras-no-formalizadas', label: 'Traslados', grupo: 'COMPRAS NO FORMALIZADAS' },
 
+    // INVENTARIO - BODEGA
+    { key: 'dashboard-bodega', label: 'Dashboard Bodega', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'listar-inventario', label: 'Inventario', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'registrar-entrada', label: 'Registrar entrada', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'entradas', label: 'Mostrar entradas', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'salidas', label: 'Registro de salidas', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'listar-clientes', label: 'Clientes', grupo: 'INVENTARIO - BODEGA' },
+    { key: 'historial-movimientos-bodega', label: 'Historial de movimientos', grupo: 'INVENTARIO - BODEGA' },
 
     // HISTORIAL ODO
     { key: 'historial-odo-pedido-compra', label: 'pedido-compra', grupo: 'HISTORIAL-VERSION-ODO' },
@@ -164,7 +172,8 @@ export class UsuariosComponent implements OnInit {
       'COMPRAS Y MATERIALES': 'COMPRAS Y MATERIALES',
       'COMPRAS NO FORMALIZADAS': 'COMPRAS NO FORMALIZADAS',
       'CALIDAD': 'CALIDAD',
-      'HISTORIAL-VERSION-ODO': 'HISTORIAL-VERSION-ODO'
+      'HISTORIAL-VERSION-ODO': 'HISTORIAL-VERSION-ODO',
+      'INVENTARIO - BODEGA': 'INVENTARIO - BODEGA',
     };
 
     return nombres[nombre] ?? nombre;

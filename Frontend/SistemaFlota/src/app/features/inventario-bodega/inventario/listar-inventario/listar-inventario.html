@@ -1,16 +1,37 @@
 <div class="page-container">
 
-    <!-- HEADER -->
+    <!-- HEADER INVENTARIO -->
     <section class="header-card">
-        <div>
-            <h1>Inventario</h1>
-            <p>Consulta y administra los productos disponibles en inventario.</p>
+
+        <div class="header-info">
+            <div class="header-icon">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+
+            <div class="header-text">
+                <h1>Inventario</h1>
+                <p>Consulta y administra los productos disponibles en inventario.</p>
+            </div>
         </div>
 
-        <button class="btn-agregar" (click)="ModalRegistrarProducto()" [disabled]="cargandoInventario">
-            <i class="fa-solid fa-plus"></i>
-            Agregar producto
-        </button>
+        <div class="header-actions">
+
+            <button type="button" class="btn-header btn-agregar" (click)="ModalRegistrarProducto()"
+                [disabled]="cargandoInventario">
+
+                <i class="fa-solid fa-plus"></i>
+                <span>Agregar producto</span>
+            </button>
+
+            <button type="button" class="btn-header btn-buscar" (click)="abrirBuscarReferencia()"
+                [disabled]="cargandoInventario">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Buscar por referencia</span>
+            </button>
+
+        </div>
+
     </section>
 
     <!-- CARDS RESUMEN -->

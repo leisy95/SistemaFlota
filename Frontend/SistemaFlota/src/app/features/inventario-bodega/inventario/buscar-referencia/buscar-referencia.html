@@ -1,0 +1,173 @@
+<div class="container-referencias">
+
+    <div class="encabezado">
+        <div>
+            <h2>Buscar referencias activas</h2>
+            <p>Consulta las referencias y sus bultos disponibles en inventario.</p>
+        </div>
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="panel-busqueda">
+        <div class="acciones">
+
+            <div class="campo-referencia">
+                <label for="referencia">Referencia</label>
+
+                <input id="referencia" type="text" [formControl]="referenciaControl" list="listaReferencias"
+                    placeholder="Ej. 1R0BL9009.0*000.0*4.00" (keyup.enter)="moverAlSegundo()" #referenciaInput />
+
+                <datalist id="listaReferencias">
+                    <option *ngFor="let ref of referenciasFiltradas | async" [value]="ref">
+                    </option>
+                </datalist>
+            </div>
+
+            <div class="botones">
+                <button type="button" class="btn-principal" (click)="moverAlSegundo()">
+                    <i class="fas fa-search"></i>
+                    Buscar
+                </button>
+
+                <button type="button" class="btn-regresar" (click)="regresar()">
+                    <i class="fas fa-arrow-left"></i>
+                    Regresar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- INFORMACIÓN DEL INVENTARIO -->
+    <div class="info-inventario" *ngIf="inventarioGeneral">
+
+        <div class="info-header">
+            <div class="icono-referencia">
+                <i class="fas fa-box-open"></i>
+            </div>
+
+            <div>
+                <span class="subtitulo">Referencia consultada</span>
+                <h3>{{ inventarioGeneral.referencia }}</h3>
+            </div>
+        </div>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+                <div class="info-icono peso">
+                    <i class="fas fa-weight-hanging"></i>
+                </div>
+                <div>
+                    <p class="info-label">Peso total</p>
+                    <p class="info-value">
+                        {{ inventarioGeneral.peso }} kg
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icono cantidad">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div>
+                    <p class="info-label">Cantidad total</p>
+                    <p class="info-value">
+                        {{ inventarioGeneral.cantidad }}
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- RESULTADOS -->
+    <div class="panel-resultados" *ngIf="items.length > 0">
+
+        <div class="top-bar">
+            <div class="campo-filtro">
+                <label for="filtroResultados">Filtrar resultados</label>
+                <input id="filtroResultados" type="text" placeholder="Buscar por referencia, peso o fecha"
+                    (input)="applyFilter($event)" />
+            </div>
+
+            <button type="button" class="btn-excel" (click)="exportarExcel()">
+                <i class="fas fa-file-excel"></i>
+                Exportar a Excel
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="tabla-referencias">
+                <thead>
+                    <tr>
+                        <th>Referencia peso</th>
+                        <th>Peso unitario</th>
+                        <th>Estado</th>
+                        <th>Fecha de registro</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of itemsPaginados">
+                        <td class="referencia-peso">
+                            {{ item.referenciaPeso }}
+                        </td>
+
+                        <td>
+                            {{ item.pesoActual }} kg
+                        </td>
+
+                        <td>
+                            <span class="estado" [ngClass]="{
+                            'estado-almacen': item.estado === 'EN_ALMACEN',
+                            'estado-reservado': item.estado === 'RESERVADO',
+                            'estado-salida': item.estado === 'SALIDA'
+                        }">
+                                {{ item.estado }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ item.fechaRegistroItem | date:'short' }}
+                        </td>
+                    </tr>
+
+                    <tr *ngIf="itemsFiltrados.length === 0">
+                        <td colspan="4" class="sin-resultados">
+                            No se encontraron resultados.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion" *ngIf="itemsFiltrados.length > 0">
+
+            <span>
+                Mostrando {{ registrosInicio }} - {{ registrosFin }}
+                de {{ itemsFiltrados.length }} registros
+            </span>
+
+            <div class="controles">
+                <button type="button" (click)="paginaAnterior()" [disabled]="pagina === 1">
+                    Anterior
+                </button>
+
+                <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+
+                <button type="button" (click)="paginaSiguiente()" [disabled]="pagina >= totalPaginas">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sin-datos" *ngIf="!inventarioGeneral && items.length === 0">
+        <i class="fas fa-box-open"></i>
+        <p>Busca una referencia para consultar su inventario.</p>
+    </div>
+
+</div>

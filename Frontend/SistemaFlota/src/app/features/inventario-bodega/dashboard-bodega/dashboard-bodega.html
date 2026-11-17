@@ -48,7 +48,6 @@
                     <option value="Entrada">Entrada</option>
                     <option value="Devolucion">Devolución</option>
                     <option value="Salida">Salida</option>
-                    <option value="Eliminado">Eliminado</option>
                     <option value="Ajuste">Ajuste</option>
                 </select>
             </div>
@@ -147,17 +146,6 @@
                         <span>Devoluciones</span>
                         <strong>{{ auditoria.resumen.devoluciones.cantidad }}</strong>
                         <small>{{ formatearPeso(auditoria.resumen.devoluciones.peso) }} kg</small>
-                    </div>
-                </div>
-
-                <div class="kpi-card kpi-gris">
-                    <div class="kpi-icono">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </div>
-                    <div class="kpi-contenido">
-                        <span>Eliminados</span>
-                        <strong>{{ auditoria.resumen.eliminados.cantidad }}</strong>
-                        <small>{{ formatearPeso(auditoria.resumen.eliminados.peso) }} kg</small>
                     </div>
                 </div>
 

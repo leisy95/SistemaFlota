@@ -117,7 +117,7 @@ export class RegistroSalida implements OnInit {
 
     this.cargandoClientes = true;
 
-    this.clienteService.listarClientes({
+    this.clienteService.listarClientesParaSalidas({
       buscar: buscar.trim(),
       nombre: '',
       telefono: '',

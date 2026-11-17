@@ -7,18 +7,117 @@
     color: var(--gris-oscuro);
 }
 
-/* HEADER */
 .header-card {
-    background: var(--blanco);
-    border-radius: 12px;
-    padding: 22px 26px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 22px;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 25px 28px;
+    margin-bottom: 24px;
+
+    background: var(--blanco);
     border: 1px solid var(--gris-claro);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.045);
+
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: var(--verde-principal);
+    }
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    min-width: 0;
+}
+
+.header-icon {
+    width: 55px;
+    height: 55px;
+    min-width: 55px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--verde-suave);
+    color: var(--verde-oscuro);
+
+    border-radius: 14px;
+    font-size: 23px;
+}
+
+.header-text {
+    h1 {
+        margin: 0 0 17px;
+    }
+
+    p {
+        margin: 0;
+        color: var(--gris-oscuro);
+        font-size: 13.5px;
+        line-height: 1.5;
+    }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-header {
+    min-height: 43px;
+    padding: 0 17px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    border-radius: 9px;
+    border: 1px solid transparent;
+
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    i {
+        font-size: 14px;
+    }
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+}
+
+// BOTÓN BUSCAR
+.btn-buscar {
+    background: var(--blanco);
+    color: var(--verde-oscuro);
+    border-color: var(--verde-principal);
+
+    &:hover:not(:disabled) {
+        background: var(--verde-suave);
+        transform: translateY(-2px);
+    }
 }
 
 .header-card p {

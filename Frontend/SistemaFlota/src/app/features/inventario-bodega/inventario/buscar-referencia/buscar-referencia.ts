@@ -1,0 +1,281 @@
+
+import { Component, OnInit } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { MatDialogRef } from '@angular/material/dialog';
+import { debounceTime, map, Observable, startWith } from 'rxjs';
+import * as XLSX from 'xlsx';
+
+import { InventarioBodega } from '../../../../core/models/inventario-bodega/inventario-bodega.models';
+import { InventarioBodegaService } from '../../../../core/services/inventario-bodega/Inventario/inventario-bodega.service';
+
+@Component({
+  selector: 'app-buscar-referencia',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule
+  ],
+  templateUrl: './buscar-referencia.html',
+  styleUrl: './buscar-referencia.scss',
+})
+export class BuscarReferencia implements OnInit {
+
+  referenciaControl = new FormControl('');
+
+  referencias: string[] = [];
+  referenciasFiltradas!: Observable<string[]>;
+
+  inventarioGeneral: InventarioBodega | null = null;
+
+  items: any[] = [];
+  itemsFiltrados: any[] = [];
+
+  filtro = '';
+
+  pagina = 1;
+  pageSize = 5;
+
+  constructor(
+    private inventarioService: InventarioBodegaService,
+    private dialogRef: MatDialogRef<BuscarReferencia>
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarReferencias();
+    this.configurarFiltro();
+  }
+
+  // CARGAR REFERENCIAS
+  cargarReferencias(): void {
+
+    this.inventarioService.obtener().subscribe({
+      next: (res) => {
+
+        this.referencias = res
+          .map(i => i.referencia)
+          .filter(Boolean)
+          .sort((a, b) =>
+            a.localeCompare(b, 'es', {
+              sensitivity: 'base'
+            })
+          );
+      },
+
+      error: () => {
+        this.referencias = [];
+      }
+    });
+  }
+
+  // AUTOCOMPLETADO
+  configurarFiltro(): void {
+
+    this.referenciasFiltradas =
+      this.referenciaControl.valueChanges.pipe(
+        startWith(''),
+        debounceTime(200),
+        map(value => this.filtrarReferencias(value || ''))
+      );
+  }
+
+  filtrarReferencias(valor: string): string[] {
+
+    const texto = valor.toLowerCase().trim();
+
+    return this.referencias.filter(ref =>
+      ref.toLowerCase().includes(texto)
+    );
+  }
+
+  // BUSCAR REFERENCIA
+  moverAlSegundo(): void {
+
+    const referencia = this.referenciaControl.value?.trim();
+
+    if (!referencia) return;
+
+    this.buscarReferencia(referencia);
+  }
+
+  buscarReferencia(referencia: string): void {
+
+    // Limpiar resultados anteriores
+    this.inventarioGeneral = null;
+    this.items = [];
+    this.itemsFiltrados = [];
+    this.filtro = '';
+    this.pagina = 1;
+
+    this.inventarioService
+      .obtenerPorReferencia(referencia)
+      .subscribe({
+
+        next: (inventario) => {
+
+          // Mostrar información general
+          this.inventarioGeneral = inventario;
+
+          // Consultar bultos asociados al inventario
+          this.inventarioService
+            .obtenerItems(inventario.id)
+            .subscribe({
+
+              next: (respuestaItems) => {
+
+                this.items = respuestaItems;
+                this.itemsFiltrados = [...respuestaItems];
+
+                this.pagina = 1;
+
+                this.referenciaControl.setValue('');
+              },
+
+              error: (error) => {
+
+                console.error(
+                  'Error al consultar los bultos:',
+                  error
+                );
+
+                this.items = [];
+                this.itemsFiltrados = [];
+              }
+            });
+        },
+
+        error: (error) => {
+
+          console.error(
+            'Error al consultar el inventario:',
+            error
+          );
+
+          this.inventarioGeneral = null;
+          this.items = [];
+          this.itemsFiltrados = [];
+          this.filtro = '';
+          this.pagina = 1;
+        }
+      });
+  }
+
+  // FILTRAR RESULTADOS
+  applyFilter(event: Event): void {
+
+    const valor = (event.target as HTMLInputElement).value;
+
+    this.filtro = valor;
+    const texto = valor.trim().toLowerCase();
+
+    this.itemsFiltrados = this.items.filter(item => {
+
+      const fecha = item.fechaRegistroItem
+        ? new Date(item.fechaRegistroItem)
+        : null;
+
+      const fechaTexto = fecha && !isNaN(fecha.getTime())
+        ? fecha.toLocaleDateString('es-CO', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        }).toLowerCase()
+        : '';
+
+      return (
+        (item.referenciaPeso || '').toLowerCase().includes(texto) ||
+        item.pesoActual?.toString().includes(texto) ||
+        (item.estado || '').toLowerCase().includes(texto) ||
+        fechaTexto.includes(texto)
+      );
+    });
+
+    this.pagina = 1;
+  }
+
+  // PAGINACIÓN
+  get itemsPaginados(): any[] {
+
+    const inicio = (this.pagina - 1) * this.pageSize;
+
+    return this.itemsFiltrados.slice(
+      inicio,
+      inicio + this.pageSize
+    );
+  }
+
+  get totalPaginas(): number {
+
+    return Math.max(
+      1,
+      Math.ceil(this.itemsFiltrados.length / this.pageSize)
+    );
+  }
+
+  get registrosInicio(): number {
+
+    return this.itemsFiltrados.length === 0
+      ? 0
+      : (this.pagina - 1) * this.pageSize + 1;
+  }
+
+  get registrosFin(): number {
+
+    return Math.min(
+      this.pagina * this.pageSize,
+      this.itemsFiltrados.length
+    );
+  }
+
+  paginaAnterior(): void {
+
+    if (this.pagina > 1) {
+      this.pagina--;
+    }
+  }
+
+  paginaSiguiente(): void {
+
+    if (this.pagina < this.totalPaginas) {
+      this.pagina++;
+    }
+  }
+
+  cambiarPageSize(valor: number): void {
+
+    this.pageSize = valor;
+    this.pagina = 1;
+  }
+
+  // EXPORTAR EXCEL
+  exportarExcel(): void {
+
+    if (this.itemsFiltrados.length === 0) return;
+
+    const datos = this.itemsFiltrados.map(item => ({
+      'Referencia peso': item.referenciaPeso,
+      'Peso unitario (kg)': item.pesoActual,
+      'Estado': item.estado,
+      'Fecha de registro': item.fechaRegistroItem
+        ? new Date(item.fechaRegistroItem).toLocaleDateString('es-CO')
+        : ''
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+
+    const libro = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      libro,
+      hoja,
+      'Items inventario'
+    );
+
+    XLSX.writeFile(libro, 'inventario_referencia.xlsx');
+  }
+
+  // CERRAR MODAL
+  regresar(): void {
+    this.dialogRef.close();
+  }
+}

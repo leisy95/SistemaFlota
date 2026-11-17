@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.Services.InventarioBodega.HistorialMovimientos;
 
 namespace SistemaFlota.Controllers.InventarioBodega.HistorialMovimientos
@@ -17,7 +18,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.HistorialMovimientos
             _service = service;
         }
 
+        // CONSULTAR HISTORIAL
         [HttpGet]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<IActionResult> Obtener(
             [FromQuery] DateTime? desde,
             [FromQuery] DateTime? hasta,
@@ -35,7 +38,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.HistorialMovimientos
             return Ok(resultado);
         }
 
+        // CONSULTAR RESUMEN
         [HttpGet("resumen")]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<IActionResult> ObtenerResumen(
             [FromQuery] DateTime? desde,
             [FromQuery] DateTime? hasta,
@@ -50,14 +55,18 @@ namespace SistemaFlota.Controllers.InventarioBodega.HistorialMovimientos
             return Ok(resultado);
         }
 
+        // OBTENER OPCIONES DE FILTROS
         [HttpGet("opciones")]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<IActionResult> ObtenerOpciones()
         {
             var resultado = await _service.ObtenerOpcionesAsync();
             return Ok(resultado);
         }
 
+        // CONSULTAR MOVIMIENTO POR ID
         [HttpGet("{id:int}")]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<IActionResult> ObtenerPorId(int id)
         {
             var resultado = await _service.ObtenerPorIdAsync(id);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 
@@ -20,6 +21,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // OBTENER SALIDA ACTUAL
         [HttpGet("actual")]
+        [Permiso("salidas", "ver")]
         public async Task<IActionResult> ObtenerSalidaActual()
         {
             var respuesta =
@@ -30,6 +32,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // CREAR SALIDA
         [HttpPost("crear")]
+        [Permiso("salidas", "crear")]
         public async Task<IActionResult> CrearSalida()
         {
             var respuesta =
@@ -40,6 +43,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // AGREGAR ITEM POR ID
         [HttpPost("{idSalida:int}/items/{idInventarioBodegaItem:int}")]
+        [Permiso("salidas", "editar")]
         public async Task<IActionResult> AgregarItem(
             int idSalida,
             int idInventarioBodegaItem)
@@ -55,6 +59,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // AGREGAR ITEM POR REFERENCIA
         [HttpPost("{idSalida:int}/agregar-por-referencia")]
+        [Permiso("salidas", "crear")]
         public async Task<IActionResult> AgregarItemPorReferencia(
             int idSalida,
             [FromBody] string referencia)
@@ -70,6 +75,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // QUITAR ITEM
         [HttpDelete("{idSalida:int}/items/{idInventarioBodegaItem:int}")]
+        [Permiso("salidas", "crear")]
         public async Task<IActionResult> QuitarItem(
             int idSalida,
             int idInventarioBodegaItem)
@@ -85,6 +91,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // CONFIRMAR SALIDA
         [HttpPost("{idSalida:int}/confirmar")]
+        [Permiso("salidas", "crear")]
         public async Task<IActionResult> ConfirmarSalida(
             int idSalida,
             [FromBody] ConfirmarSalidaBodegaDto dto)
@@ -100,6 +107,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 
         // CANCELAR SALIDA
         [HttpPost("{idSalida:int}/cancelar")]
+        [Permiso("salidas", "editar")]
         public async Task<IActionResult> CancelarSalida(int idSalida)
         {
             var respuesta =

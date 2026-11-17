@@ -196,6 +196,41 @@ export class Modulos {
         );
         break;
 
+      // INVENTARIO BODEGA
+
+      case '/inventario-bodega': {
+        nombreModulo = 'Inventario - Bodega';
+
+        const modulosBodega = MENU_MODULOS.filter(
+          m => m.modulo === 'inventario-bodega'
+        );
+
+        const permisosBodega = this.permisos.filter(p =>
+          p.puedeVer &&
+          modulosBodega.some(m => (m.permiso ?? m.key) === p.modulo)
+        );
+
+        permitido = permisosBodega.length > 0;
+
+        if (permitido) {
+          const permisoInicio = permisosBodega.find(p => p.esInicio);
+          const permisoDestino = permisoInicio ?? permisosBodega[0];
+
+          const menuDestino = modulosBodega.find(
+            m => (m.permiso ?? m.key) === permisoDestino.modulo
+          );
+
+          if (menuDestino) {
+            this.router.navigate([menuDestino.ruta]);
+            return;
+          }
+
+          permitido = false;
+        }
+
+        break;
+      }
+
       case '/historial-odo':
       case '/historial-odo/movimiento-producto':
       case '/historial-odo/pedido-compra':
@@ -206,8 +241,6 @@ export class Modulos {
           m.ruta === ruta
         );
 
-        // Si es la entrada principal /historial-odo,
-        // basta con tener permiso para cualquiera de sus submódulos.
         if (ruta === '/historial-odo') {
 
           const modulosHistorialOdo = MENU_MODULOS

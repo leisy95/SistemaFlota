@@ -66,6 +66,16 @@ export interface RegistrarItemResponseDto {
     message: string;
 }
 
+// BUSCAR REFERENCIA POR BULTOS
+export interface InventarioBodegaItemConsulta {
+    id: number;
+    idInventarioBodega: number;
+    referenciaPeso: string;
+    pesoActual: number;
+    fechaRegistroItem: string;
+    estado: string;
+}
+
 // ACTUALIZAR INVENTARIO
 export interface ActualizarInventarioBodegaDto {
     referencia: string;

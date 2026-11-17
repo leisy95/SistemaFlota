@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.DashboardBodega;
 using SistemaFlota.Services.InventarioBodega.DashboardBodega;
 
@@ -18,8 +19,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             _service = service;
         }
 
-        // GET: api/MovimientosInventario
+        // LISTAR MOVIMIENTOS
         [HttpGet]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<ActionResult<IEnumerable<MovimientoInventarioResponseDto>>>
             GetMovimientos()
         {
@@ -28,8 +30,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             return Ok(movimientos);
         }
 
-        // GET: api/MovimientosInventario/{id}
+        // OBTENER MOVIMIENTO POR ID
         [HttpGet("{id}")]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<ActionResult<MovimientoInventarioResponseDto>>
             GetMovimiento(int id)
         {
@@ -41,8 +44,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             return Ok(movimiento);
         }
 
-        // GET: api/MovimientosInventario/auditoria
+        // CONSULTAR AUDITORÍA
         [HttpGet("auditoria")]
+        [Permiso("historial-movimientos-bodega", "ver")]
         public async Task<ActionResult<MovimientoInventarioAuditoriaCompletaDto>>
             GetAuditoria([FromQuery] MovimientoInventarioFiltroDto filtros)
         {
@@ -51,8 +55,9 @@ namespace SistemaFlota.Controllers.InventarioBodega.DashboardBodega
             return Ok(auditoria);
         }
 
-        // POST: api/MovimientosInventario
+        // REGISTRAR MOVIMIENTO
         [HttpPost]
+        [Permiso("historial-movimientos-bodega", "crear")]
         public async Task<ActionResult<MovimientoInventarioResponseDto>>
             PostMovimiento(MovimientoInventarioRequestDto request)
         {

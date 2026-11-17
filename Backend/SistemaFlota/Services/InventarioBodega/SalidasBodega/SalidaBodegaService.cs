@@ -191,7 +191,7 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
             return Exito("Item agregado a la salida.", item.Id);
         }
 
-        // AGREGAR ITEM POR REFERENCIA
+        // AGREGAR ITEM POR REFERENCIA PESO
         public async Task<RespuestaSalidaBodegaDto>
             AgregarItemPorReferenciaAsync(
                 int idSalida,
@@ -205,7 +205,6 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
             referencia = referencia.Trim().ToUpperInvariant();
 
             var salida = await _context.SalidasBodega
-                .Include(s => s.Detalles)
                 .FirstOrDefaultAsync(s =>
                     s.Id == idSalida &&
                     s.Estado == "EN_PROCESO"
@@ -216,30 +215,42 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
                 return Error("Salida no encontrada o ya finalizada.");
             }
 
-            var item = await _context.InventariosBodegaItems
-                .Where(i =>
-                    i.ReferenciaPeso == referencia &&
-                    i.Estado == "EN_ALMACEN"
-                )
-                .OrderBy(i => i.FechaRegistroItem)
-                .FirstOrDefaultAsync();
+            // VALIDAR SI LA REFERENCIA PESO YA ESTÁ EN ESTA SALIDA
+            bool referenciaYaAgregada = await _context.SalidasBodegaDetalles
+                .AnyAsync(d =>
+                    d.SalidaBodegaId == idSalida &&
+                    d.InventarioBodegaItem.ReferenciaPeso == referencia
+                );
 
-            if (item == null)
+            if (referenciaYaAgregada)
             {
                 return Error(
-                    "No hay items disponibles con esa referencia."
+                    "Esta referencia peso ya fue agregada a la salida."
                 );
             }
 
-            bool yaAgregado = salida.Detalles.Any(d =>
-                d.InventarioBodegaItemId == item.Id
-            );
+            // BUSCAR EL ITEM POR SU REFERENCIA PESO
+            var item = await _context.InventariosBodegaItems
+                .FirstOrDefaultAsync(i =>
+                    i.ReferenciaPeso == referencia
+                );
 
-            if (yaAgregado)
+            if (item == null)
             {
-                return Error("El item ya estaba en esta salida.");
+                return Error("No existe un item con esa referencia peso.");
             }
 
+            // VALIDAR DISPONIBILIDAD
+            if (item.Estado != "EN_ALMACEN")
+            {
+                return Error(
+                    item.Estado == "RESERVADO"
+                        ? "Este producto ya está reservado en una salida."
+                        : "Este producto ya no está disponible en almacén."
+                );
+            }
+
+            // RESERVAR ITEM
             item.Estado = "RESERVADO";
 
             _context.SalidasBodegaDetalles.Add(
@@ -257,8 +268,9 @@ namespace SistemaFlota.Services.InventarioBodega.SalidasBodega
                 "AgregarItem",
                 "SalidasBodega",
                 $"Se agregó el item {item.ReferenciaPeso} " +
-                $"a la salida {salida.Id} mediante búsqueda por referencia.",
-                salida.Id);
+                $"a la salida {salida.Id} mediante búsqueda por referencia peso.",
+                salida.Id
+            );
 
             return Exito("Item agregado correctamente.", item.Id);
         }

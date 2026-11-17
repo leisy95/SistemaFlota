@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaFlota.Authorization;
 using SistemaFlota.DTOs.InventarioBodega.Clientes;
 using SistemaFlota.Services.InventarioBodega.Clientes;
 
@@ -21,7 +22,19 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         // LISTAR CLIENTES CON FILTROS Y PAGINACIÓN
         [HttpGet("listar")]
+        [Permiso("listar-clientes", "ver")]
         public async Task<IActionResult> ListarClientes(
+            [FromQuery] ClienteBodegaFiltroDto filtros)
+        {
+            var respuesta = await _clienteService.ListarClientesAsync(filtros);
+
+            return Ok(respuesta);
+        }
+
+        // LISTAR CLIENTES PARA EL REGISTRO DE SALIDAS
+        [HttpGet("para-salidas")]
+        [Permiso("salidas", "ver")]
+        public async Task<IActionResult> ListarClientesParaSalidas(
             [FromQuery] ClienteBodegaFiltroDto filtros)
         {
             var respuesta = await _clienteService.ListarClientesAsync(filtros);
@@ -31,6 +44,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         // OBTENER CLIENTE POR ID
         [HttpGet("{id:int}")]
+        [Permiso("listar-clientes", "ver")]
         public async Task<IActionResult> ObtenerCliente(int id)
         {
             var respuesta = await _clienteService.ObtenerClienteAsync(id);
@@ -47,6 +61,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         // CREAR CLIENTE
         [HttpPost("crear")]
+        [Permiso("listar-clientes", "crear")]
         public async Task<IActionResult> CrearCliente(
             [FromBody] ClienteRequestDto dto)
         {
@@ -63,6 +78,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         // ACTUALIZAR CLIENTE
         [HttpPut("actualizar/{id:int}")]
+        [Permiso("listar-clientes", "editar")]
         public async Task<IActionResult> ActualizarCliente(
             int id,
             [FromBody] EditarClienteRequestDto dto)
@@ -80,6 +96,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         /// DESACTIVAR CLIENTE
         [HttpPut("desactivar/{id:int}")]
+        [Permiso("listar-clientes", "editar")]
         public async Task<IActionResult> DesactivarCliente(int id)
         {
             var respuesta = await _clienteService.DesactivarClienteAsync(id);
@@ -92,6 +109,7 @@ namespace SistemaFlota.Controllers.InventarioBodega.Clientes
 
         // REACTIVAR CLIENTE
         [HttpPut("reactivar/{id:int}")]
+        [Permiso("listar-clientes", "editar")]
         public async Task<IActionResult> ReactivarCliente(int id)
         {
             var respuesta = await _clienteService.ReactivarClienteAsync(id);

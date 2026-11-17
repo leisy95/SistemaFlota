@@ -397,11 +397,12 @@ export const MENU_MODULOS: MenuItem[] = [
 
     // INVENTARIO - BODEGA
     {
-        key: 'dashboard',
+        key: 'dashboard-bodega',
         label: 'Dashboard',
-        icon: 'fa-solid fa-boxes-stacked',
-        ruta: '/inventario-bodega/dashboard',
+        icon: 'fa-solid fa-chart-pie',
+        ruta: '/inventario-bodega/dashboard-bodega',
         modulo: 'inventario-bodega',
+        permiso: 'dashboard-bodega',
     },
     {
         key: 'listar-inventario',
@@ -409,6 +410,7 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-boxes-stacked',
         ruta: '/inventario-bodega/listar-inventario',
         modulo: 'inventario-bodega',
+        permiso: 'listar-inventario',
     },
     {
         key: 'registrar-entrada',
@@ -416,34 +418,39 @@ export const MENU_MODULOS: MenuItem[] = [
         icon: 'fa-solid fa-box-open',
         ruta: '/inventario-bodega/registrar-entrada',
         modulo: 'inventario-bodega',
+        permiso: 'registrar-entrada',
     },
     {
         key: 'entradas',
-        label: 'Mostrar Entradas',
-        icon: 'fa-solid fa-arrow-right-to-bracket',
+        label: 'Mostrar entradas',
+        icon: 'fa-solid fa-dolly',
         ruta: '/inventario-bodega/mostrar-entradas',
         modulo: 'inventario-bodega',
+        permiso: 'entradas',
     },
     {
         key: 'salidas',
-        label: 'Registro salidas',
-        icon: 'fa-solid fa-arrow-right-from-bracket',
+        label: 'Registro de salidas',
+        icon: 'fa-solid fa-truck-ramp-box',
         ruta: '/inventario-bodega/registro-salidas',
         modulo: 'inventario-bodega',
+        permiso: 'salidas',
     },
     {
         key: 'listar-clientes',
-        label: 'Listar Clientes',
+        label: 'Listar clientes',
         icon: 'fa-solid fa-users',
         ruta: '/inventario-bodega/listar-clientes',
         modulo: 'inventario-bodega',
+        permiso: 'listar-clientes',
     },
     {
-        key: 'historial-movimientos',
-        label: 'Historial Movimientos',
-        icon: 'fa-solid fa-users',
+        key: 'historial-movimientos-bodega',
+        label: 'Historial movimientos',
+        icon: 'fa-solid fa-clock-rotate-left',
         ruta: '/inventario-bodega/historial-movimientos',
         modulo: 'inventario-bodega',
+        permiso: 'historial-movimientos-bodega',
     },
 
     // HISTORIAL ODO
