@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using SistemaFlota.DTOs.InventarioBodega.DashboardBodega;
@@ -23,7 +24,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
         public async Task<byte[]> GenerarPdfAsync(
             MovimientoInventarioFiltroDto filtros)
         {
-            // Consultar TODOS los movimientos filtrados.
+            // CONSULTAR TODOS LOS MOVIMIENTOS FILTRADOS
             var movimientos = await ObtenerMovimientosFiltrados(filtros);
 
             var empresa = await _context.ConfiguracionEmpresa
@@ -59,7 +60,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
         }
 
         // CONSULTAR MOVIMIENTOS CON LOS FILTROS
-        // SIN PAGINACIÓN
+
         private async Task<List<MovimientoInventarioAuditoriaDto>>
             ObtenerMovimientosFiltrados(
                 MovimientoInventarioFiltroDto filtros)
@@ -150,9 +151,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                 );
             }
 
-            // IMPORTANTE:
-            // No utilizar Skip ni Take.
-            // El PDF debe incluir todos los resultados.
+            // EL PDF DEBE INCLUIR TODOS LOS RESULTADOS.
 
             return await query
                 .OrderByDescending(m => m.Fecha)
@@ -164,6 +163,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                     Tipo = m.Tipo,
                     Peso = m.Peso,
                     Fecha = m.Fecha,
+
                     Usuario = m.Usuario ?? "Sin usuario",
 
                     Cliente = m.Cliente != null
@@ -180,7 +180,6 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                 .ToListAsync();
         }
 
-        // RUTAS DE IMÁGENES
         private string ObtenerMarcaAgua()
         {
             return Path.Combine(
@@ -201,7 +200,6 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
             );
         }
 
-        // CONSTRUIR DOCUMENTO
         private void ConstruirDocumento(
             PageDescriptor page,
             List<MovimientoInventarioAuditoriaDto> movimientos,
@@ -209,6 +207,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
             MovimientoInventarioFiltroDto filtros,
             decimal totalPeso)
         {
+            // MARCA DE AGUA
             page.Background()
                 .Element(container =>
                     MarcaAgua.Dibujar(
@@ -217,26 +216,31 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                     )
                 );
 
-            page.Header()
-                .Element(container =>
-                {
-                    HeaderEmpresa.Dibujar(
-                        container,
-                        ObtenerLogo(empresa.Logo),
-                        empresa,
-                        "AUDITORÍA DE INVENTARIO",
-                        "",
-                        "MOVIMIENTOS DE INVENTARIO",
-                        $"Total registros: {movimientos.Count}"
-                    );
-                });
-
+            // CONTENIDO
             page.Content()
                 .PaddingTop(12)
                 .Column(col =>
                 {
-                    // FILTROS APLICADOS
+                    // ENCABEZADO EMPRESA
+
                     col.Item()
+                        .Element(container =>
+                        {
+                            HeaderEmpresa.Dibujar(
+                                container,
+                                ObtenerLogo(empresa.Logo),
+                                empresa,
+                                "AUDITORÍA DE INVENTARIO",
+                                "",
+                                "MOVIMIENTOS DE INVENTARIO",
+                                $"Total registros: {movimientos.Count}"
+                            );
+                        });
+
+                    // FILTROS 
+
+                    col.Item()
+                        .PaddingTop(10)
                         .Element(container =>
                         {
                             Card.Dibujar(
@@ -286,6 +290,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                         });
 
                     // RESUMEN
+
                     col.Item()
                         .PaddingTop(10)
                         .Row(row =>
@@ -327,7 +332,8 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                                 });
                         });
 
-                    // TABLA
+                    // TABLA DE MOVIMIENTOS
+
                     col.Item()
                         .PaddingTop(12)
                         .Table(table =>
@@ -345,7 +351,8 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                                 columns.RelativeColumn(2.0f); // Observación
                             });
 
-                            // ENCABEZADOS
+                            // ENCABEZADOS DE TABLA
+
                             table.Header(header =>
                             {
                                 CrearEncabezado(header, "FECHA");
@@ -367,17 +374,35 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                                     movimiento.Fecha.ToString("dd/MM/yyyy HH:mm")
                                 );
 
-                                CrearCelda(table, movimiento.Referencia);
+                                CrearCelda(
+                                    table,
+                                    movimiento.Referencia
+                                );
 
-                                CrearCelda(table, movimiento.ReferenciaPeso);
+                                CrearCelda(
+                                    table,
+                                    movimiento.ReferenciaPeso
+                                );
 
-                                CrearCelda(table, movimiento.Tipo);
+                                CrearCelda(
+                                    table,
+                                    movimiento.Tipo
+                                );
 
-                                CrearCelda(table, movimiento.Peso.ToString("N2"));
+                                CrearCelda(
+                                    table,
+                                    movimiento.Peso.ToString("N2")
+                                );
 
-                                CrearCelda(table, movimiento.Usuario);
+                                CrearCelda(
+                                    table,
+                                    movimiento.Usuario
+                                );
 
-                                CrearCelda(table, movimiento.Cliente ?? "-");
+                                CrearCelda(
+                                    table,
+                                    movimiento.Cliente ?? "-"
+                                );
 
                                 CrearCelda(
                                     table,
@@ -392,6 +417,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
                         });
 
                     // TOTAL FINAL
+
                     col.Item()
                         .PaddingTop(8)
                         .AlignRight()
@@ -409,6 +435,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
         }
 
         // CELDA DE ENCABEZADO
+
         private void CrearEncabezado(
             TableCellDescriptor header,
             string texto)
@@ -424,6 +451,7 @@ namespace SistemaFlota.Services.InventarioBodega.DashboardBodega.MovimientosInve
         }
 
         // CELDA DE DATOS
+
         private void CrearCelda(
             TableDescriptor table,
             string texto)
