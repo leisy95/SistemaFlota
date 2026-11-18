@@ -504,14 +504,14 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 .Element(container =>
                     FooterEmpresa.Dibujar(
                         container,
-                        "SistemaFlota - Entradas de Inventario"));
+                        "Layas Software - Entradas de Inventario"));
         }
 
         // CELDA DE PESO INDIVIDUAL
         private static void CrearCeldaPeso(
-            IContainer container,
-            decimal peso,
-            CultureInfo cultura)
+        IContainer container,
+        decimal peso,
+        CultureInfo cultura)
         {
             container
                 .Padding(0.5f)
