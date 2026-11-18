@@ -1,21 +1,14 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-
 import { SalidaBodegaService } from '../../../../core/services/inventario-bodega/salidas-bodega/salida-bodega.service';
-
 import { ClienteBodegaService } from '../../../../core/services/inventario-bodega/clientes/cliente-bodega.service';
-
 import { SalidaBodegaActual } from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.model';
-
-import {
-  ConfirmarSalidaBodegaDto,
-  RespuestaSalidaBodegaDto
-} from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.dto';
-
+import { ConfirmarSalidaBodegaDto, RespuestaSalidaBodegaDto } from '../../../../core/models/inventario-bodega/salidas-bodega/salida-bodega.dto';
 import { ClienteBodega } from '../../../../core/models/inventario-bodega/clientes/cliente-bodega.model';
+import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 
 interface ProductoSalida {
   id: number;
@@ -35,9 +28,26 @@ interface ProductoSalida {
   templateUrl: './registro-salida.html',
   styleUrl: './registro-salida.scss',
 })
-export class RegistroSalida implements OnInit {
+export class RegistroSalida implements OnInit, OnDestroy {
 
   @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
+
+  // ESCÁNER CON CÁMARA
+  @ViewChild('videoEscaner')
+  videoEscaner!: ElementRef<HTMLVideoElement>;
+
+  private codeReader = new BrowserMultiFormatReader();
+
+  private scannerControls?: IScannerControls;
+
+  mostrarEscaner = false;
+  iniciandoCamara = false;
+
+  referenciasEscaneadas: string[] = [];
+
+  // Evitar lecturas repetidas consecutivas
+  private ultimaReferenciaCamara = '';
+  private ultimaLecturaCamara = 0;
 
   private scanTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -73,6 +83,127 @@ export class RegistroSalida implements OnInit {
   ngOnInit(): void {
     this.cargarSalidaActual();
     this.cargarClientes();
+  }
+
+  // ABRIR ESCÁNER DE CÁMARA
+  async abrirEscaner(): Promise<void> {
+    if (this.mostrarEscaner) return;
+
+    this.mostrarEscaner = true;
+    this.iniciandoCamara = true;
+
+    setTimeout(async () => {
+      try {
+        this.scannerControls = await this.codeReader.decodeFromVideoDevice(
+          undefined,
+          this.videoEscaner.nativeElement,
+          (resultado) => {
+            if (!resultado) return;
+            const referencia = resultado.getText().trim().toUpperCase();
+            this.registrarReferenciaEscaneada(referencia);
+          }
+        );
+      } catch (error) {
+        console.error('Error al iniciar la cámara:', error);
+        this.toastr.error('No fue posible acceder a la cámara. Verifica los permisos del dispositivo.', 'Error');
+        this.detenerEscaner();
+      } finally {
+        this.iniciandoCamara = false;
+      }
+    }, 300);
+  }
+
+  // REGISTRAR REFERENCIA LEÍDA POR LA CÁMARA
+  private registrarReferenciaEscaneada(
+    referencia: string
+  ): void {
+
+    if (!referencia) return;
+
+    const ahora = Date.now();
+
+    // Evitar lecturas consecutivas del mismo código
+    if (
+      referencia === this.ultimaReferenciaCamara &&
+      ahora - this.ultimaLecturaCamara < 1200
+    ) {
+      return;
+    }
+
+    this.ultimaReferenciaCamara = referencia;
+    this.ultimaLecturaCamara = ahora;
+
+    // Evitar referencias duplicadas en la lista temporal
+    if (this.referenciasEscaneadas.includes(referencia)) {
+      return;
+    }
+
+    // Evitar referencias que ya están en la salida
+    const yaExiste = this.productosSeleccionados.some(
+      producto => producto.referenciaPeso === referencia
+    );
+
+    if (yaExiste) {
+
+      this.toastr.warning(
+        `La referencia ${referencia} ya está agregada a la salida.`,
+        'Producto duplicado'
+      );
+
+      return;
+    }
+
+    this.referenciasEscaneadas = [
+      ...this.referenciasEscaneadas,
+      referencia
+    ];
+  }
+
+
+  // DETENER CÁMARA
+  detenerEscaner(): void {
+
+    this.scannerControls?.stop();
+
+    this.scannerControls = undefined;
+
+    this.mostrarEscaner = false;
+    this.iniciandoCamara = false;
+
+    this.ultimaReferenciaCamara = '';
+    this.ultimaLecturaCamara = 0;
+  }
+
+
+  // ELIMINAR REFERENCIA DE LA LISTA TEMPORAL
+  eliminarReferenciaEscaneada(referencia: string): void {
+
+    this.referenciasEscaneadas =
+      this.referenciasEscaneadas.filter(
+        item => item !== referencia
+      );
+  }
+
+
+  // LIMPIAR REFERENCIAS ESCANEADAS
+  limpiarReferenciasEscaneadas(): void {
+
+    this.referenciasEscaneadas = [];
+
+  }
+
+  // CERRAR RECURSOS AL SALIR DEL COMPONENTE
+  ngOnDestroy(): void {
+
+    this.detenerEscaner();
+
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
+    }
+  }
+
+  get totalReferenciasEscaneadas(): number {
+    return this.referenciasEscaneadas.length;
   }
 
   cargarSalidaActual(): void {

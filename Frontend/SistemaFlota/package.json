@@ -37,6 +37,7 @@
     "@angular/service-worker": "^21.2.10",
     "@angular/ssr": "^21.1.4",
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "@zxing/browser": "^0.2.1",
     "chart.js": "^4.5.1",
     "express": "^5.1.0",
     "jsbarcode": "^3.12.3",

@@ -25,25 +25,71 @@
 
         <!-- ESCANEAR REFERENCIA -->
         <div class="form-group">
-            <label for="filtroReferencia">
-                Escanear referencia
-            </label>
+            <label for="filtroReferencia">Escanear referencia</label>
 
             <div class="input-icon">
                 <i class="fa-solid fa-barcode"></i>
-
                 <input #inputRef id="filtroReferencia" type="text" class="form-control" [(ngModel)]="filtroReferencia"
                     (ngModelChange)="onScanChange($event)" placeholder="Escanea o escribe la referencia..."
                     autocomplete="off" />
-
                 <span class="input-loading" *ngIf="procesando">
                     <i class="fa-solid fa-spinner fa-spin"></i>
                 </span>
             </div>
 
-            <small class="form-hint">
-                Escanea el código QR o escribe la referencia del producto.
-            </small>
+            <small class="form-hint">Usa el lector físico o escribe la referencia del producto.</small>
+
+            <button type="button" class="btn-escanear-camara" (click)="abrirEscaner()"
+                [disabled]="iniciandoCamara || procesando">
+                <i class="fa-solid fa-camera"></i>
+                Escanear con cámara
+            </button>
+        </div>
+
+        <!-- ESCÁNER DE CÁMARA -->
+        <div class="escaner-container" *ngIf="mostrarEscaner">
+            <div class="escaner-header">
+                <div>
+                    <h3>Escáner de productos</h3>
+                    <p>Enfoca el código de barras de la etiqueta.</p>
+                </div>
+                <button type="button" class="btn-cerrar-escaner" (click)="detenerEscaner()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="video-container">
+                <video #videoEscaner autoplay muted playsinline></video>
+                <div class="marco-escaner"></div>
+                <div class="camara-loading" *ngIf="iniciandoCamara">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Iniciando cámara...
+                </div>
+            </div>
+
+            <!-- REFERENCIAS TEMPORALES -->
+            <div class="referencias-temporales">
+                <div class="referencias-header">
+                    <strong>Referencias escaneadas ({{ totalReferenciasEscaneadas }})</strong>
+                    <button type="button" (click)="limpiarReferenciasEscaneadas()" *ngIf="referenciasEscaneadas.length">
+                        Limpiar lista
+                    </button>
+                </div>
+
+                <div class="lista-vacia" *ngIf="!referenciasEscaneadas.length">
+                    Las referencias leídas aparecerán aquí.
+                </div>
+
+                <div class="referencia-temporal" *ngFor="let referencia of referenciasEscaneadas">
+                    <span>
+                        <i class="fa-solid fa-barcode"></i>
+                        {{ referencia }}
+                    </span>
+                    <button type="button" (click)="eliminarReferenciaEscaneada(referencia)" title="Eliminar referencia">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- SELECCIONAR CLIENTE -->
