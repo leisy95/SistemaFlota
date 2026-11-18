@@ -430,7 +430,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                             .Padding(3)
                                             .Table(table =>
                                             {
-                                                const int columnas = 7;
+                                                const int columnas = 10;
 
                                                 table.ColumnsDefinition(columns =>
                                                 {
@@ -514,15 +514,15 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             CultureInfo cultura)
         {
             container
-                .Padding(1)
+                .Padding(0.5f)
                 .Border(0.5f)
                 .BorderColor("#D9E0D8")
                 .Background("#F5F7F4")
                 .PaddingVertical(3)
                 .AlignCenter()
                 .AlignMiddle()
-                .Text($"{peso.ToString("N2", cultura)} kg")
-                .FontSize(7)
+                .Text($"{peso.ToString("N2", cultura)}")
+                .FontSize(6)
                 .FontColor(PdfColors.AzulOscuro);
         }
 
