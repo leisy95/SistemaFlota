@@ -46,6 +46,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             // CONSULTAR ENTRADAS
             var query = _context.InventariosBodegaItems
                 .AsNoTracking()
+                .Where(i => i.Estado == "EN_ALMACEN")
                 .AsQueryable();
 
             // BÚSQUEDA
