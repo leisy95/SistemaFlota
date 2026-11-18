@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using SistemaFlota.DTOs.InventarioBodega.EntradasBodega;
 using SistemaFlota.Services.Pdf.Components;
 using SistemaFlota.Services.Pdf.Styles;
 using System.Globalization;
@@ -23,13 +22,12 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             _environment = environment;
         }
 
-        // GENERAR PDF DE ENTRADAS DE INVENTARIO
+        // GENERAR PDF
         public async Task<byte[]> GenerarPdfAsync(
             string? buscar = null,
             DateTime? fechaInicio = null,
             DateTime? fechaFin = null)
         {
-            // VALIDAR RANGO DE FECHAS
             if (fechaInicio.HasValue &&
                 fechaFin.HasValue &&
                 fechaInicio.Value.Date > fechaFin.Value.Date)
@@ -38,7 +36,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                     "La fecha inicial no puede ser mayor que la fecha final.");
             }
 
-            // CONSULTAR CONFIGURACIÓN DE EMPRESA
+            // CONFIGURACIÓN EMPRESA
             var empresa = await _context.ConfiguracionEmpresa
                 .FirstOrDefaultAsync();
 
@@ -50,7 +48,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 .AsNoTracking()
                 .AsQueryable();
 
-            // FILTRO POR REFERENCIA, REFERENCIA PESO Y ESTADO
+            // BÚSQUEDA
             if (!string.IsNullOrWhiteSpace(buscar))
             {
                 var texto = buscar.Trim();
@@ -58,10 +56,12 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 query = query.Where(i =>
                     i.InventarioBodega.Referencia.Contains(texto) ||
                     i.ReferenciaPeso.Contains(texto) ||
-                    i.Estado.Contains(texto));
+                    i.Estado.Contains(texto) ||
+                    (i.InventarioBodega.Descripcion != null &&
+                     i.InventarioBodega.Descripcion.Contains(texto)));
             }
 
-            // FILTRO POR FECHA INICIAL
+            // FECHA INICIAL
             if (fechaInicio.HasValue)
             {
                 var inicio = fechaInicio.Value.Date;
@@ -70,8 +70,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                     i.FechaRegistroItem >= inicio);
             }
 
-            // FILTRO POR FECHA FINAL
-            // INCLUYE TODO EL DÍA SELECCIONADO
+            // FECHA FINAL
             if (fechaFin.HasValue)
             {
                 var fin = fechaFin.Value.Date.AddDays(1);
@@ -80,27 +79,58 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                     i.FechaRegistroItem < fin);
             }
 
-            // CONSULTAR TODOS LOS REGISTROS SIN PAGINACIÓN
-            var entradas = await query
+            // OBTENER DATOS DEL INVENTARIO Y PESOS INDIVIDUALES
+            var datos = await query
                 .OrderByDescending(i => i.FechaRegistroItem)
                 .ThenByDescending(i => i.Id)
-                .Select(i => new MostrarEntradaDto
+                .Select(i => new
                 {
                     Referencia = i.InventarioBodega.Referencia,
-                    ReferenciaPeso = i.ReferenciaPeso,
-                    FechaRegistroItem = i.FechaRegistroItem,
+                    Descripcion = i.InventarioBodega.Descripcion,
+                    TipoBolsa = i.InventarioBodega.TipoBolsa,
+                    TipoMaterial = i.InventarioBodega.TipoMaterial,
+                    Densidad = i.InventarioBodega.Densidad,
+                    Color = i.InventarioBodega.Color,
+                    SegundoColor = i.InventarioBodega.SegundoColor,
+                    ImpresoNo = i.InventarioBodega.ImpresoNo,
+                    ReferenciaImpresa = i.InventarioBodega.ReferenciaImpresa,
+                    Ancho = i.InventarioBodega.Ancho,
+                    Alto = i.InventarioBodega.Alto,
+                    Calibre = i.InventarioBodega.Calibre,
                     PesoActual = i.PesoActual,
+                    FechaRegistroItem = i.FechaRegistroItem,
                     Estado = i.Estado
                 })
                 .ToListAsync();
 
-            if (!entradas.Any())
+            if (!datos.Any())
             {
                 throw new InvalidOperationException(
                     "No se encontraron entradas de inventario para generar el PDF.");
             }
 
-            // TOTALES
+            // PREPARAR DATOS DEL PDF
+            var entradas = datos.Select(i => new EntradaPdfDto
+            {
+                Referencia = i.Referencia,
+                Descripcion = ConstruirDescripcion(
+                    i.Descripcion,
+                    i.TipoBolsa,
+                    i.TipoMaterial,
+                    i.Densidad,
+                    i.Color,
+                    i.SegundoColor,
+                    i.ImpresoNo,
+                    i.ReferenciaImpresa,
+                    i.Ancho,
+                    i.Alto,
+                    i.Calibre),
+                PesoActual = i.PesoActual,
+                FechaRegistroItem = i.FechaRegistroItem,
+                Estado = i.Estado
+            }).ToList();
+
+            // TOTALES GENERALES
             var totalRegistros = entradas.Count;
             var pesoTotal = entradas.Sum(e => e.PesoActual);
 
@@ -111,7 +141,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             {
                 document.Page(page =>
                 {
-                    // FORMATO A4 VERTICAL
                     page.Size(PageSizes.A4);
                     page.Margin(20);
                     page.DefaultTextStyle(x => x.FontSize(9));
@@ -132,7 +161,60 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             return pdf.GeneratePdf();
         }
 
-        // RUTA DE MARCA DE AGUA
+        // CONSTRUIR DESCRIPCIÓN DEL PRODUCTO
+        private static string ConstruirDescripcion(
+            string? descripcion,
+            string? tipoBolsa,
+            string? tipoMaterial,
+            string? densidad,
+            string? color,
+            string? segundoColor,
+            string? impresoNo,
+            string? referenciaImpresa,
+            decimal ancho,
+            decimal alto,
+            decimal calibre)
+        {
+            var partes = new List<string>();
+
+            Agregar(parte: descripcion, partes: partes);
+            Agregar(parte: tipoBolsa, partes: partes);
+            Agregar(parte: color, partes: partes);
+            Agregar(parte: segundoColor, partes: partes);
+            Agregar(parte: densidad, partes: partes);
+            Agregar(parte: tipoMaterial, partes: partes);
+
+            if (!string.IsNullOrWhiteSpace(impresoNo))
+                Agregar($"IMPRESIÓN: {impresoNo}", partes);
+
+            Agregar(parte: referenciaImpresa, partes: partes);
+
+            if (ancho > 0 || alto > 0)
+            {
+                Agregar(
+                    $"MEDIDAS {ancho.ToString("0.##", CultureInfo.InvariantCulture)}X{alto.ToString("0.##", CultureInfo.InvariantCulture)}",
+                    partes);
+            }
+
+            if (calibre > 0)
+            {
+                Agregar(
+                    $"CAL. {calibre.ToString("0.##", CultureInfo.InvariantCulture)}",
+                    partes);
+            }
+
+            return string.Join(" ", partes);
+        }
+
+        private static void Agregar(string? parte, List<string> partes)
+        {
+            if (!string.IsNullOrWhiteSpace(parte))
+            {
+                partes.Add(parte.Trim());
+            }
+        }
+
+        // RUTA MARCA DE AGUA
         private string ObtenerMarcaAgua()
         {
             return Path.Combine(
@@ -142,7 +224,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                 "iguana3.png");
         }
 
-        // RUTA DEL LOGO
+        // RUTA LOGO
         private string ObtenerLogo(string? logo)
         {
             return Path.Combine(
@@ -155,7 +237,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
         // CONSTRUIR DOCUMENTO
         private void ConstruirDocumento(
             PageDescriptor page,
-            List<MostrarEntradaDto> entradas,
+            List<EntradaPdfDto> entradas,
             ConfiguracionEmpresa empresa,
             string? buscar,
             DateTime? fechaInicio,
@@ -164,6 +246,12 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             decimal pesoTotal,
             CultureInfo cultura)
         {
+            // AGRUPAR POR REFERENCIA
+            var gruposEntradas = entradas
+                .GroupBy(e => e.Referencia)
+                .OrderBy(g => g.Key)
+                .ToList();
+
             // MARCA DE AGUA
             page.Background()
                 .Element(container =>
@@ -171,14 +259,12 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                         container,
                         ObtenerMarcaAgua()));
 
-            // CONTENIDO
             page.Content()
                 .Column(col =>
                 {
                     col.Spacing(12);
 
                     // ENCABEZADO CORPORATIVO
-                    // APARECE SOLAMENTE UNA VEZ
                     col.Item().Element(container =>
                     {
                         HeaderEmpresa.Dibujar(
@@ -205,17 +291,13 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
 
                                     contenido.Item().Text(text =>
                                     {
-                                        text.Span("Fecha de generación: ")
-                                            .SemiBold();
-
-                                        text.Span(
-                                            DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+                                        text.Span("Fecha de generación: ").SemiBold();
+                                        text.Span(DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
                                     });
 
                                     contenido.Item().Text(text =>
                                     {
                                         text.Span("Búsqueda: ").SemiBold();
-
                                         text.Span(
                                             string.IsNullOrWhiteSpace(buscar)
                                                 ? "Todos"
@@ -225,7 +307,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                     contenido.Item().Text(text =>
                                     {
                                         text.Span("Fecha inicial: ").SemiBold();
-
                                         text.Span(
                                             fechaInicio?.ToString("dd/MM/yyyy")
                                             ?? "No definida");
@@ -234,7 +315,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                     contenido.Item().Text(text =>
                                     {
                                         text.Span("Fecha final: ").SemiBold();
-
                                         text.Span(
                                             fechaFin?.ToString("dd/MM/yyyy")
                                             ?? "No definida");
@@ -242,10 +322,9 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                 });
                         });
 
-                    // RESUMEN
+                    // RESUMEN GENERAL
                     col.Item().Row(row =>
                     {
-                        // TOTAL ENTRADAS
                         row.RelativeItem().Element(container =>
                         {
                             Card.Dibujar(
@@ -261,7 +340,6 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
 
                         row.ConstantItem(10);
 
-                        // PESO TOTAL
                         row.RelativeItem().Element(container =>
                         {
                             Card.Dibujar(
@@ -276,7 +354,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                         });
                     });
 
-                    // TABLA DE ENTRADAS
+                    // DETALLE AGRUPADO POR REFERENCIA
                     col.Item().Element(container =>
                     {
                         Card.Dibujar(
@@ -284,76 +362,95 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                             "DETALLE DE ENTRADAS DE INVENTARIO",
                             contenido =>
                             {
-                                contenido.Item().Table(table =>
+                                contenido.Spacing(12);
+
+                                foreach (var grupo in gruposEntradas)
                                 {
-                                    // DISTRIBUCIÓN DE COLUMNAS
-                                    table.ColumnsDefinition(columns =>
+                                    contenido.Item().Column(seccion =>
                                     {
-                                        columns.RelativeColumn(2.2f); // REFERENCIA
-                                        columns.RelativeColumn(1.6f); // REF. PESO
-                                        columns.RelativeColumn(1.5f); // FECHA
-                                        columns.RelativeColumn(0.9f); // PESO
-                                        columns.RelativeColumn(1.3f); // ESTADO
-                                    });
+                                        var primerRegistro = grupo.First();
 
-                                    // ENCABEZADO DE TABLA
-                                    table.Header(header =>
-                                    {
-                                        CrearEncabezado(
-                                            header.Cell(), "REFERENCIA");
-
-                                        CrearEncabezado(
-                                            header.Cell(), "REF. PESO");
-
-                                        CrearEncabezado(
-                                            header.Cell(), "FECHA");
-
-                                        CrearEncabezado(
-                                            header.Cell(), "PESO");
-
-                                        CrearEncabezado(
-                                            header.Cell(), "ESTADO");
-                                    });
-
-                                    // REGISTROS
-                                    foreach (var entrada in entradas)
-                                    {
                                         // REFERENCIA
-                                        CrearCelda(
-                                            table.Cell(),
-                                            entrada.Referencia ?? "");
+                                        seccion.Item()
+                                            .Background("#E8F5E9")
+                                            .BorderBottom(1)
+                                            .BorderColor(PdfColors.VerdePrincipal)
+                                            .Padding(8)
+                                            .Text(text =>
+                                            {
+                                                text.Span("REFERENCIA: ")
+                                                    .SemiBold()
+                                                    .FontColor(PdfColors.VerdeOscuro);
 
-                                        // REFERENCIA PESO
-                                        CrearCelda(
-                                            table.Cell(),
-                                            entrada.ReferenciaPeso ?? "");
+                                                text.Span(grupo.Key ?? "")
+                                                    .SemiBold()
+                                                    .FontColor(PdfColors.AzulOscuro);
+                                            });
 
-                                        // FECHA
-                                        CrearCeldaCentrada(
-                                            table.Cell(),
-                                            entrada.FechaRegistroItem.ToString(
-                                                "dd/MM/yyyy HH:mm"));
+                                        // DESCRIPCIÓN DEL PRODUCTO
+                                        seccion.Item()
+                                            .PaddingHorizontal(8)
+                                            .PaddingTop(6)
+                                            .Text(primerRegistro.Descripcion)
+                                            .FontSize(8)
+                                            .FontColor(PdfColors.GrisOscuro);
 
-                                        // PESO
-                                        CrearCeldaCentrada(
-                                            table.Cell(),
-                                            $"{entrada.PesoActual.ToString("N2", cultura)} kg");
+                                        // PESOS INDIVIDUALES
+                                        seccion.Item()
+                                            .Padding(8)
+                                            .Table(table =>
+                                            {
+                                                const int columnas = 5;
 
-                                        // ESTADO
-                                        CrearCeldaCentrada(
-                                            table.Cell(),
-                                            entrada.Estado ?? "");
-                                    }
-                                });
+                                                table.ColumnsDefinition(columns =>
+                                                {
+                                                    for (int i = 0; i < columnas; i++)
+                                                    {
+                                                        columns.RelativeColumn();
+                                                    }
+                                                });
+
+                                                foreach (var entrada in grupo)
+                                                {
+                                                    table.Cell().Element(c =>
+                                                        CrearCeldaPeso(
+                                                            c,
+                                                            entrada.PesoActual,
+                                                            cultura));
+                                                }
+                                            });
+
+                                        // TOTAL DE LA REFERENCIA
+                                        var totalReferencia =
+                                            grupo.Sum(e => e.PesoActual);
+
+                                        seccion.Item()
+                                            .PaddingTop(5)
+                                            .BorderTop(1)
+                                            .BorderColor(PdfColors.GrisClaro)
+                                            .Padding(8)
+                                            .AlignRight()
+                                            .Text(text =>
+                                            {
+                                                text.Span("TOTAL DE LA REFERENCIA: ")
+                                                    .SemiBold();
+
+                                                text.Span(
+                                                    $"{totalReferencia.ToString("N2", cultura)} kg")
+                                                    .Bold()
+                                                    .FontColor(PdfColors.VerdeOscuro);
+                                            });
+                                    });
+                                }
                             });
                     });
 
-                    // TOTAL FINAL
+                    // TOTAL GENERAL
                     col.Item()
                         .PaddingTop(10)
                         .AlignRight()
                         .Text(
-                            $"TOTAL PESO: {pesoTotal.ToString("N2", cultura)} kg")
+                            $"TOTAL GENERAL: {pesoTotal.ToString("N2", cultura)} kg")
                         .Style(PdfStyles.Total);
                 });
 
@@ -365,51 +462,34 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                         "SistemaFlota - Entradas de Inventario"));
         }
 
-        // CREAR ENCABEZADOS DE TABLA
-        private static void CrearEncabezado(
+        // CELDA DE PESO INDIVIDUAL
+        private static void CrearCeldaPeso(
             IContainer container,
-            string texto)
+            decimal peso,
+            CultureInfo cultura)
         {
             container
-                .Background(PdfColors.VerdeOscuro)
-                .Padding(5)
+                .Padding(4)
+                .Border(1)
+                .BorderColor(PdfColors.GrisClaro)
+                .Background(PdfColors.Fondo)
+                .PaddingVertical(10)
                 .AlignCenter()
                 .AlignMiddle()
-                .Text(texto)
-                .Style(PdfStyles.HeaderTabla);
+                .Text($"{peso.ToString("N2", cultura)} kg")
+                .FontSize(9)
+                .SemiBold()
+                .FontColor(PdfColors.AzulOscuro);
         }
 
-        // CREAR CELDAS ALINEADAS A LA IZQUIERDA
-        private static void CrearCelda(
-            IContainer container,
-            string texto)
+        // MODELO INTERNO DEL PDF
+        private class EntradaPdfDto
         {
-            container
-                .BorderBottom(1)
-                .BorderColor(PdfColors.GrisClaro)
-                .PaddingVertical(8)
-                .PaddingHorizontal(6)
-                .AlignMiddle()
-                .Text(texto)
-                .Style(PdfStyles.CeldaTabla)
-                .FontSize(8);
-        }
-
-        // CREAR CELDAS CENTRADAS
-        private static void CrearCeldaCentrada(
-            IContainer container,
-            string texto)
-        {
-            container
-                .BorderBottom(1)
-                .BorderColor(PdfColors.GrisClaro)
-                .PaddingVertical(8)
-                .PaddingHorizontal(4)
-                .AlignCenter()
-                .AlignMiddle()
-                .Text(texto)
-                .Style(PdfStyles.CeldaTabla)
-                .FontSize(8);
+            public string Referencia { get; set; } = string.Empty;
+            public string Descripcion { get; set; } = string.Empty;
+            public decimal PesoActual { get; set; }
+            public DateTime FechaRegistroItem { get; set; }
+            public string Estado { get; set; } = string.Empty;
         }
     }
 }
