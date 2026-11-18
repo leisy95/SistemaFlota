@@ -79,7 +79,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                     i.FechaRegistroItem < fin);
             }
 
-            // OBTENER DATOS DEL INVENTARIO Y PESOS INDIVIDUALES
+            // OBTENER DATOS
             var datos = await query
                 .OrderByDescending(i => i.FechaRegistroItem)
                 .ThenByDescending(i => i.Id)
@@ -125,6 +125,11 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                     i.Ancho,
                     i.Alto,
                     i.Calibre),
+
+                Color = i.Color ?? "",
+                Ancho = i.Ancho,
+                Alto = i.Alto,
+
                 PesoActual = i.PesoActual,
                 FechaRegistroItem = i.FechaRegistroItem,
                 Estado = i.Estado
@@ -141,9 +146,13 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             {
                 document.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
-                    page.Margin(20);
-                    page.DefaultTextStyle(x => x.FontSize(9));
+                    // TAMAÑO OFICIO
+                    page.Size(PageSizes.Legal);
+
+                    page.MarginHorizontal(18);
+                    page.MarginVertical(15);
+
+                    page.DefaultTextStyle(x => x.FontSize(8));
 
                     ConstruirDocumento(
                         page,
@@ -177,17 +186,17 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
         {
             var partes = new List<string>();
 
-            Agregar(parte: descripcion, partes: partes);
-            Agregar(parte: tipoBolsa, partes: partes);
-            Agregar(parte: color, partes: partes);
-            Agregar(parte: segundoColor, partes: partes);
-            Agregar(parte: densidad, partes: partes);
-            Agregar(parte: tipoMaterial, partes: partes);
+            Agregar(descripcion, partes);
+            Agregar(tipoBolsa, partes);
+            Agregar(color, partes);
+            Agregar(segundoColor, partes);
+            Agregar(densidad, partes);
+            Agregar(tipoMaterial, partes);
 
             if (!string.IsNullOrWhiteSpace(impresoNo))
                 Agregar($"IMPRESIÓN: {impresoNo}", partes);
 
-            Agregar(parte: referenciaImpresa, partes: partes);
+            Agregar(referenciaImpresa, partes);
 
             if (ancho > 0 || alto > 0)
             {
@@ -246,10 +255,13 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             decimal pesoTotal,
             CultureInfo cultura)
         {
-            // AGRUPAR POR REFERENCIA
+            // AGRUPAR Y ORDENAR POR COLOR, MEDIDAS Y REFERENCIA
             var gruposEntradas = entradas
                 .GroupBy(e => e.Referencia)
-                .OrderBy(g => g.Key)
+                .OrderBy(g => g.First().Color)
+                .ThenBy(g => g.First().Ancho)
+                .ThenBy(g => g.First().Alto)
+                .ThenBy(g => g.Key)
                 .ToList();
 
             // MARCA DE AGUA
@@ -262,7 +274,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             page.Content()
                 .Column(col =>
                 {
-                    col.Spacing(12);
+                    col.Spacing(6);
 
                     // ENCABEZADO CORPORATIVO
                     col.Item().Element(container =>
@@ -279,7 +291,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
 
                     // INFORMACIÓN DEL REPORTE
                     col.Item()
-                        .PaddingTop(10)
+                        .PaddingTop(4)
                         .Element(container =>
                         {
                             Card.Dibujar(
@@ -287,37 +299,43 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                 "INFORMACIÓN DEL REPORTE",
                                 contenido =>
                                 {
-                                    contenido.Spacing(5);
+                                    contenido.Spacing(3);
 
-                                    contenido.Item().Text(text =>
+                                    contenido.Item().Row(row =>
                                     {
-                                        text.Span("Fecha de generación: ").SemiBold();
-                                        text.Span(DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+                                        row.RelativeItem().Text(text =>
+                                        {
+                                            text.Span("Generación: ").SemiBold();
+                                            text.Span(DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+                                        });
+
+                                        row.RelativeItem().Text(text =>
+                                        {
+                                            text.Span("Búsqueda: ").SemiBold();
+                                            text.Span(
+                                                string.IsNullOrWhiteSpace(buscar)
+                                                    ? "Todos"
+                                                    : buscar);
+                                        });
                                     });
 
-                                    contenido.Item().Text(text =>
+                                    contenido.Item().Row(row =>
                                     {
-                                        text.Span("Búsqueda: ").SemiBold();
-                                        text.Span(
-                                            string.IsNullOrWhiteSpace(buscar)
-                                                ? "Todos"
-                                                : buscar);
-                                    });
+                                        row.RelativeItem().Text(text =>
+                                        {
+                                            text.Span("Fecha inicial: ").SemiBold();
+                                            text.Span(
+                                                fechaInicio?.ToString("dd/MM/yyyy")
+                                                ?? "No definida");
+                                        });
 
-                                    contenido.Item().Text(text =>
-                                    {
-                                        text.Span("Fecha inicial: ").SemiBold();
-                                        text.Span(
-                                            fechaInicio?.ToString("dd/MM/yyyy")
-                                            ?? "No definida");
-                                    });
-
-                                    contenido.Item().Text(text =>
-                                    {
-                                        text.Span("Fecha final: ").SemiBold();
-                                        text.Span(
-                                            fechaFin?.ToString("dd/MM/yyyy")
-                                            ?? "No definida");
+                                        row.RelativeItem().Text(text =>
+                                        {
+                                            text.Span("Fecha final: ").SemiBold();
+                                            text.Span(
+                                                fechaFin?.ToString("dd/MM/yyyy")
+                                                ?? "No definida");
+                                        });
                                     });
                                 });
                         });
@@ -338,7 +356,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                 });
                         });
 
-                        row.ConstantItem(10);
+                        row.ConstantItem(8);
 
                         row.RelativeItem().Element(container =>
                         {
@@ -362,7 +380,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                             "DETALLE DE ENTRADAS DE INVENTARIO",
                             contenido =>
                             {
-                                contenido.Spacing(12);
+                                contenido.Spacing(5);
 
                                 foreach (var grupo in gruposEntradas)
                                 {
@@ -373,11 +391,15 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                         // REFERENCIA
                                         seccion.Item()
                                             .Background("#E8F5E9")
-                                            .BorderBottom(1)
+                                            .BorderBottom(0.5f)
                                             .BorderColor(PdfColors.VerdePrincipal)
-                                            .Padding(8)
+                                            .PaddingHorizontal(6)
+                                            .PaddingVertical(3)
                                             .Text(text =>
                                             {
+                                                text.DefaultTextStyle(
+                                                    x => x.FontSize(8));
+
                                                 text.Span("REFERENCIA: ")
                                                     .SemiBold()
                                                     .FontColor(PdfColors.VerdeOscuro);
@@ -388,19 +410,27 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                             });
 
                                         // DESCRIPCIÓN DEL PRODUCTO
-                                        seccion.Item()
-                                            .PaddingHorizontal(8)
-                                            .PaddingTop(6)
-                                            .Text(primerRegistro.Descripcion)
-                                            .FontSize(8)
-                                            .FontColor(PdfColors.GrisOscuro);
+                                        if (!string.IsNullOrWhiteSpace(primerRegistro.Descripcion))
+                                        {
+                                            seccion.Item()
+                                                .PaddingHorizontal(6)
+                                                .PaddingTop(2)
+                                                .Text(text =>
+                                                {
+                                                    text.DefaultTextStyle(
+                                                        x => x.FontSize(7));
+
+                                                    text.Span(primerRegistro.Descripcion)
+                                                        .FontColor(PdfColors.GrisOscuro);
+                                                });
+                                        }
 
                                         // PESOS INDIVIDUALES
                                         seccion.Item()
-                                            .Padding(8)
+                                            .Padding(3)
                                             .Table(table =>
                                             {
-                                                const int columnas = 5;
+                                                const int columnas = 7;
 
                                                 table.ColumnsDefinition(columns =>
                                                 {
@@ -425,15 +455,20 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                             grupo.Sum(e => e.PesoActual);
 
                                         seccion.Item()
-                                            .PaddingTop(5)
-                                            .BorderTop(1)
+                                            .PaddingTop(2)
+                                            .BorderTop(0.5f)
                                             .BorderColor(PdfColors.GrisClaro)
-                                            .Padding(8)
+                                            .PaddingHorizontal(6)
+                                            .PaddingVertical(3)
                                             .AlignRight()
                                             .Text(text =>
                                             {
+                                                text.DefaultTextStyle(
+                                                    x => x.FontSize(8));
+
                                                 text.Span("TOTAL DE LA REFERENCIA: ")
-                                                    .SemiBold();
+                                                    .SemiBold()
+                                                    .FontColor(PdfColors.GrisOscuro);
 
                                                 text.Span(
                                                     $"{totalReferencia.ToString("N2", cultura)} kg")
@@ -447,11 +482,21 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
 
                     // TOTAL GENERAL
                     col.Item()
-                        .PaddingTop(10)
+                        .PaddingTop(5)
                         .AlignRight()
-                        .Text(
-                            $"TOTAL GENERAL: {pesoTotal.ToString("N2", cultura)} kg")
-                        .Style(PdfStyles.Total);
+                        .Text(text =>
+                        {
+                            text.DefaultTextStyle(x => x.FontSize(10));
+
+                            text.Span("TOTAL GENERAL: ")
+                                .SemiBold()
+                                .FontColor(PdfColors.GrisOscuro);
+
+                            text.Span(
+                                $"{pesoTotal.ToString("N2", cultura)} kg")
+                                .Bold()
+                                .FontColor(PdfColors.VerdeOscuro);
+                        });
                 });
 
             // PIE DE PÁGINA
@@ -469,16 +514,15 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             CultureInfo cultura)
         {
             container
-                .Padding(2)
-                .Border(0.7f)
-                .BorderColor(PdfColors.GrisClaro)
-                .Background(PdfColors.Fondo)
-                .PaddingVertical(4)
+                .Padding(1)
+                .Border(0.5f)
+                .BorderColor("#D9E0D8")
+                .Background("#F5F7F4")
+                .PaddingVertical(3)
                 .AlignCenter()
                 .AlignMiddle()
                 .Text($"{peso.ToString("N2", cultura)} kg")
                 .FontSize(7)
-                .SemiBold()
                 .FontColor(PdfColors.AzulOscuro);
         }
 
@@ -487,6 +531,11 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
         {
             public string Referencia { get; set; } = string.Empty;
             public string Descripcion { get; set; } = string.Empty;
+
+            public string Color { get; set; } = string.Empty;
+            public decimal Ancho { get; set; }
+            public decimal Alto { get; set; }
+
             public decimal PesoActual { get; set; }
             public DateTime FechaRegistroItem { get; set; }
             public string Estado { get; set; } = string.Empty;
