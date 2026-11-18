@@ -43,7 +43,7 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             if (empresa == null)
                 throw new Exception("No existe la configuración de la empresa.");
 
-            // CONSULTAR ENTRADAS
+            // CONSULTAR ENTRADAS: SOLO EN ALMACÉN
             var query = _context.InventariosBodegaItems
                 .AsNoTracking()
                 .Where(i => i.Estado == "EN_ALMACEN")
@@ -256,13 +256,10 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             decimal pesoTotal,
             CultureInfo cultura)
         {
-            // AGRUPAR Y ORDENAR POR COLOR, MEDIDAS Y REFERENCIA
+            // AGRUPAR Y ORDENAR POR CÓDIGO COMPLETO DE REFERENCIA
             var gruposEntradas = entradas
                 .GroupBy(e => e.Referencia)
-                .OrderBy(g => g.First().Color)
-                .ThenBy(g => g.First().Ancho)
-                .ThenBy(g => g.First().Alto)
-                .ThenBy(g => g.Key)
+                .OrderBy(g => g.Key)
                 .ToList();
 
             // MARCA DE AGUA
@@ -510,9 +507,9 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
 
         // CELDA DE PESO INDIVIDUAL
         private static void CrearCeldaPeso(
-        IContainer container,
-        decimal peso,
-        CultureInfo cultura)
+            IContainer container,
+            decimal peso,
+            CultureInfo cultura)
         {
             container
                 .Padding(0.5f)
