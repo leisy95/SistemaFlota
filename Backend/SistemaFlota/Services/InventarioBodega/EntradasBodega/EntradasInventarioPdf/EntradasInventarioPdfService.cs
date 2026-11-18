@@ -469,15 +469,15 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
             CultureInfo cultura)
         {
             container
-                .Padding(4)
-                .Border(1)
+                .Padding(2)
+                .Border(0.7f)
                 .BorderColor(PdfColors.GrisClaro)
                 .Background(PdfColors.Fondo)
-                .PaddingVertical(10)
+                .PaddingVertical(4)
                 .AlignCenter()
                 .AlignMiddle()
                 .Text($"{peso.ToString("N2", cultura)} kg")
-                .FontSize(9)
+                .FontSize(7)
                 .SemiBold()
                 .FontColor(PdfColors.AzulOscuro);
         }
