@@ -87,78 +87,83 @@ export class RegistroSalida implements OnInit, OnDestroy {
 
   // ABRIR ESCÁNER DE CÁMARA
   async abrirEscaner(): Promise<void> {
-    if (this.mostrarEscaner) return;
+
+    if (this.mostrarEscaner || this.procesando) return;
 
     this.mostrarEscaner = true;
     this.iniciandoCamara = true;
 
     setTimeout(async () => {
       try {
+
         this.scannerControls = await this.codeReader.decodeFromVideoDevice(
           undefined,
           this.videoEscaner.nativeElement,
           (resultado) => {
-            if (!resultado) return;
+
+            if (!resultado || this.procesando || this.cargando) return;
+
             const referencia = resultado.getText().trim().toUpperCase();
-            this.registrarReferenciaEscaneada(referencia);
+
+            if (!referencia) return;
+
+            this.procesarReferenciaCamara(referencia);
           }
         );
+
       } catch (error) {
+
         console.error('Error al iniciar la cámara:', error);
-        this.toastr.error('No fue posible acceder a la cámara. Verifica los permisos del dispositivo.', 'Error');
+
+        this.toastr.error(
+          'No fue posible acceder a la cámara. Verifica los permisos del dispositivo.',
+          'Error'
+        );
+
         this.detenerEscaner();
+
       } finally {
         this.iniciandoCamara = false;
       }
     }, 300);
   }
 
-  // REGISTRAR REFERENCIA LEÍDA POR LA CÁMARA
-  private registrarReferenciaEscaneada(
-    referencia: string
-  ): void {
-
-    if (!referencia) return;
+  // PROCESAR REFERENCIA LEÍDA POR LA CÁMARA
+  private procesarReferenciaCamara(referencia: string): void {
 
     const ahora = Date.now();
 
-    // Evitar lecturas consecutivas del mismo código
     if (
       referencia === this.ultimaReferenciaCamara &&
-      ahora - this.ultimaLecturaCamara < 1200
+      ahora - this.ultimaLecturaCamara < 1500
     ) {
+      return;
+    }
+
+    if (this.productosSeleccionados.some(
+      producto => producto.referenciaPeso === referencia
+    )) {
+      this.ultimaReferenciaCamara = referencia;
+      this.ultimaLecturaCamara = ahora;
       return;
     }
 
     this.ultimaReferenciaCamara = referencia;
     this.ultimaLecturaCamara = ahora;
 
-    // Evitar referencias duplicadas en la lista temporal
-    if (this.referenciasEscaneadas.includes(referencia)) {
+    if (this.estadoSalida && this.estadoSalida !== 'EN_PROCESO') {
+      this.toastr.warning('Esta salida ya no está disponible.');
       return;
     }
 
-    // Evitar referencias que ya están en la salida
-    const yaExiste = this.productosSeleccionados.some(
-      producto => producto.referenciaPeso === referencia
-    );
-
-    if (yaExiste) {
-
-      this.toastr.warning(
-        `La referencia ${referencia} ya está agregada a la salida.`,
-        'Producto duplicado'
-      );
-
-      return;
+    if (this.idSalida) {
+      this.agregarReferencia(this.idSalida, referencia);
+    } else {
+      this.crearSalida((id) => {
+        this.agregarReferencia(id, referencia);
+      });
     }
-
-    this.referenciasEscaneadas = [
-      ...this.referenciasEscaneadas,
-      referencia
-    ];
   }
-
 
   // DETENER CÁMARA
   detenerEscaner(): void {
@@ -172,24 +177,6 @@ export class RegistroSalida implements OnInit, OnDestroy {
 
     this.ultimaReferenciaCamara = '';
     this.ultimaLecturaCamara = 0;
-  }
-
-
-  // ELIMINAR REFERENCIA DE LA LISTA TEMPORAL
-  eliminarReferenciaEscaneada(referencia: string): void {
-
-    this.referenciasEscaneadas =
-      this.referenciasEscaneadas.filter(
-        item => item !== referencia
-      );
-  }
-
-
-  // LIMPIAR REFERENCIAS ESCANEADAS
-  limpiarReferenciasEscaneadas(): void {
-
-    this.referenciasEscaneadas = [];
-
   }
 
   // CERRAR RECURSOS AL SALIR DEL COMPONENTE
