@@ -1158,3 +1158,23 @@
         flex-direction: column;
     }
 }
+
+/* Cámara oculta en computadores */
+.btn-escanear-camara,
+.escaner-container {
+    display: none;
+}
+
+/* Mostrar cámara en móviles y tablets */
+@media (max-width: 1024px) {
+    .btn-escanear-camara {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .escaner-container {
+        display: block;
+    }
+}
