@@ -63,7 +63,9 @@
             <div class="video-container">
                 <video #videoEscaner autoplay muted playsinline></video>
 
-                <div class="marco-escaner"></div>
+                <div class="marco-escaner">
+                    <div class="linea-laser"></div>
+                </div>
 
                 <div class="camara-loading" *ngIf="iniciandoCamara">
                     <i class="fa-solid fa-spinner fa-spin"></i>
@@ -73,7 +75,7 @@
 
             <div class="escaner-instruccion">
                 <i class="fa-solid fa-barcode"></i>
-                Escanea un código de barras. El producto se agregará automáticamente.
+                Escanea el código de barras. El producto se agregará automáticamente.
             </div>
 
         </div>
