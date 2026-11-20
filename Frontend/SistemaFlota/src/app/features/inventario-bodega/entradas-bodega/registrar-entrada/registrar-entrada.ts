@@ -1,6 +1,6 @@
 
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgxBarcode6 } from 'ngx-barcode6';
 
@@ -26,6 +26,8 @@ import { DialogService } from '../../../../core/services/dialogs/dialog.service'
   styleUrl: './registrar-entrada.scss',
 })
 export class RegistrarEntrada {
+
+  @ViewChild('pesoInput') pesoInput!: ElementRef<HTMLInputElement>;
 
   referencia = '';
   pesoIngresado: number | null = null;
@@ -132,6 +134,10 @@ export class RegistrarEntrada {
 
         this.pesoIngresado = null;
         this.cargando = false;
+
+        setTimeout(() => {
+          this.pesoInput?.nativeElement.focus();
+        }, 100);
       },
       error: (error) => {
         this.cargando = false;

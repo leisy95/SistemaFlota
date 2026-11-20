@@ -249,4 +249,104 @@
 
     </section>
 
+    <!-- ZONA DE IMPRESIÓN DE ETIQUETA -->
+    <section class="table-card etiqueta-reimpresion" *ngIf="itemParaImprimir && inventarioEtiqueta">
+
+        <div class="table-header">
+            <div>
+                <h2>Información de la Referencia</h2>
+                <p>Datos técnicos y características del producto seleccionado.</p>
+            </div>
+            <span class="badge confirmada">
+                <i class="fa-solid fa-circle-check"></i> Encontrado
+            </span>
+        </div>
+
+        <div class="tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ancho</th>
+                        <th>FL</th>
+                        <th>Largo</th>
+                        <th>FF</th>
+                        <th>FS</th>
+                        <th>Unidad</th>
+                        <th>Calibre</th>
+                        <th>Peso KG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ inventarioEtiqueta.ancho || 0 }}</td>
+                        <td>{{ inventarioEtiqueta.fuelleLateral || 0 }}</td>
+                        <td>{{ inventarioEtiqueta.alto || 0 }}</td>
+                        <td>{{ inventarioEtiqueta.fuelleFondo || 0 }}</td>
+                        <td>{{ inventarioEtiqueta.fuelleSuperior || 0 }}</td>
+                        <td>PG</td>
+                        <td>{{ inventarioEtiqueta.calibre || 0 }}</td>
+                        <td class="total">
+                            {{ itemParaImprimir.pesoActual | number:'1.0-0' }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="subtitulo">Características del producto</h3>
+
+        <div class="caracteristicas">
+            <div class="caracteristica">
+                <span>Material</span>
+                <strong>{{ inventarioEtiqueta.tipoMaterial || '-' }}</strong>
+            </div>
+
+            <div class="caracteristica">
+                <span>Densidad</span>
+                <strong>{{ inventarioEtiqueta.densidad || 0 }}</strong>
+            </div>
+
+            <div class="caracteristica">
+                <span>Color</span>
+                <strong>{{ inventarioEtiqueta.color || '-' }}</strong>
+            </div>
+
+            <div class="caracteristica">
+                <span>Troquel</span>
+                <strong>{{ inventarioEtiqueta.troquel || '-' }}</strong>
+            </div>
+
+            <div class="caracteristica">
+                <span>Paqu N°</span>
+                <strong>{{ inventarioEtiqueta.paqueteNumero || 0 }}</strong>
+            </div>
+
+            <div class="caracteristica">
+                <span>Paq x</span>
+                <strong>{{ inventarioEtiqueta.paqueteCantidad || 0 }}</strong>
+            </div>
+        </div>
+
+        <div class="referencia-impresa">
+            <span>Referencia Impresa</span>
+            <strong>{{ inventarioEtiqueta.referenciaImpresa || '-' }}</strong>
+        </div>
+
+        <div class="barcode-section">
+            <ngx-barcode6 class="barcode" [bc-format]="'CODE128'" [bc-value]="barcodeValue" [bc-display-value]="false"
+                [bc-width]="3" [bc-height]="80">
+            </ngx-barcode6>
+        </div>
+
+        <div class="referencia-codigo">
+            {{ itemParaImprimir.referenciaPeso }}
+        </div>
+
+        <div class="fecha-impresion">
+            Fecha de impresión:
+            {{ fechaReimpresion | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+
+    </section>
+
 </div>

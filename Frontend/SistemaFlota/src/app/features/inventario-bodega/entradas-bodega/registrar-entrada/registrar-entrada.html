@@ -103,7 +103,8 @@
 
             <div class="input-icon">
                 <i class="fa-solid fa-weight-scale"></i>
-                <input type="number" [(ngModel)]="pesoIngresado" placeholder="Ingrese el peso" min="0">
+                <input #pesoInput type="number" [(ngModel)]="pesoIngresado" placeholder="Ingrese el peso" min="0"
+                    (keyup.enter)="confirmarIngresoPeso()">
             </div>
         </div>
 
@@ -200,6 +201,11 @@
             <ngx-barcode6 class="barcode" [bc-format]="'CODE128'" [bc-value]="barcodeValue" [bc-display-value]="false"
                 [bc-width]="3" [bc-height]="80">
             </ngx-barcode6>
+        </div>
+
+        <!-- REFERENCIA EN TEXTO -->
+        <div class="referencia-codigo">
+            {{ barcodeValue }}
         </div>
 
         <div class="fecha-impresion">

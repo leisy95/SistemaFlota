@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Inject, Input, Optional, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Inject, Input, Optional, Output } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef
@@ -25,6 +25,20 @@ export class Dialog {
 
   @Output() cerrar = new EventEmitter<void>();
   @Output() respuesta = new EventEmitter<boolean>();
+
+  @HostListener('document:keydown.enter', ['$event'])
+  onEnter(event: Event): void {
+    if (!this.visible) return;
+
+    if (this.tipo !== 'question' && this.tipo !== 'success') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.aceptar();
+  }
 
   // Detecta si se abrió mediante MatDialog (servicio) o mediante HTML (*ngIf)
   private esMatDialog: boolean = false;

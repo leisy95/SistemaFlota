@@ -758,6 +758,19 @@ button:disabled {
         }
     }
 
+    .referencia-codigo {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        letter-spacing: 2px !important;
+        color: #000 !important;
+        margin-top: 1mm !important;
+        padding: 0 !important;
+        line-height: normal !important;
+    }
+
     /* FECHA DE IMPRESIÓN */
     .fecha-impresion {
         display: block !important;

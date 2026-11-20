@@ -1,12 +1,14 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 import { EntradaInventarioService } from '../../../../core/services/inventario-bodega/entrada-inventario/entrada-inventario.service';
 import { NgxBarcode6 } from 'ngx-barcode6';
+import { InventarioBodega } from '../../../../core/models/inventario-bodega/inventario-bodega.models';
+import { InventarioBodegaService } from '../../../../core/services/inventario-bodega/Inventario/inventario-bodega.service';
 
 interface EntradaInventario {
   id: number;
@@ -23,12 +25,20 @@ interface EntradaInventario {
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    NgxBarcode6
   ],
   templateUrl: './mostrar-entradas.html',
   styleUrl: './mostrar-entradas.scss',
 })
 export class MostrarEntradas implements OnInit {
+
+  // DATOS PARA REIMPRESIÓN
+  itemParaImprimir: EntradaInventario | null = null;
+  inventarioEtiqueta: InventarioBodega | null = null;
+
+  barcodeValue = '';
+  fechaReimpresion = new Date();
 
   rol = 'Administrador';
 
@@ -44,15 +54,12 @@ export class MostrarEntradas implements OnInit {
 
   entradas: EntradaInventario[] = [];
 
-  // PARA REIMPRESIÓN
-  itemParaImprimir: EntradaInventario | null = null;
-  fechaReimpresion = new Date();
-
   cargando = false;
   cargandoAjuste = false;
 
   constructor(
     private entradaService: EntradaInventarioService,
+    private inventarioService: InventarioBodegaService,
     private toastr: ToastrService,
     private router: Router
   ) { }
@@ -330,8 +337,33 @@ export class MostrarEntradas implements OnInit {
   // REIMPRIMIR ETIQUETA
   reimprimirEtiqueta(item: EntradaInventario): void {
 
-    // Pendiente de conectar con el endpoint de impresión.
-    console.log('Reimprimir etiqueta:', item);
+    this.inventarioService.obtenerPorReferencia(item.referencia).subscribe({
+
+      next: (resultado) => {
+
+        this.itemParaImprimir = item;
+        this.inventarioEtiqueta = resultado;
+
+        // REFERENCIA DE PESO DEL REGISTRO SELECCIONADO
+        this.barcodeValue = item.referenciaPeso;
+
+        this.fechaReimpresion = new Date(item.fechaRegistroItem);
+
+        setTimeout(() => {
+          window.print();
+        }, 300);
+
+      },
+
+      error: (error) => {
+        console.error('Error al consultar referencia:', error);
+
+        this.toastr.error(
+          'No fue posible consultar la información de la etiqueta.'
+        );
+      }
+
+    });
 
   }
 
