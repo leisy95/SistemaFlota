@@ -46,6 +46,7 @@ using SistemaFlota.Services.Costos.RecepcionMercancia;
 using SistemaFlota.Services.Email;
 using SistemaFlota.Services.Flota.Inspecciones;
 using SistemaFlota.Services.Flota.Inspecciones.InspecionPdfGeneral;
+using SistemaFlota.Services.Helper.FechaHora;
 using SistemaFlota.Services.HistorialVersionOdo;
 using SistemaFlota.Services.ImpresionEtiquetas;
 using SistemaFlota.Services.InformacionKasoft;
@@ -96,6 +97,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 builder.Services
@@ -114,6 +116,7 @@ builder.Services
                 Encoding.UTF8.GetBytes(jwtKey!)
             )
         };
+
     });
 
 var connectionString = builder.Configuration

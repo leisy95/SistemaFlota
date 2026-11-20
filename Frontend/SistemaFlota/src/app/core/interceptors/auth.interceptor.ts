@@ -1,3 +1,4 @@
+
 import {
   HttpInterceptorFn,
   HttpErrorResponse
@@ -9,7 +10,6 @@ import { throwError } from 'rxjs';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // RUTAS PÚBLICAS
-
   const rutasPublicas = [
     '/Auth/login',
     '/Auth/recuperar',
@@ -20,14 +20,29 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     ruta => req.url.includes(ruta)
   );
 
-  // TOKEN
+  // IDENTIFICAR LAS DOS SECCIONES CON SESIÓN EXTENDIDA
+  const rutaActual = window.location.pathname;
 
-  const token =
+  const usaSesionExtendida =
+    rutaActual.startsWith('/inventario-bodega/registro-salidas') ||
+    rutaActual.startsWith('/inventario-bodega/registrar-entrada');
+
+  // SELECCIONAR TOKEN
+  const tokenNormal =
     sessionStorage.getItem('token') ||
     localStorage.getItem('token');
 
-  // AUTORIZACIÓN
+  const tokenBodega =
+    sessionStorage.getItem('tokenBodega');
 
+  const usaTokenBodega =
+    usaSesionExtendida && !!tokenBodega;
+
+  const token = usaTokenBodega
+    ? tokenBodega
+    : tokenNormal;
+
+  // AUTORIZACIÓN
   let headers: Record<string, string> = {};
 
   if (token && !esPublica) {
@@ -35,15 +50,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   // IDEMPOTENCIA
-
   const esMetodoIdempotente =
     req.method === 'POST' ||
     req.method === 'PUT';
 
-  const esAuth =
-    req.url.includes('/Auth/login') ||
-    req.url.includes('/Auth/recuperar') ||
-    req.url.includes('/Auth/cambiar-password');
+  const esAuth = rutasPublicas.some(
+    ruta => req.url.includes(ruta)
+  );
 
   if (
     esMetodoIdempotente &&
@@ -54,32 +67,31 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   // CLONAR REQUEST
-
   const authReq = Object.keys(headers).length > 0
-    ? req.clone({
-      setHeaders: headers
-    })
+    ? req.clone({ setHeaders: headers })
     : req;
 
   // ENVIAR REQUEST
-
   return next(authReq).pipe(
 
     catchError((error: HttpErrorResponse) => {
 
-      if (
-        error.status === 401 &&
-        !esPublica &&
-        token
-      ) {
+      if (error.status === 401 && !esPublica && token) {
 
-        // Solo limpiar sesión.
-        // Sin reload.
-        sessionStorage.clear();
+        if (usaTokenBodega) {
 
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('rol');
+          // conservar la sesión normal.
+          sessionStorage.removeItem('tokenBodega');
+
+        } else {
+
+          sessionStorage.clear();
+
+          localStorage.removeItem('token');
+          localStorage.removeItem('tokenBodega');
+          localStorage.removeItem('user');
+          localStorage.removeItem('rol');
+        }
       }
 
       return throwError(() => error);

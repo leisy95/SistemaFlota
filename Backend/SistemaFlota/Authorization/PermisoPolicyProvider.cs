@@ -15,6 +15,7 @@ namespace SistemaFlota.Authorization
         public override async Task<AuthorizationPolicy?> GetPolicyAsync(
             string policyName)
         {
+            // Permisos normales y alternativos
             if (policyName.StartsWith("Permiso:") ||
                 policyName.StartsWith("PermisoAlternativo:"))
             {

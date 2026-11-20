@@ -6,9 +6,9 @@ using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 
 namespace SistemaFlota.Controllers.InventarioBodega.SalidasBodega
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SalidasBodegaController : ControllerBase
     {
         private readonly ISalidaBodegaService _salidaBodegaService;

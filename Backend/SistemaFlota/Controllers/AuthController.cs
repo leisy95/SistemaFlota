@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaFlota.Services.Auth;
+using SistemaFlota.Services.Helper.FechaHora;
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -109,7 +110,7 @@ namespace SistemaFlota
                 return Unauthorized(new { error = "Usuario o contraseña incorrectos" });
             }
 
-            // ── Validar rol ───────────────────────────────────────────────────
+            // Validar rol
             if (!UsuariosController.RolesValidos.Contains(usuario.Rol))
             {
                 await _auditoria.RegistrarAsync(
@@ -137,6 +138,7 @@ namespace SistemaFlota
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // token que conserva las 4 horas actuales
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
@@ -144,6 +146,65 @@ namespace SistemaFlota
                 expires: DateTime.UtcNow.AddHours(4),
                 signingCredentials: creds
             );
+
+
+            // Token extendido para usuarios con permisos de Bodega
+            // Horario: 8:00 a. m. - 6:00 p. m. Colombia
+
+            string? tokenBodega = null;
+
+            bool tienePermisoBodega =
+                usuario.Rol == "Admin" ||
+                usuario.Permisos.Any(p =>
+                    (
+                        p.Modulo == "entradas" ||
+                        p.Modulo == "registrar-entrada" ||
+                        p.Modulo == "salidas"
+                    ) &&
+                    (
+                        p.PuedeVer ||
+                        p.PuedeCrear ||
+                        p.PuedeEditar ||
+                        p.PuedeEliminar ||
+                        p.PuedeEnviarCorreo
+                    )
+                );
+
+            var ahoraColombia = FechaHelper.Ahora();
+
+            var horaInicio = new TimeSpan(8, 0, 0);
+            var horaFin = new TimeSpan(18, 0, 0);
+
+            if (tienePermisoBodega &&
+                ahoraColombia.TimeOfDay >= horaInicio &&
+                ahoraColombia.TimeOfDay < horaFin)
+            {
+                var claimsBodega = claims.ToList();
+
+                claimsBodega.Add(new Claim("session_type", "bodega"));
+
+                var finJornadaLocal = DateTime.SpecifyKind(
+                    ahoraColombia.Date.AddHours(18),
+                    DateTimeKind.Unspecified
+                );
+
+                var finJornadaUtc = TimeZoneInfo.ConvertTimeToUtc(
+                    finJornadaLocal,
+                    TimeZoneInfo.FindSystemTimeZoneById("America/Bogota")
+                );
+
+                var jwtBodega = new JwtSecurityToken(
+                    issuer: _config["Jwt:Issuer"],
+                    audience: _config["Jwt:Audience"],
+                    claims: claimsBodega,
+                    expires: finJornadaUtc,
+                    signingCredentials: creds
+                );
+
+                tokenBodega = new JwtSecurityTokenHandler()
+                    .WriteToken(jwtBodega);
+            }
+
 
             var permisos = usuario.Permisos.Select(p => new
             {
@@ -166,6 +227,7 @@ namespace SistemaFlota
             return Ok(new
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token),
+                tokenBodega = tokenBodega,
                 username = usuario.Username,
                 rol = usuario.Rol,
                 email = usuario.Email,

@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -19,28 +20,30 @@ export class AuthService {
   }
 
   guardarSesion(datos: any): void {
-    sessionStorage.setItem(
-      'user',
-      JSON.stringify(datos)
-    );
-    sessionStorage.setItem(
-      'token',
-      datos.token ?? ''
-    );
+    sessionStorage.setItem('user', JSON.stringify(datos));
+    sessionStorage.setItem('token', datos.token ?? '');
+
+    if (datos.tokenBodega) {
+      sessionStorage.setItem('tokenBodega', datos.tokenBodega);
+    } else {
+      sessionStorage.removeItem('tokenBodega');
+    }
   }
 
   obtenerUsuarioActual(): any | null {
     const usuario = sessionStorage.getItem('user');
-    return usuario
-      ? JSON.parse(usuario)
-      : null;
+
+    return usuario ? JSON.parse(usuario) : null;
   }
 
   limpiarSesion(): void {
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('tokenBodega');
+
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('tokenBodega');
     localStorage.removeItem('rol');
   }
 
@@ -56,6 +59,10 @@ export class AuthService {
     return sessionStorage.getItem('token')
       || localStorage.getItem('token')
       || '';
+  }
+
+  get tokenBodega(): string {
+    return sessionStorage.getItem('tokenBodega') || '';
   }
 
   get autenticado(): boolean {

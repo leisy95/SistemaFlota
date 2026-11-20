@@ -97,6 +97,7 @@ export class LoginComponent implements OnInit {
           this.auth.guardarSesion({
 
             token: res.token,
+            tokenBodega: res.tokenBodega,
             username: res.username,
             rol: res.rol,
             email: res.email,
