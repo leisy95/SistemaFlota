@@ -61,6 +61,7 @@ using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
 using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
+using SistemaFlota.Services.Produccion.LecturaImagen;
 using System.Text;
 
 
@@ -270,6 +271,11 @@ builder.Services.AddScoped<IEntradasInventarioPdfService,
 builder.Services.AddScoped<ISalidaBodegaService, SalidaBodegaService>();
 builder.Services.AddScoped<IHistorialInventarioBodegaService,
     HistorialInventarioBodegaService>();
+
+// Producción
+// Control de retal - Lectura de imágenes
+builder.Services.AddScoped<ILectorReferenciaService, LectorReferenciaService>();
+builder.Services.AddScoped<IReconocedorReferencia, ReconocedorReferenciaService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();

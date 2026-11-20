@@ -36,6 +36,25 @@
             </div>
         </div>
 
+
+        <div [class.modulo-bloqueado]="!puedeVerModulo('produccion')" class="card-link"
+            (click)="navegarModulo('/produccion')">
+            <div class="card">
+                <div class="barra naranja"></div>
+                <div class="icono naranja">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <h3>Producción</h3>
+                <p>
+                    Control de retal, control de crispetas y gestión de producción.
+                </p>
+                <div class="footer">
+                    <span>{{ cantidadSubmodulos('produccion') }} Submódulos</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+
         <div [class.modulo-bloqueado]="!puedeVerModulo('calidad')" class="card-link"
             (click)="navegarModulo('/calidad')">
             <div class="card">

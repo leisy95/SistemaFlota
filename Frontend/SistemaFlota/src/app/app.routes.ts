@@ -78,6 +78,13 @@ export const routes: Routes = [
       },
 
       {
+        path: 'produccion',
+        loadChildren: () =>
+          import('./features/Produccion/produccion.routes')
+            .then(r => r.PRODUCCION_ROUTES)
+      },
+
+      {
         path: 'inventario-bodega',
         loadChildren: () =>
           import('./features/inventario-bodega/inventario-bodega.routes')

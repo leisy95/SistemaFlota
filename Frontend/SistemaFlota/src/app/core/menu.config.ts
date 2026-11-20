@@ -395,6 +395,24 @@ export const MENU_MODULOS: MenuItem[] = [
         permiso: 'traslado-compras-no-formalizadas'
     },
 
+    // CONTROL-PRODUCCION
+
+    {
+        key: 'produccion-control-retal',
+        label: 'Control de Retal',
+        icon: 'fa-solid fa-recycle',
+        ruta: '/produccion/control-retal',
+        modulo: 'produccion'
+    },
+    {
+        key: 'produccion-crispetas',
+        label: 'Control de Crispetas',
+        icon: 'fa-solid fa-box',
+        ruta: '/produccion/crispetas',
+        modulo: 'produccion'
+    },
+
+
     // INVENTARIO - BODEGA
     {
         key: 'dashboard-bodega',

@@ -1,0 +1,84 @@
+<div class="seleccionar-container">
+
+    <!-- Encabezado -->
+    <div class="page-header">
+        <div class="header-icon">
+            <i class="fa-solid fa-recycle"></i>
+        </div>
+
+        <div class="header-content">
+            <span class="section-label">MÓDULO DE PRODUCCIÓN</span>
+            <h2>Control de Retal</h2>
+            <p>
+                Selecciona el proceso de producción donde se generó el retal
+                que deseas registrar.
+            </p>
+        </div>
+    </div>
+
+    <!-- Información -->
+    <div class="info-banner">
+        <div class="info-icon">
+            <i class="fa-solid fa-circle-info"></i>
+        </div>
+
+        <div>
+            <strong>Registro de retal por proceso</strong>
+            <p>
+                Selecciona una de las siguientes áreas para iniciar el registro
+                del material sobrante.
+            </p>
+        </div>
+    </div>
+
+    <!-- Procesos -->
+    <div class="section-title">
+        <div>
+            <h3>Procesos de producción</h3>
+            <p>Selecciona el proceso correspondiente.</p>
+        </div>
+
+        <span class="process-count">
+            {{ procesos.length }} procesos
+        </span>
+    </div>
+
+    <div class="procesos-grid">
+
+        <button type="button" class="proceso-card" *ngFor="let proceso of procesos"
+            (click)="seleccionarProceso(proceso)">
+
+            <div class="card-top">
+                <div class="proceso-icon" [ngClass]="proceso.color">
+                    <i [class]="proceso.icono"></i>
+                </div>
+
+                <span class="arrow-icon">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </span>
+            </div>
+
+            <div class="card-content">
+                <h3>{{ proceso.nombre }}</h3>
+                <p>{{ proceso.descripcion }}</p>
+            </div>
+
+            <div class="card-footer">
+                <span>Seleccionar proceso</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+
+        </button>
+
+    </div>
+
+    <!-- Nota inferior -->
+    <div class="footer-note">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>
+            Después de seleccionar el proceso podrás capturar la referencia
+            del material y registrar los kilogramos de retal.
+        </span>
+    </div>
+
+</div>

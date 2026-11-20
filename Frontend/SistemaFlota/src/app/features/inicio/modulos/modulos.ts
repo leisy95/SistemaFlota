@@ -134,6 +134,47 @@ export class Modulos {
 
         break;
 
+      // Control produccion
+
+      case '/produccion': {
+        nombreModulo = 'Producción';
+
+        const modulosProduccion = MENU_MODULOS.filter(
+          m => m.modulo === 'produccion'
+        );
+
+        const permisosProduccion = this.permisos.filter(
+          p => p.puedeVer &&
+            modulosProduccion.some(m => m.key === p.modulo)
+        );
+
+        permitido = permisosProduccion.length > 0;
+
+        if (permitido) {
+
+          // Busca primero el submódulo configurado como inicio.
+          const permisoInicio = permisosProduccion.find(
+            p => p.esInicio
+          );
+
+          // Si no existe, utiliza el primer submódulo permitido.
+          const permisoDestino = permisoInicio ?? permisosProduccion[0];
+
+          const menuDestino = modulosProduccion.find(
+            m => m.key === permisoDestino.modulo
+          );
+
+          if (menuDestino) {
+            this.router.navigate([menuDestino.ruta]);
+            return;
+          }
+
+          permitido = false;
+        }
+
+        break;
+      }
+
       case '/rrhh':
         nombreModulo = 'Recursos Humanos';
         permitido = this.permisos.some(p =>
