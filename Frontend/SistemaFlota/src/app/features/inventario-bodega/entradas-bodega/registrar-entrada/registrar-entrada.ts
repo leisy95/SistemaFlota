@@ -158,10 +158,14 @@ export class RegistrarEntrada {
 
   // REGISTRAR ENTRADA DE PESO
   confirmarIngresoPeso(): void {
+
+    // Evitar registros duplicados
+    if (this.registrando) return;
+
     if (!this.inventario) {
       this.dialogService.alerta(
-        'Referencia requerida',
-        'Primero debe consultar una referencia.',
+        'Atención',
+        'Primero debes seleccionar una referencia.',
         'warning'
       );
       return;
@@ -169,10 +173,10 @@ export class RegistrarEntrada {
 
     const peso = Number(this.pesoIngresado);
 
-    if (!Number.isFinite(peso) || peso <= 0) {
+    if (!peso || peso <= 0) {
       this.dialogService.alerta(
-        'Peso inválido',
-        'Ingrese un peso válido.',
+        'Atención',
+        'Ingresa un peso válido.',
         'warning'
       );
       return;
@@ -188,50 +192,65 @@ export class RegistrarEntrada {
     );
 
     dialogRef.afterClosed().subscribe(confirmado => {
-      if (!confirmado) {
-        return;
-      }
+
+      if (confirmado !== true || this.registrando) return;
 
       const request: IngresarPesoDto = {
         referencia: this.inventario!.referencia,
-        peso: peso
+        peso
       };
 
+      // Bloquear nuevos registros
       this.registrando = true;
 
       this.entradaInventarioService.ingresarPeso(request).subscribe({
+
         next: (respuesta: IngresarPesoResponseDto) => {
+
+          // Actualizar los datos después de guardar
           this.inventario!.peso = respuesta.peso;
           this.pesoActual = respuesta.peso;
           this.pesoMostrado = peso;
           this.barcodeValue = respuesta.referenciaPeso;
           this.fechaImpresion = new Date();
-          this.pesoIngresado = null;
-          this.registrando = false;
 
+          // Limpiar el campo para evitar reutilizar el mismo peso
+          this.pesoIngresado = null;
+
+          // Mostrar éxito una sola vez
           const successDialog = this.dialogService.alerta(
             '¡Éxito!',
             'Peso registrado correctamente.',
             'success'
           );
 
-          successDialog.afterClosed().subscribe(() => {
-            this.imprimirEtiqueta();
-          });
-        },
-        error: (error) => {
-          this.registrando = false;
+          successDialog.afterClosed().subscribe(aceptado => {
 
-          const mensaje =
-            error.error?.message || 'Error al registrar el peso.';
+            // Aceptar éxito: solamente imprimir
+            if (aceptado === true) {
+              this.imprimirEtiqueta();
+            }
+
+            // Liberar el bloqueo después de cerrar la impresión
+            this.registrando = false;
+          });
+
+        },
+
+        error: (error) => {
+
+          this.registrando = false;
 
           this.dialogService.alerta(
             'Error',
-            mensaje,
+            error?.error?.message || 'No fue posible registrar el peso.',
             'error'
           );
+
         }
+
       });
+
     });
   }
 
@@ -251,19 +270,13 @@ export class RegistrarEntrada {
 
   // IMPRIMIR ETIQUETA
   imprimirEtiqueta(): void {
+
     if (!this.inventario || !this.barcodeValue) {
-      this.dialogService.alerta(
-        'Atención',
-        'No hay una referencia seleccionada para imprimir.',
-        'warning'
-      );
       return;
     }
 
     this.fechaImpresion = new Date();
 
-    setTimeout(() => {
-      window.print();
-    }, 300);
+    window.print();
   }
 }
