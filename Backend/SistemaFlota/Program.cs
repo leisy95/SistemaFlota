@@ -52,6 +52,7 @@ using SistemaFlota.Services.InformacionKasoft;
 using SistemaFlota.Services.InformacionKasoft.OrdenesProduccion;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
+using SistemaFlota.Services.Referencias;
 using System.Text;
 
 
@@ -242,6 +243,7 @@ builder.Services.AddScoped<EntradasBodegaService>();
 builder.Services.AddScoped<MezclaOrdenService>();
 builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
+builder.Services.AddSingleton<IReferenciaDecoderService, ReferenciaDecoderService>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();
