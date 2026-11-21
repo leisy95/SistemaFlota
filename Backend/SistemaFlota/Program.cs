@@ -244,6 +244,7 @@ builder.Services.AddScoped<MezclaOrdenService>();
 builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
 builder.Services.AddSingleton<IReferenciaDecoderService, ReferenciaDecoderService>();
+builder.Services.AddSingleton<IDescripcionReferenciaService, DescripcionReferenciaService>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();
