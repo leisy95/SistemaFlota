@@ -448,9 +448,10 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                                 }
                                             });
 
+
                                         // TOTAL DE LA REFERENCIA
-                                        var totalReferencia =
-                                            grupo.Sum(e => e.PesoActual);
+                                        var totalReferencia = grupo.Sum(e => e.PesoActual);
+                                        var cantidadReferencia = grupo.Count();
 
                                         seccion.Item()
                                             .PaddingTop(2)
@@ -461,18 +462,25 @@ namespace SistemaFlota.Services.InventarioBodega.EntradasBodega.EntradasInventar
                                             .AlignRight()
                                             .Text(text =>
                                             {
-                                                text.DefaultTextStyle(
-                                                    x => x.FontSize(8));
+                                                text.DefaultTextStyle(x => x.FontSize(8));
 
-                                                text.Span("TOTAL DE LA REFERENCIA: ")
+                                                text.Span("CANTIDAD: ")
                                                     .SemiBold()
                                                     .FontColor(PdfColors.GrisOscuro);
 
-                                                text.Span(
-                                                    $"{totalReferencia.ToString("N2", cultura)} kg")
+                                                text.Span(cantidadReferencia.ToString("N0", cultura))
+                                                    .Bold()
+                                                    .FontColor(PdfColors.AzulOscuro);
+
+                                                text.Span("   |   TOTAL: ")
+                                                    .SemiBold()
+                                                    .FontColor(PdfColors.GrisOscuro);
+
+                                                text.Span($"{totalReferencia.ToString("N2", cultura)} kg")
                                                     .Bold()
                                                     .FontColor(PdfColors.VerdeOscuro);
                                             });
+
                                     });
                                 }
                             });
