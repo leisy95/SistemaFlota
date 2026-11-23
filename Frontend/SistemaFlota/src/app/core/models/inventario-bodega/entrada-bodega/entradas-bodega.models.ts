@@ -31,3 +31,11 @@ export interface IngresarPesoResponseDto {
     paqueteNumero?: number;
     paqueteCantidad?: number;
 }
+
+export interface EntradasBodegaPaginadasDto {
+    items: MostrarEntradaDto[];
+    total: number;
+    pagina: number;
+    pageSize: number;
+    totalPaginas: number;
+}

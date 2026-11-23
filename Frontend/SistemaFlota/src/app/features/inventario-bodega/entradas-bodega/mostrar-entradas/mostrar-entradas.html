@@ -70,16 +70,44 @@
             <label>Buscar entrada</label>
             <div class="input-icon">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Referencia, estado..." (keyup)="aplicarFiltro($event)">
+                <input type="text" placeholder="Referencia, referencia peso..." (keyup)="aplicarFiltro($event)">
             </div>
         </div>
 
         <div class="field">
-            <label>Filtrar por fecha</label>
+            <label>Estado</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-filter"></i>
+                <select (change)="filtrarPorEstado($event)">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="EN_ALMACEN">En almacén</option>
+                    <!-- Agrega aquí otros estados que maneje tu sistema -->
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Fecha desde</label>
             <div class="input-icon">
                 <i class="fa-regular fa-calendar"></i>
-                <input type="date" (change)="filtrarPorFecha($event)">
+                <input type="date" (change)="filtrarPorFechaInicio($event)">
             </div>
+        </div>
+
+        <div class="field">
+            <label>Fecha hasta</label>
+            <div class="input-icon">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" (change)="filtrarPorFechaFin($event)">
+            </div>
+        </div>
+
+        <div class="field filter-actions">
+            <label>Acciones</label>
+            <button class="btn-cancelar" type="button" (click)="limpiarFiltros()">
+                <i class="fa-solid fa-eraser"></i>
+                Limpiar filtros
+            </button>
         </div>
 
     </section>
@@ -122,7 +150,7 @@
         <div class="table-header">
             <div>
                 <h2>Listado de Entradas</h2>
-                <span>{{ entradasFiltradas.length }} registros encontrados</span>
+                <span>{{ totalRegistros }} registros encontrados</span>
             </div>
         </div>
 
@@ -203,7 +231,7 @@
                     </tr>
 
                     <!-- SIN REGISTROS -->
-                    <tr *ngIf="entradasFiltradas.length === 0">
+                    <tr *ngIf="!cargando && entradas.length === 0">
                         <td [attr.colspan]="modoAjuste ? 7 : 6" class="sin-registros">
                             <i class="fa-solid fa-box-open"></i>
                             <p>No se encontraron entradas de inventario.</p>
@@ -220,10 +248,11 @@
 
             <div class="info">
                 Mostrando {{ registrosInicio }} - {{ registrosFin }}
-                de {{ entradasFiltradas.length }} registros
+                de {{ totalRegistros }} registros
             </div>
 
             <div class="controles">
+
                 <label>Registros por página</label>
 
                 <select [value]="pageSize" (change)="cambiarPageSize($event)">
@@ -232,7 +261,7 @@
                     <option [value]="20">20</option>
                 </select>
 
-                <button class="btn-pagina" [disabled]="paginaActual === 1" (click)="paginaAnterior()">
+                <button class="btn-pagina" [disabled]="paginaActual <= 1 || cargando" (click)="paginaAnterior()">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
 
@@ -240,9 +269,11 @@
                     Página {{ paginaActual }} de {{ totalPaginas }}
                 </span>
 
-                <button class="btn-pagina" [disabled]="paginaActual >= totalPaginas" (click)="paginaSiguiente()">
+                <button class="btn-pagina" [disabled]="paginaActual >= totalPaginas || cargando"
+                    (click)="paginaSiguiente()">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
+
             </div>
 
         </div>

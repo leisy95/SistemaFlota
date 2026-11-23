@@ -1,23 +1,20 @@
-
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 import { EntradaInventarioService } from '../../../../core/services/inventario-bodega/entrada-inventario/entrada-inventario.service';
 import { NgxBarcode6 } from 'ngx-barcode6';
+
+import {
+  MostrarEntradaDto
+} from '../../../../core/models/inventario-bodega/entrada-bodega/entradas-bodega.models';
+
 import { InventarioBodega } from '../../../../core/models/inventario-bodega/inventario-bodega.models';
 import { InventarioBodegaService } from '../../../../core/services/inventario-bodega/Inventario/inventario-bodega.service';
 
-interface EntradaInventario {
-  id: number;
-  referencia: string;
-  referenciaPeso: string;
-  fechaRegistroItem: string;
-  pesoActual: number;
-  estado: string;
-}
+type EntradaInventario = MostrarEntradaDto;
 
 @Component({
   selector: 'app-mostrar-entradas',
@@ -42,16 +39,24 @@ export class MostrarEntradas implements OnInit {
 
   rol = 'Administrador';
 
+  // AJUSTE GENERAL
   modoAjuste = false;
+  seleccionadas: number[] = [];
+  private entradasSeleccionadas: EntradaInventario[] = [];
 
+  // FILTROS
   buscar = '';
-  fechaFiltro = '';
+  estado = 'TODOS';
+  fechaInicio = '';
+  fechaFin = '';
 
+  // PAGINACIÓN
   paginaActual = 1;
   pageSize = 5;
+  totalRegistros = 0;
+  totalPaginas = 1;
 
-  seleccionadas: number[] = [];
-
+  // DATOS
   entradas: EntradaInventario[] = [];
 
   cargando = false;
@@ -68,79 +73,86 @@ export class MostrarEntradas implements OnInit {
     this.cargarEntradas();
   }
 
-  // CONSULTAR ENTRADAS DESDE LA API
   cargarEntradas(): void {
-
     this.cargando = true;
-
-    this.entradaService.obtenerEntradas().subscribe({
-
+    this.entradaService.filtrarEntradas(this.buscar, 'EN_ALMACEN', this.fechaInicio || undefined, this.fechaFin || undefined, this.paginaActual, this.pageSize).subscribe({
       next: (respuesta) => {
-
-        this.entradas = respuesta ?? [];
-
-        this.paginaActual = 1;
+        this.entradas = respuesta?.items ?? [];
+        this.totalRegistros = respuesta?.total ?? 0;
+        this.totalPaginas = Math.max(1, respuesta?.totalPaginas ?? 1);
+        this.paginaActual = respuesta?.pagina ?? this.paginaActual;
         this.cargando = false;
-
       },
-
       error: (error) => {
-
         console.error('Error al consultar entradas:', error);
-
-        this.toastr.error(
-          'No fue posible cargar las entradas de inventario.'
-        );
-
+        this.entradas = [];
+        this.totalRegistros = 0;
+        this.totalPaginas = 1;
+        this.toastr.error('No fue posible cargar las entradas de inventario.');
         this.cargando = false;
-
       }
-
     });
   }
 
-  // FILTROS
-  get entradasFiltradas(): EntradaInventario[] {
+  aplicarFiltro(event: Event): void {
 
-    return this.entradas.filter(item => {
+    this.buscar = (
+      event.target as HTMLInputElement
+    ).value;
 
-      const texto = this.buscar.trim().toLowerCase();
+    this.paginaActual = 1;
+    this.cargarEntradas();
 
-      const coincideTexto =
-        (item.referencia ?? '').toLowerCase().includes(texto) ||
-        (item.referenciaPeso ?? '').toLowerCase().includes(texto) ||
-        (item.estado ?? '').toLowerCase().includes(texto);
-
-      const fechaItem = item.fechaRegistroItem
-        ? this.obtenerFechaLocal(item.fechaRegistroItem)
-        : '';
-
-      const coincideFecha =
-        !this.fechaFiltro || fechaItem === this.fechaFiltro;
-
-      return coincideTexto && coincideFecha;
-
-    });
   }
 
-  private obtenerFechaLocal(fecha: string): string {
+  filtrarPorEstado(event: Event): void {
 
-    const date = new Date(fecha);
+    this.estado = (
+      event.target as HTMLSelectElement
+    ).value;
 
-    if (isNaN(date.getTime())) {
-      return '';
-    }
+    this.paginaActual = 1;
+    this.cargarEntradas();
 
-    const anio = date.getFullYear();
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const dia = String(date.getDate()).padStart(2, '0');
-
-    return `${anio}-${mes}-${dia}`;
   }
 
-  // ESTADÍSTICAS
+  filtrarPorFechaInicio(event: Event): void {
+
+    this.fechaInicio = (
+      event.target as HTMLInputElement
+    ).value;
+
+    this.paginaActual = 1;
+    this.cargarEntradas();
+
+  }
+
+  filtrarPorFechaFin(event: Event): void {
+
+    this.fechaFin = (
+      event.target as HTMLInputElement
+    ).value;
+
+    this.paginaActual = 1;
+    this.cargarEntradas();
+
+  }
+
+  limpiarFiltros(): void {
+
+    this.buscar = '';
+    this.estado = 'TODOS';
+    this.fechaInicio = '';
+    this.fechaFin = '';
+
+    this.paginaActual = 1;
+
+    this.cargarEntradas();
+
+  }
+
   get total(): number {
-    return this.entradas.length;
+    return this.totalRegistros;
   }
 
   get totalEnAlmacen(): number {
@@ -155,61 +167,24 @@ export class MostrarEntradas implements OnInit {
     ).length;
   }
 
-  // PAGINACIÓN
-  get totalPaginas(): number {
-    return Math.max(
-      1,
-      Math.ceil(this.entradasFiltradas.length / this.pageSize)
-    );
-  }
-
   get registrosPaginados(): EntradaInventario[] {
-
-    const inicio = (this.paginaActual - 1) * this.pageSize;
-
-    return this.entradasFiltradas.slice(
-      inicio,
-      inicio + this.pageSize
-    );
+    return this.entradas;
   }
 
   get registrosInicio(): number {
-    return this.entradasFiltradas.length === 0
+
+    return this.totalRegistros === 0
       ? 0
       : (this.paginaActual - 1) * this.pageSize + 1;
+
   }
 
   get registrosFin(): number {
+
     return Math.min(
       this.paginaActual * this.pageSize,
-      this.entradasFiltradas.length
+      this.totalRegistros
     );
-  }
-
-  // EVENTOS DE FILTROS
-  aplicarFiltro(event: Event): void {
-
-    this.buscar = (
-      event.target as HTMLInputElement
-    ).value;
-
-    this.paginaActual = 1;
-  }
-
-  filtrarPorFecha(event: Event): void {
-
-    this.fechaFiltro = (
-      event.target as HTMLInputElement
-    ).value;
-
-    this.paginaActual = 1;
-  }
-
-  limpiarFiltros(): void {
-
-    this.buscar = '';
-    this.fechaFiltro = '';
-    this.paginaActual = 1;
 
   }
 
@@ -220,25 +195,35 @@ export class MostrarEntradas implements OnInit {
     );
 
     this.paginaActual = 1;
+    this.cargarEntradas();
+
   }
 
   paginaAnterior(): void {
 
-    if (this.paginaActual > 1) {
+    if (this.paginaActual > 1 && !this.cargando) {
+
       this.paginaActual--;
+      this.cargarEntradas();
+
     }
 
   }
 
   paginaSiguiente(): void {
 
-    if (this.paginaActual < this.totalPaginas) {
+    if (
+      this.paginaActual < this.totalPaginas &&
+      !this.cargando
+    ) {
+
       this.paginaActual++;
+      this.cargarEntradas();
+
     }
 
   }
 
-  // AJUSTE GENERAL
   activarModoAjuste(): void {
 
     if (this.rol !== 'Administrador') {
@@ -247,6 +232,7 @@ export class MostrarEntradas implements OnInit {
 
     this.modoAjuste = true;
     this.seleccionadas = [];
+    this.entradasSeleccionadas = [];
 
   }
 
@@ -254,16 +240,19 @@ export class MostrarEntradas implements OnInit {
 
     this.modoAjuste = false;
     this.seleccionadas = [];
+    this.entradasSeleccionadas = [];
 
   }
 
-  // SOLO SE PUEDEN SELECCIONAR ITEMS DISPONIBLES
+  // SELECCIONAR SOLAMENTE ITEMS EN ALMACÉN
   toggleSeleccion(item: EntradaInventario): void {
 
     if (item.estado !== 'EN_ALMACEN') {
+
       this.toastr.warning(
         'Solo puedes seleccionar items que estén en almacén.'
       );
+
       return;
     }
 
@@ -273,9 +262,15 @@ export class MostrarEntradas implements OnInit {
         id => id !== item.id
       );
 
+      this.entradasSeleccionadas =
+        this.entradasSeleccionadas.filter(
+          seleccionado => seleccionado.id !== item.id
+        );
+
     } else {
 
       this.seleccionadas.push(item.id);
+      this.entradasSeleccionadas.push(item);
 
     }
 
@@ -287,26 +282,36 @@ export class MostrarEntradas implements OnInit {
 
   }
 
-  // EJECUTAR AJUSTE GENERAL REAL
   confirmarAjusteGeneral(): void {
 
     if (this.rol !== 'Administrador') {
-      this.toastr.warning('No tienes permisos para realizar ajustes.');
+
+      this.toastr.warning(
+        'No tienes permisos para realizar ajustes.'
+      );
+
       return;
     }
 
     if (this.seleccionadas.length === 0) {
-      this.toastr.warning('Debes seleccionar al menos un item.');
+
+      this.toastr.warning(
+        'Debes seleccionar al menos un item.'
+      );
+
       return;
     }
 
-    const itemsSeleccionados = this.entradas.filter(
-      item => this.seleccionadas.includes(item.id) &&
-        item.estado?.toUpperCase() === 'EN_ALMACEN'
+    const itemsSeleccionados = this.entradasSeleccionadas.filter(
+      item => item.estado?.toUpperCase() === 'EN_ALMACEN'
     );
 
     if (itemsSeleccionados.length === 0) {
-      this.toastr.warning('No hay elementos disponibles para ajustar.');
+
+      this.toastr.warning(
+        'No hay elementos disponibles para ajustar.'
+      );
+
       return;
     }
 
@@ -318,9 +323,9 @@ export class MostrarEntradas implements OnInit {
         }
       }
     );
+
   }
 
-  // ELIMINAR ENTRADA
   eliminarItem(id: number): void {
 
     const confirmar = confirm(
@@ -334,20 +339,21 @@ export class MostrarEntradas implements OnInit {
 
   }
 
-  // REIMPRIMIR ETIQUETA
   reimprimirEtiqueta(item: EntradaInventario): void {
 
-    this.inventarioService.obtenerPorReferencia(item.referencia).subscribe({
+    this.inventarioService.obtenerPorReferencia(
+      item.referencia
+    ).subscribe({
 
       next: (resultado) => {
 
         this.itemParaImprimir = item;
         this.inventarioEtiqueta = resultado;
 
-        // REFERENCIA DE PESO DEL REGISTRO SELECCIONADO
         this.barcodeValue = item.referenciaPeso;
-
-        this.fechaReimpresion = new Date(item.fechaRegistroItem);
+        this.fechaReimpresion = new Date(
+          item.fechaRegistroItem
+        );
 
         setTimeout(() => {
           window.print();
@@ -356,41 +362,64 @@ export class MostrarEntradas implements OnInit {
       },
 
       error: (error) => {
-        console.error('Error al consultar referencia:', error);
+
+        console.error(
+          'Error al consultar referencia:',
+          error
+        );
 
         this.toastr.error(
           'No fue posible consultar la información de la etiqueta.'
         );
+
       }
 
     });
 
   }
 
-  // EXPORTAR PDF CON LOS FILTROS APLICADOS
   exportarPdf(): void {
+
     this.entradaService.exportarPdf(
       this.buscar,
-      this.fechaFiltro || undefined,
-      this.fechaFiltro || undefined
+      this.fechaInicio || undefined,
+      this.fechaFin || undefined
     ).subscribe({
+
       next: (pdf) => {
+
         const url = window.URL.createObjectURL(pdf);
         const enlace = document.createElement('a');
 
         enlace.href = url;
-        enlace.download = `Entradas_Inventario_${new Date().getTime()}.pdf`;
+        enlace.download =
+          `Entradas_Inventario_${new Date().getTime()}.pdf`;
+
         enlace.click();
 
         window.URL.revokeObjectURL(url);
 
-        this.toastr.success('PDF generado correctamente.');
+        this.toastr.success(
+          'PDF generado correctamente.'
+        );
+
       },
+
       error: (error) => {
-        console.error('Error al generar PDF:', error);
-        this.toastr.error('No fue posible generar el PDF.');
+
+        console.error(
+          'Error al generar PDF:',
+          error
+        );
+
+        this.toastr.error(
+          'No fue posible generar el PDF.'
+        );
+
       }
+
     });
+
   }
 
 }
