@@ -268,7 +268,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                             CampoSuperior(
                                 c,
                                 "CREADO POR",
-                                $"Usuario #{registro.CreadoPor} — {registro.FechaCreacion:dd/MM/yyyy HH:mm}"
+                                $"SST — {registro.FechaCreacion:dd/MM/yyyy HH:mm}"
                             ));
                 });
 
