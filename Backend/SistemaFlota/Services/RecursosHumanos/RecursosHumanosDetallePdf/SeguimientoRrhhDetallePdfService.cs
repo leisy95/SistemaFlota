@@ -326,32 +326,36 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
         private void RenderizarGrillaFotos(IContainer container, List<string> rutas)
         {
+            const int columnasPorFila = 3;
+
             container.Column(col =>
             {
-                for (int i = 0; i < rutas.Count; i += 2)
+                for (int i = 0; i < rutas.Count; i += columnasPorFila)
                 {
-                    var primera = rutas[i];
-                    var segunda = i + 1 < rutas.Count ? rutas[i + 1] : null;
+                    var fila = col.Item().PreventPageBreak();
 
-                    col.Item()
-                        .PaddingBottom(4)
-                        .Row(row =>
+                    if (i > 0)
+                        fila = fila.PaddingTop(6);
+
+                    fila.Row(row =>
+                    {
+                        for (int c = 0; c < columnasPorFila; c++)
                         {
-                            row.RelativeItem()
-                                .Element(c => TarjetaFoto(c, primera));
+                            if (c > 0)
+                                row.ConstantItem(6);
 
-                            row.ConstantItem(4);
-
-                            if (segunda != null)
+                            int idx = i + c;
+                            if (idx < rutas.Count)
                             {
                                 row.RelativeItem()
-                                    .Element(c => TarjetaFoto(c, segunda));
+                                    .Element(celda => TarjetaFoto(celda, rutas[idx]));
                             }
                             else
                             {
                                 row.RelativeItem();
                             }
-                        });
+                        }
+                    });
                 }
             });
         }
@@ -362,10 +366,10 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                 .Border(0.5f)
                 .BorderColor(PdfColors.GrisClaro)
                 .Background(Colors.White)
-                .Padding(2)
+                .Padding(3)
+                .Height(130)
                 .AlignCenter()
                 .AlignMiddle()
-                .MaxHeight(125)
                 .Image(ruta)
                 .FitArea();
         }
