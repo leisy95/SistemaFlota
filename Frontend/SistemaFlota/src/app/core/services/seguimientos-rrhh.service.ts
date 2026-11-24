@@ -8,17 +8,17 @@ import { SeguimientoRrhh, CrearSeguimientoRrhhDto } from '../models/seguimientos
 export class SeguimientosRrhhService {
   private readonly apiUrl = `${environment.apiUrl}/seguimientosrrhh`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(filtros?: {
     area?: string; estado?: string; prioridad?: string; mes?: number; anio?: number;
   }): Observable<SeguimientoRrhh[]> {
     let params = new HttpParams();
-    if (filtros?.area)      params = params.set('area',      filtros.area);
-    if (filtros?.estado)    params = params.set('estado',    filtros.estado);
+    if (filtros?.area) params = params.set('area', filtros.area);
+    if (filtros?.estado) params = params.set('estado', filtros.estado);
     if (filtros?.prioridad) params = params.set('prioridad', filtros.prioridad);
-    if (filtros?.mes)       params = params.set('mes',       filtros.mes.toString());
-    if (filtros?.anio)      params = params.set('anio',      filtros.anio.toString());
+    if (filtros?.mes) params = params.set('mes', filtros.mes.toString());
+    if (filtros?.anio) params = params.set('anio', filtros.anio.toString());
     return this.http.get<SeguimientoRrhh[]>(this.apiUrl, { params });
   }
 
@@ -28,6 +28,48 @@ export class SeguimientosRrhhService {
 
   crear(dto: CrearSeguimientoRrhhDto, fotosEvidencia: File[], fotosSeguimiento: File[]): Observable<SeguimientoRrhh> {
     return this.http.post<SeguimientoRrhh>(this.apiUrl, this.buildFormData(dto, fotosEvidencia, fotosSeguimiento));
+  }
+
+  // Exportar Pdf
+  exportarPDF(filtros: {
+    area: string;
+    estado: string;
+    prioridad: string;
+    mes: number;
+    anio: number;
+  }) {
+    let params = new HttpParams();
+
+    if (filtros.area)
+      params = params.set('area', filtros.area);
+
+    if (filtros.estado)
+      params = params.set('estado', filtros.estado);
+
+    if (filtros.prioridad)
+      params = params.set('prioridad', filtros.prioridad);
+
+    if (filtros.mes > 0)
+      params = params.set('mes', filtros.mes);
+
+    if (filtros.anio > 0)
+      params = params.set('anio', filtros.anio);
+
+    return this.http.get(
+      `${this.apiUrl}/exportar/pdf`,
+      {
+        params,
+        responseType: 'blob'
+      }
+    );
+  }
+
+  // Pdf individual por registro
+  obtenerPdfRegistro(id: number) {
+    return this.http.get(
+      `${this.apiUrl}/${id}/pdf`,
+      { responseType: 'blob' }
+    );
   }
 
   actualizar(id: number, dto: CrearSeguimientoRrhhDto, fotosEvidencia: File[], fotosSeguimiento: File[]): Observable<void> {
@@ -52,7 +94,7 @@ export class SeguimientosRrhhService {
       const val = dto[key];
       if (val !== null && val !== undefined) fd.append(key, val.toString());
     });
-    fotosEvidencia.forEach(f   => fd.append('fotosEvidencia',   f, f.name));
+    fotosEvidencia.forEach(f => fd.append('fotosEvidencia', f, f.name));
     fotosSeguimiento.forEach(f => fd.append('fotosSeguimiento', f, f.name));
     return fd;
   }

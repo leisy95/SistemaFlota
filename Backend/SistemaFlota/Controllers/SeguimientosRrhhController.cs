@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaFlota.DTOs;
 using SistemaFlota.Models;
+using SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf;
+using SistemaFlota.Services.RecursosHumanos.RecursosHumanosPdf;
 using System.Security.Claims;
 
 namespace SistemaFlota.Controllers
@@ -14,14 +16,22 @@ namespace SistemaFlota.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly ISeguimientosRrhhPdfService _pdfService;
+        private readonly ISeguimientoRrhhDetallePdfService _detallePdfService;
 
-        public SeguimientosRrhhController(AppDbContext context, IWebHostEnvironment env)
+        public SeguimientosRrhhController(
+            AppDbContext context,
+            IWebHostEnvironment env,
+            ISeguimientosRrhhPdfService pdfService,
+            ISeguimientoRrhhDetallePdfService detallePdfService)
         {
             _context = context;
             _env = env;
+            _pdfService = pdfService;
+            _detallePdfService = detallePdfService;
         }
 
-        // ─── GET api/seguimientosrrhh ──────────────────────────────────────────
+        // GET api/seguimientosrrhh 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SeguimientoRrhhDto>>> GetAll(
             [FromQuery] string? area,
@@ -52,7 +62,73 @@ namespace SistemaFlota.Controllers
             return Ok(items.Select(s => MapToDto(s, usuarios.GetValueOrDefault(s.CreadoPor))));
         }
 
-        // ─── GET api/seguimientosrrhh/{id} ────────────────────────────────────
+        // Exportar Pdf
+        [HttpGet("exportar/pdf")]
+        public async Task<IActionResult> ExportarPdf(
+            [FromQuery] string? area,
+            [FromQuery] string? estado,
+            [FromQuery] string? prioridad,
+            [FromQuery] int? mes,
+            [FromQuery] int? anio)
+        {
+            try
+            {
+                var pdf = await _pdfService.GenerarPdfAsync(
+                    area,
+                    estado,
+                    prioridad,
+                    mes,
+                    anio
+                );
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"Seguimientos_SST_{DateTime.Now:yyyyMMdd}.pdf"
+                );
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new { mensaje = "Error al generar el PDF.", detalle = ex.Message }
+                );
+            }
+        }
+
+        // Pdf Individual
+        // GET api/seguimientosrrhh/{id}/pdf
+        [HttpGet("{id:int}/pdf")]
+        public async Task<IActionResult> ObtenerPdfRegistro(int id)
+        {
+            try
+            {
+                var pdf = await _detallePdfService.GenerarPdfAsync(id);
+
+                return File(
+                    pdf,
+                    "application/pdf",
+                    $"Seguimiento_SST_{id}.pdf"
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { mensaje = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        mensaje = "Error al generar el PDF del seguimiento.",
+                        detalle = ex.Message
+                    }
+                );
+            }
+        }
+
+        // GET api/seguimientosrrhh/{id} 
         [HttpGet("{id}")]
         public async Task<ActionResult<SeguimientoRrhhDto>> GetById(int id)
         {
@@ -70,7 +146,7 @@ namespace SistemaFlota.Controllers
             return Ok(MapToDto(item, username));
         }
 
-        // ─── POST api/seguimientosrrhh ────────────────────────────────────────
+        // POST api/seguimientosrrhh 
         [HttpPost]
         public async Task<ActionResult<SeguimientoRrhhDto>> Create(
             [FromForm] CrearSeguimientoRrhhDto dto,

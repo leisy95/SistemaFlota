@@ -62,6 +62,8 @@ using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
 using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
+using SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf;
+using SistemaFlota.Services.RecursosHumanos.RecursosHumanosPdf;
 using System.Text;
 
 
@@ -273,6 +275,10 @@ builder.Services.AddScoped<IEntradasInventarioPdfService,
 builder.Services.AddScoped<ISalidaBodegaService, SalidaBodegaService>();
 builder.Services.AddScoped<IHistorialInventarioBodegaService,
     HistorialInventarioBodegaService>();
+
+// Recursos Humanos
+builder.Services.AddScoped<ISeguimientosRrhhPdfService, SeguimientosRrhhPdfService>();
+builder.Services.AddScoped<ISeguimientoRrhhDetallePdfService,SeguimientoRrhhDetallePdfService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();
