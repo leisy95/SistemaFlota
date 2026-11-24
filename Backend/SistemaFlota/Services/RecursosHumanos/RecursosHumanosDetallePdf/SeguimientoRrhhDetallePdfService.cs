@@ -96,7 +96,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         );
                     });
 
-                    // CARD: INFORMACIÓN GENERAL
+                    // CARD: SEGUIMIENTO # — ÁREA + BADGES + ÁREA / PERÍODO / FUENTE
 
                     col.Item()
                         .PaddingTop(12)
@@ -108,8 +108,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                                 $"SEGUIMIENTO #{registro.Id} — {(registro.Area ?? "SIN ÁREA").ToUpperInvariant()}",
                                 contenido =>
                                 {
-                                    // ETIQUETAS ESTADO Y PRIORIDAD CON COLOR DINÁMICO
-
                                     contenido.Item().Row(row =>
                                     {
                                         if (!string.IsNullOrWhiteSpace(registro.Estado))
@@ -143,8 +141,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                                         }
                                     });
 
-                                    // ÁREA / PERÍODO / FUENTE
-
                                     contenido.Item()
                                         .PaddingTop(10)
                                         .Row(row =>
@@ -166,28 +162,12 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                             );
                         });
 
-                    // CARD: DESCRIPCIÓN
+                    // DESCRIPCIÓN
 
                     col.Item()
                         .PaddingTop(10)
-                        .PreventPageBreak()
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "DESCRIPCIÓN",
-                                contenido =>
-                                {
-                                    contenido.Item().Text(
-                                        string.IsNullOrWhiteSpace(registro.Descripcion)
-                                            ? "No registrado"
-                                            : registro.Descripcion.Trim()
-                                    )
-                                    .FontSize(9f)
-                                    .FontColor(Colors.Grey.Darken3);
-                                }
-                            );
-                        });
+                        .Element(c =>
+                            BloqueTexto(c, "DESCRIPCIÓN", registro.Descripcion));
 
                     // EVIDENCIA FOTOGRÁFICA INICIAL
 
@@ -206,21 +186,11 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         col.Item()
                             .PaddingTop(10)
                             .PreventPageBreak()
-                            .Element(container =>
-                            {
-                                Card.Dibujar(
-                                    container,
-                                    $"EVIDENCIA FOTOGRÁFICA ({evidencias.Count} FOTOS)",
-                                    contenido =>
-                                    {
-                                        contenido.Item().Element(c =>
-                                            FilaMiniaturas(c, evidencias));
-                                    }
-                                );
-                            });
+                            .Element(c =>
+                                SeccionMiniaturas(c, $"EVIDENCIA FOTOGRÁFICA ({evidencias.Count} FOTOS)", evidencias));
                     }
 
-                    // CARD: FACTOR DE RIESGO, RESPONSABLE Y FECHAS
+                    // CARD: RIESGO, RESPONSABLE Y PROGRAMACIÓN
 
                     col.Item()
                         .PaddingTop(10)
@@ -259,28 +229,12 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                             );
                         });
 
-                    // CARD: PLAN DE ACCIÓN
+                    // PLAN DE ACCIÓN
 
                     col.Item()
                         .PaddingTop(10)
-                        .PreventPageBreak()
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "PLAN DE ACCIÓN",
-                                contenido =>
-                                {
-                                    contenido.Item().Text(
-                                        string.IsNullOrWhiteSpace(registro.PlanAccionSugerido)
-                                            ? "No registrado"
-                                            : registro.PlanAccionSugerido.Trim()
-                                    )
-                                    .FontSize(9f)
-                                    .FontColor(Colors.Grey.Darken3);
-                                }
-                            );
-                        });
+                        .Element(c =>
+                            BloqueTexto(c, "PLAN DE ACCIÓN", registro.PlanAccionSugerido));
 
                     // REGISTRO FOTOGRÁFICO POSTERIOR
 
@@ -295,46 +249,27 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         col.Item()
                             .PaddingTop(10)
                             .PreventPageBreak()
-                            .Element(container =>
-                            {
-                                Card.Dibujar(
-                                    container,
-                                    $"REGISTRO FOTOGRÁFICO POSTERIOR ({seguimientos.Count} FOTOS)",
-                                    contenido =>
-                                    {
-                                        contenido.Item().Element(c =>
-                                            FilaMiniaturas(c, seguimientos));
-                                    }
-                                );
-                            });
+                            .Element(c =>
+                                SeccionMiniaturas(c, $"REGISTRO FOTOGRÁFICO POSTERIOR ({seguimientos.Count} FOTOS)", seguimientos));
                     }
 
-                    // CARD: OBSERVACIONES Y CREADO POR
+                    // OBSERVACIONES
 
                     col.Item()
                         .PaddingTop(10)
-                        .PreventPageBreak()
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "OBSERVACIONES Y REGISTRO",
-                                contenido =>
-                                {
-                                    contenido.Item().Element(c =>
-                                        CampoSuperior(c, "OBSERVACIONES", registro.Observaciones));
+                        .Element(c =>
+                            BloqueTexto(c, "OBSERVACIONES", registro.Observaciones));
 
-                                    contenido.Item()
-                                        .PaddingTop(10)
-                                        .Element(c =>
-                                            CampoSuperior(
-                                                c,
-                                                "CREADO POR",
-                                                $"Usuario #{registro.CreadoPor} — {registro.FechaCreacion:dd/MM/yyyy HH:mm}"
-                                            ));
-                                }
-                            );
-                        });
+                    // CREADO POR
+
+                    col.Item()
+                        .PaddingTop(10)
+                        .Element(c =>
+                            CampoSuperior(
+                                c,
+                                "CREADO POR",
+                                $"Usuario #{registro.CreadoPor} — {registro.FechaCreacion:dd/MM/yyyy HH:mm}"
+                            ));
                 });
 
             // PIE DE PÁGINA
@@ -389,16 +324,44 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
             });
         }
 
-        private void FilaMiniaturas(IContainer container, List<string> rutas)
+        private void BloqueTexto(IContainer container, string titulo, string? texto)
+        {
+            container.Column(col =>
+            {
+                col.Item()
+                    .Text(titulo)
+                    .Bold()
+                    .FontSize(8.5f)
+                    .FontColor(Colors.Grey.Darken4);
+
+                col.Item()
+                    .PaddingTop(4)
+                    .Border(0.75f)
+                    .BorderColor(Colors.Grey.Lighten1)
+                    .Background(Colors.White)
+                    .Padding(8)
+                    .Text(string.IsNullOrWhiteSpace(texto) ? "No registrado" : texto.Trim())
+                    .FontSize(9f)
+                    .FontColor(Colors.Grey.Darken3);
+            });
+        }
+
+        private void SeccionMiniaturas(IContainer container, string titulo, List<string> rutas)
         {
             const int porFila = 6;
 
             container.Column(col =>
             {
+                col.Item()
+                    .Text(titulo)
+                    .Bold()
+                    .FontSize(8.5f)
+                    .FontColor(Colors.Grey.Darken4);
+
                 for (int i = 0; i < rutas.Count; i += porFila)
                 {
                     var fila = col.Item()
-                        .PaddingTop(i > 0 ? 5 : 0)
+                        .PaddingTop(5)
                         .PreventPageBreak();
 
                     fila.Row(row =>
