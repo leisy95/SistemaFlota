@@ -334,13 +334,13 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                     var segunda = i + 1 < rutas.Count ? rutas[i + 1] : null;
 
                     col.Item()
-                        .PaddingBottom(10)
+                        .PaddingBottom(4)
                         .Row(row =>
                         {
                             row.RelativeItem()
                                 .Element(c => TarjetaFoto(c, primera));
 
-                            row.ConstantItem(10);
+                            row.ConstantItem(4);
 
                             if (segunda != null)
                             {
@@ -355,6 +355,21 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                 }
             });
         }
+
+        private void TarjetaFoto(IContainer container, string ruta)
+        {
+            container
+                .Border(0.5f)
+                .BorderColor(PdfColors.GrisClaro)
+                .Background(Colors.White)
+                .Padding(2)
+                .AlignCenter()
+                .AlignMiddle()
+                .MaxHeight(125)
+                .Image(ruta)
+                .FitArea();
+        }
+
 
         private void TarjetaFoto(IContainer container, string ruta)
         {
