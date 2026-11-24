@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Google.Cloud.Vision.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -274,6 +275,10 @@ builder.Services.AddScoped<IHistorialInventarioBodegaService,
 
 // Producción
 // Control de retal - Lectura de imágenes
+builder.Services.AddSingleton<ImageAnnotatorClient>(_ =>
+    ImageAnnotatorClient.Create()
+);
+
 builder.Services.AddScoped<ILectorReferenciaService, LectorReferenciaService>();
 builder.Services.AddScoped<IReconocedorReferencia, ReconocedorReferenciaService>();
 
