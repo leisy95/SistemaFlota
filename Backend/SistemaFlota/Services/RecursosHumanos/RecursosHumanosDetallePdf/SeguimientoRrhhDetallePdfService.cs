@@ -116,7 +116,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                             });
                         });
 
-                    // ETIQUETAS ESTADO Y PRIORIDAD
+                    // ETIQUETAS ESTADO Y PRIORIDAD CON COLOR DINÁMICO
 
                     col.Item()
                         .PaddingTop(6)
@@ -124,32 +124,36 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         {
                             if (!string.IsNullOrWhiteSpace(registro.Estado))
                             {
+                                var (fondoEstado, textoEstado) = ObtenerColoresBadgeEstado(registro.Estado);
+
                                 row.AutoItem()
-                                    .Background(Colors.Green.Lighten4)
+                                    .Background(fondoEstado)
                                     .PaddingVertical(3)
                                     .PaddingHorizontal(8)
                                     .Text(registro.Estado)
                                     .FontSize(7.5f)
                                     .Bold()
-                                    .FontColor(Colors.Green.Darken3);
+                                    .FontColor(textoEstado);
 
                                 row.ConstantItem(6);
                             }
 
                             if (!string.IsNullOrWhiteSpace(registro.Prioridad))
                             {
+                                var (fondoPrioridad, textoPrioridad) = ObtenerColoresBadgePrioridad(registro.Prioridad);
+
                                 row.AutoItem()
-                                    .Background(Colors.Red.Lighten4)
+                                    .Background(fondoPrioridad)
                                     .PaddingVertical(3)
                                     .PaddingHorizontal(8)
                                     .Text(registro.Prioridad)
                                     .FontSize(7.5f)
                                     .Bold()
-                                    .FontColor(Colors.Red.Darken2);
+                                    .FontColor(textoPrioridad);
                             }
                         });
 
-                    // ÁREA / PERÍODO / FUENTE / ÁREAS
+                    // ÁREA / PERÍODO / FUENTE
 
                     col.Item()
                         .PaddingTop(10)
@@ -173,8 +177,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
                             row.ConstantItem(12);
 
-                            row.RelativeItem().Element(c =>
-                                CampoSuperior(c, "ÁREAS", registro.Responsable));
+                            row.RelativeItem();
                         });
 
                     // DESCRIPCIÓN
@@ -186,9 +189,11 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
                     // EVIDENCIA FOTOGRÁFICA INICIAL
 
-                    var fotos = registro.Fotos?.ToList() ?? new();
+                    var fotosOrdenadas = registro.Fotos?
+                        .OrderBy(f => f.Id)
+                        .ToList() ?? new();
 
-                    var evidencias = fotos
+                    var evidencias = fotosOrdenadas
                         .Where(f => string.Equals(f.TipoFoto, "evidencia", StringComparison.OrdinalIgnoreCase))
                         .Select(f => ObtenerRutaFoto(f.NombreArchivo))
                         .Where(r => !string.IsNullOrEmpty(r) && File.Exists(r))
@@ -242,7 +247,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
                     // REGISTRO FOTOGRÁFICO POSTERIOR
 
-                    var seguimientos = fotos
+                    var seguimientos = fotosOrdenadas
                         .Where(f => string.Equals(f.TipoFoto, "seguimiento", StringComparison.OrdinalIgnoreCase))
                         .Select(f => ObtenerRutaFoto(f.NombreArchivo))
                         .Where(r => !string.IsNullOrEmpty(r) && File.Exists(r))
@@ -285,6 +290,28 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         "Layas Software - SST"
                     )
                 );
+        }
+
+        private (string Fondo, string Texto) ObtenerColoresBadgeEstado(string estado)
+        {
+            return estado switch
+            {
+                "Ejecutada" => (Colors.Green.Lighten4, Colors.Green.Darken3),
+                "En proceso" => (Colors.Blue.Lighten4, Colors.Blue.Darken3),
+                "Abierta" => (Colors.Orange.Lighten4, Colors.Orange.Darken3),
+                _ => (Colors.Grey.Lighten3, Colors.Grey.Darken3)
+            };
+        }
+
+        private (string Fondo, string Texto) ObtenerColoresBadgePrioridad(string prioridad)
+        {
+            return prioridad switch
+            {
+                "Alta" => (Colors.Red.Lighten4, Colors.Red.Darken2),
+                "Media" => (Colors.Orange.Lighten4, Colors.Orange.Darken2),
+                "Baja" => (Colors.Grey.Lighten3, Colors.Grey.Darken2),
+                _ => (Colors.Grey.Lighten3, Colors.Grey.Darken3)
+            };
         }
 
         private void CampoSuperior(IContainer container, string titulo, string? valor)
@@ -374,11 +401,19 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
             });
         }
 
+        private string ObtenerWebRoot()
+        {
+            return _environment.WebRootPath
+                ?? Path.Combine(
+                    _environment.ContentRootPath,
+                    "wwwroot"
+                );
+        }
+
         private string ObtenerLogo(string? logo)
         {
             return Path.Combine(
-                _environment.ContentRootPath,
-                "wwwroot",
+                ObtenerWebRoot(),
                 "config",
                 "logo.png"
             );
@@ -387,8 +422,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
         private string ObtenerMarcaAgua()
         {
             return Path.Combine(
-                _environment.ContentRootPath,
-                "wwwroot",
+                ObtenerWebRoot(),
                 "config",
                 "iguana3.png"
             );
@@ -399,14 +433,8 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
             if (string.IsNullOrWhiteSpace(nombreArchivo))
                 return string.Empty;
 
-            var webRoot = _environment.WebRootPath
-                ?? Path.Combine(
-                    _environment.ContentRootPath,
-                    "wwwroot"
-                );
-
             return Path.Combine(
-                webRoot,
+                ObtenerWebRoot(),
                 "seguimientos-rrhh",
                 Path.GetFileName(nombreArchivo)
             );
