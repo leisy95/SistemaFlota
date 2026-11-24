@@ -291,21 +291,21 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                                             .FontColor(PdfColors.VerdeOscuro);
 
                                         contenido.Item()
-                                            .PaddingTop(6)
+                                            .PaddingTop(4)
                                             .Element(c => RenderizarGrillaFotos(c, evidencias.Select(x => x.Ruta).ToList()));
                                     }
 
                                     if (seguimientos.Any())
                                     {
                                         contenido.Item()
-                                            .PaddingTop(evidencias.Any() ? 12 : 0)
+                                            .PaddingTop(evidencias.Any() ? 8 : 0)
                                             .Text("FOTOGRAFÍAS DE SEGUIMIENTO")
                                             .Bold()
                                             .FontSize(9)
                                             .FontColor(PdfColors.VerdeOscuro);
 
                                         contenido.Item()
-                                            .PaddingTop(6)
+                                            .PaddingTop(4)
                                             .Element(c => RenderizarGrillaFotos(c, seguimientos.Select(x => x.Ruta).ToList()));
                                     }
                                 }
@@ -369,22 +369,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                 .Image(ruta)
                 .FitArea();
         }
-
-
-        private void TarjetaFoto(IContainer container, string ruta)
-        {
-            container
-                .Border(0.75f)
-                .BorderColor(PdfColors.GrisClaro)
-                .Background(Colors.White)
-                .Padding(6)
-                .AlignCenter()
-                .AlignMiddle()
-                .MaxHeight(190)
-                .Image(ruta)
-                .FitArea();
-        }
-
 
         private void CampoDetalle(
             IContainer container,
