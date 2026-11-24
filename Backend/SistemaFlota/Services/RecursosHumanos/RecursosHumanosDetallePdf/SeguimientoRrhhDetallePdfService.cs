@@ -1,4 +1,5 @@
-﻿
+﻿using System.Globalization;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -6,8 +7,6 @@ using QuestPDF.Infrastructure;
 using SistemaFlota.Models;
 using SistemaFlota.Services.Pdf.Components;
 using SistemaFlota.Services.Pdf.Styles;
-using System.Globalization;
-using System.IO;
 
 namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 {
@@ -27,8 +26,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
         public async Task<byte[]> GenerarPdfAsync(int id)
         {
-            // CONSULTAR SEGUIMIENTO
-
             var registro = await _context.SeguimientosRrhh
                 .AsNoTracking()
                 .Include(s => s.Fotos)
@@ -39,8 +36,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                     "No se encontró el seguimiento solicitado."
                 );
 
-            // CONFIGURACIÓN EMPRESA
-
             var empresa = await _context.ConfiguracionEmpresa
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -50,14 +45,12 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                     "No existe la configuración de la empresa."
                 );
 
-            // GENERAR PDF
-
             var pdf = Document.Create(document =>
             {
                 document.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(25);
+                    page.Margin(22);
                     page.DefaultTextStyle(x => x.FontSize(9));
 
                     ConstruirDocumento(page, registro, empresa);
@@ -66,8 +59,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
 
             return pdf.GeneratePdf();
         }
-
-        // CONSTRUIR DOCUMENTO
 
         private void ConstruirDocumento(
             PageDescriptor page,
@@ -87,7 +78,7 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
             // CONTENIDO
 
             page.Content()
-                .PaddingTop(10)
+                .PaddingTop(8)
                 .Column(col =>
                 {
                     // ENCABEZADO EMPRESA
@@ -105,346 +96,217 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                         );
                     });
 
-                    // TÍTULO
+                    // TÍTULO Y FOLIO
 
                     col.Item()
-                        .PaddingTop(15)
-                        .AlignCenter()
-                        .Text("FICHA INDIVIDUAL DE SEGUIMIENTO")
-                        .Bold()
-                        .FontSize(14)
-                        .FontColor(PdfColors.VerdeOscuro);
+                        .PaddingTop(12)
+                        .Row(row =>
+                        {
+                            row.RelativeItem().Column(c =>
+                            {
+                                c.Item()
+                                    .Text("FICHA INDIVIDUAL DE SEGUIMIENTO")
+                                    .Bold()
+                                    .FontSize(13)
+                                    .FontColor(PdfColors.VerdeOscuro);
+
+                                c.Item()
+                                    .PaddingTop(2)
+                                    .Text($"Registro N.º {registro.Id}  |  Estado: {registro.Estado ?? "-"}  |  Prioridad: {registro.Prioridad ?? "-"}")
+                                    .FontSize(8.5f)
+                                    .FontColor(PdfColors.GrisOscuro);
+                            });
+                        });
+
+                    // 1. INFORMACIÓN GENERAL Y PROGRAMACIÓN
 
                     col.Item()
-                        .PaddingTop(5)
-                        .AlignCenter()
-                        .Text($"REGISTRO N.º {registro.Id}")
-                        .FontSize(10)
-                        .FontColor(PdfColors.GrisOscuro);
-
-                    // 1. INFORMACIÓN GENERAL
-
-                    col.Item()
-                        .PaddingTop(15)
+                        .PaddingTop(12)
+                        .PreventPageBreak()
                         .Element(container =>
                         {
                             Card.Dibujar(
                                 container,
-                                "1. INFORMACIÓN GENERAL",
+                                "1. INFORMACIÓN GENERAL Y PROGRAMACIÓN",
                                 contenido =>
                                 {
                                     contenido.Item().Row(row =>
                                     {
-                                        row.RelativeItem().Element(c =>
+                                        row.RelativeItem(1.4f).Element(c =>
                                             CampoDetalle(c, "Área", registro.Area));
 
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(c, "Mes", NombreMes(registro.Mes)));
+                                        row.ConstantItem(10);
 
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(c, "Año", registro.Anio.ToString()));
+                                        row.RelativeItem(1.1f).Element(c =>
+                                            CampoDetalle(c, "Periodo", $"{NombreMes(registro.Mes)} {registro.Anio}"));
+
+                                        row.ConstantItem(10);
+
+                                        row.RelativeItem(1.3f).Element(c =>
+                                            CampoDetalle(c, "Fuente", registro.Fuente));
                                     });
 
                                     contenido.Item()
                                         .PaddingTop(8)
                                         .Row(row =>
                                         {
-                                            row.RelativeItem().Element(c =>
-                                                CampoDetalle(c, "Fuente", registro.Fuente));
+                                            row.RelativeItem(1.4f).Element(c =>
+                                                CampoDetalle(c, "Responsable", registro.Responsable));
 
-                                            row.RelativeItem().Element(c =>
-                                                CampoDetalle(c, "Prioridad", registro.Prioridad));
+                                            row.ConstantItem(10);
 
-                                            row.RelativeItem().Element(c =>
-                                                CampoDetalle(c, "Estado", registro.Estado));
+                                            row.RelativeItem(1f).Element(c =>
+                                                CampoDetalle(c, "Fecha de ejecución", registro.FechaEjecucion?.ToString("dd/MM/yyyy")));
+
+                                            row.ConstantItem(10);
+
+                                            row.RelativeItem(1f).Element(c =>
+                                                CampoDetalle(c, "Fecha de seguimiento", registro.FechaSeguimiento?.ToString("dd/MM/yyyy")));
                                         });
                                 }
                             );
                         });
 
-                    // 2. DESCRIPCIÓN
+                    // 2. DESCRIPCIÓN, RIESGO Y PLAN DE ACCIÓN
 
                     col.Item()
-                        .PaddingTop(12)
+                        .PaddingTop(10)
+                        .PreventPageBreak()
                         .Element(container =>
                         {
                             Card.Dibujar(
                                 container,
-                                "2. DESCRIPCIÓN DEL SEGUIMIENTO",
+                                "2. DESCRIPCIÓN, RIESGO Y PLAN DE ACCIÓN",
                                 contenido =>
                                 {
                                     contenido.Item().Element(c =>
-                                        CampoDetalle(
-                                            c,
-                                            "Descripción",
-                                            registro.Descripcion
-                                        )
-                                    );
-                                }
-                            );
-                        });
-
-                    // 3. FACTORES DE RIESGO Y PLAN DE ACCIÓN
-
-                    col.Item()
-                        .PaddingTop(12)
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "3. FACTORES DE RIESGO Y PLAN DE ACCIÓN",
-                                contenido =>
-                                {
-                                    contenido.Item().Element(c =>
-                                        CampoDetalle(
-                                            c,
-                                            "Factor de riesgo",
-                                            registro.FactorRiesgo
-                                        )
-                                    );
+                                        CampoDetalle(c, "Descripción del hallazgo / seguimiento", registro.Descripcion));
 
                                     contenido.Item()
                                         .PaddingTop(8)
-                                        .Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Plan de acción sugerido",
-                                                registro.PlanAccionSugerido
-                                            )
-                                        );
+                                        .Row(row =>
+                                        {
+                                            row.RelativeItem(1f).Element(c =>
+                                                CampoDetalle(c, "Factor de riesgo", registro.FactorRiesgo));
+
+                                            row.ConstantItem(10);
+
+                                            row.RelativeItem(2f).Element(c =>
+                                                CampoDetalle(c, "Plan de acción sugerido", registro.PlanAccionSugerido));
+                                        });
                                 }
                             );
                         });
 
-                    // 4. RESPONSABLE Y PROGRAMACIÓN
+                    // 3. OBSERVACIONES Y AUDITORÍA
 
                     col.Item()
-                        .PaddingTop(12)
+                        .PaddingTop(10)
+                        .PreventPageBreak()
                         .Element(container =>
                         {
                             Card.Dibujar(
                                 container,
-                                "4. RESPONSABLE Y PROGRAMACIÓN",
-                                contenido =>
-                                {
-                                    contenido.Item().Row(row =>
-                                    {
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Responsable",
-                                                registro.Responsable
-                                            )
-                                        );
-
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Fecha de ejecución",
-                                                registro.FechaEjecucion?.ToString("dd/MM/yyyy")
-                                            )
-                                        );
-                                    });
-
-                                    contenido.Item()
-                                        .PaddingTop(8)
-                                        .Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Fecha de seguimiento",
-                                                registro.FechaSeguimiento?.ToString("dd/MM/yyyy")
-                                            )
-                                        );
-                                }
-                            );
-                        });
-
-                    // 5. OBSERVACIONES
-
-                    col.Item()
-                        .PaddingTop(12)
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "5. OBSERVACIONES",
+                                "3. OBSERVACIONES Y REGISTRO",
                                 contenido =>
                                 {
                                     contenido.Item().Element(c =>
-                                        CampoDetalle(
-                                            c,
-                                            "Observaciones",
-                                            registro.Observaciones
-                                        )
-                                    );
-                                }
-                            );
-                        });
-
-                    // 6. INFORMACIÓN DE REGISTRO
-
-                    col.Item()
-                        .PaddingTop(12)
-                        .Element(container =>
-                        {
-                            Card.Dibujar(
-                                container,
-                                "6. INFORMACIÓN DE REGISTRO",
-                                contenido =>
-                                {
-                                    contenido.Item().Row(row =>
-                                    {
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Creado por",
-                                                registro.CreadoPor.ToString()
-                                            )
-                                        );
-
-                                        row.RelativeItem().Element(c =>
-                                            CampoDetalle(
-                                                c,
-                                                "Fecha de creación",
-                                                registro.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
-                                            )
-                                        );
-                                    });
+                                        CampoDetalle(c, "Observaciones", registro.Observaciones));
 
                                     contenido.Item()
                                         .PaddingTop(8)
                                         .Row(row =>
                                         {
                                             row.RelativeItem().Element(c =>
-                                                CampoDetalle(
-                                                    c,
-                                                    "Modificado por",
-                                                    registro.ModificadoPor?.ToString()
-                                                )
-                                            );
+                                                CampoDetalle(c, "Creado por", registro.CreadoPor.ToString()));
+
+                                            row.ConstantItem(10);
 
                                             row.RelativeItem().Element(c =>
-                                                CampoDetalle(
-                                                    c,
-                                                    "Fecha de modificación",
-                                                    registro.FechaModificacion?.ToString("dd/MM/yyyy HH:mm")
-                                                )
-                                            );
+                                                CampoDetalle(c, "Fecha de creación", registro.FechaCreacion.ToString("dd/MM/yyyy HH:mm")));
+
+                                            row.ConstantItem(10);
+
+                                            row.RelativeItem().Element(c =>
+                                                CampoDetalle(c, "Modificado por", registro.ModificadoPor?.ToString()));
+
+                                            row.ConstantItem(10);
+
+                                            row.RelativeItem().Element(c =>
+                                                CampoDetalle(c, "Fecha de modificación", registro.FechaModificacion?.ToString("dd/MM/yyyy HH:mm")));
                                         });
                                 }
                             );
                         });
 
-                    // 7. EVIDENCIAS FOTOGRÁFICAS
+                    // 4. EVIDENCIAS FOTOGRÁFICAS
 
                     col.Item()
-                        .PaddingTop(12)
+                        .PaddingTop(10)
                         .Element(container =>
                         {
                             Card.Dibujar(
                                 container,
-                                "7. EVIDENCIAS FOTOGRÁFICAS",
+                                "4. EVIDENCIAS FOTOGRÁFICAS",
                                 contenido =>
                                 {
-                                    var fotos = registro.Fotos.ToList();
+                                    var fotos = registro.Fotos?.ToList() ?? new();
 
                                     if (!fotos.Any())
                                     {
                                         contenido.Item()
                                             .Text("No hay fotografías registradas.")
-                                            .FontSize(9);
-
+                                            .FontSize(8.5f)
+                                            .FontColor(PdfColors.GrisOscuro);
                                         return;
                                     }
 
-                                    // EVIDENCIAS
-
                                     var evidencias = fotos
-                                        .Where(f => f.TipoFoto == "evidencia")
-                                        .Select(f => new
-                                        {
-                                            f.NombreArchivo,
-                                            Ruta = ObtenerRutaFoto(f.NombreArchivo)
-                                        })
-                                        .Where(f => File.Exists(f.Ruta))
+                                        .Where(f => string.Equals(f.TipoFoto, "evidencia", StringComparison.OrdinalIgnoreCase))
+                                        .Select(f => new { f.NombreArchivo, Ruta = ObtenerRutaFoto(f.NombreArchivo) })
+                                        .Where(f => !string.IsNullOrEmpty(f.Ruta) && File.Exists(f.Ruta))
                                         .ToList();
+
+                                    var seguimientos = fotos
+                                        .Where(f => string.Equals(f.TipoFoto, "seguimiento", StringComparison.OrdinalIgnoreCase))
+                                        .Select(f => new { f.NombreArchivo, Ruta = ObtenerRutaFoto(f.NombreArchivo) })
+                                        .Where(f => !string.IsNullOrEmpty(f.Ruta) && File.Exists(f.Ruta))
+                                        .ToList();
+
+                                    if (!evidencias.Any() && !seguimientos.Any())
+                                    {
+                                        contenido.Item()
+                                            .Text("No se encontraron los archivos fotográficos en el servidor.")
+                                            .FontSize(8.5f)
+                                            .FontColor(PdfColors.GrisOscuro);
+                                        return;
+                                    }
 
                                     if (evidencias.Any())
                                     {
                                         contenido.Item()
                                             .Text("EVIDENCIAS INICIALES")
                                             .Bold()
-                                            .FontSize(10)
+                                            .FontSize(9)
                                             .FontColor(PdfColors.VerdeOscuro);
 
                                         contenido.Item()
-                                            .PaddingTop(8)
-                                            .Grid(grid =>
-                                            {
-                                                grid.Columns(2);
-                                                grid.Spacing(10);
-
-                                                foreach (var foto in evidencias)
-                                                {
-                                                    grid.Item()
-                                                        .Height(150)
-                                                        .Border(1)
-                                                        .BorderColor(PdfColors.GrisClaro)
-                                                        .Padding(5)
-                                                        .Image(File.ReadAllBytes(foto.Ruta))
-                                                        .FitArea();
-                                                }
-                                            });
+                                            .PaddingTop(6)
+                                            .Element(c => RenderizarGrillaFotos(c, evidencias.Select(x => x.Ruta).ToList()));
                                     }
-
-                                    // FOTOGRAFÍAS DE SEGUIMIENTO
-
-                                    var seguimientos = fotos
-                                        .Where(f => f.TipoFoto == "seguimiento")
-                                        .Select(f => new
-                                        {
-                                            f.NombreArchivo,
-                                            Ruta = ObtenerRutaFoto(f.NombreArchivo)
-                                        })
-                                        .Where(f => File.Exists(f.Ruta))
-                                        .ToList();
 
                                     if (seguimientos.Any())
                                     {
                                         contenido.Item()
-                                            .PaddingTop(15)
+                                            .PaddingTop(evidencias.Any() ? 12 : 0)
                                             .Text("FOTOGRAFÍAS DE SEGUIMIENTO")
                                             .Bold()
-                                            .FontSize(10)
+                                            .FontSize(9)
                                             .FontColor(PdfColors.VerdeOscuro);
 
                                         contenido.Item()
-                                            .PaddingTop(8)
-                                            .Grid(grid =>
-                                            {
-                                                grid.Columns(2);
-                                                grid.Spacing(10);
-
-                                                foreach (var foto in seguimientos)
-                                                {
-                                                    grid.Item()
-                                                        .Height(150)
-                                                        .Border(1)
-                                                        .BorderColor(PdfColors.GrisClaro)
-                                                        .Padding(5)
-                                                        .Image(File.ReadAllBytes(foto.Ruta))
-                                                        .FitArea();
-                                                }
-                                            });
-                                    }
-
-                                    // AVISAR SI NO SE ENCONTRARON ARCHIVOS
-
-                                    if (!evidencias.Any() && !seguimientos.Any())
-                                    {
-                                        contenido.Item()
-                                            .Text("No se encontraron los archivos fotográficos en el servidor.")
-                                            .FontSize(9);
+                                            .PaddingTop(6)
+                                            .Element(c => RenderizarGrillaFotos(c, seguimientos.Select(x => x.Ruta).ToList()));
                                     }
                                 }
                             );
@@ -462,7 +324,52 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                 );
         }
 
-        // CAMPO DE INFORMACIÓN
+        private void RenderizarGrillaFotos(IContainer container, List<string> rutas)
+        {
+            container.Column(col =>
+            {
+                for (int i = 0; i < rutas.Count; i += 2)
+                {
+                    var primera = rutas[i];
+                    var segunda = i + 1 < rutas.Count ? rutas[i + 1] : null;
+
+                    col.Item()
+                        .PaddingBottom(10)
+                        .Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Element(c => TarjetaFoto(c, primera));
+
+                            row.ConstantItem(10);
+
+                            if (segunda != null)
+                            {
+                                row.RelativeItem()
+                                    .Element(c => TarjetaFoto(c, segunda));
+                            }
+                            else
+                            {
+                                row.RelativeItem();
+                            }
+                        });
+                }
+            });
+        }
+
+        private void TarjetaFoto(IContainer container, string ruta)
+        {
+            container
+                .Border(0.75f)
+                .BorderColor(PdfColors.GrisClaro)
+                .Background(Colors.White)
+                .Padding(6)
+                .AlignCenter()
+                .AlignMiddle()
+                .MaxHeight(190)
+                .Image(ruta)
+                .FitArea();
+        }
+
 
         private void CampoDetalle(
             IContainer container,
@@ -478,18 +385,16 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                     .FontColor(PdfColors.VerdeOscuro);
 
                 col.Item()
-                    .PaddingTop(3)
+                    .PaddingTop(2)
                     .Text(
                         string.IsNullOrWhiteSpace(valor)
                             ? "No registrado"
-                            : valor
+                            : valor.Trim()
                     )
-                    .FontSize(9)
+                    .FontSize(8.8f)
                     .FontColor(PdfColors.GrisOscuro);
             });
         }
-
-        // RUTAS DE ARCHIVOS
 
         private string ObtenerLogo(string? logo)
         {
@@ -528,8 +433,6 @@ namespace SistemaFlota.Services.RecursosHumanos.RecursosHumanosDetallePdf
                 Path.GetFileName(nombreArchivo)
             );
         }
-
-        // NOMBRE DEL MES
 
         private string NombreMes(int mes)
         {
