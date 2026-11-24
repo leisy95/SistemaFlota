@@ -299,7 +299,7 @@ export class GestionSncComponent implements OnInit {
             ordenProduccion: '', referencia: '', cantidadKg: null, cliente: '',
             linea: '', material: '', proceso: '', descripcionSalida: '',
             tipoDefecto: '', impacto: '', causaRaiz: '', nombreReporta: '',
-            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades', fechaRealReporte: 'yy'
+            cantidadReportadaKg: null, unidadCantidadReportada: 'Unidades', fechaRealReporte: ''
         };
         this.evidenciaPdf = null;
         this.firmaReportaUrl = null;
