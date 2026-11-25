@@ -4,6 +4,7 @@ import { Observable, of, shareReplay } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   CatalogosReferencia,
+  DescripcionInterpretada,
   ReferenciaDecodificada
 } from '../../models/referencias/referencia-decodificada.model';
 
@@ -24,11 +25,20 @@ export class DecodificadorReferenciasService {
     return this.http.post<ReferenciaDecodificada[]>(`${this.base}/decodificar-lote`, { codigos });
   }
 
-  
+  interpretarDescripcion(descripcion: string): Observable<DescripcionInterpretada> {
+    return this.http.post<DescripcionInterpretada>(`${this.base}/interpretar-descripcion`, { descripcion });
+  }
+
+  interpretarDescripcionesLote(descripciones: string[]): Observable<DescripcionInterpretada[]> {
+    if (!descripciones.length) return of([]);
+    return this.http.post<DescripcionInterpretada[]>(`${this.base}/interpretar-descripciones-lote`, { descripciones });
+  }
+
+  // Los catálogos casi no cambian: se piden una sola vez y se reutilizan.
   catalogos(): Observable<CatalogosReferencia> {
     this.catalogos$ ??= this.http
       .get<CatalogosReferencia>(`${this.base}/catalogos`)
       .pipe(shareReplay(1));
     return this.catalogos$;
   }
-  }
+}

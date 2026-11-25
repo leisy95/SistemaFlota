@@ -31,3 +31,20 @@ export interface CatalogosReferencia {
   colores: ItemCatalogoReferencia[];
   sufijos: ItemCatalogoReferencia[];
 }
+export interface DescripcionInterpretada {
+  descripcion: string;
+  valida: boolean;
+  errores: string[];
+  advertencias: string[];
+  material: 'Original' | 'PostIndustrial' | 'Posconsumo' | 'Compostable' | 'Mezcla' | null;
+  biodegradable: boolean;
+  impreso: boolean;
+  fuelleLateral: number | null;
+  fuelleFondo: number | null;
+  fuelleSuperior: number | null;
+  solapa: number | null;
+  troquel: 'Ovalo' | 'Gancho' | 'Asa' | null;
+  cintaSeguridad: boolean;
+  cintaPegaDespega: boolean;
+  codigosSinDefinir: string[];
+}
