@@ -156,9 +156,6 @@ builder.Services.AddScoped<ITrazabilidadPdfService, TrazabilidadPdfService>();
 builder.Services.AddScoped<ICostosFletesService, CostosFletesService>();
 builder.Services.AddScoped<ICostosFletesPdfService, CostosFletesPdfService>();
 
-// Para Kasoft
-builder.Services.AddScoped<IInformacionKasoftService, InformacionKasoftService>();
-
 // Para calidad con info de kasoft
 builder.Services.AddScoped<IInformacionKasoftService, InformacionKasoftService>();
 builder.Services.AddScoped<IOrdenProduccionService, OrdenProduccionService>();
