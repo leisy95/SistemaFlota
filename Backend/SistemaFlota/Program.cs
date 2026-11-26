@@ -64,6 +64,7 @@ using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
 using SistemaFlota.Services.Produccion.ControlRetal;
 using SistemaFlota.Services.Produccion.LecturaImagen;
+using SistemaFlota.Services.Referencias;
 using System.Text;
 
 
@@ -253,6 +254,8 @@ builder.Services.AddScoped<EntradasBodegaService>();
 builder.Services.AddScoped<MezclaOrdenService>();
 builder.Services.AddScoped<SincronizacionFgc008Service>();
 builder.Services.AddScoped<ImportacionExcelOrdenesService>();
+builder.Services.AddSingleton<IReferenciaDecoderService, ReferenciaDecoderService>();
+builder.Services.AddSingleton<IDescripcionReferenciaService, DescripcionReferenciaService>();
 
 builder.Services.AddHostedService<RecordatorioAutorizacionesService>();
 builder.Services.AddHostedService<SincronizacionEntradasBodegaService>();
