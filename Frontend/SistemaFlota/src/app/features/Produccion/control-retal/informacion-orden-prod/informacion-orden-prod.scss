@@ -1,0 +1,110 @@
+:host {
+    display: block;
+}
+
+.informacion-orden {
+    padding: 24px;
+    background: var(--blanco);
+    border-radius: 14px;
+    font-family: inherit;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 28px;
+
+    .icono-orden {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-suave);
+        color: var(--verde-oscuro);
+        border-radius: 12px;
+        font-size: 21px;
+    }
+
+    h2 {
+        margin: 0;
+        color: var(--azul-oscuro);
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    p {
+        margin: 5px 0 0;
+        color: var(--gris-medio);
+        font-size: 13px;
+    }
+}
+
+.contenido-orden {
+    padding: 20px;
+    background: var(--fondo);
+    border: 1px solid var(--gris-claro);
+    border-radius: 10px;
+
+    .etiqueta {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--gris-oscuro);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .referencia {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        background: var(--blanco);
+        border: 1px solid var(--gris-claro);
+        border-radius: 8px;
+        color: var(--verde-oscuro);
+
+        i {
+            font-size: 19px;
+        }
+
+        strong {
+            font-size: 17px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+    }
+}
+
+.acciones {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    .btn-cerrar {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 8px;
+        background: var(--verde-oscuro);
+        color: var(--blanco);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+            background: var(--verde-oscuro-hover);
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .informacion-orden {
+        padding: 18px;
+    }
+
+    .contenido-orden .referencia strong {
+        font-size: 14px;
+    }
+}

@@ -86,7 +86,9 @@
 
             </div>
 
+            <!-- ACCIONES CÁMARA -->
             <div class="acciones-camara" *ngIf="camaraActiva">
+
                 <button class="btn-secundario" (click)="detenerCamara()">
                     Cancelar
                 </button>
@@ -97,6 +99,7 @@
                 </button>
             </div>
 
+            <!-- ACCIONES IMAGEN -->
             <div class="acciones-camara" *ngIf="imagenCapturada && !camaraActiva">
 
                 <button class="btn-secundario" (click)="repetirCaptura()">
@@ -106,7 +109,9 @@
 
                 <button class="btn-principal" (click)="reconocerTexto()" [disabled]="cargandoOCR">
 
-                    <i class="fa-solid" [ngClass]="cargandoOCR ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'">
+                    <i class="fa-solid" [ngClass]="cargandoOCR
+                       ? 'fa-spinner fa-spin'
+                       : 'fa-wand-magic-sparkles'">
                     </i>
 
                     {{ cargandoOCR ? 'Reconociendo texto...' : 'Reconocer texto' }}
@@ -118,8 +123,7 @@
 
         </section>
 
-
-        <!-- SECCIÓN DE INFORMACIÓN IDENTIFICADA -->
+        <!-- INFORMACIÓN IDENTIFICADA -->
         <section class="panel panel-referencia">
 
             <div class="panel-titulo">
@@ -130,6 +134,7 @@
                     </h3>
                     <p>Verifica y corrige los datos reconocidos en la fotografía.</p>
                 </div>
+
                 <span class="etiqueta-ocr">OCR</span>
             </div>
 
@@ -137,113 +142,94 @@
 
                 <div class="campo">
                     <label for="numeroOrden">Número de orden</label>
-                    <input id="numeroOrden" type="text" [(ngModel)]="numeroOrden" placeholder="Número de orden">
+                    <input id="numeroOrden" name="numeroOrden" type="text" [(ngModel)]="numeroOrden"
+                        placeholder="Número de orden">
                 </div>
 
                 <div class="campo">
-                    <label for="codigo">Código</label>
-                    <input id="codigo" type="text" [(ngModel)]="codigo" placeholder="Código del material">
+                    <label for="codigo">Peso</label>
+                    <input id="codigo" name="codigo" type="text" [(ngModel)]="codigo" placeholder="Peso">
                 </div>
 
                 <div class="campo">
                     <label for="nombreOperario">Nombre del operario</label>
-                    <input id="nombreOperario" type="text" [(ngModel)]="nombreOperario"
+                    <input id="nombreOperario" name="nombreOperario" type="text" [(ngModel)]="nombreOperario"
                         placeholder="Nombre del operario">
                 </div>
 
                 <div class="campo">
                     <label for="turno">Turno</label>
-                    <select id="turno" [(ngModel)]="turno">
-
-                        <option value="">Seleccionar turno</option>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                        <option value="Noche">Noche</option>
-                    </select>
+                    <input id="turno" name="turno" type="text" [(ngModel)]="turno" placeholder="Turno">
                 </div>
 
             </div>
 
-            <button class="btn-consultar" (click)="buscarDatos()" [disabled]="!numeroOrden.trim() ||
-                    !codigo.trim() ||
-                    !nombreOperario.trim() ||
-                    !turno">
-
-                <i class="fa-solid fa-magnifying-glass"></i>
-                Procesar información
-            </button>
-
             <div class="ayuda">
                 <i class="fa-solid fa-circle-info"></i>
-                Los datos reconocidos pueden editarse antes de procesar la información.
+                Los datos reconocidos pueden editarse antes de registrar el movimiento.
             </div>
 
         </section>
 
-
     </div>
 
-    <!-- INFORMACIÓN IDENTIFICADA -->
+    <!-- RESULTADO DEL OCR -->
     <section class="panel panel-datos" *ngIf="datosEncontrados">
 
         <div class="panel-titulo">
             <div>
                 <h3>
                     <i class="fa-solid fa-database"></i>
-                    Información del material
+                    Información identificada
                 </h3>
-                <p>Datos de demostración para la referencia procesada.</p>
+                <p>Verifica los datos antes de registrar el movimiento.</p>
             </div>
 
             <span class="estado estado-optimo">
                 <i class="fa-solid fa-circle-check"></i>
-                {{ datosReferencia.estado }}
+                Información reconocida
             </span>
         </div>
 
         <div class="datos-grid">
 
             <div class="dato">
-                <span>Tipo</span>
-                <strong>{{ datosReferencia.tipo }}</strong>
+                <span>Número de orden</span>
+                <strong>{{ numeroOrden }}</strong>
             </div>
 
             <div class="dato">
-                <span>Material</span>
-                <strong>{{ datosReferencia.material }}</strong>
+                <span>Peso</span>
+                <strong>{{ codigo }}</strong>
             </div>
 
             <div class="dato">
-                <span>Densidad</span>
-                <strong>{{ datosReferencia.densidad }}</strong>
+                <span>Operario</span>
+                <strong>{{ nombreOperario }}</strong>
             </div>
 
             <div class="dato">
-                <span>Color</span>
-                <strong>{{ datosReferencia.color }}</strong>
-            </div>
-
-            <div class="dato">
-                <span>Impresión</span>
-                <strong>{{ datosReferencia.impresion }}</strong>
-            </div>
-
-            <div class="dato dato-kilos">
-                <span>Kilogramos</span>
-                <strong>{{ datosReferencia.kilos }} kg</strong>
+                <span>Turno</span>
+                <strong>{{ turno }}</strong>
             </div>
 
         </div>
 
         <div class="acciones-finales">
+
             <button class="btn-secundario" (click)="datosEncontrados = false">
                 Cancelar
             </button>
 
-            <button class="btn-principal" (click)="registrarMovimiento()">
+            <button class="btn-principal" (click)="consultarOrden()" [disabled]="!numeroOrden.trim() ||
+                               !codigo.trim() ||
+                               !nombreOperario.trim() ||
+                               !turno.trim()">
+
                 <i class="fa-solid fa-floppy-disk"></i>
-                Registrar movimiento
+                Consultar orden
             </button>
+
         </div>
 
     </section>

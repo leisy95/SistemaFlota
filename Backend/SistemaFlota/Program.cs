@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Google.Cloud.Vision.V1;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -62,6 +62,7 @@ using SistemaFlota.Services.InventarioBodega.InventarioBodegaInfo;
 using SistemaFlota.Services.InventarioBodega.SalidasBodega;
 using SistemaFlota.Services.Notificaciones;
 using SistemaFlota.Services.Pdf.RecepcionMercancia;
+using SistemaFlota.Services.Produccion.ControlRetal;
 using SistemaFlota.Services.Produccion.LecturaImagen;
 using System.Text;
 
@@ -281,6 +282,8 @@ builder.Services.AddSingleton<ImageAnnotatorClient>(_ =>
 
 builder.Services.AddScoped<ILectorReferenciaService, LectorReferenciaService>();
 builder.Services.AddScoped<IReconocedorReferencia, ReconocedorReferenciaService>();
+
+builder.Services.AddScoped<IControlRetalService, ControlRetalService>();
 
 // Zona horaria Colombia UTC-5
 builder.Services.AddScoped<ISalidaNoConformeRepository, SalidaNoConformeRepository>();

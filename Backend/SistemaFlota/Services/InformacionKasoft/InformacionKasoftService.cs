@@ -10,14 +10,16 @@ namespace SistemaFlota.Services.InformacionKasoft
     {
         private readonly string _connectionString;
 
+
         public InformacionKasoftService(IConfiguration configuration)
         {
             _connectionString = configuration
                 .GetConnectionString("EmpresaConnection")
                 ?? throw new InvalidOperationException(
-                    "No está configurada la variable ConnectionStrings__EmpresaConnection."
+                    "No está configurada la conexión EmpresaConnection."
                 );
         }
+
 
         // Consultas generales de las siete vistas
         public Task<List<StockReferenciaDto>> ObtenerStocksPorReferenciaAsync()

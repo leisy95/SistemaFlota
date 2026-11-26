@@ -100,7 +100,7 @@ namespace SistemaFlota
         public DbSet<SalidaNoConforme> SalidasNoConforme { get; set; }
         public DbSet<SalidaNoConformeEvidencia> SalidasNoConformeEvidencias { get; set; }
 
-        // -- Compras No Formalizadas --
+        //  Compras No Formalizadas
         public DbSet<ProveedorNoFormalizado> ProveedoresNoFormalizados { get; set; }
         public DbSet<MaterialNoFormalizado> MaterialesNoFormalizados { get; set; }
         public DbSet<OrdenCompraNoFormalizada> OrdenesCompraNoFormalizadas { get; set; }

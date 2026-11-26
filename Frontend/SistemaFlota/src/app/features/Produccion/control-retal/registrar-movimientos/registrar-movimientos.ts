@@ -5,17 +5,24 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
+  ChangeDetectorRef
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { LectorReferenciaService } from '../../../../core/services/produccion/lector-referencia.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ControlRetalService } from '../../../../core/services/produccion/control-retal/control-retal.service';
+import { InformacionOrdenProd } from '../informacion-orden-prod/informacion-orden-prod';
 
 @Component({
   selector: 'app-registrar-movimientos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatDialogModule
+  ],
   templateUrl: './registrar-movimientos.html',
   styleUrl: './registrar-movimientos.scss',
 })
@@ -29,14 +36,13 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
   camaraActiva = false;
   imagenCapturada: string | null = null;
 
-  // Texto completo devuelto por el OCR
   textoReconocido = '';
 
   cargandoOCR = false;
   mensajeError = '';
   mensajeExito = '';
 
-  // Campos editables identificados en la fotografía
+  // Datos reconocidos por OCR
   numeroOrden = '';
   codigo = '';
   nombreOperario = '';
@@ -55,11 +61,15 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
   };
 
   datosEncontrados = false;
+  cargandoOrden = false;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly lectorReferenciaService: LectorReferenciaService
+    private readonly lectorReferenciaService: LectorReferenciaService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly controlRetalService: ControlRetalService,
+    private readonly dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
@@ -69,6 +79,8 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
       if (proceso) {
         this.proceso = proceso;
       }
+
+      this.cdr.markForCheck();
     });
   }
 
@@ -87,6 +99,7 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
       });
 
       this.camaraActiva = true;
+      this.cdr.detectChanges();
 
       setTimeout(() => {
         if (this.videoCamara?.nativeElement && this.stream) {
@@ -100,6 +113,8 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
 
       this.mensajeError =
         'No fue posible acceder a la cámara. Verifica los permisos del navegador.';
+
+      this.cdr.detectChanges();
     }
   }
 
@@ -109,6 +124,7 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
 
     if (!video || !canvas || !video.videoWidth) {
       this.mensajeError = 'La cámara todavía no está lista.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -124,10 +140,11 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
     this.imagenCapturada = canvas.toDataURL('image/jpeg', 0.9);
 
     this.detenerCamara();
-
     this.limpiarDatos();
 
     this.mensajeExito = 'Imagen capturada correctamente.';
+
+    this.cdr.detectChanges();
   }
 
   private async dataUrlAArchivo(
@@ -145,53 +162,86 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
     );
   }
 
-  async reconocerTexto(): Promise<void> {
+  reconocerTexto(): void {
 
-    if (!this.imagenCapturada) {
-      this.mensajeError = 'Primero debes capturar una imagen.';
+    if (!this.imagenCapturada || this.cargandoOCR) {
+      if (!this.imagenCapturada) {
+        this.mensajeError = 'Primero debes capturar una imagen.';
+      }
       return;
     }
 
     this.cargandoOCR = true;
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.datosEncontrados = false;
 
-    try {
+    this.cdr.detectChanges();
 
-      const archivo = await this.dataUrlAArchivo(
-        this.imagenCapturada
-      );
+    this.dataUrlAArchivo(this.imagenCapturada)
+      .then(archivo => {
 
-      const respuesta = await firstValueFrom(
-        this.lectorReferenciaService.leerReferencia(archivo)
-      );
+        this.lectorReferenciaService.leerReferencia(archivo).subscribe({
 
-      this.textoReconocido = (respuesta?.texto ?? '').trim();
+          next: (respuesta) => {
 
-      if (!this.textoReconocido) {
-        this.mensajeError =
-          'No se pudo reconocer información. Puedes completar los campos manualmente.';
-        return;
-      }
+            console.log('Respuesta OCR:', respuesta);
 
-      // Por ahora conservamos el texto OCR completo.
-      // Los campos se pueden completar o corregir manualmente.
-      this.mensajeExito =
-        'Lectura finalizada. Verifica y completa los cuatro campos de información.';
+            if (!respuesta?.leidaCorrectamente) {
+              this.mensajeError =
+                respuesta?.mensaje || 'No fue posible reconocer los datos.';
 
-    } catch (error) {
+              this.datosEncontrados = false;
+              this.cargandoOCR = false;
+              this.cdr.detectChanges();
+              return;
+            }
 
-      console.error(
-        'Error al leer referencia en el backend:',
-        error
-      );
+            this.textoReconocido = respuesta.texto ?? '';
+            this.numeroOrden = respuesta.numeroOrden ?? '';
+            this.codigo = respuesta.codigo ?? '';
+            this.nombreOperario = respuesta.nombreOperario ?? '';
+            this.turno = respuesta.turno ?? '';
 
-      this.mensajeError =
-        'No fue posible leer la imagen. Puedes completar los campos manualmente.';
+            this.datosEncontrados = true;
 
-    } finally {
-      this.cargandoOCR = false;
-    }
+            this.mensajeExito =
+              'Datos reconocidos correctamente. Verifica la información.';
+
+            console.log('Datos asignados:', {
+              numeroOrden: this.numeroOrden,
+              codigo: this.codigo,
+              nombreOperario: this.nombreOperario,
+              turno: this.turno
+            });
+
+            this.cargandoOCR = false;
+            this.cdr.detectChanges();
+          },
+
+          error: (error) => {
+
+            console.error('Error al leer referencia:', error);
+
+            this.datosEncontrados = false;
+            this.mensajeError =
+              'No fue posible leer la imagen. Puedes completar los campos manualmente.';
+
+            this.cargandoOCR = false;
+            this.cdr.detectChanges();
+          }
+        });
+
+      })
+      .catch(error => {
+
+        console.error('Error al convertir imagen:', error);
+
+        this.mensajeError = 'No fue posible procesar la imagen.';
+        this.cargandoOCR = false;
+        this.cdr.detectChanges();
+
+      });
   }
 
   buscarDatos(): void {
@@ -205,7 +255,7 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
     }
 
     if (!this.codigo.trim()) {
-      this.mensajeError = 'Debes ingresar el código.';
+      this.mensajeError = 'Debes ingresar el peso.';
       return;
     }
 
@@ -214,45 +264,80 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.turno) {
-      this.mensajeError = 'Debes seleccionar el turno.';
+    if (!this.turno.trim()) {
+      this.mensajeError = 'Debes ingresar el turno.';
       return;
     }
 
     this.datosEncontrados = true;
 
-    this.mensajeExito =
-      'Información validada correctamente.';
+    this.mensajeExito = 'Información validada correctamente.';
+
+    this.cdr.detectChanges();
   }
 
-  registrarMovimiento(): void {
+  consultarOrden(): void {
 
     if (
       !this.numeroOrden.trim() ||
       !this.codigo.trim() ||
       !this.nombreOperario.trim() ||
-      !this.turno ||
+      !this.turno.trim() ||
       !this.datosEncontrados
     ) {
+
       this.mensajeError =
         'Primero debes completar y procesar la información.';
+
+      this.cdr.detectChanges();
       return;
     }
 
-    // Pendiente: conectar con el servicio de registro de movimientos.
-    this.mensajeExito =
-      'Demostración: la información está lista para registrarse.';
+    const numop = Number(this.numeroOrden.trim());
 
-    console.log('Información del movimiento:', {
-      proceso: this.proceso,
-      numeroOrden: this.numeroOrden,
-      codigo: this.codigo,
-      nombreOperario: this.nombreOperario,
-      turno: this.turno
+    if (!Number.isInteger(numop) || numop <= 0) {
+      this.mensajeError = 'El número de orden no es válido.';
+      return;
+    }
+
+    this.cargandoOrden = true;
+    this.mensajeError = '';
+    this.mensajeExito = '';
+
+    this.controlRetalService.consultarOrden(numop).subscribe({
+
+      next: (respuesta) => {
+
+        this.dialog.open(InformacionOrdenProd, {
+          width: '600px',
+          maxWidth: '95vw',
+          data: {
+            referencia: respuesta.refer
+          }
+        });
+
+        this.cargandoOrden = false;
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+
+        console.error('Error al consultar la orden:', error);
+
+        this.mensajeError =
+          error.status === 404
+            ? 'No se encontró la orden de producción.'
+            : 'Error al consultar la orden. Intenta nuevamente.';
+
+        this.cargandoOrden = false;
+        this.cdr.detectChanges();
+      }
+
     });
   }
 
   private limpiarDatos(): void {
+
     this.textoReconocido = '';
 
     this.numeroOrden = '';
@@ -261,6 +346,7 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
     this.turno = '';
 
     this.datosEncontrados = false;
+
   }
 
   repetirCaptura(): void {
@@ -271,6 +357,8 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
 
     this.mensajeError = '';
     this.mensajeExito = '';
+
+    this.cdr.detectChanges();
 
     this.abrirCamara();
   }
@@ -286,6 +374,7 @@ export class RegistrarMovimientos implements OnInit, OnDestroy {
   }
 
   volver(): void {
+
     this.detenerCamara();
 
     this.router.navigate([

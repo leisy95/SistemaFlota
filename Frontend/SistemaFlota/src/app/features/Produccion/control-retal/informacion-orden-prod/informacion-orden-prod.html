@@ -1,0 +1,27 @@
+<div class="informacion-orden">
+    <div class="modal-header">
+        <div class="icono-orden">
+            <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+
+        <div>
+            <h2>Información de la orden</h2>
+            <p>Datos de referencia de producción</p>
+        </div>
+    </div>
+
+    <div class="contenido-orden">
+        <span class="etiqueta">Referencia de producción</span>
+
+        <div class="referencia">
+            <i class="fa-solid fa-barcode"></i>
+            <strong>{{ referencia || 'Sin referencia' }}</strong>
+        </div>
+    </div>
+
+    <div class="acciones">
+        <button type="button" class="btn-cerrar" (click)="cerrar()">
+            Cerrar
+        </button>
+    </div>
+</div>

@@ -65,19 +65,27 @@ namespace SistemaFlota.Services.Produccion.LecturaImagen
                 };
             }
 
-            // Preparar respuesta para Angular.
-            // La extracción automática de campos se implementará después.
+            // Separar el texto reconocido por líneas
+            var lineas = texto
+                .Split(
+                    new[] { '\r', '\n' },
+                    StringSplitOptions.RemoveEmptyEntries
+                )
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToArray();
+
             return new LectorReferenciaDto
             {
                 Texto = texto,
 
-                NumeroOrden = string.Empty,
-                Codigo = string.Empty,
-                NombreOperario = string.Empty,
-                Turno = string.Empty,
+                NumeroOrden = lineas.Length > 0 ? lineas[0] : "",
+                Codigo = lineas.Length > 1 ? lineas[1] : "",
+                NombreOperario = lineas.Length > 2 ? lineas[2] : "",
+                Turno = lineas.Length > 3 ? lineas[3] : "",
 
                 LeidaCorrectamente = true,
-                Mensaje = "Texto reconocido correctamente. Verifica los datos."
+                Mensaje = "Datos reconocidos correctamente. Verifica la información."
             };
         }
     }
